@@ -149,6 +149,7 @@ public class Plan implements Serializable {
         if (priority == null) priority = Constants.JOB_PRIORITY_NORMAL;
         for (URLRecord record : seedURLs) {
             if (record.category == null) record.category = URLCategory.TEXT;
+            if (record.priority == null) record.priority = priority;
         }
         return true;
     }

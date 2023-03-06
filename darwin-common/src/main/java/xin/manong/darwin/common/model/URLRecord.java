@@ -42,7 +42,7 @@ public class URLRecord implements Serializable {
      */
     @JSONField(name = "priority")
     @JsonProperty("priority")
-    public Integer priority = Constants.JOB_PRIORITY_NORMAL;
+    public Integer priority;
 
     /**
      * 抓取URL
@@ -78,6 +78,13 @@ public class URLRecord implements Serializable {
     @JSONField(name = "user_defined_info")
     @JsonProperty("user_defined_info")
     public Map<String, Object> userDefinedInfo = new HashMap<>();
+
+    public URLRecord() {
+    }
+
+    public URLRecord(String url) {
+        this.url = url;
+    }
 
     /**
      * 检测URLRecord有效性
