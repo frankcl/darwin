@@ -1,0 +1,11 @@
+spring:
+  application:
+    name: darwin-web-server
+  profiles:
+    active: @profileActive@
+    include: service,service-@profileActive@
+  server: 8080
+
+app:
+  web:
+    name: darwin-web-server

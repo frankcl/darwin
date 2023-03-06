@@ -1,0 +1,10 @@
+weapon:
+  aliyun:
+    oss:
+      client:
+        default:
+          dynamic: false
+          endpoint: http://oss-cn-hangzhou.aliyuncs.com
+          socket-timeout-ms: 3000
+          connection-timeout-ms: 3000
+          retry-cnt: 3
