@@ -27,7 +27,20 @@ public class Job implements Serializable {
      */
     @JSONField(name = "priority")
     @JsonProperty("priority")
-    public Integer priority = Constants.JOB_PRIORITY_NORMAL;
+    public Integer priority = Constants.PRIORITY_NORMAL;
+
+    /**
+     * 创建时间
+     */
+    @JSONField(name = "create_time")
+    @JsonProperty("create_time")
+    public Long createTime;
+    /**
+     * 更新时间
+     */
+    @JSONField(name = "update_time")
+    @JsonProperty("update_time")
+    public Long updateTime;
 
     /**
      * 任务ID
@@ -90,7 +103,7 @@ public class Job implements Serializable {
             logger.error("seed url list are empty");
             return false;
         }
-        if (priority == null) priority = Constants.JOB_PRIORITY_NORMAL;
+        if (priority == null) priority = Constants.PRIORITY_NORMAL;
         return true;
     }
 }

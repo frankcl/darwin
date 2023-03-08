@@ -9,9 +9,9 @@ package xin.manong.darwin.common;
 public class Constants {
 
     /**
-     * 爬虫任务优先级
+     * 数据爬取优先级
      */
-    public static final int JOB_PRIORITY_HIGH = 0;
-    public static final int JOB_PRIORITY_NORMAL = 1;
-    public static final int JOB_PRIORITY_LOW = 2;
+    public static final int PRIORITY_HIGH = 0;
+    public static final int PRIORITY_NORMAL = 1;
+    public static final int PRIORITY_LOW = 2;
 }

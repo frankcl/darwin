@@ -1,0 +1,10 @@
+weapon:
+  common:
+    redis:
+      client:
+        default:
+          mode: SINGLE
+          connection-pool-size: 200
+          password: xxx
+          address: r-bp1fac3adaa6aa14.redis.rds.aliyuncs.com:6379
+          db: 1

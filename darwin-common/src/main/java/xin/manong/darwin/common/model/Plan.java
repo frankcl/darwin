@@ -32,7 +32,7 @@ public class Plan implements Serializable {
      */
     @JSONField(name = "priority")
     @JsonProperty("priority")
-    public Integer priority = Constants.JOB_PRIORITY_NORMAL;
+    public Integer priority = Constants.PRIORITY_NORMAL;
 
     /**
      * 应用ID
@@ -40,6 +40,19 @@ public class Plan implements Serializable {
     @JSONField(name = "app_id")
     @JsonProperty("app_id")
     public Integer appId;
+
+    /**
+     * 创建时间
+     */
+    @JSONField(name = "create_time")
+    @JsonProperty("create_time")
+    public Long createTime = System.currentTimeMillis();
+    /**
+     * 更新时间
+     */
+    @JSONField(name = "update_time")
+    @JsonProperty("update_time")
+    public Long updateTime;
 
     /**
      * 应用名
@@ -98,6 +111,7 @@ public class Plan implements Serializable {
      */
     public Job buildJob() {
         Job job = new Job();
+        job.createTime = System.currentTimeMillis();
         job.planId = planId;
         job.priority = priority;
         job.jobId = RandomID.build();
@@ -146,7 +160,7 @@ public class Plan implements Serializable {
             logger.error("crontab expression[{}] is invalid", crontabExpression);
             return false;
         }
-        if (priority == null) priority = Constants.JOB_PRIORITY_NORMAL;
+        if (priority == null) priority = Constants.PRIORITY_NORMAL;
         for (URLRecord record : seedURLs) {
             if (record.category == null) record.category = URLCategory.TEXT;
             if (record.priority == null) record.priority = priority;

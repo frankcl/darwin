@@ -1,0 +1,13 @@
+weapon:
+  common:
+    redis:
+      client:
+        default:
+          mode: SINGLE
+          connection-pool-size: 200
+
+app:
+  queue:
+    max-used-memory-ratio: 0.95
+    monitor-check-time-interval-ms: 3600000
+    expired-time-interval-ms: 86400000

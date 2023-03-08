@@ -35,6 +35,19 @@ public class App implements Serializable {
     public String name;
 
     /**
+     * 创建时间
+     */
+    @JSONField(name = "create_time")
+    @JsonProperty("create_time")
+    public Long createTime = System.currentTimeMillis();
+    /**
+     * 更新时间
+     */
+    @JSONField(name = "update_time")
+    @JsonProperty("update_time")
+    public Long updateTime;
+
+    /**
      * 检测应用有效性
      * 1. 应用ID和名称不能为空
      *

@@ -7,6 +7,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import xin.manong.darwin.common.Constants;
+import xin.manong.weapon.base.util.RandomID;
 
 import java.io.Serializable;
 import java.util.HashMap;
@@ -31,6 +32,13 @@ public class URLRecord implements Serializable {
     public Integer timeout;
 
     /**
+     * 唯一key
+     */
+    @JSONField(name = "key")
+    @JsonProperty("key")
+    public String key;
+
+    /**
      * 任务ID
      */
     @JSONField(name = "job_id")
@@ -43,6 +51,34 @@ public class URLRecord implements Serializable {
     @JSONField(name = "priority")
     @JsonProperty("priority")
     public Integer priority;
+
+    /**
+     * 创建时间
+     */
+    @JSONField(name = "create_time")
+    @JsonProperty("create_time")
+    public Long createTime;
+
+    /**
+     * 抓取时间
+     */
+    @JSONField(name = "fetch_time")
+    @JsonProperty("fetch_time")
+    public Long fetchTime;
+
+    /**
+     * 出对时间
+     */
+    @JSONField(name = "out_queue_time")
+    @JsonProperty("out_queue_time")
+    public Long outQueueTime;
+
+    /**
+     * 进入多级队列时间
+     */
+    @JSONField(name = "in_queue_time")
+    @JsonProperty("in_queue_time")
+    public Long inQueueTime;
 
     /**
      * 抓取URL
@@ -80,9 +116,12 @@ public class URLRecord implements Serializable {
     public Map<String, Object> userDefinedInfo = new HashMap<>();
 
     public URLRecord() {
+        key = RandomID.build();
+        createTime = System.currentTimeMillis();
     }
 
     public URLRecord(String url) {
+        this();
         this.url = url;
     }
 
@@ -98,11 +137,29 @@ public class URLRecord implements Serializable {
             logger.error("url is empty");
             return false;
         }
+        if (StringUtils.isEmpty(jobId)) {
+            logger.error("job id is empty");
+            return false;
+        }
         if (category == null) {
             logger.error("url category is null");
             return false;
         }
-        if (priority == null) priority = Constants.JOB_PRIORITY_NORMAL;
+        if (priority == null) priority = Constants.PRIORITY_NORMAL;
         return true;
+    }
+
+    @Override
+    public boolean equals(Object object) {
+        if (object == null || !(object instanceof URLRecord)) return false;
+        URLRecord other = (URLRecord) object;
+        if (other == this || key == other.key) return true;
+        if (key == null || other.key == null) return false;
+        return key.equals(other.key);
+    }
+
+    @Override
+    public int hashCode() {
+        return key == null ? 0 : key.hashCode();
     }
 }

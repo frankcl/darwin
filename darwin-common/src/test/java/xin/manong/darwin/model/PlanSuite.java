@@ -25,7 +25,7 @@ public class PlanSuite {
         plan.planId = "test_id";
         plan.name = "test_job";
         plan.category = PlanCategory.ONCE;
-        plan.priority = Constants.JOB_PRIORITY_HIGH;
+        plan.priority = Constants.PRIORITY_HIGH;
         plan.seedURLs = new ArrayList<>();
         plan.seedURLs.add(new URLRecord("http://www.sina.com.cn/"));
         Assert.assertTrue(plan.check());
@@ -37,6 +37,6 @@ public class PlanSuite {
         Assert.assertEquals("test_id", job.planId);
         Assert.assertEquals(1, job.seedURLs.size());
         Assert.assertEquals("http://www.sina.com.cn/", job.seedURLs.get(0).url);
-        Assert.assertEquals(Constants.JOB_PRIORITY_HIGH, job.seedURLs.get(0).priority.intValue());
+        Assert.assertEquals(Constants.PRIORITY_HIGH, job.seedURLs.get(0).priority.intValue());
     }
 }
