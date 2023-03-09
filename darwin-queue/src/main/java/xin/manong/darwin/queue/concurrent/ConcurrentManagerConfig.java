@@ -16,12 +16,17 @@ import org.springframework.context.annotation.Configuration;
 @ConfigurationProperties(prefix = "app.queue.concurrent")
 public class ConcurrentManagerConfig {
 
-    private static final int DEFAULT_CONCURRENT_CONNECTION_NUM = 50;
+    private static final int DEFAULT_MAX_CONCURRENT_CONNECTION_NUM = 50;
+    private static final int DEFAULT_CONCURRENT_CONNECTION_TTL_SECOND = 3600;
+    private static final long DEFAULT_MAX_UPDATE_EXPIRED_TIME_INTERVAL_MS = 600000L;
 
-    public int concurrentConnectionNum = DEFAULT_CONCURRENT_CONNECTION_NUM;
+    public int maxConcurrentConnectionNum = DEFAULT_MAX_CONCURRENT_CONNECTION_NUM;
+    public int concurrentConnectionTtlSecond = DEFAULT_CONCURRENT_CONNECTION_TTL_SECOND;
+    public long maxUpdateExpiredTimeIntervalMs = DEFAULT_MAX_UPDATE_EXPIRED_TIME_INTERVAL_MS;
 
     @Bean
     public ConcurrentManager buildConcurrentManager() {
-        return new ConcurrentManager(concurrentConnectionNum);
+        return new ConcurrentManager(maxConcurrentConnectionNum,
+                concurrentConnectionTtlSecond, maxUpdateExpiredTimeIntervalMs);
     }
 }

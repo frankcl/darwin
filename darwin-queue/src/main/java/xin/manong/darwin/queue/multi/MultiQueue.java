@@ -7,11 +7,10 @@ import org.redisson.codec.SnappyCodecV2;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import xin.manong.darwin.common.Constants;
+import xin.manong.darwin.common.computer.ConcurrentUnitComputer;
 import xin.manong.darwin.common.model.URLRecord;
 import xin.manong.weapon.base.redis.RedisClient;
 import xin.manong.weapon.base.redis.RedisMemory;
-import xin.manong.weapon.base.util.CommonUtil;
-import xin.manong.weapon.base.util.DomainUtil;
 
 import javax.annotation.Resource;
 import java.util.*;
@@ -242,7 +241,7 @@ public class MultiQueue {
             logger.error("record is null or is invalid");
             return MultiQueueStatus.ERROR;
         }
-        String concurrentUnit = buildConcurrentUnit(record);
+        String concurrentUnit = ConcurrentUnitComputer.compute(record);
         if (StringUtils.isEmpty(concurrentUnit)) {
             logger.error("get concurrent unit failed for url[{}]", record.url);
             return MultiQueueStatus.ERROR;
@@ -252,9 +251,11 @@ public class MultiQueue {
         String concurrentURLQueueKey = String.format("%s%s",
                 MultiQueueConstants.MULTI_QUEUE_NORMAL_CONCURRENT_KEY_PREFIX, concurrentUnit);
         if (record.priority != null && record.priority == Constants.PRIORITY_HIGH) {
-            concurrentURLQueueKey = String.format("%s%s", MultiQueueConstants.MULTI_QUEUE_HIGH_CONCURRENT_KEY_PREFIX, concurrentUnit);
+            concurrentURLQueueKey = String.format("%s%s",
+                    MultiQueueConstants.MULTI_QUEUE_HIGH_CONCURRENT_KEY_PREFIX, concurrentUnit);
         } else if (record.priority != null && record.priority == Constants.PRIORITY_LOW) {
-            concurrentURLQueueKey = String.format("%s%s", MultiQueueConstants.MULTI_QUEUE_LOW_CONCURRENT_KEY_PREFIX, concurrentUnit);
+            concurrentURLQueueKey = String.format("%s%s",
+                    MultiQueueConstants.MULTI_QUEUE_LOW_CONCURRENT_KEY_PREFIX, concurrentUnit);
         }
         BatchOptions batchOptions = BatchOptions.defaults().
                 executionMode(BatchOptions.ExecutionMode.IN_MEMORY_ATOMIC).
@@ -301,17 +302,5 @@ public class MultiQueue {
         concurrentURLQueueKeys.add(String.format("%s%s",
                 MultiQueueConstants.MULTI_QUEUE_LOW_CONCURRENT_KEY_PREFIX, concurrentUnit));
         return concurrentURLQueueKeys;
-    }
-
-    /**
-     * 构建并发单元
-     *
-     * @param record URL数据
-     * @return 并发单元
-     */
-    private String buildConcurrentUnit(URLRecord record) {
-        String host = CommonUtil.getHost(record.url);
-        if (record.concurrentLevel == Constants.CONCURRENT_LEVEL_HOST) return host;
-        return DomainUtil.getDomain(host);
     }
 }
