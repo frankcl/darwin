@@ -19,7 +19,7 @@ import java.util.concurrent.TimeUnit;
 
 /**
  * 多级队列：用于爬虫URL调度
- * 1. 以Host维度进行调度，保证每次每个Host调度一定数量URL抓取
+ * 1. 以并发单元(Host/Domain)维度进行调度，保证每次每个并发单元调度一定数量URL抓取
  * 2. 维护爬虫任务，感知爬虫任务URL抓取状态
  *
  * @author frankcl
