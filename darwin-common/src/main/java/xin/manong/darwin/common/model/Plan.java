@@ -88,7 +88,7 @@ public class Plan implements Serializable {
      */
     @JSONField(name = "category")
     @JsonProperty("category")
-    public PlanCategory category;
+    public Integer category;
 
     /**
      * 规则ID列表
@@ -131,10 +131,6 @@ public class Plan implements Serializable {
      * @return 如果有效返回true，否则返回false
      */
     public boolean check() {
-        if (category == null) {
-            logger.error("plan category is null");
-            return false;
-        }
         if (appId == null) {
             logger.error("app id is null");
             return false;
@@ -155,14 +151,18 @@ public class Plan implements Serializable {
             logger.error("seed url list are empty");
             return false;
         }
-        if (category == PlanCategory.REPEAT && (StringUtils.isEmpty(crontabExpression) ||
+        if (!Constants.SUPPORT_PLAN_CATEGORIES.contains(category)) {
+            logger.error("not support plan category[{}]", category);
+            return false;
+        }
+        if (category == Constants.PLAN_CATEGORY_REPEAT && (StringUtils.isEmpty(crontabExpression) ||
                 !CronExpression.isValidExpression(crontabExpression))) {
             logger.error("crontab expression[{}] is invalid", crontabExpression);
             return false;
         }
         if (priority == null) priority = Constants.PRIORITY_NORMAL;
         for (URLRecord record : seedURLs) {
-            if (record.category == null) record.category = URLCategory.TEXT;
+            if (record.category == null) record.category = Constants.CONTENT_CATEGORY_TEXT;
             if (record.priority == null) record.priority = priority;
         }
         return true;

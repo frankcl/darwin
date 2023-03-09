@@ -99,7 +99,14 @@ public class URLRecord implements Serializable {
      */
     @JSONField(name = "category")
     @JsonProperty("category")
-    public URLCategory category;
+    public Integer category;
+
+    /**
+     * 抓取并发级别
+     */
+    @JSONField(name = "concurrent_level")
+    @JsonProperty("concurrent_level")
+    public Integer concurrentLevel;
 
     /**
      * HTTP header信息
@@ -141,8 +148,13 @@ public class URLRecord implements Serializable {
             logger.error("job id is empty");
             return false;
         }
-        if (category == null) {
-            logger.error("url category is null");
+        if (!Constants.SUPPORT_CONTENT_CATEGORIES.contains(category)) {
+            logger.error("not support content category[{}]", category);
+            return false;
+        }
+        if (concurrentLevel == null) concurrentLevel = Constants.CONCURRENT_LEVEL_DOMAIN;
+        if (!Constants.SUPPORT_CONCURRENT_LEVELS.contains(concurrentLevel)) {
+            logger.error("not support concurrent level[{}]", concurrentLevel);
             return false;
         }
         if (priority == null) priority = Constants.PRIORITY_NORMAL;

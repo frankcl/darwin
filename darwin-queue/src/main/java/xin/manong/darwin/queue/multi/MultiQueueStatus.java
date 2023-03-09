@@ -1,4 +1,4 @@
-package xin.manong.darwin.queue;
+package xin.manong.darwin.queue.multi;
 
 /**
  * 多级队列操作状态

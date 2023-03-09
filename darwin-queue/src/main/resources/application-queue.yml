@@ -8,6 +8,9 @@ weapon:
 
 app:
   queue:
-    max-used-memory-ratio: 0.95
-    monitor-check-time-interval-ms: 3600000
-    expired-time-interval-ms: 86400000
+    multi:
+      max-used-memory-ratio: 0.95
+      monitor-check-time-interval-ms: 3600000
+      expired-time-interval-ms: 86400000
+    concurrent:
+      concurrent-connection-num: 50

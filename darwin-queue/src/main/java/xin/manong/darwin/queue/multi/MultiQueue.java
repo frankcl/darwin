@@ -1,10 +1,9 @@
-package xin.manong.darwin.queue;
+package xin.manong.darwin.queue.multi;
 
 import org.apache.commons.lang3.StringUtils;
 import org.redisson.api.*;
 import org.redisson.client.codec.Codec;
 import org.redisson.codec.SnappyCodecV2;
-import org.redisson.transaction.TransactionException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import xin.manong.darwin.common.Constants;
@@ -12,6 +11,7 @@ import xin.manong.darwin.common.model.URLRecord;
 import xin.manong.weapon.base.redis.RedisClient;
 import xin.manong.weapon.base.redis.RedisMemory;
 import xin.manong.weapon.base.util.CommonUtil;
+import xin.manong.weapon.base.util.DomainUtil;
 
 import javax.annotation.Resource;
 import java.util.*;
@@ -30,6 +30,8 @@ public class MultiQueue {
     private static final Logger logger = LoggerFactory.getLogger(MultiQueue.class);
 
     private double maxUsedMemoryRatio;
+    private RSet<String> jobs;
+    private RSetCache<String> concurrentUnits;
 
     /**
      * 使用snappy压缩节省URLRecord内存占用空间
@@ -66,12 +68,14 @@ public class MultiQueue {
     }
 
     /**
-     * 获取当前站点集合
+     * 获取当前并发单元集合
      *
-     * @return 站点集合
+     * @return 并发单元(host或domain)集合
      */
-    public Set<String> hostInQueue() {
-        return redisClient.getRedissonClient().getSet(MultiQueueConstants.MULTI_QUEUE_HOSTS_KEY);
+    public RSetCache<String> concurrentUnitsInQueue() {
+        if (concurrentUnits != null) return concurrentUnits;
+        concurrentUnits = redisClient.getRedissonClient().getSetCache(MultiQueueConstants.MULTI_QUEUE_CONCURRENT_UNIT_KEY);
+        return concurrentUnits;
     }
 
     /**
@@ -79,8 +83,10 @@ public class MultiQueue {
      *
      * @return 任务集合
      */
-    public Set<String> jobInQueue() {
-        return redisClient.getRedissonClient().getSet(MultiQueueConstants.MULTI_QUEUE_JOBS_KEY);
+    public RSet<String> jobsInQueue() {
+        if (jobs != null) return jobs;
+        jobs = redisClient.getRedissonClient().getSet(MultiQueueConstants.MULTI_QUEUE_JOBS_KEY);
+        return jobs;
     }
 
     /**
@@ -112,20 +118,29 @@ public class MultiQueue {
     }
 
     /**
-     * 从全局站点集合中移除host
+     * 从全局集合中移除并发单元(host或domain)
      *
-     * @param host 站点
+     * @param concurrentUnit 并发单元(host或domain)
+     * @return 成功移除返回true，否则返回false
      */
-    public void removeHost(String host) {
-        List<String> hostQueueKeys = buildHostQueueKeys(host);
-        for (String hostQueueKey : hostQueueKeys) {
-            RBlockingQueue<URLRecord> hostURLQueue = redisClient.getRedissonClient().
-                    getBlockingQueue(hostQueueKey, codec);
-            if (!hostURLQueue.isEmpty()) return;
+    public boolean removeConcurrentUnit(String concurrentUnit) {
+        List<String> concurrentURLQueueKeys = buildConcurrentURLQueueKeys(concurrentUnit);
+        BatchOptions batchOptions = BatchOptions.defaults().
+                executionMode(BatchOptions.ExecutionMode.IN_MEMORY_ATOMIC).
+                responseTimeout(3, TimeUnit.SECONDS).
+                retryInterval(2, TimeUnit.SECONDS).retryAttempts(3);
+        RBatch batch = redisClient.getRedissonClient().createBatch(batchOptions);
+        for (String concurrentURLQueueKey : concurrentURLQueueKeys) {
+            RBlockingQueueAsync<URLRecord> urlQueue = batch.getBlockingQueue(concurrentURLQueueKey, codec);
+            urlQueue.isExistsAsync();
         }
-        RSetCache<String> hosts = redisClient.getRedissonClient().getSetCache(MultiQueueConstants.MULTI_QUEUE_HOSTS_KEY);
-        hosts.add(host, 600, TimeUnit.SECONDS);
-        logger.info("remove host[{}] in 600 seconds from global host set", host);
+        BatchResult result = batch.execute();
+        List<Boolean> responses = result.getResponses();
+        for (Boolean response : responses) if (response) return false;
+        RSetCache<String> concurrentUnits = concurrentUnitsInQueue();
+        concurrentUnits.add(concurrentUnit, 3600, TimeUnit.SECONDS);
+        logger.info("remove concurrent unit[{}] in 600 seconds from global concurrent unit set", concurrentUnit);
+        return true;
     }
 
     /**
@@ -155,7 +170,7 @@ public class MultiQueue {
             return;
         }
         String jobMapKey = String.format("%s%s", MultiQueueConstants.MULTI_QUEUE_JOB_KEY_PREFIX, jobId);
-        RSet<String> jobs = redisClient.getRedissonClient().getSet(MultiQueueConstants.MULTI_QUEUE_JOBS_KEY);
+        RSet<String> jobs = jobsInQueue();
         if (jobs.contains(jobId)) jobs.remove(jobId);
         RMap<String, URLRecord> jobMap = redisClient.getRedissonClient().getMap(jobMapKey, codec);
         jobMap.delete();
@@ -180,21 +195,21 @@ public class MultiQueue {
     }
 
     /**
-     * 从指定站点队列中获取指定数量URL数据
+     * 从指定并发单元URL队列中获取指定数量URL数据
      *
-     * @param host 站点
+     * @param concurrentUnit 并发单元(host或domain)
      * @param n URL数量
      * @return URL列表
      */
-    public List<URLRecord> pop(String host, int n) {
+    public List<URLRecord> pop(String concurrentUnit, int n) {
         List<URLRecord> records = new ArrayList<>();
-        if (StringUtils.isEmpty(host)) return records;
-        List<String> hostQueueKeys = buildHostQueueKeys(host);
-        for (String hostQueueKey : hostQueueKeys) {
-            RBlockingQueue<URLRecord> hostURLQueue = redisClient.getRedissonClient().
-                    getBlockingQueue(hostQueueKey, codec);
+        if (StringUtils.isEmpty(concurrentUnit)) return records;
+        List<String> concurrentURLQueueKeys = buildConcurrentURLQueueKeys(concurrentUnit);
+        for (String concurrentURLQueueKey : concurrentURLQueueKeys) {
+            RBlockingQueue<URLRecord> urlQueue = redisClient.getRedissonClient().
+                    getBlockingQueue(concurrentURLQueueKey, codec);
             while (true) {
-                URLRecord record = hostURLQueue.poll();
+                URLRecord record = urlQueue.poll();
                 if (record == null) break;
                 record.outQueueTime = System.currentTimeMillis();
                 records.add(record);
@@ -227,60 +242,76 @@ public class MultiQueue {
             logger.error("record is null or is invalid");
             return MultiQueueStatus.ERROR;
         }
-        String host = CommonUtil.getHost(record.url);
-        if (StringUtils.isEmpty(host)) {
-            logger.error("get host failed for url[{}]", record.url);
+        String concurrentUnit = buildConcurrentUnit(record);
+        if (StringUtils.isEmpty(concurrentUnit)) {
+            logger.error("get concurrent unit failed for url[{}]", record.url);
             return MultiQueueStatus.ERROR;
         }
         record.inQueueTime = System.currentTimeMillis();
         String jobMapKey = String.format("%s%s", MultiQueueConstants.MULTI_QUEUE_JOB_KEY_PREFIX, record.jobId);
-        String hostKey = String.format("%s%s", MultiQueueConstants.MULTI_QUEUE_NORMAL_HOST_KEY_PREFIX, host);
+        String concurrentURLQueueKey = String.format("%s%s",
+                MultiQueueConstants.MULTI_QUEUE_NORMAL_CONCURRENT_KEY_PREFIX, concurrentUnit);
         if (record.priority != null && record.priority == Constants.PRIORITY_HIGH) {
-            hostKey = String.format("%s%s", MultiQueueConstants.MULTI_QUEUE_HIGH_HOST_KEY_PREFIX, host);
+            concurrentURLQueueKey = String.format("%s%s", MultiQueueConstants.MULTI_QUEUE_HIGH_CONCURRENT_KEY_PREFIX, concurrentUnit);
         } else if (record.priority != null && record.priority == Constants.PRIORITY_LOW) {
-            hostKey = String.format("%s%s", MultiQueueConstants.MULTI_QUEUE_LOW_HOST_KEY_PREFIX, host);
+            concurrentURLQueueKey = String.format("%s%s", MultiQueueConstants.MULTI_QUEUE_LOW_CONCURRENT_KEY_PREFIX, concurrentUnit);
         }
-        RTransaction transaction = redisClient.buildTransaction();
-        RSetCache<String> hosts = transaction.getSetCache(MultiQueueConstants.MULTI_QUEUE_HOSTS_KEY);
-        RSet<String> jobs = transaction.getSet(MultiQueueConstants.MULTI_QUEUE_JOBS_KEY);
-        RMap<String, URLRecord> jobMap = transaction.getMap(jobMapKey, codec);
-        RBlockingQueue<URLRecord> hostURLQueue = redisClient.getRedissonClient().
-                getBlockingQueue(hostKey, codec);
-        if (!hostURLQueue.offer(record)) {
-            logger.error("offer record into host queue failed");
-            record.inQueueTime = null;
-            return MultiQueueStatus.REFUSED;
-        }
+        BatchOptions batchOptions = BatchOptions.defaults().
+                executionMode(BatchOptions.ExecutionMode.IN_MEMORY_ATOMIC).
+                responseTimeout(3, TimeUnit.SECONDS).
+                retryInterval(2, TimeUnit.SECONDS).retryAttempts(3);
+        RBatch batch = redisClient.getRedissonClient().createBatch(batchOptions);
         try {
-            jobMap.put(record.key, record);
-            hosts.add(host, 0, TimeUnit.SECONDS);
-            if (!jobs.contains(record.jobId)) jobs.add(record.jobId);
-            transaction.commit();
+            batch.getBlockingQueue(concurrentURLQueueKey, codec).offerAsync(record);
+            batch.getMap(jobMapKey, codec).putAsync(record.key, record);
+            batch.getSetCache(MultiQueueConstants.MULTI_QUEUE_CONCURRENT_UNIT_KEY).addAsync(
+                    concurrentUnit, 0, TimeUnit.SECONDS);
+            batch.getSet(MultiQueueConstants.MULTI_QUEUE_JOBS_KEY).addAsync(record.jobId);
+            BatchResult result = batch.execute();
+            List responses = result.getResponses();
+            if (!((Boolean) responses.get(0))) throw new MultiQueueException("push record failed");
             return MultiQueueStatus.OK;
-        } catch (TransactionException e) {
-            logger.error("commit transaction failed when pushing record");
+        } catch (Exception e) {
             logger.error(e.getMessage(), e);
-            hostURLQueue.remove(record);
-            try {
-                transaction.rollback();
-            } catch (Exception ex) {
-            }
+            BatchOptions rollbackOptions = BatchOptions.defaults().skipResult().
+                    executionMode(BatchOptions.ExecutionMode.IN_MEMORY_ATOMIC).
+                    responseTimeout(3, TimeUnit.SECONDS).
+                    retryInterval(2, TimeUnit.SECONDS).retryAttempts(3);
+            RBatch rollbackBatch = redisClient.getRedissonClient().createBatch(rollbackOptions);
+            rollbackBatch.getMap(jobMapKey, codec).removeAsync(record.key);
+            rollbackBatch.getBlockingQueue(concurrentURLQueueKey, codec).removeAsync(record);
+            rollbackBatch.execute();
             record.inQueueTime = null;
             return MultiQueueStatus.REFUSED;
         }
     }
 
     /**
-     * 构建站点队列key列表
+     * 构建并发单元URL队列key列表
      *
-     * @param host 站点
-     * @return 站点队列key列表
+     * @param concurrentUnit 并发单元(host或domain)
+     * @return 并发单元URL队列key列表
      */
-    private List<String> buildHostQueueKeys(String host) {
-        List<String> hostQueueKeys = new ArrayList<>();
-        hostQueueKeys.add(String.format("%s%s", MultiQueueConstants.MULTI_QUEUE_HIGH_HOST_KEY_PREFIX, host));
-        hostQueueKeys.add(String.format("%s%s", MultiQueueConstants.MULTI_QUEUE_NORMAL_HOST_KEY_PREFIX, host));
-        hostQueueKeys.add(String.format("%s%s", MultiQueueConstants.MULTI_QUEUE_LOW_HOST_KEY_PREFIX, host));
-        return hostQueueKeys;
+    private List<String> buildConcurrentURLQueueKeys(String concurrentUnit) {
+        List<String> concurrentURLQueueKeys = new ArrayList<>();
+        concurrentURLQueueKeys.add(String.format("%s%s",
+                MultiQueueConstants.MULTI_QUEUE_HIGH_CONCURRENT_KEY_PREFIX, concurrentUnit));
+        concurrentURLQueueKeys.add(String.format("%s%s",
+                MultiQueueConstants.MULTI_QUEUE_NORMAL_CONCURRENT_KEY_PREFIX, concurrentUnit));
+        concurrentURLQueueKeys.add(String.format("%s%s",
+                MultiQueueConstants.MULTI_QUEUE_LOW_CONCURRENT_KEY_PREFIX, concurrentUnit));
+        return concurrentURLQueueKeys;
+    }
+
+    /**
+     * 构建并发单元
+     *
+     * @param record URL数据
+     * @return 并发单元
+     */
+    private String buildConcurrentUnit(URLRecord record) {
+        String host = CommonUtil.getHost(record.url);
+        if (record.concurrentLevel == Constants.CONCURRENT_LEVEL_HOST) return host;
+        return DomainUtil.getDomain(host);
     }
 }

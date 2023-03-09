@@ -1,4 +1,4 @@
-package xin.manong.darwin.queue;
+package xin.manong.darwin.queue.multi;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -7,11 +7,12 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import xin.manong.darwin.common.Constants;
-import xin.manong.darwin.common.model.URLCategory;
 import xin.manong.darwin.common.model.URLRecord;
+import xin.manong.darwin.queue.ApplicationTest;
 import xin.manong.weapon.spring.boot.annotation.EnableRedisClient;
 
 import javax.annotation.Resource;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -29,56 +30,67 @@ public class MultiQueueSuite {
 
     @Test
     public void testMultiQueue() {
+        List<URLRecord> records = new ArrayList<>();
         {
             URLRecord record = new URLRecord("http://www.sina.com.cn");
-            record.category = URLCategory.TEXT;
+            record.category = Constants.CONTENT_CATEGORY_TEXT;
             record.jobId = "abc";
             record.priority = Constants.PRIORITY_LOW;
-            Assert.assertEquals(MultiQueueStatus.OK, multiQueue.push(record));
+            record.concurrentLevel = Constants.CONCURRENT_LEVEL_HOST;
+            records.add(record);
         }
         {
             URLRecord record = new URLRecord("http://www.sina.com.cn/index.html");
-            record.category = URLCategory.TEXT;
+            record.category = Constants.CONTENT_CATEGORY_TEXT;
             record.jobId = "abc";
             record.priority = Constants.PRIORITY_HIGH;
-            Assert.assertEquals(MultiQueueStatus.OK, multiQueue.push(record));
+            record.concurrentLevel = Constants.CONCURRENT_LEVEL_HOST;
+            records.add(record);
         }
+        List<MultiQueueStatus> statusList = multiQueue.push(records);
+        Assert.assertEquals(2, statusList.size());
+        Assert.assertEquals(MultiQueueStatus.OK, statusList.get(0));
+        Assert.assertEquals(MultiQueueStatus.OK, statusList.get(1));
         {
             URLRecord record = new URLRecord("http://www.sohu.com/index.html");
-            record.category = URLCategory.TEXT;
+            record.category = Constants.CONTENT_CATEGORY_TEXT;
             record.jobId = "def";
             record.priority = Constants.PRIORITY_HIGH;
+            record.concurrentLevel = Constants.CONCURRENT_LEVEL_DOMAIN;
             Assert.assertEquals(MultiQueueStatus.OK, multiQueue.push(record));
         }
         Assert.assertFalse(multiQueue.refuseService());
-        List<URLRecord> records = multiQueue.pop("www.sina.com.cn", 3);
+        records = multiQueue.pop("www.sina.com.cn", 3);
         Assert.assertEquals(2, records.size());
         Assert.assertEquals("abc", records.get(0).jobId);
         Assert.assertEquals("http://www.sina.com.cn/index.html", records.get(0).url);
         Assert.assertEquals(Constants.PRIORITY_HIGH, records.get(0).priority.intValue());
-        Assert.assertEquals(URLCategory.TEXT, records.get(0).category);
+        Assert.assertEquals(Constants.CONTENT_CATEGORY_TEXT, records.get(0).category.intValue());
+        Assert.assertEquals(Constants.CONCURRENT_LEVEL_HOST, records.get(0).concurrentLevel.intValue());
         multiQueue.removeFromJobMap(records.get(0));
         Assert.assertFalse(multiQueue.isEmptyJobMap(records.get(0).jobId));
 
         Assert.assertEquals("abc", records.get(1).jobId);
         Assert.assertEquals("http://www.sina.com.cn", records.get(1).url);
         Assert.assertEquals(Constants.PRIORITY_LOW, records.get(1).priority.intValue());
-        Assert.assertEquals(URLCategory.TEXT, records.get(1).category);
+        Assert.assertEquals(Constants.CONTENT_CATEGORY_TEXT, records.get(1).category.intValue());
+        Assert.assertEquals(Constants.CONCURRENT_LEVEL_HOST, records.get(1).concurrentLevel.intValue());
         multiQueue.removeFromJobMap(records.get(1));
         Assert.assertTrue(multiQueue.isEmptyJobMap(records.get(1).jobId));
         multiQueue.deleteJobMap(records.get(1).jobId);
 
-        records = multiQueue.pop("www.sohu.com", 2);
+        records = multiQueue.pop("sohu.com", 2);
         Assert.assertEquals(1, records.size());
         Assert.assertEquals("def", records.get(0).jobId);
         Assert.assertEquals("http://www.sohu.com/index.html", records.get(0).url);
         Assert.assertEquals(Constants.PRIORITY_HIGH, records.get(0).priority.intValue());
-        Assert.assertEquals(URLCategory.TEXT, records.get(0).category);
+        Assert.assertEquals(Constants.CONTENT_CATEGORY_TEXT, records.get(0).category.intValue());
+        Assert.assertEquals(Constants.CONCURRENT_LEVEL_DOMAIN, records.get(0).concurrentLevel.intValue());
         multiQueue.removeFromJobMap(records.get(0));
         Assert.assertTrue(multiQueue.isEmptyJobMap(records.get(0).jobId));
         multiQueue.deleteJobMap(records.get(0).jobId);
 
-        multiQueue.removeHost("www.sina.com.cn");
-        multiQueue.removeHost("www.sohu.com");
+        multiQueue.removeConcurrentUnit("www.sina.com.cn");
+        multiQueue.removeConcurrentUnit("sohu.com");
     }
 }

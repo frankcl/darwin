@@ -6,7 +6,6 @@ import org.junit.Test;
 import xin.manong.darwin.common.Constants;
 import xin.manong.darwin.common.model.Job;
 import xin.manong.darwin.common.model.Plan;
-import xin.manong.darwin.common.model.PlanCategory;
 import xin.manong.darwin.common.model.URLRecord;
 
 import java.util.ArrayList;
@@ -24,7 +23,7 @@ public class PlanSuite {
         plan.appName = "test";
         plan.planId = "test_id";
         plan.name = "test_job";
-        plan.category = PlanCategory.ONCE;
+        plan.category = Constants.PLAN_CATEGORY_ONCE;
         plan.priority = Constants.PRIORITY_HIGH;
         plan.seedURLs = new ArrayList<>();
         plan.seedURLs.add(new URLRecord("http://www.sina.com.cn/"));

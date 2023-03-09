@@ -1,4 +1,4 @@
-package xin.manong.darwin.queue;
+package xin.manong.darwin.common.comparator;
 
 import xin.manong.darwin.common.Constants;
 import xin.manong.darwin.common.model.URLRecord;

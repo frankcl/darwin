@@ -1,4 +1,4 @@
-package xin.manong.darwin.queue;
+package xin.manong.darwin.queue.multi;
 
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -13,7 +13,7 @@ import org.springframework.context.annotation.Configuration;
  */
 @Data
 @Configuration
-@ConfigurationProperties(prefix = "app.queue")
+@ConfigurationProperties(prefix = "app.queue.multi")
 public class MultiQueueConfig {
 
     private static final long DEFAULT_MONITOR_CHECK_TIME_INTERVAL_MS = 3600000L;

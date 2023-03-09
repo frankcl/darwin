@@ -1,4 +1,4 @@
-package xin.manong.darwin.queue;
+package xin.manong.darwin.queue.multi;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -68,20 +68,46 @@ public class MultiQueueMonitor implements Runnable {
     public void run() {
         while (running) {
             try {
-                Set<String> jobIds = multiQueue.jobInQueue();
-                int sweepRecordCount = 0;
-                for (String jobId : jobIds) {
-                    List<URLRecord> sweepRecords = multiQueue.sweepExpiredJobRecords(
-                            jobId, expiredTimeIntervalMs);
-                    sweepRecordCount += sweepRecords.size();
-                    //TODO 处理清理数据
-                }
-                logger.info("scanning job num[{}], sweeping record num[{}], sleep {} seconds",
-                        jobIds.size(), sweepRecordCount, checkTimeIntervalMs / 1000);
+                sweepExpiredJobs();
+                sweepExpiredConcurrentUnits();
+                logger.info("finish sweeping, sleep {} seconds", checkTimeIntervalMs / 1000);
                 Thread.sleep(checkTimeIntervalMs);
             } catch (Exception e) {
                 logger.error(e.getMessage(), e);
             }
         }
+    }
+
+    /**
+     * 清理过期并发单元
+     */
+    private void sweepExpiredConcurrentUnits() {
+        Set<String> concurrentUnits = multiQueue.concurrentUnitsInQueue();
+        int sweepConcurrentUnitCount = 0;
+        for (String concurrentUnit : concurrentUnits) {
+            if (multiQueue.removeConcurrentUnit(concurrentUnit)) sweepConcurrentUnitCount++;
+        }
+        logger.info("scanning concurrent unit num[{}], sweeping concurrent unit num[{}]",
+                concurrentUnits.size(), sweepConcurrentUnitCount);
+    }
+
+    /**
+     * 清理过期任务
+     */
+    private void sweepExpiredJobs() {
+        Set<String> jobIds = multiQueue.jobsInQueue();
+        int sweepRecordCount = 0, sweepJobCount = 0;
+        for (String jobId : jobIds) {
+            List<URLRecord> sweepRecords = multiQueue.sweepExpiredJobRecords(
+                    jobId, expiredTimeIntervalMs);
+            sweepRecordCount += sweepRecords.size();
+            if (multiQueue.isEmptyJobMap(jobId)) {
+                multiQueue.deleteJobMap(jobId);
+                sweepJobCount++;
+            }
+            //TODO 处理清理数据
+        }
+        logger.info("scanning job num[{}], sweeping job num[{}], record num[{}]",
+                jobIds.size(), sweepJobCount, sweepRecordCount);
     }
 }
