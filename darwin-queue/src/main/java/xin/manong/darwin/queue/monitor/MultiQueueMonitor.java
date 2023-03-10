@@ -1,8 +1,9 @@
-package xin.manong.darwin.queue.multi;
+package xin.manong.darwin.queue.monitor;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import xin.manong.darwin.common.model.URLRecord;
+import xin.manong.darwin.queue.multi.MultiQueue;
 
 import javax.annotation.Resource;
 import java.util.List;
@@ -17,8 +18,6 @@ import java.util.Set;
 public class MultiQueueMonitor implements Runnable {
 
     private static final Logger logger = LoggerFactory.getLogger(MultiQueueMonitor.class);
-
-    private static final String name = "MultiQueueMonitor";
 
     private boolean running;
     private long checkTimeIntervalMs;
@@ -39,11 +38,11 @@ public class MultiQueueMonitor implements Runnable {
      * @return 成功返回true，否则返回false
      */
     public boolean start() {
-        logger.info("{} monitor is starting ...", name);
+        logger.info("{} monitor is starting ...", this.getClass().getSimpleName());
         running = true;
-        thread = new Thread(this, name);
+        thread = new Thread(this, this.getClass().getSimpleName());
         thread.start();
-        logger.info("{} monitor has been started", name);
+        logger.info("{} monitor has been started", this.getClass().getSimpleName());
         return true;
     }
 
@@ -51,7 +50,7 @@ public class MultiQueueMonitor implements Runnable {
      * 停止监控
      */
     public void stop() {
-        logger.info("{} is stopping", name);
+        logger.info("{} is stopping", this.getClass().getSimpleName());
         running = false;
         if (thread.isAlive()) {
             thread.interrupt();
@@ -61,7 +60,7 @@ public class MultiQueueMonitor implements Runnable {
                 logger.error(e.getMessage(), e);
             }
         }
-        logger.info("{} has been stopped", name);
+        logger.info("{} has been stopped", this.getClass().getSimpleName());
     }
 
     @Override

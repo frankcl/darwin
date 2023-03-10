@@ -89,6 +89,17 @@ public class MultiQueue {
     }
 
     /**
+     * 获取任务URL映射
+     *
+     * @param jobId 任务ID
+     * @return URL映射
+     */
+    public RMap<String, URLRecord> getJobRecordMap(String jobId) {
+        String jobMapKey = String.format("%s%s", MultiQueueConstants.MULTI_QUEUE_JOB_KEY_PREFIX, jobId);
+        return redisClient.getRedissonClient().getMap(jobMapKey, codec);
+    }
+
+    /**
      * 清理任务中过期URL记录
      *
      * @param jobId 任务ID

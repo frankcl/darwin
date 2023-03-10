@@ -12,6 +12,22 @@ import java.util.Set;
 public class Constants {
 
     /**
+     * URL状态
+     */
+    public static final int URL_STATUS_SUCCESS = 0;         //抓取成功
+    public static final int URL_STATUS_FAIL = -1;           //抓取失败
+    public static final int URL_STATUS_CREATED = 1;         //创建
+    public static final int URL_STATUS_QUEUING = 2;         //排队中
+    public static final int URL_STATUS_FETCHING = 3;        //抓取中
+    public static final Set<Integer> SUPPORT_URL_STATUSES = new HashSet<Integer>() {{
+        add(URL_STATUS_SUCCESS);
+        add(URL_STATUS_FAIL);
+        add(URL_STATUS_CREATED);
+        add(URL_STATUS_QUEUING);
+        add(URL_STATUS_FETCHING);
+    }};
+
+    /**
      * 数据爬取优先级
      */
     public static final int PRIORITY_HIGH = 0;

@@ -21,17 +21,17 @@ public class ConcurrentManager {
 
     private int maxConcurrentConnectionNum;
     private int concurrentConnectionTtlSecond;
-    private long maxUpdateExpiredTimeIntervalMs;
     private Map<Long, ConcurrentConnectionCount> concurrentConnectionCountMap;
+    private Map<String, Integer> concurrentUnitMaxConnectionMap;
     @Resource
-    private RedisClient redisClient;
+    protected RedisClient redisClient;
 
-    public ConcurrentManager(int maxConcurrentConnectionNum,
-                             int concurrentConnectionTtlSecond,
-                             long maxUpdateExpiredTimeIntervalMs) {
+    public ConcurrentManager(Map<String, Integer> concurrentUnitMaxConnectionMap,
+                             int maxConcurrentConnectionNum,
+                             int concurrentConnectionTtlSecond) {
+        this.concurrentUnitMaxConnectionMap = concurrentUnitMaxConnectionMap;
         this.maxConcurrentConnectionNum = maxConcurrentConnectionNum;
         this.concurrentConnectionTtlSecond = concurrentConnectionTtlSecond;
-        this.maxUpdateExpiredTimeIntervalMs = maxUpdateExpiredTimeIntervalMs;
         this.concurrentConnectionCountMap = new ConcurrentHashMap<>();
     }
 
@@ -43,7 +43,8 @@ public class ConcurrentManager {
      */
     public int getAvailableConnections(String concurrentUnit) {
         ConcurrentConnectionCount concurrentConnectionCount = getConcurrentConnectionCount(concurrentUnit);
-        int availableConnections = (int) (maxConcurrentConnectionNum - concurrentConnectionCount.connectionCount.get());
+        int availableConnections = (int) (getMaxConcurrentConnectionNum(concurrentUnit) -
+                concurrentConnectionCount.connectionCount.get());
         return availableConnections < 0 ? 0 : availableConnections;
     }
 
@@ -81,6 +82,7 @@ public class ConcurrentManager {
      */
     public int increaseConnections(String concurrentUnit, int connectionNum) {
         int increasedConnections = connectionNum;
+        int maxConcurrentConnectionNum = getMaxConcurrentConnectionNum(concurrentUnit);
         ConcurrentConnectionCount concurrentConnectionCount = getConcurrentConnectionCount(concurrentUnit);
         RAtomicLong connectionCount = concurrentConnectionCount.connectionCount;
         while (true) {
@@ -106,8 +108,8 @@ public class ConcurrentManager {
         Long key = FP63.newFP63(concurrentUnit);
         if (concurrentConnectionCountMap.containsKey(key)) {
             ConcurrentConnectionCount concurrentConnectionCount = concurrentConnectionCountMap.get(key);
-            if (concurrentConnectionCount.expiredTime - System.currentTimeMillis() <=
-                    maxUpdateExpiredTimeIntervalMs) {
+            long updateTime = concurrentConnectionCount.expiredTime - concurrentConnectionTtlSecond * 1000L / 2;
+            if (System.currentTimeMillis() >= updateTime) {
                 concurrentConnectionCount.connectionCount.expireAsync(
                         Duration.ofSeconds(concurrentConnectionTtlSecond));
             }
@@ -126,5 +128,18 @@ public class ConcurrentManager {
             concurrentConnectionCountMap.put(key, concurrentConnectionCount);
             return concurrentConnectionCount;
         }
+    }
+
+    /**
+     * 根据并发单元获取最大并发连接数量
+     *
+     * @param concurrentUnit 并发单元
+     * @return 最大并发连接数量
+     */
+    private int getMaxConcurrentConnectionNum(String concurrentUnit) {
+        if (concurrentUnitMaxConnectionMap.containsKey(concurrentUnit)) {
+            return concurrentUnitMaxConnectionMap.get(concurrentUnit);
+        }
+        return maxConcurrentConnectionNum;
     }
 }

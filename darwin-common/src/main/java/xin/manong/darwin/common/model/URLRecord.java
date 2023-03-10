@@ -102,6 +102,13 @@ public class URLRecord implements Serializable {
     public Integer category;
 
     /**
+     * URL状态
+     */
+    @JSONField(name = "status")
+    @JsonProperty("status")
+    public Integer status;
+
+    /**
      * 抓取并发级别
      */
     @JSONField(name = "concurrent_level")
@@ -124,6 +131,7 @@ public class URLRecord implements Serializable {
 
     public URLRecord() {
         key = RandomID.build();
+        status = Constants.URL_STATUS_CREATED;
         createTime = System.currentTimeMillis();
     }
 
@@ -150,6 +158,11 @@ public class URLRecord implements Serializable {
         }
         if (!Constants.SUPPORT_CONTENT_CATEGORIES.contains(category)) {
             logger.error("not support content category[{}]", category);
+            return false;
+        }
+        if (status == null) status = Constants.URL_STATUS_CREATED;
+        else if (!Constants.SUPPORT_URL_STATUSES.contains(status)) {
+            logger.error("not support url status[{}]", status);
             return false;
         }
         if (concurrentLevel == null) concurrentLevel = Constants.CONCURRENT_LEVEL_DOMAIN;

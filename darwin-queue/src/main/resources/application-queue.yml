@@ -10,9 +10,13 @@ app:
   queue:
     multi:
       max-used-memory-ratio: 0.95
-      monitor-check-time-interval-ms: 3600000
-      expired-time-interval-ms: 86400000
     concurrent:
       max-concurrent-connection-num: 50
-      max-update-expired-time-interval-ms: 600000
       concurrent-connection-ttl-second: 3600
+      concurrent-unit-max-connection-map:
+        sina.com.cn: 200
+    monitor:
+      multi-queue-monitor-check-time-interval-ms: 3600000
+      multi-queue-expired-time-interval-ms: 86400000
+      concurrent-monitor-check-time-interval-ms: 600000
+      concurrent-expired-time-interval-ms: 600000
