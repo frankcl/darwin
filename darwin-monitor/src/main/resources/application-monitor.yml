@@ -1,0 +1,8 @@
+app:
+  monitor:
+    multi:
+      check-time-interval-ms: 3600000
+      expired-time-interval-ms: 86400000
+    concurrent:
+      check-time-interval-ms: 600000
+      expired-time-interval-ms: 600000

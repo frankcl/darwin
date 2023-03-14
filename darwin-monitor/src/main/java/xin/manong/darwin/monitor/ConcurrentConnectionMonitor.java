@@ -1,4 +1,4 @@
-package xin.manong.darwin.queue.monitor;
+package xin.manong.darwin.monitor;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
