@@ -5,6 +5,6 @@ weapon:
         default:
           mode: SINGLE
           connection-pool-size: 200
-          password: xxx
+          password: Yeshu123456
           address: r-bp1fac3adaa6aa14.redis.rds.aliyuncs.com:6379
           db: 1

@@ -68,7 +68,10 @@ public class ConcurrentManager {
                 decreasedConnections = (int) currentConnectionCount;
                 updateConnectionCount = 0;
             }
-            if (connectionCount.compareAndSet(currentConnectionCount, updateConnectionCount)) break;
+            if (connectionCount.compareAndSet(currentConnectionCount, updateConnectionCount)) {
+                connectionCount.expireAsync(Duration.ofSeconds(concurrentConnectionTtlSecond));
+                break;
+            }
         }
         return decreasedConnections;
     }
@@ -93,7 +96,10 @@ public class ConcurrentManager {
                 updateConnectionCount = maxConcurrentConnectionNum;
             }
             if (increasedConnections <= 0) return 0;
-            if (connectionCount.compareAndSet(currentConnectionCount, updateConnectionCount)) break;
+            if (connectionCount.compareAndSet(currentConnectionCount, updateConnectionCount)) {
+                connectionCount.expireAsync(Duration.ofSeconds(concurrentConnectionTtlSecond));
+                break;
+            }
         }
         return increasedConnections;
     }
@@ -121,8 +127,8 @@ public class ConcurrentManager {
             }
             String redisKey = String.format("%s%s", CONCURRENT_CONNECTION_PREFIX, concurrentUnit);
             RAtomicLong connectionCount = redisClient.getRedissonClient().getAtomicLong(redisKey);
-            connectionCount.expireAsync(Duration.ofSeconds(concurrentConnectionTtlSecond));
             connectionCount.set(0);
+            connectionCount.expireAsync(Duration.ofSeconds(concurrentConnectionTtlSecond));
             ConcurrentConnectionCount concurrentConnectionCount = new ConcurrentConnectionCount(
                     connectionCount, System.currentTimeMillis() + concurrentConnectionTtlSecond * 1000L);
             concurrentConnectionCountMap.put(key, concurrentConnectionCount);
