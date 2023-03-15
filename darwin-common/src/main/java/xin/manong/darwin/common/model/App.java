@@ -1,13 +1,16 @@
 package xin.manong.darwin.common.model;
 
 import com.alibaba.fastjson.annotation.JSONField;
+import com.baomidou.mybatisplus.annotation.*;
+import com.baomidou.mybatisplus.extension.activerecord.Model;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.experimental.Accessors;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.io.Serializable;
 
 /**
  * 应用信息
@@ -15,21 +18,27 @@ import java.io.Serializable;
  * @author frankcl
  * @date 2023-03-06 15:40:19
  */
+@Getter
+@Setter
+@Accessors(chain = true)
+@TableName(value = "app", autoResultMap = true)
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class App implements Serializable {
+public class App extends Model {
 
     private static final Logger logger = LoggerFactory.getLogger(App.class);
 
     /**
      * 应用ID
      */
+    @TableId(value = "id", type = IdType.AUTO)
     @JSONField(name = "id")
     @JsonProperty("id")
-    public Integer id;
+    public Long id;
 
     /**
      * 应用名称
      */
+    @TableField(value = "name")
     @JSONField(name = "name")
     @JsonProperty("name")
     public String name;
@@ -37,12 +46,14 @@ public class App implements Serializable {
     /**
      * 创建时间
      */
+    @TableField(value = "create_time", fill = FieldFill.INSERT)
     @JSONField(name = "create_time")
     @JsonProperty("create_time")
     public Long createTime = System.currentTimeMillis();
     /**
      * 更新时间
      */
+    @TableField(value = "update_time", fill = FieldFill.INSERT_UPDATE)
     @JSONField(name = "update_time")
     @JsonProperty("update_time")
     public Long updateTime;

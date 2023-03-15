@@ -1,17 +1,26 @@
 package xin.manong.darwin.common.model;
 
 import com.alibaba.fastjson.annotation.JSONField;
+import com.baomidou.mybatisplus.annotation.FieldFill;
+import com.baomidou.mybatisplus.annotation.TableField;
+import com.baomidou.mybatisplus.annotation.TableId;
+import com.baomidou.mybatisplus.annotation.TableName;
+import com.baomidou.mybatisplus.extension.activerecord.Model;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.experimental.Accessors;
 import org.apache.commons.lang3.StringUtils;
 import org.quartz.CronExpression;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import xin.manong.darwin.common.Constants;
+import xin.manong.darwin.common.model.handler.JSONIntListTypeHandler;
+import xin.manong.darwin.common.model.handler.JSONURLRecordListTypeHandler;
 import xin.manong.weapon.base.util.CommonUtil;
 import xin.manong.weapon.base.util.RandomID;
 
-import java.io.Serializable;
 import java.util.List;
 
 /**
@@ -20,16 +29,29 @@ import java.util.List;
  * @author frankcl
  * @date 2023-03-06 15:08:20
  */
+@Getter
+@Setter
+@Accessors(chain = true)
+@TableName(value = "plan", autoResultMap = true)
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class Plan implements Serializable {
+public class Plan extends Model {
 
     private static final Logger logger = LoggerFactory.getLogger(Plan.class);
 
     private static final String DATE_TIME_FORMAT = "yyyy_MM_dd_HH_mm_ss";
 
     /**
+     * 计划状态
+     */
+    @TableField(value = "status")
+    @JSONField(name = "status")
+    @JsonProperty("status")
+    public Integer status = Constants.PLAN_STATUS_RUNNING;
+
+    /**
      * 任务优先级
      */
+    @TableField(value = "priority")
     @JSONField(name = "priority")
     @JsonProperty("priority")
     public Integer priority = Constants.PRIORITY_NORMAL;
@@ -37,6 +59,7 @@ public class Plan implements Serializable {
     /**
      * 应用ID
      */
+    @TableField(value = "app_id")
     @JSONField(name = "app_id")
     @JsonProperty("app_id")
     public Integer appId;
@@ -44,12 +67,14 @@ public class Plan implements Serializable {
     /**
      * 创建时间
      */
+    @TableField(value = "create_time", fill = FieldFill.INSERT)
     @JSONField(name = "create_time")
     @JsonProperty("create_time")
     public Long createTime = System.currentTimeMillis();
     /**
      * 更新时间
      */
+    @TableField(value = "update_time", fill = FieldFill.INSERT_UPDATE)
     @JSONField(name = "update_time")
     @JsonProperty("update_time")
     public Long updateTime;
@@ -57,6 +82,7 @@ public class Plan implements Serializable {
     /**
      * 应用名
      */
+    @TableField(value = "app_name")
     @JSONField(name = "app_name")
     @JsonProperty("app_name")
     public String appName;
@@ -64,6 +90,7 @@ public class Plan implements Serializable {
     /**
      * 计划ID
      */
+    @TableId(value = "plan_id")
     @JSONField(name = "plan_id")
     @JsonProperty("plan_id")
     public String planId;
@@ -71,6 +98,7 @@ public class Plan implements Serializable {
     /**
      * 计划名称
      */
+    @TableField(value = "name")
     @JSONField(name = "name")
     @JsonProperty("name")
     public String name;
@@ -79,6 +107,7 @@ public class Plan implements Serializable {
      * 周期性任务crontab表达式
      * 针对周期性任务有效
      */
+    @TableField(value = "crontab_expression")
     @JSONField(name = "crontab_expression")
     @JsonProperty("crontab_expression")
     public String crontabExpression;
@@ -86,6 +115,7 @@ public class Plan implements Serializable {
     /**
      * 计划类型
      */
+    @TableField(value = "category")
     @JSONField(name = "category")
     @JsonProperty("category")
     public Integer category;
@@ -93,6 +123,7 @@ public class Plan implements Serializable {
     /**
      * 规则ID列表
      */
+    @TableField(value = "rule_ids", typeHandler = JSONIntListTypeHandler.class)
     @JSONField(name = "rule_ids")
     @JsonProperty("rule_ids")
     public List<Integer> ruleIds;
@@ -100,6 +131,7 @@ public class Plan implements Serializable {
     /**
      * 种子列表
      */
+    @TableField(value = "seed_urls", typeHandler = JSONURLRecordListTypeHandler.class)
     @JSONField(name = "seed_urls")
     @JsonProperty("seed_urls")
     public List<URLRecord> seedURLs;
@@ -114,6 +146,7 @@ public class Plan implements Serializable {
         job.createTime = System.currentTimeMillis();
         job.planId = planId;
         job.priority = priority;
+        job.status = Constants.JOB_STATUS_RUNNING;
         job.jobId = RandomID.build();
         job.name = String.format("%s_%s", name, CommonUtil.timeToString(System.currentTimeMillis(), DATE_TIME_FORMAT));
         job.ruleIds = ruleIds;
@@ -155,12 +188,17 @@ public class Plan implements Serializable {
             logger.error("not support plan category[{}]", category);
             return false;
         }
+        if (!Constants.SUPPORT_PLAN_STATUSES.contains(status)) {
+            logger.error("not support plan status[{}]", status);
+            return false;
+        }
         if (category == Constants.PLAN_CATEGORY_REPEAT && (StringUtils.isEmpty(crontabExpression) ||
                 !CronExpression.isValidExpression(crontabExpression))) {
             logger.error("crontab expression[{}] is invalid", crontabExpression);
             return false;
         }
         if (priority == null) priority = Constants.PRIORITY_NORMAL;
+        if (status == null) status = Constants.PLAN_STATUS_RUNNING;
         for (URLRecord record : seedURLs) {
             if (record.category == null) record.category = Constants.CONTENT_CATEGORY_TEXT;
             if (record.priority == null) record.priority = priority;

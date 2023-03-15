@@ -1,3 +1,11 @@
+spring:
+  datasource:
+    url: jdbc:mysql://localhost:3306/darwin?useUnicode=true&characterEncoding=utf-8
+    username: root
+    password: Ima/1b8zKiIsT0wHShHWiAH5m9iHxJTkFCKiRUnve4i4n8blFjJaNuE2PfnEtot/mfrfvhHcuJjcm4sa5U1wpQ==
+    druid:
+      connection-properties: druid.stat.mergeSql=true;druid.stat.slowSqlMillis=5000;config.decrypt=true;config.decrypt.key=MFwwDQYJKoZIhvcNAQEBBQADSwAwSAJBAKcOdAgLcEa5CdiFLYz1cH7lb8zw8iyzRjgEpJnV+L2D1Gv5rkm7YkNHL607T81FiJdvYTZd2wwQ9ZZJqExLT+kCAwEAAQ==
+
 weapon:
   aliyun:
     secret:

@@ -68,5 +68,25 @@ public class Constants {
         add(PLAN_CATEGORY_CONSUME);
     }};
 
+    /**
+     * 计划状态
+     */
+    public static final int PLAN_STATUS_STOPPED = 0;        //停止
+    public static final int PLAN_STATUS_RUNNING = 1;        //运行
+    public static final Set<Integer> SUPPORT_PLAN_STATUSES = new HashSet<Integer>() {{
+        add(PLAN_STATUS_STOPPED);
+        add(PLAN_STATUS_RUNNING);
+    }};
+
+    /**
+     * 任务状态
+     */
+    public static final int JOB_STATUS_FINISHED = 0;        //结束
+    public static final int JOB_STATUS_RUNNING = 1;        //运行
+    public static final Set<Integer> SUPPORT_JOB_STATUSES = new HashSet<Integer>() {{
+        add(JOB_STATUS_FINISHED);
+        add(JOB_STATUS_RUNNING);
+    }};
+
 
 }

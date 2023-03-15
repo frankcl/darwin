@@ -1,3 +1,17 @@
+spring:
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    type: com.alibaba.druid.pool.DruidDataSource
+    druid:
+      initial-size: 10
+      min-idle: 3
+      max-active: 100
+      max-wait: 60000
+      test-while-idle: true
+      test-on-borrow: true
+      test-on-return: true
+      filters: stat,wall,slf4j,config
+
 weapon:
   aliyun:
     oss:
