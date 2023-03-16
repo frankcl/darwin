@@ -1,4 +1,4 @@
-package xin.manong.darwin.parse.groovy;
+package xin.manong.darwin.parse.script.groovy;
 
 import groovy.lang.GroovyClassLoader;
 import groovy.lang.GroovyObject;
@@ -8,9 +8,9 @@ import org.slf4j.LoggerFactory;
 import xin.manong.darwin.common.parser.ParseRequest;
 import xin.manong.darwin.common.parser.ParseResponse;
 import xin.manong.darwin.parse.parser.Parser;
+import xin.manong.darwin.parse.script.Script;
 
 import java.io.IOException;
-import java.lang.reflect.Method;
 
 /**
  * groovy脚本封装
@@ -18,7 +18,7 @@ import java.lang.reflect.Method;
  * @author frankcl
  * @date 2023-03-16 14:13:12
  */
-public class GroovyScript {
+public class GroovyScript extends Script {
 
     /**
      * groovy脚本对象构建器
@@ -65,14 +65,6 @@ public class GroovyScript {
     private static final String METHOD_PARSE = "parse";
 
     /**
-     * 脚本key
-     */
-    private String key;
-    /**
-     * 脚本MD5签名
-     */
-    private String scriptMD5;
-    /**
      * groovy脚本对象类加载器
      */
     private GroovyClassLoader classLoader;
@@ -85,15 +77,13 @@ public class GroovyScript {
     }
 
     public GroovyScript(String key, String script) {
-        this.key = key;
-        this.scriptMD5 = DigestUtils.md5Hex(script);
+        super(key, DigestUtils.md5Hex(script));
         this.classLoader = new GroovyClassLoader();
         buildScriptObject(script);
     }
 
     public GroovyScript(String key, String script, ClassLoader classLoader) {
-        this.key = key;
-        this.scriptMD5 = DigestUtils.md5Hex(script);
+        super(key, DigestUtils.md5Hex(script));
         this.classLoader = new GroovyClassLoader(classLoader);
         buildScriptObject(script);
     }
@@ -133,6 +123,7 @@ public class GroovyScript {
      * @param request 解析请求
      * @return 解析响应
      */
+    @Override
     public ParseResponse execute(ParseRequest request) {
         return (ParseResponse) scriptObject.invokeMethod(METHOD_PARSE, request);
     }
@@ -140,6 +131,7 @@ public class GroovyScript {
     /**
      * 关闭销毁groovy脚本对象，防止内存溢出
      */
+    @Override
     public void close() {
         scriptObject = null;
         try {
@@ -151,23 +143,5 @@ public class GroovyScript {
             logger.warn("close class loader failed for groovy script[{}]", key);
             logger.warn(e.getMessage(), e);
         }
-    }
-
-    /**
-     * 获取key
-     *
-     * @return key
-     */
-    public String getKey() {
-        return key;
-    }
-
-    /**
-     * 获取脚本MD5签名
-     *
-     * @return 脚本MD5签名
-     */
-    public String getScriptMD5() {
-        return scriptMD5;
     }
 }

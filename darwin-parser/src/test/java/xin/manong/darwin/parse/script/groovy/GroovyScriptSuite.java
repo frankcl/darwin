@@ -1,4 +1,4 @@
-package xin.manong.darwin.parse.groovy;
+package xin.manong.darwin.parse.script.groovy;
 
 import org.junit.Assert;
 import org.junit.Test;
