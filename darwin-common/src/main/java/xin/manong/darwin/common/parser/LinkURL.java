@@ -23,4 +23,8 @@ public class LinkURL {
      * 用户透传数据
      */
     public Map<String, Object> userDefinedMap = new HashMap<>();
+
+    public LinkURL(String url) {
+        this.url = url;
+    }
 }

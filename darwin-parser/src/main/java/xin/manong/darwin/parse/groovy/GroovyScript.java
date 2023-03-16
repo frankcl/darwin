@@ -10,6 +10,7 @@ import xin.manong.darwin.common.parser.ParseResponse;
 import xin.manong.darwin.parse.parser.Parser;
 
 import java.io.IOException;
+import java.lang.reflect.Method;
 
 /**
  * groovy脚本封装
@@ -103,14 +104,21 @@ public class GroovyScript {
      * @param script 脚本
      */
     private void buildScriptObject(String script) {
+        Class scriptClass = null;
         try {
-            Class scriptClass = classLoader.parseClass(script, scriptMD5);
+            scriptClass = classLoader.parseClass(script, scriptMD5);
             if (!Parser.class.isAssignableFrom(scriptClass)) {
-                logger.error("parser[{}] not extends class[{}]", scriptClass.getName(), Parser.class.getName());
-                throw new RuntimeException(String.format("parser[%s] not extends class[%s]",
+                logger.error("parser[{}] is not subclass of class[{}]", scriptClass.getName(), Parser.class.getName());
+                throw new RuntimeException(String.format("解析器[%s]不是%s的子类",
                         scriptClass.getName(), Parser.class.getName()));
             }
+            scriptClass.getMethod(METHOD_PARSE, ParseRequest.class);
             this.scriptObject = (GroovyObject) scriptClass.newInstance();
+        } catch (NoSuchMethodException e) {
+            logger.error("public method[{}] is not found for parser[{}]", METHOD_PARSE,
+                    scriptClass != null ? scriptClass.getName() : "");
+            logger.error(e.getMessage(), e);
+            throw new RuntimeException(String.format("解析脚本中未找到方法[%s]", METHOD_PARSE));
         } catch (Exception e) {
             logger.error("create groovy script object failed for key[{}]", key);
             logger.error(e.getMessage(), e);
@@ -141,6 +149,7 @@ public class GroovyScript {
             }
         } catch (IOException e) {
             logger.warn("close class loader failed for groovy script[{}]", key);
+            logger.warn(e.getMessage(), e);
         }
     }
 
