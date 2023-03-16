@@ -125,9 +125,9 @@ public class URLRecord implements Serializable {
     /**
      * 用户定义字段，透传到抓取结果
      */
-    @JSONField(name = "user_defined_info")
-    @JsonProperty("user_defined_info")
-    public Map<String, Object> userDefinedInfo = new HashMap<>();
+    @JSONField(name = "user_defined_map")
+    @JsonProperty("user_defined_map")
+    public Map<String, Object> userDefinedMap = new HashMap<>();
 
     public URLRecord() {
         key = RandomID.build();

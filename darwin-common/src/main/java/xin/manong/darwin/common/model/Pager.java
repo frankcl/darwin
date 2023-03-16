@@ -15,12 +15,24 @@ import java.util.List;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class Pager<T> implements Serializable {
 
+    /**
+     * 页码：从1开始
+     */
     @JsonProperty("current")
     public Long current;
+    /**
+     * 分页数量
+     */
     @JsonProperty("size")
     public Long size;
+    /**
+     * 总数
+     */
     @JsonProperty("total")
     public Long total;
+    /**
+     * 数据列表
+     */
     @JsonProperty("records")
     public List<T> records;
 }
