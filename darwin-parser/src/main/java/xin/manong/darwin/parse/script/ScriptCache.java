@@ -2,7 +2,6 @@ package xin.manong.darwin.parse.script;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import xin.manong.darwin.parse.script.groovy.GroovyScript;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
