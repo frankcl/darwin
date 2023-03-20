@@ -57,6 +57,40 @@ public class Constants {
     }};
 
     /**
+     * 脚本类型
+     */
+    public static final int SCRIPT_TYPE_GROOVY = 1;                 //Groovy脚本
+    public static final int SCRIPT_TYPE_JAVASCRIPT = 2;             //JavaScript脚本
+    public static final Set<Integer> SUPPORT_SCRIPT_TYPES = new HashSet<Integer>() {{
+        add(SCRIPT_TYPE_GROOVY);
+        add(SCRIPT_TYPE_JAVASCRIPT);
+    }};
+
+    /**
+     * 规则分类
+     */
+    public static final int RULE_CATEGORY_LINK_FOLLOW = 1;           //抽链规则
+    public static final int RULE_CATEGORY_STRUCTURE = 2;             //结构化规则
+    public static final int RULE_CATEGORY_GLOBAL_LINK_FOLLOW = 3;    //全局抽链规则
+    public static final Set<Integer> SUPPORT_RULE_CATEGORIES = new HashSet<Integer>() {{
+        add(RULE_CATEGORY_LINK_FOLLOW);
+        add(RULE_CATEGORY_GLOBAL_LINK_FOLLOW);
+        add(RULE_CATEGORY_STRUCTURE);
+    }};
+
+    /**
+     * 抽链范围
+     */
+    public static final int LINK_FOLLOW_SCOPE_ALL = 0;          //全局抽链
+    public static final int LINK_FOLLOW_SCOPE_DOMAIN = 1;       //domain抽链
+    public static final int LINK_FOLLOW_SCOPE_HOST = 2;         //host抽链
+    public static final Set<Integer> SUPPORT_LINK_FOLLOW_SCOPES = new HashSet<Integer>() {{
+        add(LINK_FOLLOW_SCOPE_ALL);
+        add(LINK_FOLLOW_SCOPE_DOMAIN);
+        add(LINK_FOLLOW_SCOPE_HOST);
+    }};
+
+    /**
      * 计划分类
      */
     public static final int PLAN_CATEGORY_ONCE = 0;         //一次性计划任务

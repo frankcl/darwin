@@ -10,7 +10,7 @@ import java.util.List;
  * @author frankcl
  * @date 2023-03-15 11:59:24
  */
-public class JSONIntListTypeHandler extends AbstractJSONListTypeHandler<Integer> {
+public class JSONListIntegerTypeHandler extends AbstractJSONListTypeHandler<Integer> {
 
     @Override
     protected TypeReference<List<Integer>> specificType() {

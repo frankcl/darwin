@@ -16,8 +16,8 @@ import org.quartz.CronExpression;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import xin.manong.darwin.common.Constants;
-import xin.manong.darwin.common.model.handler.JSONIntListTypeHandler;
-import xin.manong.darwin.common.model.handler.JSONURLRecordListTypeHandler;
+import xin.manong.darwin.common.model.handler.JSONListIntegerTypeHandler;
+import xin.manong.darwin.common.model.handler.JSONListURLRecordTypeHandler;
 import xin.manong.weapon.base.util.CommonUtil;
 import xin.manong.weapon.base.util.RandomID;
 
@@ -123,7 +123,7 @@ public class Plan extends Model {
     /**
      * 规则ID列表
      */
-    @TableField(value = "rule_ids", typeHandler = JSONIntListTypeHandler.class)
+    @TableField(value = "rule_ids", typeHandler = JSONListIntegerTypeHandler.class)
     @JSONField(name = "rule_ids")
     @JsonProperty("rule_ids")
     public List<Integer> ruleIds;
@@ -131,7 +131,7 @@ public class Plan extends Model {
     /**
      * 种子列表
      */
-    @TableField(value = "seed_urls", typeHandler = JSONURLRecordListTypeHandler.class)
+    @TableField(value = "seed_urls", typeHandler = JSONListURLRecordTypeHandler.class)
     @JSONField(name = "seed_urls")
     @JsonProperty("seed_urls")
     public List<URLRecord> seedURLs;

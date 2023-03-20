@@ -11,7 +11,7 @@ import java.util.List;
  * @author frankcl
  * @date 2023-03-15 11:59:24
  */
-public class JSONURLRecordListTypeHandler extends AbstractJSONListTypeHandler<URLRecord> {
+public class JSONListURLRecordTypeHandler extends AbstractJSONListTypeHandler<URLRecord> {
 
     @Override
     protected TypeReference<List<URLRecord>> specificType() {
