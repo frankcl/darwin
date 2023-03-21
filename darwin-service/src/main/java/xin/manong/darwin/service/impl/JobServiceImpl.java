@@ -1,18 +1,18 @@
 package xin.manong.darwin.service.impl;
 
-import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
-import xin.manong.darwin.common.Constants;
 import xin.manong.darwin.common.model.Job;
 import xin.manong.darwin.common.model.Pager;
 import xin.manong.darwin.service.convert.Converter;
 import xin.manong.darwin.service.dao.mapper.JobMapper;
 import xin.manong.darwin.service.iface.JobService;
+import xin.manong.darwin.service.request.JobSearchRequest;
 
 import javax.annotation.Resource;
 
@@ -41,9 +41,8 @@ public class JobServiceImpl implements JobService {
 
     @Override
     public Boolean add(Job job) {
-        QueryWrapper<Job> query = new QueryWrapper<>();
-        query.lambda().eq(Job::getName, job.getName());
-        query.lambda().eq(Job::getPlanId, job.getPlanId());
+        LambdaQueryWrapper<Job> query = new LambdaQueryWrapper<>();
+        query.eq(Job::getName, job.getName()).eq(Job::getPlanId, job.getPlanId());
         if (jobMapper.selectCount(query) > 0) {
             logger.error("job[{}] has existed for plan[{}]", job.name, job.planId);
             throw new RuntimeException(String.format("同名任务[%s]已存在", job.name));
@@ -70,24 +69,15 @@ public class JobServiceImpl implements JobService {
     }
 
     @Override
-    public Pager<Job> getList(int current, int size) {
-        QueryWrapper<Job> query = new QueryWrapper<>();
-        query.lambda().orderByDesc(Job::getCreateTime);
-        query.lambda().orderByAsc(Job::getName);
-        IPage<Job> page = jobMapper.selectPage(new Page<>(current, size), query);
-        return Converter.convert(page);
-    }
-
-    @Override
-    public Pager<Job> getJobs(int status, int current, int size) {
-        if (!Constants.SUPPORT_JOB_STATUSES.contains(status)) {
-            logger.error("not support job status[{}]", status);
-            throw new RuntimeException(String.format("不支持的任务状态[%d]", status));
+    public Pager<Job> search(JobSearchRequest searchRequest, int current, int size) {
+        LambdaQueryWrapper<Job> query = new LambdaQueryWrapper<>();
+        query.orderByDesc(Job::getCreateTime);
+        if (searchRequest != null) {
+            if (searchRequest.priority != null) query.eq(Job::getPriority, searchRequest.priority);
+            if (searchRequest.status != null) query.eq(Job::getStatus, searchRequest.status);
+            if (searchRequest.planId != null) query.eq(Job::getPlanId, searchRequest.planId);
+            if (!StringUtils.isEmpty(searchRequest.name)) query.like(Job::getName, searchRequest.name);
         }
-        QueryWrapper<Job> query = new QueryWrapper<>();
-        query.lambda().eq(Job::getStatus, status);
-        query.lambda().orderByDesc(Job::getCreateTime);
-        query.lambda().orderByAsc(Job::getName);
         IPage<Job> page = jobMapper.selectPage(new Page<>(current, size), query);
         return Converter.convert(page);
     }

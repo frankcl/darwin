@@ -85,7 +85,7 @@ public class PlanServiceImplSuite {
         Assert.assertEquals("http://www.sohu.com/", planInDB.seedURLs.get(0).url);
         Assert.assertEquals("http://www.163.net/", planInDB.seedURLs.get(1).url);
 
-        Pager<Plan> pager = planService.getList(1, 10);
+        Pager<Plan> pager = planService.search(null, 1, 10);
         Assert.assertEquals(1L, pager.current.longValue());
         Assert.assertEquals(1L, pager.total.longValue());
         Assert.assertEquals(1, pager.records.size());

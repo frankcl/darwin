@@ -1,10 +1,7 @@
 package xin.manong.darwin.common.model;
 
 import com.alibaba.fastjson.annotation.JSONField;
-import com.baomidou.mybatisplus.annotation.IdType;
-import com.baomidou.mybatisplus.annotation.TableField;
-import com.baomidou.mybatisplus.annotation.TableId;
-import com.baomidou.mybatisplus.annotation.TableName;
+import com.baomidou.mybatisplus.annotation.*;
 import com.baomidou.mybatisplus.extension.activerecord.Model;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -43,12 +40,12 @@ public class Rule extends Model {
     public Long id;
 
     /**
-     * 应用ID
+     * 规则分组ID
      */
-    @TableField(value = "app_id")
-    @JSONField(name = "app_id")
-    @JsonProperty("app_id")
-    public Long appId;
+    @TableField(value = "rule_group")
+    @JSONField(name = "rule_group")
+    @JsonProperty("rule_group")
+    public Long ruleGroup;
 
     /**
      * 规则名称
@@ -114,9 +111,29 @@ public class Rule extends Model {
     @JsonProperty("link_follow_scope")
     public Integer linkFollowScope = Constants.LINK_FOLLOW_SCOPE_ALL;
 
+    /**
+     * 创建时间
+     */
+    @TableField(value = "create_time", fill = FieldFill.INSERT)
+    @JSONField(name = "create_time")
+    @JsonProperty("create_time")
+    public Long createTime = System.currentTimeMillis();
+    /**
+     * 更新时间
+     */
+    @TableField(value = "update_time", fill = FieldFill.INSERT_UPDATE)
+    @JSONField(name = "update_time")
+    @JsonProperty("update_time")
+    public Long updateTime;
+
+    /**
+     * 检测合法性
+     *
+     * @return 合法返回true，否则返回false
+     */
     public boolean check() {
-        if (appId == null || appId < 0) {
-            logger.error("app id[{}] is empty or invalid", appId);
+        if (ruleGroup == null || ruleGroup < 0) {
+            logger.error("rule group is null or invalid");
             return false;
         }
         if (StringUtils.isEmpty(name)) {

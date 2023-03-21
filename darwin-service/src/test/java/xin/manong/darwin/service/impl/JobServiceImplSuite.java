@@ -12,6 +12,7 @@ import xin.manong.darwin.common.model.Pager;
 import xin.manong.darwin.common.model.URLRecord;
 import xin.manong.darwin.service.ApplicationTest;
 import xin.manong.darwin.service.iface.JobService;
+import xin.manong.darwin.service.request.JobSearchRequest;
 import xin.manong.weapon.base.util.RandomID;
 
 import javax.annotation.Resource;
@@ -75,12 +76,14 @@ public class JobServiceImplSuite {
         Assert.assertEquals("http://www.sohu.com/", jobInDB.seedURLs.get(0).url);
         Assert.assertEquals("http://www.163.net/", jobInDB.seedURLs.get(1).url);
 
-        Pager<Job> pager = jobService.getList(1, 10);
+        Pager<Job> pager = jobService.search(null, 1, 10);
         Assert.assertEquals(1L, pager.current.longValue());
         Assert.assertEquals(1L, pager.total.longValue());
         Assert.assertEquals(1, pager.records.size());
 
-        pager = jobService.getJobs(Constants.JOB_STATUS_RUNNING, 1, 10);
+        JobSearchRequest searchRequest = new JobSearchRequest();
+        searchRequest.status = Constants.JOB_STATUS_RUNNING;
+        pager = jobService.search(searchRequest, 1, 10);
         Assert.assertEquals(1L, pager.current.longValue());
         Assert.assertEquals(1L, pager.total.longValue());
         Assert.assertEquals(1, pager.records.size());

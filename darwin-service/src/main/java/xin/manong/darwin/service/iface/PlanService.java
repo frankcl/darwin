@@ -2,6 +2,7 @@ package xin.manong.darwin.service.iface;
 
 import xin.manong.darwin.common.model.Pager;
 import xin.manong.darwin.common.model.Plan;
+import xin.manong.darwin.service.request.PlanSearchRequest;
 
 /**
  * 计划服务接口定义
@@ -44,11 +45,12 @@ public interface PlanService {
     Boolean delete(String planId);
 
     /**
-     * 获取分页计划列表
+     * 搜索计划列表
      *
+     * @param searchRequest 搜索请求
      * @param current 页码，从1开始
      * @param size 每页数量
-     * @return 分页列表
+     * @return 搜索列表
      */
-    Pager<Plan> getList(int current, int size);
+    Pager<Plan> search(PlanSearchRequest searchRequest, int current, int size);
 }

@@ -1,6 +1,6 @@
 package xin.manong.darwin.service.impl;
 
-import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import org.apache.commons.lang3.StringUtils;
@@ -12,6 +12,7 @@ import xin.manong.darwin.common.model.Plan;
 import xin.manong.darwin.service.convert.Converter;
 import xin.manong.darwin.service.dao.mapper.PlanMapper;
 import xin.manong.darwin.service.iface.PlanService;
+import xin.manong.darwin.service.request.PlanSearchRequest;
 
 import javax.annotation.Resource;
 
@@ -40,9 +41,8 @@ public class PlanServiceImpl implements PlanService {
 
     @Override
     public Boolean add(Plan plan) {
-        QueryWrapper<Plan> query = new QueryWrapper<>();
-        query.lambda().eq(Plan::getName, plan.name);
-        query.lambda().eq(Plan::getAppId, plan.appId);
+        LambdaQueryWrapper<Plan> query = new LambdaQueryWrapper<>();
+        query.eq(Plan::getName, plan.name).eq(Plan::getAppId, plan.appId);
         if (planMapper.selectCount(query) > 0) {
             logger.error("plan[{}] has existed for app[{}]", plan.name, plan.appId);
             throw new RuntimeException(String.format("同名计划[%s]已存在", plan.name));
@@ -69,10 +69,16 @@ public class PlanServiceImpl implements PlanService {
     }
 
     @Override
-    public Pager<Plan> getList(int current, int size) {
-        QueryWrapper<Plan> query = new QueryWrapper<>();
-        query.lambda().orderByDesc(Plan::getCreateTime);
-        query.lambda().orderByAsc(Plan::getName);
+    public Pager<Plan> search(PlanSearchRequest searchRequest, int current, int size) {
+        LambdaQueryWrapper<Plan> query = new LambdaQueryWrapper<>();
+        query.orderByDesc(Plan::getCreateTime);
+        if (searchRequest != null) {
+            if (searchRequest.category != null) query.eq(Plan::getCategory, searchRequest.category);
+            if (searchRequest.status != null) query.eq(Plan::getStatus, searchRequest.status);
+            if (searchRequest.priority != null) query.eq(Plan::getPriority, searchRequest.priority);
+            if (searchRequest.appId != null) query.eq(Plan::getAppId, searchRequest.appId);
+            if (!StringUtils.isEmpty(searchRequest.name)) query.like(Plan::getName, searchRequest.name);
+        }
         IPage<Plan> page = planMapper.selectPage(new Page<>(current, size), query);
         return Converter.convert(page);
     }

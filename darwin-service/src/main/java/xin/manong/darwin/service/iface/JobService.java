@@ -2,6 +2,7 @@ package xin.manong.darwin.service.iface;
 
 import xin.manong.darwin.common.model.Job;
 import xin.manong.darwin.common.model.Pager;
+import xin.manong.darwin.service.request.JobSearchRequest;
 
 /**
  * 任务服务接口定义
@@ -44,21 +45,12 @@ public interface JobService {
     Boolean delete(String jobId);
 
     /**
-     * 获取分页任务列表
+     * 搜索任务列表
      *
+     * @param searchRequest 搜索请求
      * @param current 页码，从1开始
      * @param size 每页数量
      * @return 分页列表
      */
-    Pager<Job> getList(int current, int size);
-
-    /**
-     * 根据状态获取任务列表
-     *
-     * @param status
-     * @param current
-     * @param size
-     * @return 分页列表
-     */
-    Pager<Job> getJobs(int status, int current, int size);
+    Pager<Job> search(JobSearchRequest searchRequest, int current, int size);
 }
