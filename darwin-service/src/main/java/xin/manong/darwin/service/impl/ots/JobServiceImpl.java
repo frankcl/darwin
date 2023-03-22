@@ -10,6 +10,7 @@ import org.slf4j.LoggerFactory;
 import xin.manong.darwin.common.model.Job;
 import xin.manong.darwin.common.model.Pager;
 import xin.manong.darwin.service.config.ServiceConfig;
+import xin.manong.darwin.service.convert.Converter;
 import xin.manong.darwin.service.iface.JobService;
 import xin.manong.darwin.service.request.JobSearchRequest;
 import xin.manong.weapon.aliyun.ots.*;
@@ -133,6 +134,6 @@ public class JobServiceImpl implements JobService {
                     serviceConfig.jobTable, serviceConfig.jobIndexName);
             throw new RuntimeException("搜索任务失败");
         }
-        return SearchResponseConverter.convertSearchResponseToPager(current, size, response, Job.class);
+        return Converter.convert(response, Job.class, current, size);
     }
 }

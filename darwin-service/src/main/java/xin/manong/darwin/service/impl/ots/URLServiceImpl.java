@@ -10,6 +10,7 @@ import xin.manong.darwin.common.model.FetchRecord;
 import xin.manong.darwin.common.model.Pager;
 import xin.manong.darwin.common.model.URLRecord;
 import xin.manong.darwin.service.config.ServiceConfig;
+import xin.manong.darwin.service.convert.Converter;
 import xin.manong.darwin.service.iface.URLService;
 import xin.manong.darwin.service.request.URLSearchRequest;
 import xin.manong.weapon.aliyun.ots.*;
@@ -180,6 +181,6 @@ public class URLServiceImpl implements URLService {
                     serviceConfig.urlTable, serviceConfig.urlIndexName);
             throw new RuntimeException("搜索URL记录失败");
         }
-        return SearchResponseConverter.convertSearchResponseToPager(current, size, response, URLRecord.class);
+        return Converter.convert(response, URLRecord.class, current, size);
     }
 }
