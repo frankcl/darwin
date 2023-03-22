@@ -71,6 +71,7 @@ public class Plan extends Model {
     @JSONField(name = "create_time")
     @JsonProperty("create_time")
     public Long createTime = System.currentTimeMillis();
+
     /**
      * 更新时间
      */
@@ -78,6 +79,14 @@ public class Plan extends Model {
     @JSONField(name = "update_time")
     @JsonProperty("update_time")
     public Long updateTime;
+
+    /**
+     * 下次调度时间，针对周期性任务生效
+     */
+    @TableField(value = "next_time")
+    @JSONField(name = "next_time")
+    @JsonProperty("next_time")
+    public Long nextTime;
 
     /**
      * 应用名

@@ -4,9 +4,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.junit.Assert;
 import org.junit.Test;
 import xin.manong.darwin.common.Constants;
-import xin.manong.darwin.common.model.Job;
-import xin.manong.darwin.common.model.Plan;
-import xin.manong.darwin.common.model.URLRecord;
 
 import java.util.ArrayList;
 
@@ -17,7 +14,7 @@ import java.util.ArrayList;
 public class PlanSuite {
 
     @Test
-    public void testBuildJob() {
+    public void testBuildJob() throws Exception {
         Plan plan = new Plan();
         plan.appId = 1;
         plan.appName = "test";
