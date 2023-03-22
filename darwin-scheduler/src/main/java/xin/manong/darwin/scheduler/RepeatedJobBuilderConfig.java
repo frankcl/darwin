@@ -16,7 +16,9 @@ import org.springframework.context.annotation.Configuration;
 public class RepeatedJobBuilderConfig {
 
     private static final Long DEFAULT_REPEATED_JOB_BUILD_TIME_INTERVAL_MS = 60000L;
+    private static final Long DEFAULT_MULTI_QUEUE_LOCK_EXPIRED_TIME_SECONDS = 300L;
 
     public int retryCnt = 3;
     public Long repeatedJobBuildTimeIntervalMs = DEFAULT_REPEATED_JOB_BUILD_TIME_INTERVAL_MS;
+    public Long multiQueueLockExpiredTimeSeconds = DEFAULT_MULTI_QUEUE_LOCK_EXPIRED_TIME_SECONDS;
 }

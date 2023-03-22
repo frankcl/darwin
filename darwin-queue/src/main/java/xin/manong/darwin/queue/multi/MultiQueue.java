@@ -78,6 +78,23 @@ public class MultiQueue {
     }
 
     /**
+     * 获取多级队列全局锁
+     *
+     * @param expiredSeconds 过期时间（秒）
+     * @return 获取成功返回true，否则返回false
+     */
+    public boolean tryLockQueue(long expiredSeconds) {
+        return redisClient.tryLock(MultiQueueConstants.MULTI_QUEUE_GLOBAL_LOCK, expiredSeconds);
+    }
+
+    /**
+     * 释放多级队列全局锁
+     */
+    public void unlockQueue() {
+        redisClient.unlock(MultiQueueConstants.MULTI_QUEUE_GLOBAL_LOCK);
+    }
+
+    /**
      * 获取当前任务集合
      *
      * @return 任务集合

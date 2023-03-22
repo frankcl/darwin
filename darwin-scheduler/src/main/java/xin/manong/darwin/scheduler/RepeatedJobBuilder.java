@@ -16,9 +16,7 @@ import xin.manong.darwin.service.request.PlanSearchRequest;
 
 import javax.annotation.Resource;
 import java.text.ParseException;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 
 /**
  * 周期性任务构建器
@@ -74,28 +72,53 @@ public class RepeatedJobBuilder implements Runnable {
     @Override
     public void run() {
         while (running) {
-            logger.info("begin building repeated jobs");
-            int current = 1, size = 100;
-            long startTime = System.currentTimeMillis();
-            while (true) {
-                try {
-                    Pager<Plan> pager = getPlans(current, size);
-                    for (Plan plan : pager.records) buildRepeatedJob(plan);
-                    if (pager.records == null || pager.records.isEmpty() || pager.records.size() < size) break;
-                } catch (Exception e) {
-                    logger.error("building repeated jobs failed, cause[{}]", e.getMessage());
-                    logger.error(e.getMessage(), e);
-                } finally {
-                    current++;
-                }
+            if (!multiQueue.tryLockQueue(config.multiQueueLockExpiredTimeSeconds)) {
+                logger.info("acquire lock failed for multiQueue");
+                waitMoment();
+                continue;
             }
-            long spendTime = System.currentTimeMillis() - startTime;
-            logger.info("finish building repeated jobs, spend time[{}]ms", spendTime);
             try {
-                Thread.sleep(config.repeatedJobBuildTimeIntervalMs);
-            } catch (InterruptedException e) {
-                logger.warn(e.getMessage(), e);
+                logger.info("begin building repeated jobs");
+                int current = 1, size = 100;
+                long startTime = System.currentTimeMillis();
+                Set<String> processedIds = new HashSet<>();
+                while (true) {
+                    boolean lockSuccess = false;
+                    try {
+                        Pager<Plan> pager = getPlans(current, size);
+                        for (Plan plan : pager.records) {
+                            if (processedIds.contains(plan.planId)) continue;
+                            buildRepeatedJob(plan);
+                            processedIds.add(plan.planId);
+                        }
+                        if (pager.records == null || pager.records.isEmpty() || pager.records.size() < size) break;
+                        lockSuccess = multiQueue.tryLockQueue(config.multiQueueLockExpiredTimeSeconds);
+                    } catch (Exception e) {
+                        logger.error("building repeated jobs failed, cause[{}]", e.getMessage());
+                        logger.error(e.getMessage(), e);
+                    } finally {
+                        current++;
+                        if (lockSuccess) multiQueue.unlockQueue();
+                    }
+                }
+                long spendTime = System.currentTimeMillis() - startTime;
+                logger.info("finish building repeated jobs, process plan num[{}], spend time[{}]ms",
+                        processedIds.size(), spendTime);
+            } finally {
+                multiQueue.unlockQueue();
+                waitMoment();
             }
+        }
+    }
+
+    /**
+     * 等待
+     */
+    private void waitMoment() {
+        try {
+            Thread.sleep(config.repeatedJobBuildTimeIntervalMs);
+        } catch (InterruptedException e) {
+            logger.warn(e.getMessage(), e);
         }
     }
 
