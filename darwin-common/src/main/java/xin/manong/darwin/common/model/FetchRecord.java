@@ -14,6 +14,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import xin.manong.darwin.common.Constants;
 import xin.manong.darwin.common.model.handler.JSONMapObjectTypeHandler;
+import xin.manong.weapon.aliyun.ots.annotation.Column;
+import xin.manong.weapon.aliyun.ots.annotation.PrimaryKey;
 import xin.manong.weapon.base.util.RandomID;
 
 import java.util.HashMap;
@@ -37,6 +39,7 @@ public class FetchRecord extends Model {
      * 唯一key
      */
     @TableId(value = "`key`")
+    @PrimaryKey(name = "key")
     @JSONField(name = "key")
     @JsonProperty("key")
     public String key;
@@ -45,6 +48,7 @@ public class FetchRecord extends Model {
      * URL hash
      */
     @TableField(value = "hash")
+    @Column(name = "hash")
     @JSONField(name = "hash")
     @JsonProperty("hash")
     public String hash;
@@ -53,6 +57,7 @@ public class FetchRecord extends Model {
      * 任务ID
      */
     @TableField(value = "job_id")
+    @Column(name = "job_id")
     @JSONField(name = "job_id")
     @JsonProperty("job_id")
     public String jobId;
@@ -61,6 +66,7 @@ public class FetchRecord extends Model {
      * 抓取时间
      */
     @TableField(value = "fetch_time")
+    @Column(name = "fetch_time")
     @JSONField(name = "fetch_time")
     @JsonProperty("fetch_time")
     public Long fetchTime;
@@ -69,6 +75,7 @@ public class FetchRecord extends Model {
      * 抓取URL
      */
     @TableField(value = "url")
+    @Column(name = "url")
     @JSONField(name = "url")
     @JsonProperty("url")
     public String url;
@@ -77,6 +84,7 @@ public class FetchRecord extends Model {
      * 父URL
      */
     @TableField(value = "parent_url")
+    @Column(name = "parent_url")
     @JSONField(name = "parent_url")
     @JsonProperty("parent_url")
     public String parentURL;
@@ -85,6 +93,7 @@ public class FetchRecord extends Model {
      * 抓取内容OSS地址
      */
     @TableField(value = "fetch_content_url")
+    @Column(name = "fetch_content_url")
     @JSONField(name = "fetch_content_url")
     @JsonProperty("fetch_content_url")
     public String fetchContentURL;
@@ -93,6 +102,7 @@ public class FetchRecord extends Model {
      * URL状态
      */
     @TableField(value = "status")
+    @Column(name = "status")
     @JSONField(name = "status")
     @JsonProperty("status")
     public Integer status;
@@ -101,6 +111,7 @@ public class FetchRecord extends Model {
      * 用户定义字段，透传到抓取结果
      */
     @TableField(value = "user_defined_map", typeHandler = JSONMapObjectTypeHandler.class)
+    @Column(name = "user_defined_map")
     @JSONField(name = "user_defined_map")
     @JsonProperty("user_defined_map")
     public Map<String, Object> userDefinedMap = new HashMap<>();
@@ -109,6 +120,7 @@ public class FetchRecord extends Model {
      * 结构化字段
      */
     @TableField(value = "structure_map", typeHandler = JSONMapObjectTypeHandler.class)
+    @Column(name = "structure_map")
     @JSONField(name = "structure_map")
     @JsonProperty("structure_map")
     public Map<String, Object> structureMap = new HashMap<>();

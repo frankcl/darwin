@@ -14,6 +14,8 @@ import org.slf4j.LoggerFactory;
 import xin.manong.darwin.common.Constants;
 import xin.manong.darwin.common.model.handler.JSONListIntegerTypeHandler;
 import xin.manong.darwin.common.model.handler.JSONListURLRecordTypeHandler;
+import xin.manong.weapon.aliyun.ots.annotation.Column;
+import xin.manong.weapon.aliyun.ots.annotation.PrimaryKey;
 
 import java.util.List;
 
@@ -36,6 +38,7 @@ public class Job extends Model {
      * 任务状态
      */
     @TableField(value = "status")
+    @Column(name = "status")
     @JSONField(name = "status")
     @JsonProperty("status")
     public Integer status = Constants.JOB_STATUS_RUNNING;
@@ -44,6 +47,7 @@ public class Job extends Model {
      * 任务优先级
      */
     @TableField(value = "priority")
+    @Column(name = "priority")
     @JSONField(name = "priority")
     @JsonProperty("priority")
     public Integer priority = Constants.PRIORITY_NORMAL;
@@ -52,6 +56,7 @@ public class Job extends Model {
      * 创建时间
      */
     @TableField(value = "create_time", fill = FieldFill.INSERT)
+    @Column(name = "create_time")
     @JSONField(name = "create_time")
     @JsonProperty("create_time")
     public Long createTime;
@@ -59,6 +64,7 @@ public class Job extends Model {
      * 更新时间
      */
     @TableField(value = "update_time", fill = FieldFill.INSERT_UPDATE)
+    @Column(name = "update_time")
     @JSONField(name = "update_time")
     @JsonProperty("update_time")
     public Long updateTime;
@@ -67,6 +73,7 @@ public class Job extends Model {
      * 任务ID
      */
     @TableId(value = "job_id")
+    @PrimaryKey(name = "job_id")
     @JSONField(name = "job_id")
     @JsonProperty("job_id")
     public String jobId;
@@ -75,6 +82,7 @@ public class Job extends Model {
      * 计划ID
      */
     @TableField(value = "plan_id")
+    @Column(name = "plan_id")
     @JSONField(name = "plan_id")
     @JsonProperty("plan_id")
     public String planId;
@@ -83,6 +91,7 @@ public class Job extends Model {
      * 任务名称
      */
     @TableField(value = "name")
+    @Column(name = "name")
     @JSONField(name = "name")
     @JsonProperty("name")
     public String name;
@@ -91,6 +100,7 @@ public class Job extends Model {
      * 规则ID列表
      */
     @TableField(value = "rule_ids", typeHandler = JSONListIntegerTypeHandler.class)
+    @Column(name = "rule_ids")
     @JSONField(name = "rule_ids")
     @JsonProperty("rule_ids")
     public List<Integer> ruleIds;
@@ -99,6 +109,7 @@ public class Job extends Model {
      * 种子列表
      */
     @TableField(value = "seed_urls", typeHandler = JSONListURLRecordTypeHandler.class)
+    @Column(name = "seed_urls")
     @JSONField(name = "seed_urls")
     @JsonProperty("seed_urls")
     public List<URLRecord> seedURLs;

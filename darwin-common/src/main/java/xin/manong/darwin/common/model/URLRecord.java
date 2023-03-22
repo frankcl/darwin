@@ -14,6 +14,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import xin.manong.darwin.common.Constants;
 import xin.manong.darwin.common.model.handler.JSONMapObjectTypeHandler;
+import xin.manong.weapon.aliyun.ots.annotation.Column;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -37,6 +38,7 @@ public class URLRecord extends FetchRecord {
      * 超时时间（毫秒）
      */
     @TableField(value = "timeout")
+    @Column(name = "timeout")
     @JSONField(name = "timeout")
     @JsonProperty("timeout")
     public Integer timeout;
@@ -45,6 +47,7 @@ public class URLRecord extends FetchRecord {
      * 优先级
      */
     @TableField(value = "priority")
+    @Column(name = "priority")
     @JSONField(name = "priority")
     @JsonProperty("priority")
     public Integer priority;
@@ -53,6 +56,7 @@ public class URLRecord extends FetchRecord {
      * 创建时间
      */
     @TableField(value = "create_time", fill = FieldFill.INSERT)
+    @Column(name = "create_time")
     @JSONField(name = "create_time")
     @JsonProperty("create_time")
     public Long createTime;
@@ -61,6 +65,7 @@ public class URLRecord extends FetchRecord {
      * 更新时间
      */
     @TableField(value = "update_time", fill = FieldFill.INSERT_UPDATE)
+    @Column(name = "update_time")
     @JSONField(name = "update_time")
     @JsonProperty("update_time")
     public Long updateTime;
@@ -69,6 +74,7 @@ public class URLRecord extends FetchRecord {
      * 出对时间
      */
     @TableField(value = "out_queue_time")
+    @Column(name = "out_queue_time")
     @JSONField(name = "out_queue_time")
     @JsonProperty("out_queue_time")
     public Long outQueueTime;
@@ -77,6 +83,7 @@ public class URLRecord extends FetchRecord {
      * 进入多级队列时间
      */
     @TableField(value = "in_queue_time")
+    @Column(name = "in_queue_time")
     @JSONField(name = "in_queue_time")
     @JsonProperty("in_queue_time")
     public Long inQueueTime;
@@ -85,6 +92,7 @@ public class URLRecord extends FetchRecord {
      * 抓取URL类型
      */
     @TableField(value = "category")
+    @Column(name = "category")
     @JSONField(name = "category")
     @JsonProperty("category")
     public Integer category;
@@ -93,6 +101,7 @@ public class URLRecord extends FetchRecord {
      * 深度
      */
     @TableField(value = "depth")
+    @Column(name = "depth")
     @JSONField(name = "depth")
     @JsonProperty("depth")
     public Integer depth = 0;
@@ -101,6 +110,7 @@ public class URLRecord extends FetchRecord {
      * 抓取并发级别
      */
     @TableField(value = "concurrent_level")
+    @Column(name = "concurrent_level")
     @JSONField(name = "concurrent_level")
     @JsonProperty("concurrent_level")
     public Integer concurrentLevel;
@@ -109,6 +119,7 @@ public class URLRecord extends FetchRecord {
      * HTTP header信息
      */
     @TableField(value = "headers", typeHandler = JSONMapObjectTypeHandler.class)
+    @Column(name = "headers")
     @JSONField(name = "headers")
     @JsonProperty("headers")
     public Map<String, Object> headers = new HashMap<>();
