@@ -14,17 +14,21 @@ public class Constants {
     /**
      * URL状态
      */
-    public static final int URL_STATUS_SUCCESS = 0;         //抓取成功
-    public static final int URL_STATUS_FAIL = -1;           //抓取失败
-    public static final int URL_STATUS_CREATED = 1;         //创建
-    public static final int URL_STATUS_QUEUING = 2;         //排队中
-    public static final int URL_STATUS_FETCHING = 3;        //抓取中
+    public static final int URL_STATUS_SUCCESS = 0;             //抓取成功
+    public static final int URL_STATUS_FAIL = -1;               //抓取失败
+    public static final int URL_STATUS_CREATED = 1;             //创建
+    public static final int URL_STATUS_QUEUING_REFUSED = 2;     //排队拒绝
+    public static final int URL_STATUS_QUEUING = 3;             //排队中
+    public static final int URL_STATUS_FETCHING = 4;            //抓取中
+    public static final int URL_STATUS_INVALID = 5;             //URL非法
     public static final Set<Integer> SUPPORT_URL_STATUSES = new HashSet<Integer>() {{
         add(URL_STATUS_SUCCESS);
         add(URL_STATUS_FAIL);
         add(URL_STATUS_CREATED);
+        add(URL_STATUS_QUEUING_REFUSED);
         add(URL_STATUS_QUEUING);
         add(URL_STATUS_FETCHING);
+        add(URL_STATUS_INVALID);
     }};
 
     /**

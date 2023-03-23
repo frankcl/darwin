@@ -135,4 +135,24 @@ public class FetchRecord extends Model {
         this.url = url;
         this.hash = DigestUtils.md5Hex(url);
     }
+
+    public FetchRecord(FetchRecord record) {
+        this.key = record.key;
+        this.hash = record.hash;
+        this.url = record.url;
+        this.jobId = record.jobId;
+        this.fetchTime = record.fetchTime;
+        this.parentURL = record.parentURL;
+        this.fetchContentURL = record.fetchContentURL;
+        this.status = record.status;
+        this.userDefinedMap = record.userDefinedMap;
+        this.structureMap = record.structureMap;
+    }
+
+    /**
+     * 重新构建key
+     */
+    public void rebuildKey() {
+        key = RandomID.build();
+    }
 }

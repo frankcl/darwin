@@ -9,7 +9,8 @@ package xin.manong.darwin.queue.multi;
 public class MultiQueueConstants {
 
     public static final String MULTI_QUEUE_PREFIX = "DARWIN";
-    public static final String MULTI_QUEUE_GLOBAL_LOCK = String.format("%s_GLOBAL_LOCK", MULTI_QUEUE_PREFIX);
+    public static final String MULTI_QUEUE_IN_LOCK = String.format("%s_IN_LOCK", MULTI_QUEUE_PREFIX);
+    public static final String MULTI_QUEUE_OUT_LOCK = String.format("%s_OUT_LOCK", MULTI_QUEUE_PREFIX);
     public static final String MULTI_QUEUE_HIGH_CONCURRENT_KEY_PREFIX = String.format("%s_H_CONCURRENT_", MULTI_QUEUE_PREFIX);
     public static final String MULTI_QUEUE_NORMAL_CONCURRENT_KEY_PREFIX = String.format("%s_N_CONCURRENT_", MULTI_QUEUE_PREFIX);
     public static final String MULTI_QUEUE_LOW_CONCURRENT_KEY_PREFIX = String.format("%s_L_CONCURRENT_", MULTI_QUEUE_PREFIX);

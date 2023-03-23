@@ -2,7 +2,9 @@ package xin.manong.darwin.scheduler;
 
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import xin.manong.weapon.base.log.JSONLogger;
 
 /**
  * 周期性任务构建配置
@@ -16,9 +18,13 @@ import org.springframework.context.annotation.Configuration;
 public class RepeatedJobBuilderConfig {
 
     private static final Long DEFAULT_REPEATED_JOB_BUILD_TIME_INTERVAL_MS = 60000L;
-    private static final Long DEFAULT_MULTI_QUEUE_LOCK_EXPIRED_TIME_SECONDS = 300L;
 
     public int retryCnt = 3;
     public Long repeatedJobBuildTimeIntervalMs = DEFAULT_REPEATED_JOB_BUILD_TIME_INTERVAL_MS;
-    public Long multiQueueLockExpiredTimeSeconds = DEFAULT_MULTI_QUEUE_LOCK_EXPIRED_TIME_SECONDS;
+    public String aspectLogFile;
+
+    @Bean(name = "buildAspectLogger")
+    public JSONLogger buildAspectLogger() {
+        return new JSONLogger(aspectLogFile, null);
+    }
 }

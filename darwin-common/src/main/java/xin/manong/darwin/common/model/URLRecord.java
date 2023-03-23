@@ -135,6 +135,20 @@ public class URLRecord extends FetchRecord {
         this.createTime = System.currentTimeMillis();
     }
 
+    public URLRecord(URLRecord record) {
+        super(record);
+        this.concurrentLevel = record.concurrentLevel;
+        this.timeout = record.timeout;
+        this.priority = record.priority;
+        this.createTime = record.createTime;
+        this.updateTime = record.updateTime;
+        this.inQueueTime = record.inQueueTime;
+        this.outQueueTime = record.outQueueTime;
+        this.category = record.category;
+        this.depth = record.depth;
+        this.headers = record.headers;
+    }
+
     /**
      * 检测URLRecord有效性
      * 1. url不能为空

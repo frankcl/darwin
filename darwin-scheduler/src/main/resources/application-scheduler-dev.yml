@@ -1,0 +1,12 @@
+weapon:
+  aliyun:
+    ons:
+      producer:
+        recordProducer:
+          serverURL: http://onsaddr.mq-internet-access.mq-internet.aliyuncs.com:80
+app:
+  scheduler:
+    job-builder:
+      aspectLogFile: ./logs/job_builder.log
+    url-scheduler:
+      aspectLogFile: ./logs/scheduler.log

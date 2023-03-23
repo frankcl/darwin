@@ -78,20 +78,35 @@ public class MultiQueue {
     }
 
     /**
-     * 获取多级队列全局锁
+     * 获取多级队列出队锁
      *
-     * @param expiredSeconds 过期时间（秒）
      * @return 获取成功返回true，否则返回false
      */
-    public boolean tryLockQueue(long expiredSeconds) {
-        return redisClient.tryLock(MultiQueueConstants.MULTI_QUEUE_GLOBAL_LOCK, expiredSeconds);
+    public boolean tryLockOutQueue() {
+        return redisClient.tryLock(MultiQueueConstants.MULTI_QUEUE_OUT_LOCK, null);
     }
 
     /**
-     * 释放多级队列全局锁
+     * 释放多级队列出队锁
      */
-    public void unlockQueue() {
-        redisClient.unlock(MultiQueueConstants.MULTI_QUEUE_GLOBAL_LOCK);
+    public void unlockOutQueue() {
+        redisClient.unlock(MultiQueueConstants.MULTI_QUEUE_OUT_LOCK);
+    }
+
+    /**
+     * 获取多级队列入队锁
+     *
+     * @return 获取成功返回true，否则返回false
+     */
+    public boolean tryLockInQueue() {
+        return redisClient.tryLock(MultiQueueConstants.MULTI_QUEUE_IN_LOCK, null);
+    }
+
+    /**
+     * 释放多级队列入队锁
+     */
+    public void unlockInQueue() {
+        redisClient.unlock(MultiQueueConstants.MULTI_QUEUE_IN_LOCK);
     }
 
     /**

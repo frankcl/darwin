@@ -13,6 +13,10 @@
 
     <dependencies>
         <dependency>
+            <groupId>com.aliyun.openservices</groupId>
+            <artifactId>ons-client</artifactId>
+        </dependency>
+        <dependency>
             <groupId>xin.manong</groupId>
             <artifactId>darwin-service</artifactId>
             <version>${darwin.version}</version>

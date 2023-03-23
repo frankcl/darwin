@@ -1,6 +1,9 @@
 package xin.manong.darwin.queue.concurrent;
 
 import org.redisson.api.RAtomicLong;
+import org.redisson.api.RMap;
+import org.redisson.client.codec.Codec;
+import org.redisson.codec.SnappyCodecV2;
 import xin.manong.weapon.base.redis.RedisClient;
 import xin.manong.weapon.base.util.FP63;
 
@@ -17,12 +20,17 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class ConcurrentManager {
 
-    private static final String CONCURRENT_CONNECTION_PREFIX = "DARWIN_CONCURRENT_";
+    private static final String CONCURRENT_COUNT_PREFIX = "DARWIN_CONCURRENT_COUNT";
+    private static final String CONCURRENT_RECORD_PREFIX = "DARWIN_CONCURRENT_RECORD";
 
     private int maxConcurrentConnectionNum;
     private int concurrentConnectionTtlSecond;
-    private Map<Long, ConcurrentConnectionCount> concurrentConnectionCountMap;
+    private Map<String, ConcurrentConnectionCount> concurrentConnectionCountMap;
     private Map<String, Integer> concurrentUnitMaxConnectionMap;
+    /**
+     * 使用snappy压缩节省URLRecord内存占用空间
+     */
+    protected Codec codec;
     @Resource
     protected RedisClient redisClient;
 
@@ -33,6 +41,52 @@ public class ConcurrentManager {
         this.maxConcurrentConnectionNum = maxConcurrentConnectionNum;
         this.concurrentConnectionTtlSecond = concurrentConnectionTtlSecond;
         this.concurrentConnectionCountMap = new ConcurrentHashMap<>();
+        this.codec = new SnappyCodecV2();
+    }
+
+    /**
+     * 获取并发连接计数Map
+     *
+     * @return 并发连接计数Map
+     */
+    public Map<String, ConcurrentConnectionCount> getConcurrentConnectionCountMap() {
+        return concurrentConnectionCountMap;
+    }
+
+    /**
+     * 增加并发单元连接记录
+     *
+     * @param concurrentUnit 并发单元
+     * @param key 连接key
+     */
+    public void putConnectionRecord(String concurrentUnit, String key) {
+        String redisKey = String.format("%s_%s", CONCURRENT_RECORD_PREFIX, concurrentUnit);
+        RMap<String, Long> connectionRecordMap = redisClient.getRedissonClient().getMap(redisKey, codec);
+        connectionRecordMap.put(key, System.currentTimeMillis());
+    }
+
+    /**
+     * 移除并发单元连接记录
+     *
+     * @param concurrentUnit 并发单元
+     * @param key 连接key
+     * @return 成功返回true，否则返回false
+     */
+    public boolean removeConnectionRecord(String concurrentUnit, String key) {
+        String redisKey = String.format("%s_%s", CONCURRENT_RECORD_PREFIX, concurrentUnit);
+        RMap<String, Long> connectionRecordMap = redisClient.getRedissonClient().getMap(redisKey, codec);
+        return connectionRecordMap.remove(key) != null;
+    }
+
+    /**
+     * 获取并发单元连接记录map
+     *
+     * @param concurrentUnit 并发单元
+     * @return 并发单元连接记录map
+     */
+    public Map<String, Long> getConnectionRecordMap(String concurrentUnit) {
+        String redisKey = String.format("%s_%s", CONCURRENT_RECORD_PREFIX, concurrentUnit);
+        return redisClient.getRedissonClient().getMap(redisKey, codec);
     }
 
     /**
@@ -111,9 +165,8 @@ public class ConcurrentManager {
      * @return 连接计数
      */
     private ConcurrentConnectionCount getConcurrentConnectionCount(String concurrentUnit) {
-        Long key = FP63.newFP63(concurrentUnit);
-        if (concurrentConnectionCountMap.containsKey(key)) {
-            ConcurrentConnectionCount concurrentConnectionCount = concurrentConnectionCountMap.get(key);
+        if (concurrentConnectionCountMap.containsKey(concurrentUnit)) {
+            ConcurrentConnectionCount concurrentConnectionCount = concurrentConnectionCountMap.get(concurrentUnit);
             long updateTime = concurrentConnectionCount.expiredTime - concurrentConnectionTtlSecond * 1000L / 2;
             if (System.currentTimeMillis() >= updateTime) {
                 concurrentConnectionCount.connectionCount.expireAsync(
@@ -122,16 +175,16 @@ public class ConcurrentManager {
             return concurrentConnectionCount;
         }
         synchronized (this) {
-            if (concurrentConnectionCountMap.containsKey(key)) {
-                return concurrentConnectionCountMap.get(key);
+            if (concurrentConnectionCountMap.containsKey(concurrentUnit)) {
+                return concurrentConnectionCountMap.get(concurrentUnit);
             }
-            String redisKey = String.format("%s%s", CONCURRENT_CONNECTION_PREFIX, concurrentUnit);
+            String redisKey = String.format("%s%s", CONCURRENT_COUNT_PREFIX, concurrentUnit);
             RAtomicLong connectionCount = redisClient.getRedissonClient().getAtomicLong(redisKey);
             connectionCount.set(0);
             connectionCount.expireAsync(Duration.ofSeconds(concurrentConnectionTtlSecond));
             ConcurrentConnectionCount concurrentConnectionCount = new ConcurrentConnectionCount(
                     connectionCount, System.currentTimeMillis() + concurrentConnectionTtlSecond * 1000L);
-            concurrentConnectionCountMap.put(key, concurrentConnectionCount);
+            concurrentConnectionCountMap.put(concurrentUnit, concurrentConnectionCount);
             return concurrentConnectionCount;
         }
     }

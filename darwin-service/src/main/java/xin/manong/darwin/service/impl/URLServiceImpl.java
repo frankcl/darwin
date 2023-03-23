@@ -58,6 +58,7 @@ public class URLServiceImpl implements URLService {
         }
         LambdaUpdateWrapper<URLRecord> wrapper = new LambdaUpdateWrapper<>();
         wrapper.eq(URLRecord::getKey, fetchRecord.key);
+        wrapper.set(URLRecord::getUpdateTime, System.currentTimeMillis());
         if (fetchRecord.fetchTime != null) wrapper.set(URLRecord::getFetchTime, fetchRecord.fetchTime);
         if (fetchRecord.status != null) wrapper.set(URLRecord::getStatus, fetchRecord.status);
         if (!StringUtils.isEmpty(fetchRecord.fetchContentURL)) {
@@ -81,6 +82,7 @@ public class URLServiceImpl implements URLService {
         }
         LambdaUpdateWrapper<URLRecord> wrapper = new LambdaUpdateWrapper<>();
         wrapper.eq(URLRecord::getKey, record.key);
+        wrapper.set(URLRecord::getUpdateTime, System.currentTimeMillis());
         if (record.status != null) wrapper.set(URLRecord::getStatus, record.status);
         if (record.inQueueTime != null) wrapper.set(URLRecord::getInQueueTime, record.inQueueTime);
         if (record.outQueueTime != null) wrapper.set(URLRecord::getOutQueueTime, record.outQueueTime);
@@ -99,7 +101,8 @@ public class URLServiceImpl implements URLService {
             throw new RuntimeException(String.format("未找到URL记录[%s]", key));
         }
         LambdaUpdateWrapper<URLRecord> wrapper = new LambdaUpdateWrapper<>();
-        wrapper.eq(URLRecord::getKey, key).set(URLRecord::getStatus, status);
+        wrapper.eq(URLRecord::getKey, key).set(URLRecord::getStatus, status).
+                set(URLRecord::getUpdateTime, System.currentTimeMillis());
         return urlMapper.update(null, wrapper) > 0;
     }
 

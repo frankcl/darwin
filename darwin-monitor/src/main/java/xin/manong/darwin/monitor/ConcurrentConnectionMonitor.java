@@ -2,15 +2,12 @@ package xin.manong.darwin.monitor;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import xin.manong.darwin.common.Constants;
-import xin.manong.darwin.common.computer.ConcurrentUnitComputer;
-import xin.manong.darwin.common.model.URLRecord;
+import xin.manong.darwin.queue.concurrent.ConcurrentConnectionCount;
 import xin.manong.darwin.queue.concurrent.ConcurrentManager;
-import xin.manong.darwin.queue.multi.MultiQueue;
 
 import javax.annotation.Resource;
+import java.util.Iterator;
 import java.util.Map;
-import java.util.Set;
 
 /**
  * 并发连接监控器
@@ -26,8 +23,6 @@ public class ConcurrentConnectionMonitor implements Runnable {
     private long checkTimeIntervalMs;
     private long expiredTimeIntervalMs;
     private Thread thread;
-    @Resource
-    protected MultiQueue multiQueue;
     @Resource
     protected ConcurrentManager concurrentManager;
 
@@ -85,23 +80,29 @@ public class ConcurrentConnectionMonitor implements Runnable {
      * 释放过期连接
      */
     private void releaseExpiredConnections() {
-        int releaseConnectionNum = 0, scanJobNum = 0;
-        Set<String> jobIds = multiQueue.jobsInQueue();
-        for (String jobId : jobIds) {
-            scanJobNum++;
-            Map<String, URLRecord> jobRecordMap = multiQueue.getJobRecordMap(jobId);
-            for (URLRecord record : jobRecordMap.values()) {
-                if (record.status != Constants.URL_STATUS_FETCHING) continue;
-                long timeInterval = System.currentTimeMillis() - record.outQueueTime;
+        int releaseConnectionNum = 0, scanConcurrentUnitNum = 0;
+        Map<String, ConcurrentConnectionCount> concurrentConnectionCountMap =
+                concurrentManager.getConcurrentConnectionCountMap();
+        for (String concurrentUnit : concurrentConnectionCountMap.keySet()) {
+            scanConcurrentUnitNum++;
+            Map<String, Long> connectionRecordMap = concurrentManager.getConnectionRecordMap(concurrentUnit);
+            Iterator<Map.Entry<String, Long>> iterator = connectionRecordMap.entrySet().iterator();
+            while (iterator.hasNext()) {
+                Map.Entry<String, Long> entry = iterator.next();
+                String recordKey = entry.getKey();
+                Long recordTime = entry.getValue();
+                Long currentTime = System.currentTimeMillis();
+                long timeInterval = recordTime == null ? currentTime : currentTime - recordTime;
                 if (timeInterval < expiredTimeIntervalMs) continue;
-                String concurrentUnit = ConcurrentUnitComputer.compute(record);
+                iterator.remove();
                 if (concurrentManager.decreaseConnections(concurrentUnit, 1) > 0) {
                     releaseConnectionNum++;
-                    logger.info("release expired connection for concurrent unit[{}] and job[{}]",
-                            concurrentUnit, jobId);
+                    logger.info("release expired connection for concurrent unit[{}] and record[{}]",
+                            concurrentUnit, recordKey);
                 }
             }
         }
-        logger.info("scanning job num[{}], releasing connection num[{}]", scanJobNum, releaseConnectionNum);
+        logger.info("scanning concurrent unit num[{}], releasing connection num[{}]",
+                scanConcurrentUnitNum, releaseConnectionNum);
     }
 }

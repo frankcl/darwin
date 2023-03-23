@@ -22,6 +22,7 @@ import xin.manong.weapon.base.util.CommonUtil;
 import xin.manong.weapon.base.util.RandomID;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * 任务计划：用于生成爬虫任务
@@ -46,7 +47,7 @@ public class Plan extends Model {
     @TableField(value = "status")
     @JSONField(name = "status")
     @JsonProperty("status")
-    public Integer status = Constants.PLAN_STATUS_RUNNING;
+    public Integer status;
 
     /**
      * 任务优先级
@@ -54,7 +55,7 @@ public class Plan extends Model {
     @TableField(value = "priority")
     @JSONField(name = "priority")
     @JsonProperty("priority")
-    public Integer priority = Constants.PRIORITY_NORMAL;
+    public Integer priority;
 
     /**
      * 应用ID
@@ -70,7 +71,7 @@ public class Plan extends Model {
     @TableField(value = "create_time", fill = FieldFill.INSERT)
     @JSONField(name = "create_time")
     @JsonProperty("create_time")
-    public Long createTime = System.currentTimeMillis();
+    public Long createTime;
 
     /**
      * 更新时间
@@ -159,7 +160,15 @@ public class Plan extends Model {
         job.jobId = RandomID.build();
         job.name = String.format("%s_%s", name, CommonUtil.timeToString(System.currentTimeMillis(), DATE_TIME_FORMAT));
         job.ruleIds = ruleIds;
-        job.seedURLs = seedURLs;
+        job.seedURLs = seedURLs == null ? null : seedURLs.stream().map(record -> {
+            URLRecord seedRecord = new URLRecord(record);
+            seedRecord.rebuildKey();
+            seedRecord.jobId = job.jobId;
+            seedRecord.status = Constants.URL_STATUS_CREATED;
+            if (seedRecord.priority == null) seedRecord.priority = Constants.PRIORITY_NORMAL;
+            if (seedRecord.concurrentLevel == null) seedRecord.concurrentLevel = Constants.CONCURRENT_LEVEL_DOMAIN;
+            return seedRecord;
+        }).collect(Collectors.toList());
         return job;
     }
 
@@ -208,9 +217,11 @@ public class Plan extends Model {
         }
         if (priority == null) priority = Constants.PRIORITY_NORMAL;
         if (status == null) status = Constants.PLAN_STATUS_RUNNING;
-        for (URLRecord record : seedURLs) {
-            if (record.category == null) record.category = Constants.CONTENT_CATEGORY_TEXT;
-            if (record.priority == null) record.priority = priority;
+        if (seedURLs != null) {
+            for (URLRecord record : seedURLs) {
+                if (record.category == null) record.category = Constants.CONTENT_CATEGORY_TEXT;
+                if (record.priority == null) record.priority = priority;
+            }
         }
         return true;
     }

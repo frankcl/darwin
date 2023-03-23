@@ -20,7 +20,7 @@ public class WebConfig {
     public String name;
     public String aspectLogFile;
 
-    @Bean
+    @Bean(name = "webAspectLogger")
     public JSONLogger webAspectLogger() {
         return new JSONLogger(aspectLogFile, null);
     }

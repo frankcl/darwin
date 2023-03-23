@@ -16,7 +16,7 @@ import org.springframework.context.annotation.Configuration;
 @ConfigurationProperties(prefix = "app.monitor.concurrent")
 public class ConcurrentConnectionMonitorConfig {
 
-    private static final long DEFAULT_CHECK_TIME_INTERVAL_MS = 600000L;
+    private static final long DEFAULT_CHECK_TIME_INTERVAL_MS = 60000L;
     private static final long DEFAULT_EXPIRED_TIME_INTERVAL_MS = 600000L;
 
     public long checkTimeIntervalMs = DEFAULT_CHECK_TIME_INTERVAL_MS;
