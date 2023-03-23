@@ -7,14 +7,17 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+import xin.manong.darwin.common.Constants;
 import xin.manong.darwin.common.model.Pager;
 import xin.manong.darwin.common.model.Rule;
+import xin.manong.darwin.common.model.URLRecord;
 import xin.manong.darwin.service.convert.Converter;
 import xin.manong.darwin.service.dao.mapper.RuleMapper;
 import xin.manong.darwin.service.iface.RuleService;
 import xin.manong.darwin.service.request.RuleSearchRequest;
 
 import javax.annotation.Resource;
+import java.util.regex.Pattern;
 
 /**
  * MySQL规则服务实现
@@ -81,5 +84,23 @@ public class RuleServiceImpl implements RuleService {
         }
         IPage<Rule> page = ruleMapper.selectPage(new Page<>(current, size), query);
         return Converter.convert(page);
+    }
+
+    @Override
+    public Boolean match(URLRecord record, Rule rule) {
+        if (record == null || StringUtils.isEmpty(record.url)) {
+            logger.error("url is empty");
+            return false;
+        }
+        if (rule.category != null && rule.category == Constants.RULE_CATEGORY_GLOBAL_LINK_FOLLOW &&
+            record.category != null && record.category == Constants.CONTENT_CATEGORY_CONTENT_LIST) {
+            return true;
+        }
+        if (rule == null || StringUtils.isEmpty(rule.regex)) {
+            logger.error("match rule is null");
+            return false;
+        }
+        Pattern pattern = Pattern.compile(rule.regex);
+        return pattern.matcher(record.url).matches();
     }
 }

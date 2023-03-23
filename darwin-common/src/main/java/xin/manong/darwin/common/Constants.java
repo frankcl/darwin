@@ -51,13 +51,15 @@ public class Constants {
     /**
      * 内容分类
      */
-    public static final int CONTENT_CATEGORY_TEXT = 0;      //文本
-    public static final int CONTENT_CATEGORY_RESOURCE = 1;  //资源：图片视频等
-    public static final int CONTENT_CATEGORY_STREAM = 2;    //流：视频流等
+    public static final int CONTENT_CATEGORY_CONTENT_TEXT = 0;      //内容文本
+    public static final int CONTENT_CATEGORY_RESOURCE = 1;          //资源：图片视频等
+    public static final int CONTENT_CATEGORY_STREAM = 2;            //流：视频流等
+    public static final int CONTENT_CATEGORY_CONTENT_LIST = 3;              //内容列表页
     public static final Set<Integer> SUPPORT_CONTENT_CATEGORIES = new HashSet<Integer>() {{
-        add(CONTENT_CATEGORY_TEXT);
+        add(CONTENT_CATEGORY_CONTENT_TEXT);
         add(CONTENT_CATEGORY_RESOURCE);
         add(CONTENT_CATEGORY_STREAM);
+        add(CONTENT_CATEGORY_CONTENT_LIST);
     }};
 
     /**

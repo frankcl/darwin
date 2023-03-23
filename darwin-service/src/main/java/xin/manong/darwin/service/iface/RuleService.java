@@ -2,6 +2,7 @@ package xin.manong.darwin.service.iface;
 
 import xin.manong.darwin.common.model.Pager;
 import xin.manong.darwin.common.model.Rule;
+import xin.manong.darwin.common.model.URLRecord;
 import xin.manong.darwin.service.request.RuleSearchRequest;
 
 /**
@@ -53,4 +54,13 @@ public interface RuleService {
      * @return 搜索列表
      */
     Pager<Rule> search(RuleSearchRequest searchRequest, int current, int size);
+
+    /**
+     * 判断URL是否匹配规则
+     *
+     * @param record URL记录
+     * @param rule 规则
+     * @return 匹配返回true，否则返回false
+     */
+    Boolean match(URLRecord record, Rule rule);
 }

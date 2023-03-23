@@ -165,6 +165,7 @@ public class Plan extends Model {
             seedRecord.rebuildKey();
             seedRecord.jobId = job.jobId;
             seedRecord.status = Constants.URL_STATUS_CREATED;
+            if (seedRecord.category == null) seedRecord.category = Constants.CONTENT_CATEGORY_CONTENT_LIST;
             if (seedRecord.priority == null) seedRecord.priority = Constants.PRIORITY_NORMAL;
             if (seedRecord.concurrentLevel == null) seedRecord.concurrentLevel = Constants.CONCURRENT_LEVEL_DOMAIN;
             return seedRecord;
@@ -219,7 +220,7 @@ public class Plan extends Model {
         if (status == null) status = Constants.PLAN_STATUS_RUNNING;
         if (seedURLs != null) {
             for (URLRecord record : seedURLs) {
-                if (record.category == null) record.category = Constants.CONTENT_CATEGORY_TEXT;
+                if (record.category == null) record.category = Constants.CONTENT_CATEGORY_CONTENT_LIST;
                 if (record.priority == null) record.priority = priority;
             }
         }
