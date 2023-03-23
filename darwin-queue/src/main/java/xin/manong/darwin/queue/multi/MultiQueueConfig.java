@@ -16,12 +16,16 @@ import org.springframework.context.annotation.Configuration;
 @ConfigurationProperties(prefix = "app.queue.multi")
 public class MultiQueueConfig {
 
+    private static final int DEFAULT_MAX_QUEUE_SIZE = 5000;
+    private static final double DEFAULT_WARN_USED_MEMORY_RATIO = 0.9d;
     private static final double DEFAULT_MAX_USED_MEMORY_RATIO = 0.95d;
 
+    public int maxQueueSize = DEFAULT_MAX_QUEUE_SIZE;
     public double maxUsedMemoryRatio = DEFAULT_MAX_USED_MEMORY_RATIO;
+    public double warnUsedMemoryRatio = DEFAULT_WARN_USED_MEMORY_RATIO;
 
     @Bean
     public MultiQueue buildMultiQueue() {
-        return new MultiQueue(maxUsedMemoryRatio);
+        return new MultiQueue(maxQueueSize, warnUsedMemoryRatio, maxUsedMemoryRatio);
     }
 }

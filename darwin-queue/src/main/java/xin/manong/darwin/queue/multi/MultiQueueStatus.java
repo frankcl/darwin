@@ -7,5 +7,5 @@ package xin.manong.darwin.queue.multi;
  * @date 2023-03-07 17:11:21
  */
 public enum MultiQueueStatus {
-    OK, ERROR, REFUSED
+    OK, ERROR, REFUSED, FULL
 }

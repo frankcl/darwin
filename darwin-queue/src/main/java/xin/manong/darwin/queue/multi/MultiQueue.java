@@ -28,7 +28,9 @@ public class MultiQueue {
 
     private static final Logger logger = LoggerFactory.getLogger(MultiQueue.class);
 
+    private int maxQueueSize;
     private double maxUsedMemoryRatio;
+    private double warnUsedMemoryRatio;
     private RSet<String> jobs;
     private RSetCache<String> concurrentUnits;
 
@@ -39,8 +41,10 @@ public class MultiQueue {
     @Resource
     protected RedisClient redisClient;
 
-    public MultiQueue(double maxUsedMemoryRatio) {
+    public MultiQueue(int maxQueueSize, double warnUsedMemoryRatio, double maxUsedMemoryRatio) {
+        this.maxQueueSize = maxQueueSize;
         this.maxUsedMemoryRatio = maxUsedMemoryRatio;
+        this.warnUsedMemoryRatio = warnUsedMemoryRatio;
         this.codec = new SnappyCodecV2();
     }
 
@@ -55,6 +59,21 @@ public class MultiQueue {
         if (redisMemory == null) return false;
         return redisMemory.maxMemoryBytes == 0 || redisMemory.usedMemoryRssBytes * 1.0d /
                 redisMemory.maxMemoryBytes >= maxUsedMemoryRatio;
+    }
+
+    /**
+     * 获取当前内存等级
+     *
+     * @return 当前内存等级
+     */
+    public int getCurrentMemoryLevel() {
+        RedisMemory redisMemory = getCurrentMemory();
+        if (redisMemory == null) return MultiQueueConstants.MULTI_QUEUE_MEMORY_LEVEL_NORMAL;
+        double memoryRatio = redisMemory.maxMemoryBytes == 0 ? 0d : redisMemory.usedMemoryRssBytes * 1.0d /
+                redisMemory.maxMemoryBytes;
+        if (memoryRatio < warnUsedMemoryRatio) return MultiQueueConstants.MULTI_QUEUE_MEMORY_LEVEL_NORMAL;
+        else if (memoryRatio < maxUsedMemoryRatio) return MultiQueueConstants.MULTI_QUEUE_MEMORY_LEVEL_WARN;
+        return MultiQueueConstants.MULTI_QUEUE_MEMORY_LEVEL_REFUSED;
     }
 
     /**
@@ -299,6 +318,13 @@ public class MultiQueue {
         } else if (record.priority != null && record.priority == Constants.PRIORITY_LOW) {
             concurrentURLQueueKey = String.format("%s%s",
                     MultiQueueConstants.MULTI_QUEUE_LOW_CONCURRENT_KEY_PREFIX, concurrentUnit);
+        }
+        RBlockingQueue<URLRecord> queue = redisClient.getRedissonClient().
+                getBlockingQueue(concurrentURLQueueKey, codec);
+        int queueSize = queue.size();
+        if (maxQueueSize > 0 && queueSize >= maxQueueSize) {
+            logger.warn("queue is full for concurrent unit[{}]", concurrentUnit);
+            return MultiQueueStatus.FULL;
         }
         BatchOptions batchOptions = BatchOptions.defaults().
                 executionMode(BatchOptions.ExecutionMode.IN_MEMORY_ATOMIC).

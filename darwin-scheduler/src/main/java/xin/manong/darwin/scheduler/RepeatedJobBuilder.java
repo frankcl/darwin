@@ -8,6 +8,7 @@ import xin.manong.darwin.common.model.Pager;
 import xin.manong.darwin.common.model.Plan;
 import xin.manong.darwin.common.model.URLRecord;
 import xin.manong.darwin.queue.multi.MultiQueue;
+import xin.manong.darwin.queue.multi.MultiQueueConstants;
 import xin.manong.darwin.queue.multi.MultiQueueStatus;
 import xin.manong.darwin.service.iface.PlanService;
 import xin.manong.darwin.service.iface.TransactionService;
@@ -27,6 +28,7 @@ public class RepeatedJobBuilder implements Runnable {
 
     private static final Logger logger = LoggerFactory.getLogger(RepeatedJobBuilder.class);
 
+    private int lastMemoryLevel = -1;
     private boolean running;
     private Thread thread;
     @Resource
@@ -84,6 +86,7 @@ public class RepeatedJobBuilder implements Runnable {
                 Set<String> processedIds = new HashSet<>();
                 while (true) {
                     try {
+                        lastMemoryLevel = -1;
                         Pager<Plan> pager = getPlans(current, size);
                         for (Plan plan : pager.records) {
                             if (processedIds.contains(plan.planId)) continue;
@@ -130,6 +133,14 @@ public class RepeatedJobBuilder implements Runnable {
             if (plan.nextTime != null && plan.nextTime > 0L &&
                     plan.nextTime > System.currentTimeMillis()) return false;
             logger.info("begin building job for repeated plan[{}]", plan.planId);
+            if (lastMemoryLevel == -1 || lastMemoryLevel >= MultiQueueConstants.MULTI_QUEUE_MEMORY_LEVEL_WARN) {
+                int currentMemoryLevel = multiQueue.getCurrentMemoryLevel();
+                lastMemoryLevel = currentMemoryLevel;
+                if (currentMemoryLevel == MultiQueueConstants.MULTI_QUEUE_MEMORY_LEVEL_REFUSED) {
+                    logger.warn("multiQueue refuse service");
+                    return false;
+                }
+            }
             Job job = transactionService.buildJobRepeatedPlan(plan);
             if (job == null) {
                 logger.error("build job failed for repeated plan[{}]", plan.planId);
@@ -183,7 +194,7 @@ public class RepeatedJobBuilder implements Runnable {
                     logger.error("push record[{}] error", record.url);
                     record.status = Constants.URL_STATUS_INVALID;
                     processRecords.add(record);
-                } else if (status == MultiQueueStatus.REFUSED) {
+                } else if (status == MultiQueueStatus.REFUSED || status == MultiQueueStatus.FULL) {
                     logger.warn("push record[{}] refused", record.url);
                     failRecords.add(pushRecords.get(j));
                 } else {
