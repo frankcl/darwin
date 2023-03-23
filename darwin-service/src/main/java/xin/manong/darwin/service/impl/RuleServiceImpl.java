@@ -33,10 +33,10 @@ public class RuleServiceImpl implements RuleService {
     @Override
     public Boolean add(Rule rule) {
         LambdaQueryWrapper<Rule> query = new LambdaQueryWrapper<>();
-        query.eq(Rule::getName, rule.name);
+        query.eq(Rule::getName, rule.name).eq(Rule::getRuleGroup, rule.ruleGroup);
         if (ruleMapper.selectCount(query) > 0) {
-            logger.error("rule has existed for same name[{}]", rule.name);
-            throw new RuntimeException(String.format("同名规则[%s]已存在", rule.name));
+            logger.error("rule has existed for name[{}] and group[{}]", rule.name, rule.ruleGroup);
+            throw new RuntimeException(String.format("分组[%d]下同名规则[%s]已存在", rule.ruleGroup, rule.name));
         }
         return ruleMapper.insert(rule) > 0;
     }
