@@ -49,7 +49,7 @@ public class RuleGroup extends Model {
     @TableField(value = "create_time", fill = FieldFill.INSERT)
     @JSONField(name = "create_time")
     @JsonProperty("create_time")
-    public Long createTime = System.currentTimeMillis();
+    public Long createTime;
     /**
      * 更新时间
      */

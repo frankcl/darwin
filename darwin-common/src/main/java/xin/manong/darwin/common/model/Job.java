@@ -41,7 +41,7 @@ public class Job extends Model {
     @Column(name = "status")
     @JSONField(name = "status")
     @JsonProperty("status")
-    public Integer status = Constants.JOB_STATUS_RUNNING;
+    public Integer status;
 
     /**
      * 任务优先级
@@ -50,7 +50,7 @@ public class Job extends Model {
     @Column(name = "priority")
     @JSONField(name = "priority")
     @JsonProperty("priority")
-    public Integer priority = Constants.PRIORITY_NORMAL;
+    public Integer priority;
 
     /**
      * 创建时间

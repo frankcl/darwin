@@ -155,7 +155,7 @@ public class Plan extends Model {
         Job job = new Job();
         job.createTime = System.currentTimeMillis();
         job.planId = planId;
-        job.priority = priority;
+        job.priority = priority == null ? Constants.PRIORITY_NORMAL : priority;
         job.status = Constants.JOB_STATUS_RUNNING;
         job.jobId = RandomID.build();
         job.name = String.format("%s_%s", name, CommonUtil.timeToString(System.currentTimeMillis(), DATE_TIME_FORMAT));

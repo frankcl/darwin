@@ -109,7 +109,7 @@ public class Rule extends Model {
     @TableField(value = "link_follow_scope")
     @JSONField(name = "link_follow_scope")
     @JsonProperty("link_follow_scope")
-    public Integer linkFollowScope = Constants.LINK_FOLLOW_SCOPE_ALL;
+    public Integer linkFollowScope;
 
     /**
      * 创建时间
@@ -117,7 +117,7 @@ public class Rule extends Model {
     @TableField(value = "create_time", fill = FieldFill.INSERT)
     @JSONField(name = "create_time")
     @JsonProperty("create_time")
-    public Long createTime = System.currentTimeMillis();
+    public Long createTime;
     /**
      * 更新时间
      */
