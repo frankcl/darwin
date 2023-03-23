@@ -11,14 +11,14 @@ import xin.manong.darwin.common.parser.ParseResponse;
  */
 public abstract class Script {
 
-    protected String key;
+    protected Long id;
     protected String scriptMD5;
 
     public Script() {
     }
 
-    public Script(String key, String scriptMD5) {
-        this.key = key;
+    public Script(Long id, String scriptMD5) {
+        this.id = id;
         this.scriptMD5 = scriptMD5;
     }
 
@@ -36,12 +36,12 @@ public abstract class Script {
     public abstract void close();
 
     /**
-     * 获取key
+     * 获取ID
      *
-     * @return key
+     * @return id
      */
-    public String getKey() {
-        return key;
+    public Long getId() {
+        return id;
     }
 
     /**

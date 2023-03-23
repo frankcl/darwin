@@ -31,8 +31,8 @@ public class GroovyScriptSuite {
     @Test
     public void testGroovyScript() {
         LinkURL linkURL = new LinkURL("http://www.sina.com.cn/");
-        GroovyScript groovyScript = new GroovyScript("abc", script);
-        ParseRequest request = new ParseRequest.Builder().html("<p>Hello world!!!</p>").linkURL(linkURL).build();
+        GroovyScript groovyScript = new GroovyScript(1L, script);
+        ParseRequest request = new ParseRequest.Builder().content("<p>Hello world!!!</p>").linkURL(linkURL).build();
         ParseResponse response = groovyScript.execute(request);
         Assert.assertTrue(response.status);
         Assert.assertEquals(1, response.structureMap.size());

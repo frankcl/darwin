@@ -16,7 +16,7 @@ public class ScriptCache {
 
     private static final Logger logger = LoggerFactory.getLogger(ScriptCache.class);
 
-    private Map<String, Script> scriptMap;
+    private Map<Long, Script> scriptMap;
 
     public ScriptCache() {
         scriptMap = new ConcurrentHashMap<>();
@@ -30,18 +30,18 @@ public class ScriptCache {
      */
     public void put(Script script) {
         if (script == null) return;
-        Script previous = scriptMap.put(script.getKey(), script);
+        Script previous = scriptMap.put(script.getId(), script);
         if (previous != null) previous.close();
     }
 
     /**
-     * 根据key获取脚本
+     * 根据ID获取脚本
      *
-     * @param key 脚本key
+     * @param id 脚本ID
      * @return 如果存在返回脚本，否则返回null
      */
-    public Script get(String key) {
-        return scriptMap.get(key);
+    public Script get(Long id) {
+        return scriptMap.get(id);
     }
 
     /**
@@ -54,8 +54,8 @@ public class ScriptCache {
      */
     public boolean isChange(Script script) {
         if (script == null) return false;
-        if (!scriptMap.containsKey(script.getKey())) return true;
-        Script other = scriptMap.get(script.getKey());
+        if (!scriptMap.containsKey(script.getId())) return true;
+        Script other = scriptMap.get(script.getId());
         return other == null || (other.getScriptMD5() != script.getScriptMD5() &&
                 !other.getScriptMD5().equals(script.getScriptMD5()));
     }

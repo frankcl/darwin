@@ -1,5 +1,8 @@
 package xin.manong.darwin.common.parser;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /**
  * 解析请求
  *
@@ -7,6 +10,8 @@ package xin.manong.darwin.common.parser;
  * @date 2023-03-16 15:15:08
  */
 public class ParseRequest {
+
+    private static final Logger logger = LoggerFactory.getLogger(ParseRequest.class);
 
     /**
      * 解析请求构建器
@@ -23,14 +28,14 @@ public class ParseRequest {
             return this;
         }
 
-        public Builder html(String html) {
-            template.html = html;
+        public Builder content(String content) {
+            template.content = content;
             return this;
         }
 
         public ParseRequest build() {
             ParseRequest request = new ParseRequest();
-            request.html = template.html;
+            request.content = template.content;
             request.linkURL = template.linkURL;
             return request;
         }
@@ -39,9 +44,22 @@ public class ParseRequest {
     /**
      * 网页内容HTML
      */
-    public String html;
+    public String content;
     /**
      * 链接信息
      */
     public LinkURL linkURL;
+
+    /**
+     * 检测有效性
+     *
+     * @return 有效返回true，否则返回false
+     */
+    public boolean check() {
+        if (linkURL == null || !linkURL.check()) {
+            logger.error("link url is null or invalid");
+            return false;
+        }
+        return true;
+    }
 }

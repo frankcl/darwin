@@ -40,8 +40,8 @@ public class JavaScript extends Script {
             template = new JavaScript();
         }
 
-        public Builder key(String key) {
-            template.key = key;
+        public Builder id(Long id) {
+            template.id = id;
             return this;
         }
 
@@ -57,7 +57,7 @@ public class JavaScript extends Script {
 
         public JavaScript build() {
             JavaScript javaScript = new JavaScript();
-            javaScript.key = template.key;
+            javaScript.id = template.id;
             javaScript.scriptMD5 = template.scriptMD5;
             javaScript.function = template.function;
             return javaScript;
@@ -100,8 +100,8 @@ public class JavaScript extends Script {
     private JavaScript() {
     }
 
-    public JavaScript(String key, String script) {
-        super(key, DigestUtils.md5Hex(script));
+    public JavaScript(Long id, String script) {
+        super(id, DigestUtils.md5Hex(script));
         buildInvocable(script);
     }
 
@@ -116,8 +116,8 @@ public class JavaScript extends Script {
             scriptEngine.eval(String.format("%s\n%s", COMMON_JAVASCRIPT, script));
             function = (Invocable) scriptEngine;
         } catch (Exception e) {
-            logger.error("build JavaScript function failed for key[{}]", key);
-            throw new RuntimeException(String.format("构建JavaScript脚本方法[%s]失败", key));
+            logger.error("build JavaScript function failed for id[{}]", id);
+            throw new RuntimeException(String.format("构建JavaScript脚本方法[%d]失败", id));
         }
     }
 

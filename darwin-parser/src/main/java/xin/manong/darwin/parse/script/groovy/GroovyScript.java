@@ -30,8 +30,8 @@ public class GroovyScript extends Script {
             template = new GroovyScript();
         }
 
-        public Builder key(String key) {
-            template.key = key;
+        public Builder id(Long id) {
+            template.id = id;
             return this;
         }
 
@@ -52,7 +52,7 @@ public class GroovyScript extends Script {
 
         public GroovyScript build() {
             GroovyScript groovyScript = new GroovyScript();
-            groovyScript.key = template.key;
+            groovyScript.id = template.id;
             groovyScript.scriptMD5 = template.scriptMD5;
             groovyScript.classLoader = template.classLoader;
             groovyScript.scriptObject = template.scriptObject;
@@ -76,14 +76,14 @@ public class GroovyScript extends Script {
     private GroovyScript() {
     }
 
-    public GroovyScript(String key, String script) {
-        super(key, DigestUtils.md5Hex(script));
+    public GroovyScript(Long id, String script) {
+        super(id, DigestUtils.md5Hex(script));
         this.classLoader = new GroovyClassLoader();
         buildScriptObject(script);
     }
 
-    public GroovyScript(String key, String script, ClassLoader classLoader) {
-        super(key, DigestUtils.md5Hex(script));
+    public GroovyScript(Long id, String script, ClassLoader classLoader) {
+        super(id, DigestUtils.md5Hex(script));
         this.classLoader = new GroovyClassLoader(classLoader);
         buildScriptObject(script);
     }
@@ -110,9 +110,9 @@ public class GroovyScript extends Script {
             logger.error(e.getMessage(), e);
             throw new RuntimeException(String.format("解析脚本中未找到方法[%s]", METHOD_PARSE));
         } catch (Exception e) {
-            logger.error("create groovy script object failed for key[{}]", key);
+            logger.error("create groovy script object failed for id[{}]", id);
             logger.error(e.getMessage(), e);
-            throw new RuntimeException(String.format("创建groovy脚本对象[%s]失败", key));
+            throw new RuntimeException(String.format("创建groovy脚本对象[%d]失败", id));
         }
     }
 
@@ -140,7 +140,7 @@ public class GroovyScript extends Script {
                 classLoader = null;
             }
         } catch (IOException e) {
-            logger.warn("close class loader failed for groovy script[{}]", key);
+            logger.warn("close class loader failed for groovy script[{}]", id);
             logger.warn(e.getMessage(), e);
         }
     }

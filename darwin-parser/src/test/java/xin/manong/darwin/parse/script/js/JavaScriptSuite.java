@@ -25,8 +25,8 @@ public class JavaScriptSuite {
     @Test
     public void testJavaScript() {
         LinkURL linkURL = new LinkURL("http://www.sina.com.cn/");
-        JavaScript javaScript = new JavaScript("abc", script);
-        ParseRequest request = new ParseRequest.Builder().html("<p>Hello world!!!</p>").linkURL(linkURL).build();
+        JavaScript javaScript = new JavaScript(1L, script);
+        ParseRequest request = new ParseRequest.Builder().content("<p>Hello world!!!</p>").linkURL(linkURL).build();
         ParseResponse response = javaScript.execute(request);
         Assert.assertTrue(response.status);
         Assert.assertTrue(response.structureMap == null);
