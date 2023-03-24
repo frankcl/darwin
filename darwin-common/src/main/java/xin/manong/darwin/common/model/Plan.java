@@ -42,6 +42,14 @@ public class Plan extends Model {
     private static final String DATE_TIME_FORMAT = "yyyy_MM_dd_HH_mm_ss";
 
     /**
+     * 避免重复抓取
+     */
+    @TableField(value = "avoid_repeated_fetch")
+    @JSONField(name = "avoid_repeated_fetch")
+    @JsonProperty("avoid_repeated_fetch")
+    public Boolean avoidRepeatedFetch = true;
+
+    /**
      * 计划状态
      */
     @TableField(value = "status")
@@ -155,6 +163,7 @@ public class Plan extends Model {
         Job job = new Job();
         job.createTime = System.currentTimeMillis();
         job.planId = planId;
+        job.avoidRepeatedFetch = avoidRepeatedFetch == null ? true : avoidRepeatedFetch;
         job.priority = priority == null ? Constants.PRIORITY_NORMAL : priority;
         job.status = Constants.JOB_STATUS_RUNNING;
         job.jobId = RandomID.build();
@@ -165,7 +174,7 @@ public class Plan extends Model {
             seedRecord.rebuildKey();
             seedRecord.jobId = job.jobId;
             seedRecord.status = Constants.URL_STATUS_CREATED;
-            if (seedRecord.category == null) seedRecord.category = Constants.CONTENT_CATEGORY_CONTENT_LIST;
+            if (seedRecord.category == null) seedRecord.category = Constants.CONTENT_CATEGORY_LIST;
             if (seedRecord.priority == null) seedRecord.priority = Constants.PRIORITY_NORMAL;
             if (seedRecord.concurrentLevel == null) seedRecord.concurrentLevel = Constants.CONCURRENT_LEVEL_DOMAIN;
             return seedRecord;
@@ -203,11 +212,11 @@ public class Plan extends Model {
             logger.error("seed url list are empty");
             return false;
         }
-        if (!Constants.SUPPORT_PLAN_CATEGORIES.contains(category)) {
+        if (!Constants.SUPPORT_PLAN_CATEGORIES.containsKey(category)) {
             logger.error("not support plan category[{}]", category);
             return false;
         }
-        if (!Constants.SUPPORT_PLAN_STATUSES.contains(status)) {
+        if (!Constants.SUPPORT_PLAN_STATUSES.containsKey(status)) {
             logger.error("not support plan status[{}]", status);
             return false;
         }
@@ -216,11 +225,12 @@ public class Plan extends Model {
             logger.error("crontab expression[{}] is invalid", crontabExpression);
             return false;
         }
+        if (avoidRepeatedFetch == null) avoidRepeatedFetch = true;
         if (priority == null) priority = Constants.PRIORITY_NORMAL;
         if (status == null) status = Constants.PLAN_STATUS_RUNNING;
         if (seedURLs != null) {
             for (URLRecord record : seedURLs) {
-                if (record.category == null) record.category = Constants.CONTENT_CATEGORY_CONTENT_LIST;
+                if (record.category == null) record.category = Constants.CONTENT_CATEGORY_LIST;
                 if (record.priority == null) record.priority = priority;
             }
         }

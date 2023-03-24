@@ -53,6 +53,15 @@ public class URLRecord extends FetchRecord {
     public Integer priority;
 
     /**
+     * 抓取方式
+     */
+    @TableField(value = "fetch_method")
+    @Column(name = "fetch_method")
+    @JSONField(name = "fetch_method")
+    @JsonProperty("fetch_method")
+    public Integer fetchMethod;
+
+    /**
      * 创建时间
      */
     @TableField(value = "create_time", fill = FieldFill.INSERT)
@@ -165,18 +174,22 @@ public class URLRecord extends FetchRecord {
             logger.error("job id is empty");
             return false;
         }
-        if (!Constants.SUPPORT_CONTENT_CATEGORIES.contains(category)) {
+        if (!Constants.SUPPORT_CONTENT_CATEGORIES.containsKey(category)) {
             logger.error("not support content category[{}]", category);
             return false;
         }
+        if (fetchMethod != null && !Constants.SUPPORT_FETCH_METHODS.containsKey(fetchMethod)) {
+            logger.error("not support fetch method[{}]", fetchMethod);
+            return false;
+        }
         if (status == null) status = Constants.URL_STATUS_CREATED;
-        else if (!Constants.SUPPORT_URL_STATUSES.contains(status)) {
+        else if (!Constants.SUPPORT_URL_STATUSES.containsKey(status)) {
             logger.error("not support url status[{}]", status);
             return false;
         }
         if (concurrentLevel == null) concurrentLevel = Constants.CONCURRENT_LEVEL_DOMAIN;
         if (depth == null || depth < 0) depth = 0;
-        if (!Constants.SUPPORT_CONCURRENT_LEVELS.contains(concurrentLevel)) {
+        if (!Constants.SUPPORT_CONCURRENT_LEVELS.containsKey(concurrentLevel)) {
             logger.error("not support concurrent level[{}]", concurrentLevel);
             return false;
         }

@@ -35,6 +35,14 @@ public class Job extends Model {
     private static final Logger logger = LoggerFactory.getLogger(Job.class);
 
     /**
+     * 避免重复抓取
+     */
+    @TableField(value = "avoid_repeated_fetch")
+    @JSONField(name = "avoid_repeated_fetch")
+    @JsonProperty("avoid_repeated_fetch")
+    public Boolean avoidRepeatedFetch = true;
+
+    /**
      * 任务状态
      */
     @TableField(value = "status")

@@ -144,12 +144,12 @@ public class Rule extends Model {
             logger.error("rule regex is empty");
             return false;
         }
-        if (category == null || !Constants.SUPPORT_RULE_CATEGORIES.contains(category)) {
+        if (category == null || !Constants.SUPPORT_RULE_CATEGORIES.containsKey(category)) {
             logger.error("not support rule category[{}]", category);
             return false;
         }
         if (category != Constants.RULE_CATEGORY_GLOBAL_LINK_FOLLOW) {
-            if (scriptType == null || !Constants.SUPPORT_SCRIPT_TYPES.contains(scriptType)) {
+            if (scriptType == null || !Constants.SUPPORT_SCRIPT_TYPES.containsKey(scriptType)) {
                 logger.error("not support script type[{}]", scriptType);
                 return false;
             }
@@ -159,7 +159,7 @@ public class Rule extends Model {
             }
         }
         if (linkFollowScope == null) linkFollowScope = Constants.LINK_FOLLOW_SCOPE_ALL;
-        if (!Constants.SUPPORT_LINK_FOLLOW_SCOPES.contains(linkFollowScope)) {
+        if (!Constants.SUPPORT_LINK_FOLLOW_SCOPES.containsKey(linkFollowScope)) {
             logger.error("not support link follow scope[{}]", linkFollowScope);
             return false;
         }

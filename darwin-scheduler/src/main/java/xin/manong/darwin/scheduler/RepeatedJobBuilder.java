@@ -1,5 +1,6 @@
 package xin.manong.darwin.scheduler;
 
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import xin.manong.darwin.common.Constants;
@@ -7,6 +8,7 @@ import xin.manong.darwin.common.model.Job;
 import xin.manong.darwin.common.model.Pager;
 import xin.manong.darwin.common.model.Plan;
 import xin.manong.darwin.common.model.URLRecord;
+import xin.manong.darwin.common.util.DarwinUtil;
 import xin.manong.darwin.queue.multi.MultiQueue;
 import xin.manong.darwin.queue.multi.MultiQueueConstants;
 import xin.manong.darwin.queue.multi.MultiQueueStatus;
@@ -14,6 +16,8 @@ import xin.manong.darwin.service.iface.PlanService;
 import xin.manong.darwin.service.iface.TransactionService;
 import xin.manong.darwin.service.iface.URLService;
 import xin.manong.darwin.service.request.PlanSearchRequest;
+import xin.manong.weapon.base.common.Context;
+import xin.manong.weapon.base.log.JSONLogger;
 
 import javax.annotation.Resource;
 import java.util.*;
@@ -40,6 +44,8 @@ public class RepeatedJobBuilder implements Runnable {
     protected TransactionService transactionService;
     @Resource
     protected MultiQueue multiQueue;
+    @Resource(name = "buildAspectLogger")
+    protected JSONLogger aspectLogger;
 
     public RepeatedJobBuilder() {
         this.running = false;
@@ -129,6 +135,7 @@ public class RepeatedJobBuilder implements Runnable {
      * @return 成功返回true，否则返回false
      */
     private boolean buildJobRepeatedPlan(Plan plan) {
+        Context context = null;
         try {
             if (plan.nextTime != null && plan.nextTime > 0L &&
                     plan.nextTime > System.currentTimeMillis()) return false;
@@ -141,23 +148,56 @@ public class RepeatedJobBuilder implements Runnable {
                     return false;
                 }
             }
+            context = new Context();
             Job job = transactionService.buildJobRepeatedPlan(plan);
             if (job == null) {
+                context.put(Constants.BUILD_STATUS, Constants.BUILD_STATUS_FAIL);
+                context.put(Constants.DARWIN_DEBUG_MESSAGE, "构建周期性计划任务失败");
                 logger.error("build job failed for repeated plan[{}]", plan.planId);
                 return false;
             }
             List<URLRecord> records = pushMultiQueue(job.seedURLs);
             for (URLRecord record : records) {
+                commitAspectLog(record);
                 if (urlService.updateQueueTime(record)) continue;
                 logger.warn("update seed record[{}] failed", record.key);
             }
+            context.put(Constants.BUILD_STATUS, Constants.BUILD_STATUS_SUCCESS);
             logger.info("build job success for repeated plan[{}]", plan.planId);
             return true;
         } catch (Exception e) {
+            context.put(Constants.BUILD_STATUS, Constants.BUILD_STATUS_FAIL);
+            context.put(Constants.DARWIN_DEBUG_MESSAGE, "构建周期性计划任务异常");
+            context.put(Constants.DARWIN_STRACE_TRACE, ExceptionUtils.getStackTrace(e));
             logger.error("build job failed for repeated plan[{}]", plan.planId);
             logger.error(e.getMessage(), e);
             return false;
+        } finally {
+            if (context != null) commitAspectLog(context, plan);
         }
+    }
+
+    /**
+     * 提交URL记录切面日志
+     *
+     * @param record URL记录
+     */
+    private void commitAspectLog(URLRecord record) {
+        if (record == null || aspectLogger == null) return;
+        Context context = new Context();
+        DarwinUtil.putContext(context, record);
+        aspectLogger.commit(context.getFeatureMap());
+    }
+
+    /**
+     * 提交计划记录切面日志
+     *
+     * @param context 上下文
+     * @param plan 计划
+     */
+    private void commitAspectLog(Context context, Plan plan) {
+        if (plan == null || aspectLogger == null) return;
+        DarwinUtil.putContext(context, plan);
     }
 
     /**

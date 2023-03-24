@@ -91,7 +91,7 @@ public class URLServiceImpl implements URLService {
 
     @Override
     public Boolean updateStatus(String key, int status) {
-        if (!Constants.SUPPORT_URL_STATUSES.contains(status)) {
+        if (!Constants.SUPPORT_URL_STATUSES.containsKey(status)) {
             logger.error("not support URL status[{}]", status);
             throw new RuntimeException(String.format("不支持URL状态[%d]", status));
         }

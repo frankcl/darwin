@@ -99,7 +99,7 @@ public class ParseService {
      * @return 解析响应
      */
     public ParseResponse parse(int scriptType, String scriptText, ParseRequest request) {
-        if (!Constants.SUPPORT_SCRIPT_TYPES.contains(scriptType)) {
+        if (!Constants.SUPPORT_SCRIPT_TYPES.containsKey(scriptType)) {
             logger.error("unsupported script type[{}]", scriptType);
             return ParseResponse.buildErrorResponse(String.format("不支持脚本类型[%d]", scriptType));
         }
@@ -132,7 +132,7 @@ public class ParseService {
      * @return 规则脚本，失败返回null
      */
     private Script compileRuleScript(Rule rule) {
-        if (!Constants.SUPPORT_SCRIPT_TYPES.contains(rule.scriptType)) {
+        if (!Constants.SUPPORT_SCRIPT_TYPES.containsKey(rule.scriptType)) {
             logger.error("unsupported script type[{}]", rule.scriptType);
             return null;
         }
