@@ -135,7 +135,9 @@ public class URLRecordScheduler implements Runnable {
                     if (!urlService.updateQueueTime(record)) logger.warn("update url record[{}] failed", record.key);
                     byte[] bytes = JSON.toJSONString(record, SerializerFeature.DisableCircularReferenceDetect).
                             getBytes(Charset.forName("UTF-8"));
-                    Message message = new Message(config.topic, config.tags, record.key, bytes);
+                    String tags = String.format("%d", record.category == null ?
+                            Constants.CONTENT_CATEGORY_TEXT : record.category);
+                    Message message = new Message(config.topic, tags, record.key, bytes);
                     SendResult sendResult = recordProducer.send(message);
                     if (sendResult == null || StringUtils.isEmpty(sendResult.getMessageId())) {
                         logger.warn("send record[{}] failed", record.key);

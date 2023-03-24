@@ -5,5 +5,4 @@ app:
       repeatedJobBuildTimeIntervalMs: 60000
     url-scheduler:
       topic: xxx
-      tag: '*'
       scheduleTimeIntervalMs: 10000

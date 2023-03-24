@@ -1,0 +1,15 @@
+weapon:
+  aliyun:
+    ons:
+      consumer:
+        default:
+          serverURL: http://onsaddr.mq-internet-access.mq-internet.aliyuncs.com:80
+          consumeId: xxx
+          consumeThreadNum: 3
+          subscribes:
+            - topic: xxx
+              tags: '*'
+              listener-name: syncURLReceiver
+app:
+  spider:
+    aspect-log-file: ./log/aspect/spider.log

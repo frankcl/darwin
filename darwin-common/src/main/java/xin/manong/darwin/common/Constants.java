@@ -207,4 +207,6 @@ public class Constants {
     public static final String DARWIN_RECORD_TYPE = "__DARWIN_RECORD_TYPE__";
     public static final String DARWIN_MESSAGE_ID = "__DARWIN_MESSAGE_ID__";
     public static final String DARWIN_MESSAGE_KEY = "__DARWIN_MESSAGE_KEY__";
+    public static final String DARWIN_MESSAGE_TOPIC = "__DARWIN_MESSAGE_TOPIC__";
+    public static final String DARWIN_MESSAGE_TIMESTAMP = "__DARWIN_MESSAGE_TIMESTAMP__";
 }

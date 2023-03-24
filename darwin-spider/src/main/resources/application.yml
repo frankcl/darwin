@@ -1,0 +1,7 @@
+spring:
+  application:
+    name: darwin-spider
+  profiles:
+    active: @profileActive@
+    include: service,service-@profileActive@
+  server: 8080

@@ -21,7 +21,6 @@ public class URLRecordSchedulerConfig {
 
     public Long scheduleTimeIntervalMs = DEFAULT_SCHEDULE_TIME_INTERVAL_MS;
     public String topic;
-    public String tags = "*";
     public String aspectLogFile;
 
     @Bean(name = "scheduleAspectLogger")
