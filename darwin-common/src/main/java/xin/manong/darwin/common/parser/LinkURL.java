@@ -1,8 +1,13 @@
 package xin.manong.darwin.common.parser;
 
+import com.alibaba.fastjson.annotation.JSONField;
+import com.baomidou.mybatisplus.annotation.TableField;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import xin.manong.darwin.common.Constants;
+import xin.manong.weapon.aliyun.ots.annotation.Column;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -18,13 +23,35 @@ public class LinkURL {
     private static final Logger logger = LoggerFactory.getLogger(LinkURL.class);
 
     /**
+     * 超时时间（毫秒）
+     */
+    public Integer timeout = 5000;
+
+    /**
+     * 优先级
+     */
+    public Integer priority = Constants.PRIORITY_NORMAL;
+
+    /**
+     * 抓取方式
+     */
+    public Integer fetchMethod = Constants.FETCH_METHOD_COMMON;
+    /**
+     * 抓取URL类型
+     */
+    public Integer category = Constants.CONTENT_CATEGORY_TEXT;
+    /**
+     * 抓取并发级别
+     */
+    public Integer concurrentLevel = Constants.CONCURRENT_LEVEL_DOMAIN;
+    /**
      * 抓取URL
      */
     public String url;
     /**
      * HTTP头信息
      */
-    public Map<String, Object> headers = new HashMap<>();
+    public Map<String, String> headers = new HashMap<>();
     /**
      * 用户透传数据
      */

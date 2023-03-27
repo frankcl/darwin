@@ -10,8 +10,7 @@ import xin.manong.darwin.common.parser.ParseRequest;
 import xin.manong.darwin.common.parser.ParseResponse;
 import xin.manong.darwin.parse.script.Script;
 import xin.manong.darwin.parse.script.ScriptCache;
-import xin.manong.darwin.parse.script.groovy.GroovyScript;
-import xin.manong.darwin.parse.script.js.JavaScript;
+import xin.manong.darwin.parse.script.ScriptFactory;
 import xin.manong.darwin.service.iface.RuleService;
 
 import javax.annotation.Resource;
@@ -53,7 +52,7 @@ public class ParseService {
         }
         Script script = scriptCache.get(ruleId);
         if (script == null) {
-            Rule rule = ruleService.get(ruleId);
+            Rule rule = ruleService.getCache(ruleId);
             if (rule == null) {
                 logger.error("rule[{}] is not found", ruleId);
                 return ParseResponse.buildErrorResponse(String.format("规则[%d]不存在", ruleId));
@@ -113,8 +112,7 @@ public class ParseService {
         }
         Script script = null;
         try {
-            if (scriptType == Constants.SCRIPT_TYPE_GROOVY) script = new GroovyScript(0L, scriptText);
-            else if (scriptType == Constants.SCRIPT_TYPE_JAVASCRIPT) script = new JavaScript(0L, scriptText);
+            script = ScriptFactory.make(scriptType, scriptText);
             return script.execute(request);
         } catch (Exception e) {
             logger.error("compile script failed");
@@ -137,10 +135,7 @@ public class ParseService {
             return null;
         }
         try {
-            Script script = null;
-            if (rule.scriptType == Constants.SCRIPT_TYPE_GROOVY) script = new GroovyScript(rule.id, rule.script);
-            else if (rule.scriptType == Constants.SCRIPT_TYPE_JAVASCRIPT) script = new JavaScript(rule.id, rule.script);
-            return script;
+            return ScriptFactory.make(rule);
         } catch (Exception e) {
             logger.error("compile script failed for rule[{}]", rule.id);
             logger.error(e.getMessage(), e);

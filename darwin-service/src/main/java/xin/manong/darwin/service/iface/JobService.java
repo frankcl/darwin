@@ -1,8 +1,16 @@
 package xin.manong.darwin.service.iface;
 
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.RemovalNotification;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import xin.manong.darwin.common.model.Job;
 import xin.manong.darwin.common.model.Pager;
 import xin.manong.darwin.service.request.JobSearchRequest;
+
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
 
 /**
  * 任务服务接口定义
@@ -10,7 +18,44 @@ import xin.manong.darwin.service.request.JobSearchRequest;
  * @author frankcl
  * @date 2023-03-15 14:29:12
  */
-public interface JobService {
+public abstract class JobService {
+
+    private static final Logger logger = LoggerFactory.getLogger(JobService.class);
+
+    protected Cache<String, Job> jobCache;
+
+    public JobService() {
+        CacheBuilder<String, Job> builder = CacheBuilder.newBuilder()
+                .recordStats()
+                .concurrencyLevel(1)
+                .maximumSize(100)
+                .expireAfterWrite(1, TimeUnit.MINUTES)
+                .removalListener(n -> onRemoval(n));
+        jobCache = builder.build();
+    }
+
+    /**
+     * 缓存移除通知
+     *
+     * @param notification 移除通知
+     */
+    private void onRemoval(RemovalNotification<String, Job> notification) {
+        logger.info("job[{}] is removed from cache", notification.getValue().jobId);
+    }
+
+    /**
+     * 从cache获取任务
+     *
+     * @param jobId 任务ID
+     * @return 任务信息，如果不存在返回null
+     */
+    public Job getCache(String jobId) {
+        try {
+            return jobCache.get(jobId, () -> get(jobId));
+        } catch (ExecutionException e) {
+            throw new RuntimeException(e);
+        }
+    }
 
     /**
      * 根据任务ID获取任务信息
@@ -18,7 +63,7 @@ public interface JobService {
      * @param jobId 任务ID
      * @return 任务信息，如果不存在返回null
      */
-    Job get(String jobId);
+    public abstract Job get(String jobId);
 
     /**
      * 添加任务
@@ -26,7 +71,7 @@ public interface JobService {
      * @param job 任务信息
      * @return 成功返回true，否则返回false
      */
-    Boolean add(Job job);
+    public abstract Boolean add(Job job);
 
     /**
      * 更新任务
@@ -34,7 +79,7 @@ public interface JobService {
      * @param job 任务信息
      * @return 成功返回true，否则返回false
      */
-    Boolean update(Job job);
+    public abstract Boolean update(Job job);
 
     /**
      * 删除任务
@@ -42,7 +87,7 @@ public interface JobService {
      * @param jobId 任务ID
      * @return 成功返回true，否则返回false
      */
-    Boolean delete(String jobId);
+    public abstract Boolean delete(String jobId);
 
     /**
      * 搜索任务列表
@@ -52,5 +97,5 @@ public interface JobService {
      * @param size 每页数量
      * @return 分页列表
      */
-    Pager<Job> search(JobSearchRequest searchRequest, int current, int size);
+    public abstract Pager<Job> search(JobSearchRequest searchRequest, int current, int size);
 }

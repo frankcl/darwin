@@ -131,7 +131,7 @@ public class URLRecord extends FetchRecord {
     @Column(name = "headers")
     @JSONField(name = "headers")
     @JsonProperty("headers")
-    public Map<String, Object> headers = new HashMap<>();
+    public Map<String, String> headers = new HashMap<>();
 
     public URLRecord() {
         super();

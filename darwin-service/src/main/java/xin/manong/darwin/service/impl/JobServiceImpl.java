@@ -23,7 +23,7 @@ import javax.annotation.Resource;
  * @date 2023-03-15 14:40:19
  */
 @Service
-public class JobServiceImpl implements JobService {
+public class JobServiceImpl extends JobService {
 
     private static final Logger logger = LoggerFactory.getLogger(JobServiceImpl.class);
 

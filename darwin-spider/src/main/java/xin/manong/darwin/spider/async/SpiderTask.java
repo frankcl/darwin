@@ -21,16 +21,18 @@ public class SpiderTask implements Runnable {
     private static final Logger logger = LoggerFactory.getLogger(SpiderTask.class);
 
     protected SpiderRecord spiderRecord;
+    protected SpiderFactory spiderFactory;
     protected JSONLogger aspectLogger;
 
-    public SpiderTask(SpiderRecord spiderRecord) {
+    public SpiderTask(SpiderRecord spiderRecord, SpiderFactory spiderFactory) {
         this.spiderRecord = spiderRecord;
+        this.spiderFactory = spiderFactory;
     }
 
     @Override
     public void run() {
         try {
-            Spider spider = SpiderFactory.build(spiderRecord.record);
+            Spider spider = spiderFactory.build(spiderRecord.record);
         } catch (Throwable t) {
             logger.error(t.getMessage(), t);
             spiderRecord.context.put(Constants.DARWIN_DEBUG_MESSAGE, t.getMessage());

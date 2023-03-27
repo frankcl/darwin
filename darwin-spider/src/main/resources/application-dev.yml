@@ -12,4 +12,6 @@ weapon:
               listener-name: syncURLReceiver
 app:
   spider:
+    content-bucket: xxx
+    content-directory: xxx
     aspect-log-file: ./log/aspect/spider.log

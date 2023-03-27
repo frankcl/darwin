@@ -26,7 +26,7 @@ import java.util.regex.Pattern;
  * @date 2023-03-21 19:57:27
  */
 @Service
-public class RuleServiceImpl implements RuleService {
+public class RuleServiceImpl extends RuleService {
 
     private static final Logger logger = LoggerFactory.getLogger(RuleServiceImpl.class);
 

@@ -2,8 +2,10 @@ package xin.manong.darwin.spider.async;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import xin.manong.darwin.spider.function.SpiderFactory;
 import xin.manong.weapon.base.log.JSONLogger;
 
+import javax.annotation.Resource;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -25,6 +27,8 @@ public class SpiderController implements Runnable {
     protected BlockingQueue<SpiderRecord> recordQueue;
     protected ExecutorService executorService;
     protected JSONLogger aspectLogger;
+    @Resource
+    protected SpiderFactory spiderFactory;
 
     public SpiderController(String name, BlockingQueue<SpiderRecord> recordQueue, int spiderNum) {
         this.running = false;
@@ -75,7 +79,7 @@ public class SpiderController implements Runnable {
             try {
                 SpiderRecord spiderRecord = recordQueue.poll(3, TimeUnit.SECONDS);
                 if (spiderRecord == null) continue;
-                SpiderTask spiderTask = new SpiderTask(spiderRecord);
+                SpiderTask spiderTask = new SpiderTask(spiderRecord, spiderFactory);
                 spiderTask.setAspectLogger(aspectLogger);
                 executorService.submit(spiderTask);
             } catch (Throwable t) {

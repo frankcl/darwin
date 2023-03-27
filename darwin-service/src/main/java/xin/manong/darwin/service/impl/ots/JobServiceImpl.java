@@ -28,7 +28,7 @@ import java.util.Map;
  * @author frankcl
  * @date 2023-03-21 20:23:03
  */
-public class JobServiceImpl implements JobService {
+public class JobServiceImpl extends JobService {
 
     private static final Logger logger = LoggerFactory.getLogger(JobServiceImpl.class);
 

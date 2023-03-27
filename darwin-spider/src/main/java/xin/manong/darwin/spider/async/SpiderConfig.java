@@ -23,6 +23,9 @@ public class SpiderConfig {
     private static final int DEFAULT_RECORD_QUEUE_SIZE = 100;
 
     public int recordQueueSize = DEFAULT_RECORD_QUEUE_SIZE;
+    public String contentRegion;
+    public String contentBucket;
+    public String contentDirectory;
     public String aspectLogFile;
 
     @Bean(name = "textRecordQueue")
