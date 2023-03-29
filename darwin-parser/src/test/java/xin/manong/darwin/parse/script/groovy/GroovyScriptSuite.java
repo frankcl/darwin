@@ -2,7 +2,7 @@ package xin.manong.darwin.parse.script.groovy;
 
 import org.junit.Assert;
 import org.junit.Test;
-import xin.manong.darwin.common.parser.LinkURL;
+import xin.manong.darwin.common.model.URLRecord;
 import xin.manong.darwin.common.parser.ParseRequest;
 import xin.manong.darwin.common.parser.ParseResponse;
 
@@ -20,7 +20,7 @@ public class GroovyScriptSuite {
             "    \n" +
             "    @Override\n" +
             "    public ParseResponse parse(ParseRequest request) {\n" +
-            "        if (request != null && request.linkURL != null) System.out.println(request.linkURL.url);\n" +
+            "        if (request != null && request.record != null) System.out.println(request.record.url);\n" +
             "        Map<String, Object> structureMap = new HashMap<>();\n" +
             "        structureMap.put(\"k1\", 1L);\n" +
             "        return ParseResponse.buildStructureResponse(structureMap, null);\n" +
@@ -30,9 +30,9 @@ public class GroovyScriptSuite {
 
     @Test
     public void testGroovyScript() {
-        LinkURL linkURL = new LinkURL("http://www.sina.com.cn/");
+        URLRecord record = new URLRecord("http://www.sina.com.cn/");
         GroovyScript groovyScript = new GroovyScript(1L, script);
-        ParseRequest request = new ParseRequest.Builder().content("<p>Hello world!!!</p>").linkURL(linkURL).build();
+        ParseRequest request = new ParseRequest.Builder().content("<p>Hello world!!!</p>").record(record).build();
         ParseResponse response = groovyScript.execute(request);
         Assert.assertTrue(response.status);
         Assert.assertEquals(1, response.structureMap.size());

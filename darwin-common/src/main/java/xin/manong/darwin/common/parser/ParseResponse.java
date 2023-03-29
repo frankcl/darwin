@@ -1,6 +1,7 @@
 package xin.manong.darwin.common.parser;
 
 import org.apache.commons.lang3.StringUtils;
+import xin.manong.darwin.common.model.URLRecord;
 
 import java.util.List;
 import java.util.Map;
@@ -34,7 +35,7 @@ public class ParseResponse {
             return this;
         }
 
-        public Builder followLinks(List<LinkURL> followLinks) {
+        public Builder followLinks(List<URLRecord> followLinks) {
             template.followLinks = followLinks;
             return this;
         }
@@ -79,7 +80,7 @@ public class ParseResponse {
     /**
      * 抽链结果
      */
-    public List<LinkURL> followLinks;
+    public List<URLRecord> followLinks;
 
     /**
      * 构建错误响应
@@ -95,12 +96,10 @@ public class ParseResponse {
      * 构建抽链响应
      *
      * @param followLinks 抽链列表
-     * @param userDefinedMap 用户透传信息
      * @return 抽链响应
      */
-    public static ParseResponse buildFollowLinkResponse(
-            List<LinkURL> followLinks, Map<String, Object> userDefinedMap) {
-        return new Builder().status(true).followLinks(followLinks).userDefinedMap(userDefinedMap).build();
+    public static ParseResponse buildFollowLinkResponse(List<URLRecord> followLinks) {
+        return new Builder().status(true).followLinks(followLinks).build();
     }
 
     /**

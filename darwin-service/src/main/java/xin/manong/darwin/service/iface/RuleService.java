@@ -10,6 +10,7 @@ import xin.manong.darwin.common.model.Rule;
 import xin.manong.darwin.common.model.URLRecord;
 import xin.manong.darwin.service.request.RuleSearchRequest;
 
+import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
@@ -23,10 +24,10 @@ public abstract class RuleService {
 
     private static final Logger logger = LoggerFactory.getLogger(JobService.class);
 
-    protected Cache<Long, Rule> ruleCache;
+    protected Cache<Long, Optional<Rule>> ruleCache;
 
     public RuleService() {
-        CacheBuilder<Long, Rule> builder = CacheBuilder.newBuilder()
+        CacheBuilder<Long, Optional<Rule>> builder = CacheBuilder.newBuilder()
                 .recordStats()
                 .concurrencyLevel(1)
                 .maximumSize(100)
@@ -40,8 +41,9 @@ public abstract class RuleService {
      *
      * @param notification 移除通知
      */
-    private void onRemoval(RemovalNotification<Long, Rule> notification) {
-        logger.info("rule[{}] is removed from cache", notification.getValue().id);
+    private void onRemoval(RemovalNotification<Long, Optional<Rule>> notification) {
+        if (!notification.getValue().isPresent()) return;
+        logger.info("rule[{}] is removed from cache", notification.getValue().get().id);
     }
 
     /**
@@ -52,7 +54,12 @@ public abstract class RuleService {
      */
     public Rule getCache(Long ruleId) {
         try {
-            return ruleCache.get(ruleId, () -> get(ruleId));
+            Optional<Rule> optional = ruleCache.get(ruleId, () -> {
+                Rule rule = get(ruleId);
+                return Optional.of(rule);
+            });
+            if (!optional.isPresent()) ruleCache.invalidate(ruleId);
+            return optional.get();
         } catch (ExecutionException e) {
             throw new RuntimeException(e);
         }

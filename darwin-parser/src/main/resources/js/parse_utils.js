@@ -13,11 +13,10 @@ function buildErrorResponse(message) {
     return response;
 }
 
-function buildFollowLinkResponse(followLinks, userDefinedMap) {
+function buildFollowLinkResponse(followLinks) {
     var response = {};
     response.status = true;
     response.followLinks = followLinks;
-    response.userDefinedMap = userDefinedMap;
     return response;
 }
 

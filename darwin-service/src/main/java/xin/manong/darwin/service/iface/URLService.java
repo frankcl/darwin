@@ -1,9 +1,20 @@
 package xin.manong.darwin.service.iface;
 
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.RemovalNotification;
+import org.apache.commons.codec.digest.DigestUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import xin.manong.darwin.common.Constants;
 import xin.manong.darwin.common.model.FetchRecord;
 import xin.manong.darwin.common.model.Pager;
 import xin.manong.darwin.common.model.URLRecord;
 import xin.manong.darwin.service.request.URLSearchRequest;
+
+import java.util.Optional;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
 
 /**
  * URL服务接口定义
@@ -11,7 +22,55 @@ import xin.manong.darwin.service.request.URLSearchRequest;
  * @author frankcl
  * @date 2023-03-20 20:00:56
  */
-public interface URLService {
+public abstract class URLService {
+
+    private static final Logger logger = LoggerFactory.getLogger(URLService.class);
+
+    protected Cache<String, Optional<URLRecord>> recordCache;
+
+    public URLService() {
+        CacheBuilder<String, Optional<URLRecord>> builder = CacheBuilder.newBuilder()
+                .recordStats()
+                .concurrencyLevel(1)
+                .maximumSize(100)
+                .expireAfterWrite(60, TimeUnit.MINUTES)
+                .removalListener(n -> onRemoval(n));
+        recordCache = builder.build();
+    }
+
+    /**
+     * 缓存移除通知
+     *
+     * @param notification 移除通知
+     */
+    private void onRemoval(RemovalNotification<String, Optional<URLRecord>> notification) {
+        if (!notification.getValue().isPresent()) return;
+        logger.info("url record[{}] is removed from cache", notification.getValue().get().url);
+    }
+
+    /**
+     * 从cache获取URL记录
+     *
+     * @param url URL
+     * @return URL记录，如果不存在返回null
+     */
+    public URLRecord getCache(String url) {
+        try {
+            String hash = DigestUtils.md5Hex(url);
+            Optional<URLRecord> optional = recordCache.get(hash, () -> {
+                URLSearchRequest searchRequest = new URLSearchRequest();
+                searchRequest.url = url;
+                searchRequest.status = Constants.URL_STATUS_SUCCESS;
+                searchRequest.fetchTime.start = System.currentTimeMillis() - 86400000L;
+                Pager<URLRecord> pager = search(searchRequest, 1, 1);
+                return Optional.of(pager.records.size() > 0 ? pager.records.get(0) : null);
+            });
+            if (!optional.isPresent()) recordCache.invalidate(hash);
+            return optional.get();
+        } catch (ExecutionException e) {
+            throw new RuntimeException(e);
+        }
+    }
 
     /**
      * 添加URL记录
@@ -19,7 +78,7 @@ public interface URLService {
      * @param record url记录
      * @return 添加成功返回true，否则返回false
      */
-    Boolean add(URLRecord record);
+    public abstract Boolean add(URLRecord record);
 
     /**
      * 更新抓取结果
@@ -27,7 +86,7 @@ public interface URLService {
      * @param fetchRecord 抓取结果
      * @return 更新成功返回true，否则返回false
      */
-    Boolean updateWithFetchRecord(FetchRecord fetchRecord);
+    public abstract Boolean updateWithFetchRecord(FetchRecord fetchRecord);
 
     /**
      * 更新入队出队时间
@@ -35,7 +94,7 @@ public interface URLService {
      * @param record URL记录
      * @return 更新成功返回true，否则返回false
      */
-    Boolean updateQueueTime(URLRecord record);
+    public abstract Boolean updateQueueTime(URLRecord record);
 
     /**
      * 更新URL状态
@@ -44,7 +103,7 @@ public interface URLService {
      * @param status 状态
      * @return 更新成功返回true，否则返回false
      */
-    Boolean updateStatus(String key, int status);
+    public abstract Boolean updateStatus(String key, int status);
 
     /**
      * 根据key获取URL记录
@@ -52,7 +111,7 @@ public interface URLService {
      * @param key 唯一key
      * @return URL记录，无记录返回null
      */
-    URLRecord get(String key);
+    public abstract URLRecord get(String key);
 
     /**
      * 根据key删除URL记录
@@ -60,7 +119,7 @@ public interface URLService {
      * @param key 唯一key
      * @return 成功返回true，否则返回false
      */
-    Boolean delete(String key);
+    public abstract Boolean delete(String key);
 
     /**
      * 搜索URL列表
@@ -70,5 +129,5 @@ public interface URLService {
      * @param size 每页数量
      * @return 搜索列表
      */
-    Pager<URLRecord> search(URLSearchRequest searchRequest, int current, int size);
+    public abstract Pager<URLRecord> search(URLSearchRequest searchRequest, int current, int size);
 }

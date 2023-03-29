@@ -27,7 +27,7 @@ import javax.annotation.Resource;
  * @date 2023-03-20 20:02:44
  */
 @Service
-public class URLServiceImpl implements URLService {
+public class URLServiceImpl extends URLService {
 
     private static final Logger logger = LoggerFactory.getLogger(URLServiceImpl.class);
 
@@ -75,10 +75,6 @@ public class URLServiceImpl implements URLService {
         if (record == null || StringUtils.isEmpty(record.key)) {
             logger.error("url record is null or key is missing");
             throw new RuntimeException("URL记录为空或key缺失");
-        }
-        if (get(record.key) == null) {
-            logger.error("record is not found for key[{}]", record.key);
-            throw new RuntimeException(String.format("未找到URL记录[%s]", record.key));
         }
         LambdaUpdateWrapper<URLRecord> wrapper = new LambdaUpdateWrapper<>();
         wrapper.eq(URLRecord::getKey, record.key);

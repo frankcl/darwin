@@ -28,7 +28,7 @@ import java.util.Map;
  * @author frankcl
  * @date 2023-03-21 20:22:27
  */
-public class URLServiceImpl implements URLService {
+public class URLServiceImpl extends URLService {
 
     private static final Logger logger = LoggerFactory.getLogger(URLServiceImpl.class);
 

@@ -11,7 +11,7 @@ import xin.manong.darwin.common.model.URLRecord;
 import xin.manong.darwin.common.util.DarwinUtil;
 import xin.manong.darwin.queue.multi.MultiQueue;
 import xin.manong.darwin.queue.multi.MultiQueueConstants;
-import xin.manong.darwin.queue.multi.MultiQueueStatus;
+import xin.manong.darwin.service.iface.MultiQueueService;
 import xin.manong.darwin.service.iface.PlanService;
 import xin.manong.darwin.service.iface.TransactionService;
 import xin.manong.darwin.service.iface.URLService;
@@ -42,6 +42,8 @@ public class RepeatedJobBuilder implements Runnable {
     protected PlanService planService;
     @Resource
     protected TransactionService transactionService;
+    @Resource
+    protected MultiQueueService multiQueueService;
     @Resource
     protected MultiQueue multiQueue;
     @Resource(name = "buildAspectLogger")
@@ -156,11 +158,9 @@ public class RepeatedJobBuilder implements Runnable {
                 logger.error("build job failed for repeated plan[{}]", plan.planId);
                 return false;
             }
-            List<URLRecord> records = pushMultiQueue(job.seedURLs);
-            for (URLRecord record : records) {
+            for (URLRecord seedURL : job.seedURLs) {
+                URLRecord record = multiQueueService.pushQueue(seedURL);
                 commitAspectLog(record);
-                if (urlService.updateQueueTime(record)) continue;
-                logger.warn("update seed record[{}] failed", record.key);
             }
             context.put(Constants.BUILD_STATUS, Constants.BUILD_STATUS_SUCCESS);
             logger.info("build job success for repeated plan[{}]", plan.planId);
@@ -212,43 +212,5 @@ public class RepeatedJobBuilder implements Runnable {
         searchRequest.category = Constants.PLAN_CATEGORY_REPEAT;
         searchRequest.status = Constants.PLAN_STATUS_RUNNING;
         return planService.search(searchRequest, current, size);
-    }
-
-    /**
-     * 推送任务种子到多级队列
-     *
-     * @param records 种子URL列表
-     */
-    private List<URLRecord> pushMultiQueue(List<URLRecord> records) {
-        List<URLRecord> processRecords = new ArrayList<>();
-        if (records == null || records.isEmpty()) return processRecords;
-        List<URLRecord> pushRecords = new ArrayList<>(records);
-        List<URLRecord> failRecords = new ArrayList<>();
-        for (int i = 0; i < config.retryCnt; i++) {
-            failRecords.clear();
-            List<MultiQueueStatus> statusList = multiQueue.push(pushRecords);
-            for (int j = 0; j < statusList.size(); j++) {
-                MultiQueueStatus status = statusList.get(j);
-                URLRecord record = pushRecords.get(j);
-                if (status == MultiQueueStatus.ERROR) {
-                    logger.error("push record[{}] error", record.url);
-                    record.status = Constants.URL_STATUS_INVALID;
-                    processRecords.add(record);
-                } else if (status == MultiQueueStatus.REFUSED || status == MultiQueueStatus.FULL) {
-                    logger.warn("push record[{}] refused", record.url);
-                    failRecords.add(pushRecords.get(j));
-                } else {
-                    record.status = Constants.URL_STATUS_QUEUING;
-                    processRecords.add(record);
-                }
-            }
-            if (failRecords.isEmpty()) break;
-            pushRecords = failRecords;
-        }
-        for (URLRecord record : failRecords) {
-            record.status = Constants.URL_STATUS_QUEUING_REFUSED;
-            processRecords.add(record);
-        }
-        return processRecords;
     }
 }

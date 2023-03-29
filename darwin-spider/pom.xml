@@ -21,8 +21,31 @@
             <artifactId>ons-client</artifactId>
         </dependency>
         <dependency>
+            <groupId>org.bytedeco</groupId>
+            <artifactId>javacv</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.bytedeco</groupId>
+            <artifactId>javacpp</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.bytedeco</groupId>
+            <artifactId>ffmpeg-platform</artifactId>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.bytedeco</groupId>
+                    <artifactId>javacpp</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
             <groupId>xin.manong</groupId>
             <artifactId>darwin-service</artifactId>
+            <version>${darwin.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>xin.manong</groupId>
+            <artifactId>darwin-queue</artifactId>
             <version>${darwin.version}</version>
         </dependency>
         <dependency>

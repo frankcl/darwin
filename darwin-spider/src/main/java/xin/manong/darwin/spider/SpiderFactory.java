@@ -1,4 +1,4 @@
-package xin.manong.darwin.spider.function;
+package xin.manong.darwin.spider;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

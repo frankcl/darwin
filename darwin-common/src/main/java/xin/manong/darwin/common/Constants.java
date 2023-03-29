@@ -148,6 +148,7 @@ public class Constants {
      * 数据记录类型
      */
     public static final String RECORD_TYPE_URL = "URL";
+    public static final String RECORD_TYPE_FOLLOW_LINK = "FOLLOW_LINK";
     public static final String RECORD_TYPE_JOB = "JOB";
     public static final String RECORD_TYPE_PLAN = "PLAN";
     public static final String RECORD_TYPE_CONCURRENT_UNIT = "CONCURRENT_UNIT";
@@ -167,6 +168,9 @@ public class Constants {
     public static final String DEPTH = "depth";
     public static final String CONCURRENT_LEVEL = "concurrent_level";
     public static final String TIMEOUT = "timeout";
+    public static final String HTTP_CODE = "http_code";
+    public static final String FOLLOW_LINK_NUM = "follow_link_num";
+    public static final String DISCARD_FOLLOW_LINK_NUM = "discard_follow_link_num";
 
     /**
      * 计划字段定义
@@ -209,4 +213,9 @@ public class Constants {
     public static final String DARWIN_MESSAGE_KEY = "__DARWIN_MESSAGE_KEY__";
     public static final String DARWIN_MESSAGE_TOPIC = "__DARWIN_MESSAGE_TOPIC__";
     public static final String DARWIN_MESSAGE_TIMESTAMP = "__DARWIN_MESSAGE_TIMESTAMP__";
+    public static final String DARWIN_PROCESS_TIME = "__DARWIN_PROCESS_TIME__";
+    public static final String DARWIN_FETCH_TIME = "__DARWIN_FETCH_TIME__";
+    public static final String DARWIN_PUT_TIME = "__DARWIN_PUT_TIME__";
+    public static final String DARWIN_PARSE_TIME = "__DARWIN_PARSE_TIME__";
+    public static final String DARWIN_INPUT_STREAM = "__DARWIN_INPUT_STREAM__";
 }

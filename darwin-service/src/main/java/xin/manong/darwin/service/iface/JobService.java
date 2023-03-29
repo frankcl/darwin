@@ -9,6 +9,7 @@ import xin.manong.darwin.common.model.Job;
 import xin.manong.darwin.common.model.Pager;
 import xin.manong.darwin.service.request.JobSearchRequest;
 
+import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
@@ -22,10 +23,10 @@ public abstract class JobService {
 
     private static final Logger logger = LoggerFactory.getLogger(JobService.class);
 
-    protected Cache<String, Job> jobCache;
+    protected Cache<String, Optional<Job>> jobCache;
 
     public JobService() {
-        CacheBuilder<String, Job> builder = CacheBuilder.newBuilder()
+        CacheBuilder<String, Optional<Job>> builder = CacheBuilder.newBuilder()
                 .recordStats()
                 .concurrencyLevel(1)
                 .maximumSize(100)
@@ -39,8 +40,9 @@ public abstract class JobService {
      *
      * @param notification 移除通知
      */
-    private void onRemoval(RemovalNotification<String, Job> notification) {
-        logger.info("job[{}] is removed from cache", notification.getValue().jobId);
+    private void onRemoval(RemovalNotification<String, Optional<Job>> notification) {
+        if (!notification.getValue().isPresent()) return;
+        logger.info("job[{}] is removed from cache", notification.getValue().get().jobId);
     }
 
     /**
@@ -51,7 +53,12 @@ public abstract class JobService {
      */
     public Job getCache(String jobId) {
         try {
-            return jobCache.get(jobId, () -> get(jobId));
+            Optional<Job> optional = jobCache.get(jobId, () -> {
+                Job job = get(jobId);
+                return Optional.of(job);
+            });
+            if (!optional.isPresent()) jobCache.invalidate(jobId);
+            return optional.get();
         } catch (ExecutionException e) {
             throw new RuntimeException(e);
         }

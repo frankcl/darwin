@@ -2,6 +2,7 @@ package xin.manong.darwin.common.parser;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import xin.manong.darwin.common.model.URLRecord;
 
 /**
  * 解析请求
@@ -23,8 +24,8 @@ public class ParseRequest {
             template = new ParseRequest();
         }
 
-        public Builder linkURL(LinkURL linkURL) {
-            template.linkURL = linkURL;
+        public Builder record(URLRecord record) {
+            template.record = record;
             return this;
         }
 
@@ -36,7 +37,7 @@ public class ParseRequest {
         public ParseRequest build() {
             ParseRequest request = new ParseRequest();
             request.content = template.content;
-            request.linkURL = template.linkURL;
+            request.record = template.record;
             return request;
         }
     }
@@ -48,7 +49,7 @@ public class ParseRequest {
     /**
      * 链接信息
      */
-    public LinkURL linkURL;
+    public URLRecord record;
 
     /**
      * 检测有效性
@@ -56,8 +57,8 @@ public class ParseRequest {
      * @return 有效返回true，否则返回false
      */
     public boolean check() {
-        if (linkURL == null || !linkURL.check()) {
-            logger.error("link url is null or invalid");
+        if (record == null || !record.check()) {
+            logger.error("url record is null or invalid");
             return false;
         }
         return true;
