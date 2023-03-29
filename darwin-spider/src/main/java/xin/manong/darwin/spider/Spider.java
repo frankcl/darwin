@@ -213,6 +213,7 @@ public abstract class Spider {
             logger.error("process record error for url[{}]", record.url);
             logger.error(t.getMessage(), t);
         } finally {
+            context.remove(Constants.DARWIN_INPUT_STREAM);
             if (!urlService.updateWithFetchRecord(record)) {
                 logger.warn("update fetch content failed for url[{}]", record.url);
             }
