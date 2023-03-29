@@ -43,6 +43,14 @@ public class Job extends Model {
     public Boolean avoidRepeatedFetch = true;
 
     /**
+     * 应用ID
+     */
+    @TableField(value = "app_id")
+    @JSONField(name = "app_id")
+    @JsonProperty("app_id")
+    public Integer appId;
+
+    /**
      * 任务状态
      */
     @TableField(value = "status")

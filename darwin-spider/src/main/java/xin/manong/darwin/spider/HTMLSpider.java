@@ -134,6 +134,7 @@ public class HTMLSpider extends Spider {
         int discardFollowLinkNum = 0;
         for (URLRecord followLink : followLinks) {
             try {
+                followLink.appId = record.appId;
                 followLink.jobId = record.jobId;
                 followLink.parentURL = record.url;
                 followLink.depth = record.depth + 1;

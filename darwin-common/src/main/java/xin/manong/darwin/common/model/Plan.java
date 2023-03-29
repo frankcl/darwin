@@ -163,6 +163,7 @@ public class Plan extends Model {
         Job job = new Job();
         job.createTime = System.currentTimeMillis();
         job.planId = planId;
+        job.appId = appId;
         job.avoidRepeatedFetch = avoidRepeatedFetch == null ? true : avoidRepeatedFetch;
         job.priority = priority == null ? Constants.PRIORITY_NORMAL : priority;
         job.status = Constants.JOB_STATUS_RUNNING;
@@ -172,6 +173,7 @@ public class Plan extends Model {
         job.seedURLs = seedURLs == null ? null : seedURLs.stream().map(record -> {
             URLRecord seedRecord = new URLRecord(record);
             seedRecord.rebuildKey();
+            seedRecord.appId = job.appId;
             seedRecord.jobId = job.jobId;
             seedRecord.status = Constants.URL_STATUS_CREATED;
             if (seedRecord.category == null) seedRecord.category = Constants.CONTENT_CATEGORY_LIST;

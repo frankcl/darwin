@@ -2,6 +2,7 @@ package xin.manong.darwin.common.util;
 
 import org.apache.commons.lang3.StringUtils;
 import xin.manong.darwin.common.Constants;
+import xin.manong.darwin.common.model.Job;
 import xin.manong.darwin.common.model.Plan;
 import xin.manong.darwin.common.model.URLRecord;
 import xin.manong.weapon.base.common.Context;
@@ -54,5 +55,21 @@ public class DarwinUtil {
         if (plan.appId != null) context.put(Constants.APP_ID, plan.appId);
         if (plan.priority != null) context.put(Constants.PRIORITY, plan.priority);
         if (plan.avoidRepeatedFetch != null) context.put(Constants.AVOID_REPEATED_FETCH, plan.avoidRepeatedFetch);
+    }
+
+    /**
+     * 任务信息放入上下文
+     *
+     * @param context 上下文
+     * @param job 任务
+     */
+    public static void putContext(Context context, Job job) {
+        if (context == null || job == null) return;
+        context.put(Constants.DARWIN_RECORD_TYPE, Constants.RECORD_TYPE_JOB);
+        if (!StringUtils.isEmpty(job.jobId)) context.put(Constants.JOB_ID, job.jobId);
+        if (!StringUtils.isEmpty(job.planId)) context.put(Constants.PLAN_ID, job.planId);
+        if (!StringUtils.isEmpty(job.name)) context.put(Constants.NAME, job.name);
+        if (job.status != null) context.put(Constants.STATUS, Constants.SUPPORT_JOB_STATUSES.get(job.status));
+        if (job.priority != null) context.put(Constants.PRIORITY, job.priority);
     }
 }

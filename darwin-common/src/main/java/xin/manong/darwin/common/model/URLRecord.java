@@ -44,6 +44,15 @@ public class URLRecord extends FetchRecord {
     public Integer timeout;
 
     /**
+     * 应用ID
+     */
+    @TableField(value = "app_id")
+    @Column(name = "app_id")
+    @JSONField(name = "app_id")
+    @JsonProperty("app_id")
+    public Integer appId;
+
+    /**
      * 优先级
      */
     @TableField(value = "priority")

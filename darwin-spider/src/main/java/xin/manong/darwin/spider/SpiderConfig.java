@@ -25,7 +25,8 @@ public class SpiderConfig {
     public String contentDirectory;
     public String aspectLogFile;
     public String tempDirectory;
-
+    public String jobTopic;
+    public String urlTopic;
 
     @Bean(name = "spiderAspectLogger")
     public JSONLogger spiderAspectLogger() {
