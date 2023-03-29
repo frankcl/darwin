@@ -35,6 +35,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
+ * 爬虫抽象实现
+ *
  * @author frankcl
  * @date 2023-03-24 16:18:17
  */

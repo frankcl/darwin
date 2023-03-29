@@ -20,11 +20,11 @@ public class SpiderFactory {
     private static final Logger logger = LoggerFactory.getLogger(SpiderFactory.class);
 
     @Resource
-    private HTMLSpider htmlSpider;
+    protected HTMLSpider htmlSpider;
     @Resource
-    private ResourceSpider resourceSpider;
+    protected ResourceSpider resourceSpider;
     @Resource
-    private StreamSpider streamSpider;
+    protected StreamSpider streamSpider;
 
     /**
      * 根据URL记录构建爬虫实例
