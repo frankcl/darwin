@@ -69,6 +69,7 @@ public class DarwinUtil {
         if (!StringUtils.isEmpty(job.jobId)) context.put(Constants.JOB_ID, job.jobId);
         if (!StringUtils.isEmpty(job.planId)) context.put(Constants.PLAN_ID, job.planId);
         if (!StringUtils.isEmpty(job.name)) context.put(Constants.NAME, job.name);
+        if (job.appId != null) context.put(Constants.APP_ID, job.appId);
         if (job.status != null) context.put(Constants.STATUS, Constants.SUPPORT_JOB_STATUSES.get(job.status));
         if (job.priority != null) context.put(Constants.PRIORITY, job.priority);
     }

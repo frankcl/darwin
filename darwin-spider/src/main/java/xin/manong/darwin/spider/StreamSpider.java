@@ -45,7 +45,7 @@ public class StreamSpider extends Spider {
         Process process = null;
         InputStream inputStream = (InputStream) context.get(Constants.DARWIN_INPUT_STREAM);
         String tempFile = String.format("%s/%s.mp4", config.tempDirectory, record.key);
-        Long executeFetchTime = 0L, executePutTime = 0L;
+        Long fetchTime = 0L, putTime = 0L;
         try {
             Long startFetchTime = System.currentTimeMillis();
             if (inputStream == null) {
@@ -55,7 +55,7 @@ public class StreamSpider extends Spider {
                 ProcessBuilder processBuilder = new ProcessBuilder();
                 process = processBuilder.inheritIO().command(commands).start();
                 int code = process.waitFor();
-                executeFetchTime = System.currentTimeMillis() - startFetchTime;
+                fetchTime = System.currentTimeMillis() - startFetchTime;
                 if (code != 0) {
                     record.status = Constants.URL_STATUS_FAIL;
                     context.put(Constants.DARWIN_DEBUG_MESSAGE, "执行ffmpeg抓取失败");
@@ -67,15 +67,15 @@ public class StreamSpider extends Spider {
             }
             Long startPutTime = System.currentTimeMillis();
             if (inputStream == null || !writeContent(record, inputStream)) {
-                executePutTime = System.currentTimeMillis() - startPutTime;
+                putTime = System.currentTimeMillis() - startPutTime;
                 record.status = Constants.URL_STATUS_FAIL;
                 context.put(Constants.DARWIN_DEBUG_MESSAGE, "抓取内容写入OSS失败");
                 logger.error("write fetch content failed for url[{}]", record.url);
             }
-            executePutTime = System.currentTimeMillis() - startPutTime;
+            putTime = System.currentTimeMillis() - startPutTime;
         } finally {
-            context.put(Constants.DARWIN_FETCH_TIME, executeFetchTime);
-            context.put(Constants.DARWIN_PUT_TIME, executePutTime);
+            context.put(Constants.DARWIN_FETCH_TIME, fetchTime);
+            context.put(Constants.DARWIN_PUT_TIME, putTime);
             if (process != null) process.destroy();
             if (inputStream != null) inputStream.close();
             File file = new File(tempFile);

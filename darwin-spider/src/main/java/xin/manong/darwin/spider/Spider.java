@@ -11,12 +11,15 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import xin.manong.darwin.common.Constants;
 import xin.manong.darwin.common.computer.ConcurrentUnitComputer;
-import xin.manong.darwin.common.model.*;
+import xin.manong.darwin.common.model.Job;
+import xin.manong.darwin.common.model.Pager;
+import xin.manong.darwin.common.model.RangeValue;
+import xin.manong.darwin.common.model.URLRecord;
 import xin.manong.darwin.common.util.DarwinUtil;
-import xin.manong.darwin.parse.service.ParseService;
 import xin.manong.darwin.queue.concurrent.ConcurrentManager;
 import xin.manong.darwin.queue.multi.MultiQueue;
-import xin.manong.darwin.service.iface.*;
+import xin.manong.darwin.service.iface.JobService;
+import xin.manong.darwin.service.iface.URLService;
 import xin.manong.darwin.service.request.URLSearchRequest;
 import xin.manong.weapon.aliyun.ons.ONSProducer;
 import xin.manong.weapon.aliyun.oss.OSSClient;
@@ -31,8 +34,6 @@ import xin.manong.weapon.base.log.JSONLogger;
 import javax.annotation.Resource;
 import java.io.InputStream;
 import java.nio.charset.Charset;
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * 爬虫抽象实现
@@ -44,7 +45,6 @@ public abstract class Spider {
 
     private static final Logger logger = LoggerFactory.getLogger(Spider.class);
 
-    private Long expiredTimeMs = 86400 * 1000L;
     protected String category;
     @Resource
     protected SpiderConfig config;
@@ -57,13 +57,7 @@ public abstract class Spider {
     @Resource
     protected JobService jobService;
     @Resource
-    protected RuleService ruleService;
-    @Resource
-    protected ParseService parseService;
-    @Resource
     protected MultiQueue multiQueue;
-    @Resource
-    protected MultiQueueService multiQueueService;
     @Resource
     protected ConcurrentManager concurrentManager;
     @Resource
@@ -72,13 +66,6 @@ public abstract class Spider {
 
     public Spider(String category) {
         this.category = category;
-        HttpClientConfig httpClientConfig = new HttpClientConfig();
-        httpClientConfig.connectTimeoutSeconds = 5;
-        httpClientConfig.readTimeoutSeconds = 10;
-        httpClientConfig.keepAliveMinutes = 3;
-        httpClientConfig.maxIdleConnections = 100;
-        httpClientConfig.retryCnt = 3;
-        httpClient = new HttpClient(httpClientConfig);
     }
 
     /**
@@ -147,31 +134,17 @@ public abstract class Spider {
     }
 
     /**
-     * 根据URL记录获取匹配规则
-     *
-     * @param record URL记录
-     * @param context 上下文
-     * @return 匹配规则，无匹配返回null
+     * 构建HTTPClient
      */
-    protected Rule getMatchRule(URLRecord record, Context context) {
-        Job job = jobService.getCache(record.jobId);
-        if (job == null) {
-            context.put(Constants.DARWIN_DEBUG_MESSAGE, "爬虫任务不存在");
-            logger.error("job[{}] is not found for url[{}]", record.jobId, record.url);
-            return null;
-        }
-        List<Rule> rules = new ArrayList<>();
-        for (Integer ruleId : job.ruleIds) {
-            Rule rule = ruleService.getCache(ruleId.longValue());
-            if (rule == null || !ruleService.match(record, rule)) continue;
-            rules.add(rule);
-        }
-        if (rules.size() != 1) {
-            context.put(Constants.DARWIN_DEBUG_MESSAGE, String.format("匹配规则数量[%d]不符合预期", rules.size()));
-            logger.error("match rule num[{}] is unexpected", rules.size());
-            return null;
-        }
-        return rules.get(0);
+    private void buildHttpClient() {
+        if (httpClient != null) return;
+        HttpClientConfig httpClientConfig = new HttpClientConfig();
+        httpClientConfig.connectTimeoutSeconds = config.connectTimeoutSeconds;
+        httpClientConfig.readTimeoutSeconds = config.readTimeoutSeconds;
+        httpClientConfig.keepAliveMinutes = config.keepAliveMinutes;
+        httpClientConfig.maxIdleConnections = config.maxIdleConnections;
+        httpClientConfig.retryCnt = config.retryCnt;
+        httpClient = new HttpClient(httpClientConfig);
     }
 
     /**
@@ -183,7 +156,7 @@ public abstract class Spider {
      * @param record URL记录
      * @param context 上下文
      */
-    private void useRepeatedFetchContent(URLRecord record, Context context) {
+    private void reuseFetchContent(URLRecord record, Context context) {
         Job job = jobService.getCache(record.jobId);
         if (job == null || !job.avoidRepeatedFetch) return;
         context.put(Constants.AVOID_REPEATED_FETCH, true);
@@ -191,7 +164,7 @@ public abstract class Spider {
         searchRequest.status = Constants.URL_STATUS_SUCCESS;
         searchRequest.url = record.url;
         searchRequest.fetchTime = new RangeValue<>();
-        searchRequest.fetchTime.start = System.currentTimeMillis() - expiredTimeMs;
+        searchRequest.fetchTime.start = System.currentTimeMillis() - config.reuseExpiredTimeMs;
         searchRequest.fetchTime.includeLower = true;
         Pager<URLRecord> pager = urlService.search(searchRequest, 1, 1);
         if (pager == null || pager.records == null || pager.records.isEmpty()) return;
@@ -204,62 +177,69 @@ public abstract class Spider {
     }
 
     /**
-     * 处理结束任务
+     * 推送结束任务
      *
-     * @param jobId 任务ID
-     * @param appId 应用ID
+     * @param record URL记录
      */
-    private void processFinishJob(String jobId, int appId) {
+    private void pushFinishJob(URLRecord record) {
         Context context = new Context();
         Job updateJob = new Job();
         try {
             updateJob.avoidRepeatedFetch = null;
-            updateJob.jobId = jobId;
+            updateJob.jobId = record.jobId;
             updateJob.status = Constants.JOB_STATUS_FINISHED;
             if (!jobService.update(updateJob)) logger.warn("update finish status failed for job[{}]", updateJob.jobId);
-            Job job = jobService.getCache(jobId);
-            updateJob.planId = job.planId;
-            updateJob.name = job.name;
+            Job job = jobService.getCache(record.jobId);
+            if (job != null) {
+                updateJob.planId = job.planId;
+                updateJob.appId = job.appId;
+                updateJob.name = job.name;
+            }
             String jobString = JSON.toJSONString(updateJob, SerializerFeature.DisableCircularReferenceDetect);
-            Message message = new Message(config.jobTopic, String.format("%d", appId), updateJob.jobId,
+            Message message = new Message(config.jobTopic, String.format("%d", record.appId), updateJob.jobId,
                     jobString.getBytes(Charset.forName("UTF-8")));
             SendResult sendResult = producer.send(message);
             if (sendResult == null || StringUtils.isEmpty(sendResult.getMessageId())) {
-                logger.warn("push finish message failed for job[{}]", jobId);
+                context.put(Constants.DARWIN_DEBUG_MESSAGE, "推送消息失败");
+                logger.warn("push finish message failed for job[{}]", record.jobId);
                 return;
             }
             context.put(Constants.DARWIN_MESSAGE_ID, sendResult.getMessageId());
             context.put(Constants.DARWIN_MESSAGE_KEY, updateJob.jobId);
         } catch (Exception e) {
-            logger.error("process finished job[{}] failed", jobId);
+            context.put(Constants.DARWIN_DEBUG_MESSAGE, "推送消息异常");
+            context.put(Constants.DARWIN_STRACE_TRACE, ExceptionUtils.getStackTrace(e));
+            logger.error("process finished job[{}] failed", record.jobId);
             logger.error(e.getMessage(), e);
         } finally {
-            context.put(Constants.APP_ID, appId);
             DarwinUtil.putContext(context, updateJob);
             if (aspectLogger != null) aspectLogger.commit(context.getFeatureMap());
         }
     }
 
     /**
-     * 处理结束URL记录
+     * 推送结束抓取记录
      *
      * @param record URL记录
      * @param context 上下文
      */
-    private void processFinishRecord(URLRecord record, Context context) {
+    private void pushFinishRecord(URLRecord record, Context context) {
         try {
             String recordString = JSON.toJSONString(record, SerializerFeature.DisableCircularReferenceDetect);
-            Message message = new Message(config.urlTopic, String.format("%d", record.appId), record.key,
+            Message message = new Message(config.recordTopic, String.format("%d", record.appId), record.key,
                     recordString.getBytes(Charset.forName("UTF-8")));
             SendResult sendResult = producer.send(message);
             if (sendResult == null || StringUtils.isEmpty(sendResult.getMessageId())) {
-                logger.warn("push record finish message failed");
+                context.put(Constants.DARWIN_DEBUG_MESSAGE, "推送消息失败");
+                logger.warn("push record finish message failed for key[{}]", record.key);
                 return;
             }
             context.put(Constants.DARWIN_MESSAGE_ID, sendResult.getMessageId());
             context.put(Constants.DARWIN_MESSAGE_KEY, record.key);
         } catch (Exception e) {
-            logger.error("push record finish message failed");
+            context.put(Constants.DARWIN_DEBUG_MESSAGE, "推送消息异常");
+            context.put(Constants.DARWIN_STRACE_TRACE, ExceptionUtils.getStackTrace(e));
+            logger.error("push record finish message failed for key[{}]", record.key);
             logger.error(e.getMessage(), e);
         }
     }
@@ -273,7 +253,8 @@ public abstract class Spider {
     public void process(URLRecord record, Context context) {
         Long startTime = System.currentTimeMillis();
         try {
-            useRepeatedFetchContent(record, context);
+            buildHttpClient();
+            reuseFetchContent(record, context);
             handle(record, context);
         } catch (Throwable t) {
             context.put(Constants.DARWIN_DEBUG_MESSAGE, "抓取处理数据异常");
@@ -281,17 +262,24 @@ public abstract class Spider {
             logger.error("process record error for url[{}]", record.url);
             logger.error(t.getMessage(), t);
         } finally {
-            context.remove(Constants.DARWIN_INPUT_STREAM);
-            if (!urlService.updateWithFetchRecord(record)) {
-                logger.warn("update fetch content failed for url[{}]", record.url);
+            try {
+                InputStream inputStream = (InputStream) context.get(Constants.DARWIN_INPUT_STREAM);
+                if (inputStream != null) {
+                    inputStream.close();
+                    context.remove(Constants.DARWIN_INPUT_STREAM);
+                }
+                if (!urlService.updateWithFetchRecord(record)) {
+                    logger.warn("update fetch content failed for url[{}]", record.url);
+                }
+            } catch (Exception e) {
+                logger.error(e.getMessage(), e);
             }
             multiQueue.removeFromJobMap(record);
             String concurrentUnit = ConcurrentUnitComputer.compute(record);
             concurrentManager.decreaseConnections(concurrentUnit, 1);
             concurrentManager.removeConnectionRecord(concurrentUnit, record.key);
-            processFinishRecord(record, context);
-            if (multiQueue.isEmptyJobMap(record.jobId)) processFinishJob(record.jobId, record.appId);
-            DarwinUtil.putContext(context, record);
+            pushFinishRecord(record, context);
+            if (multiQueue.isEmptyJobMap(record.jobId)) pushFinishJob(record);
             context.put(Constants.DARWIN_PROCESS_TIME, System.currentTimeMillis() - startTime);
         }
     }

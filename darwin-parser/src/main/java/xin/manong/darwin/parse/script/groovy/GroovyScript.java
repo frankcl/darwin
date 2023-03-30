@@ -125,7 +125,12 @@ public class GroovyScript extends Script {
      */
     @Override
     public ParseResponse execute(ParseRequest request) {
-        return (ParseResponse) scriptObject.invokeMethod(METHOD_PARSE, request);
+        try {
+            return (ParseResponse) scriptObject.invokeMethod(METHOD_PARSE, request);
+        } catch (Exception e) {
+            logger.error(e.getMessage(), e);
+            return ParseResponse.buildErrorResponse(String.format("执行脚本异常[%s]", e.getMessage()));
+        }
     }
 
     /**

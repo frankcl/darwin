@@ -1,22 +1,31 @@
 package xin.manong.darwin.spider;
 
 import okhttp3.Response;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import xin.manong.darwin.common.Constants;
+import xin.manong.darwin.common.model.Job;
 import xin.manong.darwin.common.model.Rule;
 import xin.manong.darwin.common.model.URLRecord;
 import xin.manong.darwin.common.parser.ParseRequest;
 import xin.manong.darwin.common.parser.ParseResponse;
 import xin.manong.darwin.common.util.DarwinUtil;
+import xin.manong.darwin.parse.service.ParseService;
+import xin.manong.darwin.service.iface.MultiQueueService;
+import xin.manong.darwin.service.iface.RuleService;
 import xin.manong.weapon.base.common.Context;
 
+import javax.annotation.Resource;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.Charset;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 网页爬虫
@@ -32,13 +41,20 @@ public class HTMLSpider extends Spider {
 
     private static final Logger logger = LoggerFactory.getLogger(HTMLSpider.class);
 
+    @Resource
+    protected RuleService ruleService;
+    @Resource
+    protected ParseService parseService;
+    @Resource
+    protected MultiQueueService multiQueueService;
+
     public HTMLSpider() {
         super("html");
     }
 
     @Override
     protected void handle(URLRecord record, Context context) throws Exception {
-        Long executeFetchTime = 0L, executePutTime = 0L, executeParseTime = 0L;
+        Long fetchTime = 0L, putTime = 0L, parseTime = 0L;
         try {
             Rule rule = getMatchRule(record, context);
             if (rule == null) {
@@ -47,7 +63,7 @@ public class HTMLSpider extends Spider {
             }
             Long startFetchTime = System.currentTimeMillis();
             String content = getContentHTML(record, context);
-            executeFetchTime = System.currentTimeMillis() - startFetchTime;
+            fetchTime = System.currentTimeMillis() - startFetchTime;
             if (content == null) {
                 record.status = Constants.URL_STATUS_FAIL;
                 return;
@@ -55,20 +71,20 @@ public class HTMLSpider extends Spider {
             byte[] bytes = content.getBytes(Charset.forName("UTF-8"));
             Long startPutTime = System.currentTimeMillis();
             if (!writeContent(record, bytes)) {
-                executePutTime = System.currentTimeMillis() - startPutTime;
+                putTime = System.currentTimeMillis() - startPutTime;
                 record.status = Constants.URL_STATUS_FAIL;
                 context.put(Constants.DARWIN_DEBUG_MESSAGE, "抓取内容写入OSS失败");
                 logger.error("write fetch content failed for url[{}]", record.url);
                 return;
             }
-            executePutTime = System.currentTimeMillis() - startPutTime;
+            putTime = System.currentTimeMillis() - startPutTime;
             Long startParseTime = System.currentTimeMillis();
             ParseRequest request = new ParseRequest.Builder().content(content).record(record).build();
             ParseResponse response = parseService.parse(rule, request);
-            executeParseTime = System.currentTimeMillis() - startParseTime;
+            parseTime = System.currentTimeMillis() - startParseTime;
             if (!response.status) {
                 record.status = Constants.URL_STATUS_FAIL;
-                context.put(Constants.DARWIN_DEBUG_MESSAGE, String.format("解析失败[%s]", response.message));
+                context.put(Constants.DARWIN_DEBUG_MESSAGE, response.message);
                 logger.error("parse content failed for url[{}], cause[{}]", record.url, response.message);
                 return;
             }
@@ -76,15 +92,44 @@ public class HTMLSpider extends Spider {
                 record.structureMap = response.structureMap;
             }
             if (response.userDefinedMap != null && !response.userDefinedMap.isEmpty()) {
+                if (record.userDefinedMap == null) record.userDefinedMap = new HashMap<>();
                 record.userDefinedMap.putAll(response.userDefinedMap);
             }
-            handleFollowLinks(response.followLinks, record, context);
+            processLinks(response.followLinks, record, context);
             record.status = Constants.URL_STATUS_SUCCESS;
         } finally {
-            context.put(Constants.DARWIN_FETCH_TIME, executeFetchTime);
-            context.put(Constants.DARWIN_PUT_TIME, executePutTime);
-            context.put(Constants.DARWIN_PARSE_TIME, executeParseTime);
+            context.put(Constants.DARWIN_FETCH_TIME, fetchTime);
+            context.put(Constants.DARWIN_PUT_TIME, putTime);
+            context.put(Constants.DARWIN_PARSE_TIME, parseTime);
         }
+    }
+
+    /**
+     * 根据URL记录获取匹配规则
+     *
+     * @param record URL记录
+     * @param context 上下文
+     * @return 匹配规则，无匹配返回null
+     */
+    private Rule getMatchRule(URLRecord record, Context context) {
+        Job job = jobService.getCache(record.jobId);
+        if (job == null) {
+            context.put(Constants.DARWIN_DEBUG_MESSAGE, "爬虫任务不存在");
+            logger.error("job[{}] is not found for url[{}]", record.jobId, record.url);
+            return null;
+        }
+        List<Rule> rules = new ArrayList<>();
+        for (Integer ruleId : job.ruleIds) {
+            Rule rule = ruleService.getCache(ruleId.longValue());
+            if (rule == null || !ruleService.match(record, rule)) continue;
+            rules.add(rule);
+        }
+        if (rules.size() != 1) {
+            context.put(Constants.DARWIN_DEBUG_MESSAGE, String.format("匹配规则数量[%d]不符合预期", rules.size()));
+            logger.error("match rule num[{}] is unexpected", rules.size());
+            return null;
+        }
+        return rules.get(0);
     }
 
     /**
@@ -101,6 +146,7 @@ public class HTMLSpider extends Spider {
         ByteArrayOutputStream outputStream = null;
         InputStream inputStream = (InputStream) context.get(Constants.DARWIN_INPUT_STREAM);
         if (inputStream != null) {
+            record.fetchTime = System.currentTimeMillis();
             int size = 4096, n;
             byte[] buffer = new byte[size];
             try {
@@ -130,30 +176,43 @@ public class HTMLSpider extends Spider {
      * @param record 父链接URL
      * @param context 上下文
      */
-    private void handleFollowLinks(List<URLRecord> followLinks, URLRecord record, Context context) {
-        int discardFollowLinkNum = 0;
+    private void processLinks(List<URLRecord> followLinks, URLRecord record,
+                              Context context) {
+        int discardLinkNum = 0;
         for (URLRecord followLink : followLinks) {
+            Context linkContext = new Context();
             try {
                 followLink.appId = record.appId;
                 followLink.jobId = record.jobId;
                 followLink.parentURL = record.url;
                 followLink.depth = record.depth + 1;
+                followLink.status = Constants.URL_STATUS_CREATED;
                 if (followLink.priority == null) followLink.priority = record.priority;
                 if (followLink.concurrentLevel == null) followLink.concurrentLevel = record.concurrentLevel;
+                if (followLink.fetchMethod == null) followLink.fetchMethod = record.fetchMethod;
+                if (record.userDefinedMap != null && !record.userDefinedMap.isEmpty()) {
+                    Map<String, Object> userDefinedMap = followLink.userDefinedMap;
+                    followLink.userDefinedMap = new HashMap<>();
+                    followLink.userDefinedMap.putAll(record.userDefinedMap);
+                    followLink.userDefinedMap.putAll(userDefinedMap);
+                }
                 if (!followLink.check()) {
-                    discardFollowLinkNum++;
-                    logger.warn("invalid follow link[{}] for parent url[{}]", followLink.url, record.url);
+                    discardLinkNum++;
+                    logger.warn("follow link[{}] is invalid for parent url[{}]", followLink.url, record.url);
                     continue;
                 }
                 multiQueueService.pushQueue(followLink);
+            } catch (Exception e) {
+                linkContext.put(Constants.DARWIN_DEBUG_MESSAGE, "处理抽链异常");
+                linkContext.put(Constants.DARWIN_STRACE_TRACE, ExceptionUtils.getStackTrace(e));
+                logger.error(e.getMessage(), e);
             } finally {
-                Context linkFollowContext = new Context();
-                DarwinUtil.putContext(linkFollowContext, followLink);
-                linkFollowContext.put(Constants.DARWIN_RECORD_TYPE, Constants.RECORD_TYPE_FOLLOW_LINK);
-                if (aspectLogger != null) aspectLogger.commit(linkFollowContext.getFeatureMap());
+                DarwinUtil.putContext(linkContext, followLink);
+                linkContext.put(Constants.DARWIN_RECORD_TYPE, Constants.RECORD_TYPE_FOLLOW_LINK);
+                if (aspectLogger != null) aspectLogger.commit(linkContext.getFeatureMap());
             }
         }
         context.put(Constants.FOLLOW_LINK_NUM, followLinks.size());
-        context.put(Constants.DISCARD_FOLLOW_LINK_NUM, discardFollowLinkNum);
+        context.put(Constants.DISCARD_FOLLOW_LINK_NUM, discardLinkNum);
     }
 }

@@ -130,7 +130,7 @@ public class JavaScript extends Script {
             return JSON.toJavaObject(new JSONObject(map), ParseResponse.class);
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
-            return ParseResponse.buildErrorResponse(e.getMessage());
+            return ParseResponse.buildErrorResponse(String.format("执行脚本异常[%s]", e.getMessage()));
         }
     }
 
