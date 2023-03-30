@@ -6,9 +6,11 @@ import jdk.nashorn.api.scripting.ScriptObjectMirror;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import xin.manong.darwin.common.model.URLRecord;
 import xin.manong.darwin.common.parser.ParseRequest;
 import xin.manong.darwin.common.parser.ParseResponse;
 import xin.manong.darwin.parse.script.Script;
+import xin.manong.weapon.base.util.RandomID;
 
 import javax.script.Invocable;
 import javax.script.ScriptEngine;
@@ -127,7 +129,13 @@ public class JavaScript extends Script {
             ScriptObjectMirror scriptObjectMirror = (ScriptObjectMirror) function.invokeFunction(METHOD_PARSE, request);
             Map<String, Object> map = (Map<String, Object>) convertScriptObjectToMapList(scriptObjectMirror);
             if (map == null) return ParseResponse.buildErrorResponse("解析响应为空");
-            return JSON.toJavaObject(new JSONObject(map), ParseResponse.class);
+            ParseResponse response = JSON.toJavaObject(new JSONObject(map), ParseResponse.class);
+            if (response.status && response.followLinks != null) {
+                for (URLRecord followLink : response.followLinks) {
+                    if (followLink.url != null) followLink.hash = DigestUtils.md5Hex(followLink.url);
+                }
+            }
+            return response;
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
             return ParseResponse.buildErrorResponse(String.format("执行脚本异常[%s]", e.getMessage()));

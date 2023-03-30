@@ -1,9 +1,13 @@
-function buildLinkURL(url, headers, userDefinedMap) {
-    var linkURL = {};
-    linkURL.url = url;
-    if (typeof headers != 'undefined' && headers !== null) linkURL.headers = headers;
-    if (typeof userDefinedMap != 'undefined' && userDefinedMap !== null) linkURL.userDefinedMap = userDefinedMap;
-    return linkURL;
+function buildLink(url, category, headers, userDefinedMap) {
+    if (category === undefined || category === null || category < 0 || category > 3) {
+        throw '链接类型不符合预期[' + category + ']';
+    }
+    var link = {};
+    link.url = url;
+    link.category = category;
+    if (typeof headers != 'undefined' && headers !== null) link.headers = headers;
+    if (typeof userDefinedMap != 'undefined' && userDefinedMap !== null) link.userDefinedMap = userDefinedMap;
+    return link;
 }
 
 function buildErrorResponse(message) {
