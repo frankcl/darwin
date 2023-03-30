@@ -25,7 +25,7 @@ import java.nio.charset.Charset;
  * @author frankcl
  * @date 2023-03-24 10:28:37
  */
-@Component("syncURLReceiver")
+@Component("urlReceiver")
 public class URLReceiver implements MessageListener {
 
     private static final Logger logger = LoggerFactory.getLogger(URLReceiver.class);

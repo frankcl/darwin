@@ -28,8 +28,6 @@ public class StreamSpider extends Spider {
 
     private static final Logger logger = LoggerFactory.getLogger(StreamSpider.class);
 
-    private static final String USER_AGENT = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/109.0.0.0 Safari/537.36";
-
     private String ffmpeg;
     @Resource
     protected SpiderConfig config;
@@ -94,7 +92,7 @@ public class StreamSpider extends Spider {
         List<String> commands = new ArrayList<>();
         commands.add(ffmpeg);
         commands.add("-user_agent");
-        commands.add(USER_AGENT);
+        commands.add(config.userAgent);
         commands.add("-i");
         commands.add(m3u8URL);
         commands.add(tempFilePath);

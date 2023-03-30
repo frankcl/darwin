@@ -3,5 +3,14 @@ spring:
     name: darwin-spider
   profiles:
     active: @profileActive@
-    include: service,service-@profileActive@
+    include: service,service-@profileActive@,queue,queue-@profileActive@
   server: 8080
+
+app:
+  spider:
+    reuseExpiredTimeMs: 86400000
+    connectTimeoutSeconds: 5
+    readTimeoutSeconds: 10
+    keepAliveMinutes: 3
+    maxIdleConnections: 100
+    retryCnt: 3

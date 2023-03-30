@@ -2,7 +2,7 @@ weapon:
   aliyun:
     ons:
       producer:
-        recordProducer:
+        default:
           serverURL: http://onsaddr.mq-internet-access.mq-internet.aliyuncs.com:80
 app:
   scheduler:

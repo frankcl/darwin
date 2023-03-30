@@ -23,6 +23,8 @@ public class SpiderConfig {
     private static final long DEFAULT_REUSE_EXPIRED_TIME_MS = 86400 * 1000L;
     private static final long DEFAULT_CONNECT_TIMEOUT_SECONDS = 5L;
     private static final long DEFAULT_READ_TIMEOUT_SECONDS = 10L;
+    private static final String DEFAULT_USER_AGENT =
+            "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/109.0.0.0 Safari/537.36";
 
     public long reuseExpiredTimeMs = DEFAULT_REUSE_EXPIRED_TIME_MS;
     public long connectTimeoutSeconds = DEFAULT_CONNECT_TIMEOUT_SECONDS;
@@ -30,6 +32,7 @@ public class SpiderConfig {
     public int keepAliveMinutes = DEFAULT_KEEP_ALIVE_MINUTES;
     public int maxIdleConnections = DEFAULT_MAX_IDLE_CONNECTIONS;
     public int retryCnt = DEFAULT_RETRY_CNT;
+    public String userAgent = DEFAULT_USER_AGENT;
     public String contentRegion;
     public String contentBucket;
     public String contentDirectory;

@@ -1,17 +1,32 @@
 weapon:
   aliyun:
     ons:
-      consumer:
+      producer:
         default:
           serverURL: http://onsaddr.mq-internet-access.mq-internet.aliyuncs.com:80
+      consumer:
+        html:
+          serverURL: http://onsaddr.mq-internet-access.mq-internet.aliyuncs.com:80
           consumeId: xxx
-          consumeThreadNum: 3
+          consumeThreadNum: 20
           subscribes:
             - topic: xxx
-              tags: '*'
-              listener-name: syncURLReceiver
+              tags: 0||1
+              listener-name: urlReceiver
+        resource:
+          serverURL: http://onsaddr.mq-internet-access.mq-internet.aliyuncs.com:80
+          consumeId: xxx
+          consumeThreadNum: 20
+          subscribes:
+            - topic: xxx
+              tags: 2||3
+              listener-name: urlReceiver
 app:
   spider:
+    content-region: cn-hangzhou
     content-bucket: xxx
     content-directory: xxx
+    job-topic: xxx
+    record-topic: xxx
+    temp-directory: ./spider/temp/
     aspect-log-file: ./log/aspect/spider.log

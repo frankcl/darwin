@@ -67,15 +67,15 @@ public class Constants {
     /**
      * 内容分类
      */
-    public static final int CONTENT_CATEGORY_TEXT = 0;      //内容文本
-    public static final int CONTENT_CATEGORY_RESOURCE = 1;          //资源：图片视频等
-    public static final int CONTENT_CATEGORY_STREAM = 2;            //流：视频流等
-    public static final int CONTENT_CATEGORY_LIST = 3;              //内容列表页
+    public static final int CONTENT_CATEGORY_TEXT = 0;              //内容文本
+    public static final int CONTENT_CATEGORY_LIST = 1;              //内容列表页
+    public static final int CONTENT_CATEGORY_RESOURCE = 2;          //资源：图片视频等
+    public static final int CONTENT_CATEGORY_STREAM = 3;            //流：视频流等
     public static final Map<Integer, String> SUPPORT_CONTENT_CATEGORIES = new HashMap<Integer, String>() {{
         put(CONTENT_CATEGORY_TEXT, "文本内容");
+        put(CONTENT_CATEGORY_LIST, "文本列表");
         put(CONTENT_CATEGORY_RESOURCE, "资源");
         put(CONTENT_CATEGORY_STREAM, "流媒体");
-        put(CONTENT_CATEGORY_LIST, "文本列表");
     }};
 
     /**

@@ -3,7 +3,7 @@ spring:
     name: darwin-web-server
   profiles:
     active: @profileActive@
-    include: service,service-@profileActive@
+    include: service,service-@profileActive@,queue,queue-@profileActive@
   server: 8080
 
 app:

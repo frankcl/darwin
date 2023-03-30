@@ -43,7 +43,7 @@ public class URLRecordScheduler implements Runnable {
     protected MultiQueue multiQueue;
     @Resource
     protected ConcurrentManager concurrentManager;
-    @Resource(name = "recordProducer")
+    @Resource
     protected ONSProducer recordProducer;
     @Resource(name = "scheduleAspectLogger")
     protected JSONLogger aspectLogger;

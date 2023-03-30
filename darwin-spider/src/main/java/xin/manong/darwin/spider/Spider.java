@@ -114,7 +114,9 @@ public abstract class Spider {
     protected Response fetch(URLRecord record, Context context) {
         try {
             HttpRequest httpRequest = new HttpRequest.Builder().requestURL(record.url).method(RequestMethod.GET).build();
-            if (record.headers != null && !record.headers.isEmpty()) httpRequest.headers = record.headers;
+            if (!StringUtils.isEmpty(config.userAgent)) httpRequest.headers.put("User-Agent", config.userAgent);
+            if (!StringUtils.isEmpty(record.parentURL)) httpRequest.headers.put("Referer", record.parentURL);
+            if (record.headers != null && !record.headers.isEmpty()) httpRequest.headers.putAll(record.headers);
             Response httpResponse = httpClient.execute(httpRequest);
             if (httpResponse != null) context.put(Constants.HTTP_CODE, httpResponse.code());
             if (httpResponse == null || !httpResponse.isSuccessful()) {
