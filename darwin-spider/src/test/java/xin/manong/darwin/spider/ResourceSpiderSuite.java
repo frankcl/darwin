@@ -2,6 +2,7 @@ package xin.manong.darwin.spider;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -18,16 +19,16 @@ import javax.annotation.Resource;
 @EnableRedisClient
 @EnableONSProducer
 @EnableOSSClient
+@EnableAutoConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
 @ActiveProfiles(value = { "dev", "service", "service-dev", "queue", "queue-dev" })
 @SpringBootTest(classes = { ApplicationTest.class })
-public class ResourceSpiderSuite {
+public class ResourceSpiderSuite extends ApplicationTest {
 
     @Resource
     protected ResourceSpider spider;
 
     @Test
     public void testSpider() {
-
     }
 }

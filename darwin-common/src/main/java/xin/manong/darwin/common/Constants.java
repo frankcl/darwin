@@ -14,6 +14,16 @@ import java.util.Set;
 public class Constants {
 
     /**
+     * 支持MimeType
+     */
+    public static final Set<String> SUPPORT_MIME_TYPES = new HashSet<String>() {{
+        add("text");
+        add("image");
+        add("video");
+        add("application");
+    }};
+
+    /**
      * URL状态
      */
     public static final int URL_STATUS_SUCCESS = 0;             //抓取成功
@@ -171,6 +181,7 @@ public class Constants {
     public static final String HTTP_CODE = "http_code";
     public static final String FOLLOW_LINK_NUM = "follow_link_num";
     public static final String DISCARD_FOLLOW_LINK_NUM = "discard_follow_link_num";
+    public static final String RESOURCE_SUFFIX = "resource_suffix";
 
     /**
      * 计划字段定义

@@ -4,7 +4,9 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.serializer.SerializerFeature;
 import com.aliyun.openservices.ons.api.Message;
 import com.aliyun.openservices.ons.api.SendResult;
+import okhttp3.MediaType;
 import okhttp3.Response;
+import okhttp3.ResponseBody;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
@@ -74,10 +76,13 @@ public abstract class Spider {
      *
      * @param record URL记录
      * @param bytes 内容字节数组
+     * @param context 上下文
      * @return 成功返回true，否则返回false
      */
-    protected boolean writeContent(URLRecord record, byte[] bytes) {
+    protected boolean writeContent(URLRecord record, byte[] bytes, Context context) {
         String key = String.format("%s/%s/%s", config.contentDirectory, category, record.hash);
+        String suffix = (String) context.get(Constants.RESOURCE_SUFFIX);
+        if (!StringUtils.isEmpty(suffix)) key = String.format("%s.%s", key, suffix);
         if (!ossClient.putObject(config.contentBucket, key, bytes)) return false;
         OSSMeta ossMeta = new OSSMeta();
         ossMeta.region = config.contentRegion;
@@ -92,10 +97,13 @@ public abstract class Spider {
      *
      * @param record URL记录
      * @param inputStream 内容字节流
+     * @param context 上下文
      * @return 成功返回true，否则返回false
      */
-    protected boolean writeContent(URLRecord record, InputStream inputStream) {
+    protected boolean writeContent(URLRecord record, InputStream inputStream, Context context) {
         String key = String.format("%s/%s/%s", config.contentDirectory, category, record.hash);
+        String suffix = (String) context.get(Constants.RESOURCE_SUFFIX);
+        if (!StringUtils.isEmpty(suffix)) key = String.format("%s.%s", key, suffix);
         if (!ossClient.putObject(config.contentBucket, key, inputStream)) return false;
         OSSMeta ossMeta = new OSSMeta();
         ossMeta.region = config.contentRegion;
@@ -123,11 +131,14 @@ public abstract class Spider {
             Response httpResponse = httpClient.execute(httpRequest);
             if (httpResponse != null) context.put(Constants.HTTP_CODE, httpResponse.code());
             if (httpResponse == null || !httpResponse.isSuccessful()) {
+                record.status = Constants.URL_STATUS_FAIL;
                 context.put(Constants.DARWIN_DEBUG_MESSAGE, "抓取失败");
                 logger.error("execute http request failed for url[{}]", record.url);
+                return null;
             }
             return httpResponse;
         } catch (Exception e) {
+            record.status = Constants.URL_STATUS_FAIL;
             context.put(Constants.DARWIN_DEBUG_MESSAGE, "抓取异常");
             context.put(Constants.DARWIN_STRACE_TRACE, ExceptionUtils.getStackTrace(e));
             logger.error("fetch content error for url[{}]", record.url);
@@ -178,7 +189,11 @@ public abstract class Spider {
         OSSMeta ossMeta = OSSClient.parseURL(prevRecord.fetchContentURL);
         if (!ossClient.exist(ossMeta.bucket, ossMeta.key)) return;
         InputStream inputStream = ossClient.getObjectStream(ossMeta.bucket, ossMeta.key);
-        if (inputStream != null) context.put(Constants.DARWIN_INPUT_STREAM, inputStream);
+        if (inputStream != null) {
+            context.put(Constants.DARWIN_INPUT_STREAM, inputStream);
+            int index = ossMeta.key.lastIndexOf(".");
+            if (index != -1) context.put(Constants.RESOURCE_SUFFIX, ossMeta.key.substring(index + 1).trim());
+        }
     }
 
     /**
@@ -250,6 +265,28 @@ public abstract class Spider {
     }
 
     /**
+     * 获取资源后缀
+     *
+     * @param response HTTP响应
+     * @return 成功返回资源后缀，否则返回null
+     */
+    protected String getResourceSuffix(Response response) {
+        if (response == null || !response.isSuccessful()) return null;
+        ResponseBody responseBody = response.body();
+        MediaType mediaType = responseBody.contentType();
+        if (mediaType == null || mediaType.type() == null || mediaType.subtype() == null) return null;
+        if (Constants.SUPPORT_MIME_TYPES.contains(mediaType.type())) {
+            String subType = mediaType.subtype();
+            if (StringUtils.isEmpty(subType)) return null;
+            String type = mediaType.type();
+            if (type.equalsIgnoreCase("text") && !subType.equalsIgnoreCase("html")) return null;
+            if (type.equalsIgnoreCase("application") && !subType.equalsIgnoreCase("pdf")) return null;
+            return subType.toLowerCase();
+        }
+        return null;
+    }
+
+    /**
      * 处理抓取数据
      *
      * @param record URL记录
@@ -268,6 +305,7 @@ public abstract class Spider {
             logger.error(t.getMessage(), t);
         } finally {
             try {
+                context.remove(Constants.RESOURCE_SUFFIX);
                 InputStream inputStream = (InputStream) context.get(Constants.DARWIN_INPUT_STREAM);
                 if (inputStream != null) {
                     inputStream.close();

@@ -1,6 +1,7 @@
 package xin.manong.darwin.spider;
 
 import okhttp3.Response;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -64,13 +65,10 @@ public class HTMLSpider extends Spider {
             Long startFetchTime = System.currentTimeMillis();
             String content = getContentHTML(record, context);
             fetchTime = System.currentTimeMillis() - startFetchTime;
-            if (content == null) {
-                record.status = Constants.URL_STATUS_FAIL;
-                return;
-            }
+            if (content == null) return;
             byte[] bytes = content.getBytes(Charset.forName("UTF-8"));
             Long startPutTime = System.currentTimeMillis();
-            if (!writeContent(record, bytes)) {
+            if (!writeContent(record, bytes, context)) {
                 putTime = System.currentTimeMillis() - startPutTime;
                 record.status = Constants.URL_STATUS_FAIL;
                 context.put(Constants.DARWIN_DEBUG_MESSAGE, "抓取内容写入OSS失败");
@@ -162,6 +160,8 @@ public class HTMLSpider extends Spider {
         }
         Response httpResponse = fetch(record, context);
         if (httpResponse == null) return null;
+        String suffix = getResourceSuffix(httpResponse);
+        if (!StringUtils.isEmpty(suffix)) context.put(Constants.RESOURCE_SUFFIX, suffix);
         try {
             return httpResponse.body().string();
         } finally {

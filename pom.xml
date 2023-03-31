@@ -46,6 +46,8 @@
         <oss.version>3.15.0</oss.version>
         <ons-client.version>1.8.0.Final</ons-client.version>
         <tablestore.version>5.13.10</tablestore.version>
+        <shaman-configmap.version>1.0.9</shaman-configmap.version>
+        <shaman-dynamic-secret-listener.version>1.0.0-SNAPSHOT</shaman-dynamic-secret-listener.version>
         <weapon.version>0.1.3</weapon.version>
         <darwin.version>0.0.1</darwin.version>
     </properties>
@@ -357,6 +359,16 @@
                 <groupId>org.bytedeco</groupId>
                 <artifactId>ffmpeg-platform</artifactId>
                 <version>${ffmpeg-platform.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.shuwen.ops</groupId>
+                <artifactId>shaman-configmap</artifactId>
+                <version>${shaman-configmap.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.shuwen</groupId>
+                <artifactId>shaman-dynamic-secret-listener</artifactId>
+                <version>${shaman-dynamic-secret-listener.version}</version>
             </dependency>
             <dependency>
                 <groupId>xin.manong</groupId>

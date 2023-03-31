@@ -61,10 +61,11 @@ public class StreamSpider extends Spider {
                             String.join(" ", commands.toArray(new String[0])), code);
                     return;
                 }
+                context.put(Constants.RESOURCE_SUFFIX, "mp4");
                 inputStream = new FileInputStream(tempFile);
             }
             Long startPutTime = System.currentTimeMillis();
-            if (inputStream == null || !writeContent(record, inputStream)) {
+            if (inputStream == null || !writeContent(record, inputStream, context)) {
                 putTime = System.currentTimeMillis() - startPutTime;
                 record.status = Constants.URL_STATUS_FAIL;
                 context.put(Constants.DARWIN_DEBUG_MESSAGE, "抓取内容写入OSS失败");

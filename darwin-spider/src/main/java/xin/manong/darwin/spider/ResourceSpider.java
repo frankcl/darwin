@@ -1,6 +1,7 @@
 package xin.manong.darwin.spider;
 
 import okhttp3.Response;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
@@ -35,13 +36,12 @@ public class ResourceSpider extends Spider {
         try {
             if (inputStream == null) {
                 httpResponse = fetch(record, context);
-                if (httpResponse == null) {
-                    record.status = Constants.URL_STATUS_FAIL;
-                    return;
-                }
+                if (httpResponse == null) return;
+                String suffix = getResourceSuffix(httpResponse);
+                if (!StringUtils.isEmpty(suffix)) context.put(Constants.RESOURCE_SUFFIX, suffix);
                 inputStream = httpResponse.body().byteStream();
             }
-            if (inputStream == null || !writeContent(record, inputStream)) {
+            if (inputStream == null || !writeContent(record, inputStream, context)) {
                 record.status = Constants.URL_STATUS_FAIL;
                 logger.error("write fetch content failed for url[{}]", record.url);
                 context.put(Constants.DARWIN_DEBUG_MESSAGE, "抓取内容写入OSS失败");
