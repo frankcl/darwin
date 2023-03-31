@@ -30,6 +30,7 @@ import xin.manong.weapon.base.http.HttpClientConfig;
 import xin.manong.weapon.base.http.HttpRequest;
 import xin.manong.weapon.base.http.RequestMethod;
 import xin.manong.weapon.base.log.JSONLogger;
+import xin.manong.weapon.base.util.CommonUtil;
 
 import javax.annotation.Resource;
 import java.io.InputStream;
@@ -116,6 +117,8 @@ public abstract class Spider {
             HttpRequest httpRequest = new HttpRequest.Builder().requestURL(record.url).method(RequestMethod.GET).build();
             if (!StringUtils.isEmpty(config.userAgent)) httpRequest.headers.put("User-Agent", config.userAgent);
             if (!StringUtils.isEmpty(record.parentURL)) httpRequest.headers.put("Referer", record.parentURL);
+            String host = CommonUtil.getHost(record.url);
+            if (!StringUtils.isEmpty(host) && !CommonUtil.isIP(host)) httpRequest.headers.put("Host", host);
             if (record.headers != null && !record.headers.isEmpty()) httpRequest.headers.putAll(record.headers);
             Response httpResponse = httpClient.execute(httpRequest);
             if (httpResponse != null) context.put(Constants.HTTP_CODE, httpResponse.code());
