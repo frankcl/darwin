@@ -65,7 +65,7 @@ public class URLServiceImpl extends URLService {
         KVRecord kvRecord = otsClient.get(serviceConfig.urlTable, keyMap);
         if (kvRecord == null) {
             logger.error("url record[{}] is not found", fetchRecord.key);
-            throw new RuntimeException(String.format("URL记录[%s]不存在", fetchRecord.key));
+            return false;
         }
         URLRecord updateRecord = new URLRecord();
         updateRecord.createTime = null;
@@ -87,7 +87,7 @@ public class URLServiceImpl extends URLService {
         KVRecord kvRecord = otsClient.get(serviceConfig.urlTable, keyMap);
         if (kvRecord == null) {
             logger.error("url record[{}] is not found", record.key);
-            throw new RuntimeException(String.format("URL记录[%s]不存在", record.key));
+            return false;
         }
         URLRecord updateRecord = new URLRecord();
         updateRecord.createTime = null;
@@ -108,7 +108,7 @@ public class URLServiceImpl extends URLService {
         KVRecord kvRecord = otsClient.get(serviceConfig.urlTable, keyMap);
         if (kvRecord == null) {
             logger.error("url record[{}] is not found", key);
-            throw new RuntimeException(String.format("URL记录[%s]不存在", key));
+            return false;
         }
         URLRecord updateRecord = new URLRecord();
         updateRecord.createTime = null;
@@ -140,7 +140,7 @@ public class URLServiceImpl extends URLService {
         KVRecord kvRecord = otsClient.get(serviceConfig.jobTable, keyMap);
         if (kvRecord == null) {
             logger.error("url record[{}] is not found", key);
-            throw new RuntimeException(String.format("URL记录[%s]不存在", key));
+            return false;
         }
         return otsClient.delete(serviceConfig.jobTable, keyMap, null) == OTSStatus.SUCCESS;
     }

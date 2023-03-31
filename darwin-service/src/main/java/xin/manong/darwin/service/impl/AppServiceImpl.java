@@ -44,7 +44,7 @@ public class AppServiceImpl implements AppService {
     public Boolean update(App app) {
         if (appMapper.selectById(app.id) == null) {
             logger.error("app[{}] is not found", app.id);
-            throw new RuntimeException(String.format("应用[%d]不存在", app.id));
+            return false;
         }
         return appMapper.updateById(app) > 0;
     }
@@ -53,7 +53,7 @@ public class AppServiceImpl implements AppService {
     public Boolean delete(Long id) {
         if (appMapper.selectById(id) == null) {
             logger.error("app[{}] is not found", id);
-            throw new RuntimeException(String.format("应用[%d]不存在", id));
+            return false;
         }
         return appMapper.deleteById(id) > 0;
     }

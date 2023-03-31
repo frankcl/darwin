@@ -55,9 +55,12 @@ public abstract class JobService {
         try {
             Optional<Job> optional = jobCache.get(jobId, () -> {
                 Job job = get(jobId);
-                return Optional.of(job);
+                return Optional.ofNullable(job);
             });
-            if (!optional.isPresent()) jobCache.invalidate(jobId);
+            if (!optional.isPresent()) {
+                jobCache.invalidate(jobId);
+                return null;
+            }
             return optional.get();
         } catch (ExecutionException e) {
             throw new RuntimeException(e);

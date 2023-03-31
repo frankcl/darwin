@@ -1,12 +1,5 @@
 weapon:
   aliyun:
-    oss:
-      client:
-        default:
-          endpoint: http://oss-cn-hangzhou.aliyuncs.com
-          socket-timeout-ms: 30000
-          connection-timeout-ms: 3000
-          retry-cnt: 3
     ons:
       producer:
         default:
@@ -31,8 +24,8 @@ weapon:
 app:
   spider:
     content-region: cn-hangzhou
-    content-bucket: xxx
-    content-directory: xxx
+    content-bucket: default-crawler-file
+    content-directory: darwin
     job-topic: xxx
     record-topic: xxx
     temp-directory: ./spider/temp/

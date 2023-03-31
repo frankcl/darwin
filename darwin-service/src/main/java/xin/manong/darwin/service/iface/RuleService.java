@@ -56,9 +56,12 @@ public abstract class RuleService {
         try {
             Optional<Rule> optional = ruleCache.get(ruleId, () -> {
                 Rule rule = get(ruleId);
-                return Optional.of(rule);
+                return Optional.ofNullable(rule);
             });
-            if (!optional.isPresent()) ruleCache.invalidate(ruleId);
+            if (!optional.isPresent()) {
+                ruleCache.invalidate(ruleId);
+                return null;
+            }
             return optional.get();
         } catch (ExecutionException e) {
             throw new RuntimeException(e);

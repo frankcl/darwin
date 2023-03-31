@@ -85,7 +85,7 @@ public class JobServiceImpl extends JobService {
         KVRecord kvRecord = otsClient.get(serviceConfig.jobTable, keyMap);
         if (kvRecord == null) {
             logger.error("job[{}] is not found", job.jobId);
-            throw new RuntimeException(String.format("任务[%s]不存在", job.jobId));
+            return false;
         }
         job.updateTime = System.currentTimeMillis();
         kvRecord = OTSConverter.convertJavaObjectToKVRecord(job);
@@ -99,7 +99,7 @@ public class JobServiceImpl extends JobService {
         KVRecord kvRecord = otsClient.get(serviceConfig.jobTable, keyMap);
         if (kvRecord == null) {
             logger.error("job[{}] is not found", jobId);
-            throw new RuntimeException(String.format("任务[%s]不存在", jobId));
+            return false;
         }
         return otsClient.delete(serviceConfig.jobTable, keyMap, null) == OTSStatus.SUCCESS;
     }

@@ -54,7 +54,7 @@ public class JobServiceImpl extends JobService {
     public Boolean update(Job job) {
         if (jobMapper.selectById(job.jobId) == null) {
             logger.error("job[{}] is not found", job.jobId);
-            throw new RuntimeException(String.format("任务[%d]不存在", job.jobId));
+            return false;
         }
         return jobMapper.updateById(job) > 0;
     }
@@ -63,7 +63,7 @@ public class JobServiceImpl extends JobService {
     public Boolean delete(String jobId) {
         if (jobMapper.selectById(jobId) == null) {
             logger.error("job[{}] is not found", jobId);
-            throw new RuntimeException(String.format("任务[%d]不存在", jobId));
+            return false;
         }
         return jobMapper.deleteById(jobId) > 0;
     }

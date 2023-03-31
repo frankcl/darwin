@@ -22,7 +22,7 @@ import javax.annotation.Resource;
 
 /**
  * @author frankcl
- * @date 2023-03-30 15:50:07
+ * @date 2023-03-31 14:36:24
  */
 @EnableRedisClient
 @EnableONSProducer
@@ -31,25 +31,25 @@ import javax.annotation.Resource;
 @RunWith(SpringJUnit4ClassRunner.class)
 @ActiveProfiles(value = { "dev", "service", "service-dev", "queue", "queue-dev" })
 @SpringBootTest(classes = { ApplicationTest.class })
-public class ResourceSpiderSuite extends ApplicationTest {
+public class HTMLSpiderSuite extends ApplicationTest {
 
     @Resource
     protected SpiderConfig config;
     @Resource
     protected OSSClient ossClient;
     @Resource
-    protected ResourceSpider spider;
+    protected HTMLSpider spider;
 
     @Test
     public void testFetchSuccess() {
-        String url = "https://default-crawler-file.oss-cn-hangzhou.aliyuncs.com/crawler_video/video/2021/11/11/4d5e356b35138269fb4492b52f834727.mp4";
+        String url = "https://www.sina.com.cn/";
         URLRecord record = new URLRecord(url);
-        record.category = Constants.CONTENT_CATEGORY_RESOURCE;
+        record.category = Constants.CONTENT_CATEGORY_LIST;
         record.jobId = RandomID.build();
         record.appId = 0;
         Context context = new Context();
         spider.process(record, context);
-        String key = String.format("%s/%s/%s.mp4", config.contentDirectory, "resource", record.key);
+        String key = String.format("%s/%s/%s.html", config.contentDirectory, "html", record.key);
         OSSMeta ossMeta = new OSSMeta();
         ossMeta.region = config.contentRegion;
         ossMeta.bucket = config.contentBucket;
@@ -65,9 +65,9 @@ public class ResourceSpiderSuite extends ApplicationTest {
 
     @Test
     public void testFetchFail() {
-        String url = "https://default-crawler-file.oss-cn-hangzhou.aliyuncs.com/crawler_video/video/not_found.mp4";
+        String url = "https://www.sina.com.cn/not_found.html";
         URLRecord record = new URLRecord(url);
-        record.category = Constants.CONTENT_CATEGORY_RESOURCE;
+        record.category = Constants.CONTENT_CATEGORY_LIST;
         record.jobId = RandomID.build();
         record.appId = 0;
         Context context = new Context();

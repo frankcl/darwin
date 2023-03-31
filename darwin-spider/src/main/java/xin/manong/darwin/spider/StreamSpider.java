@@ -1,5 +1,6 @@
 package xin.manong.darwin.spider;
 
+import okhttp3.Response;
 import org.apache.commons.lang3.StringUtils;
 import org.bytedeco.javacpp.Loader;
 import org.slf4j.Logger;
@@ -8,6 +9,8 @@ import org.springframework.stereotype.Component;
 import xin.manong.darwin.common.Constants;
 import xin.manong.darwin.common.model.URLRecord;
 import xin.manong.weapon.base.common.Context;
+import xin.manong.weapon.base.http.HttpRequest;
+import xin.manong.weapon.base.http.RequestMethod;
 
 import javax.annotation.Resource;
 import java.io.File;
@@ -46,7 +49,27 @@ public class StreamSpider extends Spider {
         Long fetchTime = 0L, putTime = 0L;
         try {
             Long startFetchTime = System.currentTimeMillis();
+            record.fetchTime = System.currentTimeMillis();
             if (inputStream == null) {
+                buildHttpClient();
+                HttpRequest httpRequest = new HttpRequest.Builder().requestURL(record.url).
+                        method(RequestMethod.GET).build();
+                Response httpResponse = httpClient.execute(httpRequest);
+                if (httpResponse == null || !httpResponse.isSuccessful()) {
+                    if (httpResponse != null) httpResponse.close();
+                    record.status = Constants.URL_STATUS_FAIL;
+                    context.put(Constants.DARWIN_DEBUG_MESSAGE, "抓取M3U8元信息失败");
+                    logger.error("fetch M3U8 meta failed for url[{}]", record.url);
+                    return;
+                }
+                if (isLiveStream(httpResponse, context)) {
+                    if (!context.contains(Constants.DARWIN_DEBUG_MESSAGE)) {
+                        context.put(Constants.DARWIN_DEBUG_MESSAGE, "不支持直播流抓取");
+                    }
+                    record.status = Constants.URL_STATUS_FAIL;
+                    logger.error("unsupported live stream fetching for url[{}]", record.url);
+                    return;
+                }
                 File directory = new File(config.tempDirectory);
                 if (!directory.exists()) directory.mkdirs();
                 List<String> commands = buildCommands(record.url, tempFile);
@@ -71,6 +94,7 @@ public class StreamSpider extends Spider {
                 context.put(Constants.DARWIN_DEBUG_MESSAGE, "抓取内容写入OSS失败");
                 logger.error("write fetch content failed for url[{}]", record.url);
             }
+            record.status = Constants.URL_STATUS_SUCCESS;
             putTime = System.currentTimeMillis() - startPutTime;
         } finally {
             context.put(Constants.DARWIN_FETCH_TIME, fetchTime);
@@ -79,6 +103,26 @@ public class StreamSpider extends Spider {
             if (inputStream != null) inputStream.close();
             File file = new File(tempFile);
             if (file.exists()) file.delete();
+        }
+    }
+
+    /**
+     * 判断是否为直播流
+     *
+     * @param httpResponse HTTP响应
+     * @param context 上下文
+     * @return 直播流或判断失败返回true，否则返回false
+     */
+    private boolean isLiveStream(Response httpResponse, Context context) {
+        try {
+            String body = httpResponse.body().string();
+            return body.indexOf("#EXT-X-ENDLIST") == -1;
+        } catch (Exception e) {
+            logger.error(e.getMessage(), e);
+            context.put(Constants.DARWIN_DEBUG_MESSAGE, "判断直播状态失败");
+            return true;
+        } finally {
+            if (httpResponse != null) httpResponse.close();
         }
     }
 

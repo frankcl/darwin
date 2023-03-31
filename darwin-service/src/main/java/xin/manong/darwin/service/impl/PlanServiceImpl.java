@@ -54,7 +54,7 @@ public class PlanServiceImpl implements PlanService {
     public Boolean update(Plan plan) {
         if (planMapper.selectById(plan.planId) == null) {
             logger.error("plan[{}] is not found", plan.planId);
-            throw new RuntimeException(String.format("计划[%d]不存在", plan.planId));
+            return false;
         }
         return planMapper.updateById(plan) > 0;
     }
@@ -63,7 +63,7 @@ public class PlanServiceImpl implements PlanService {
     public Boolean delete(String planId) {
         if (planMapper.selectById(planId) == null) {
             logger.error("plan[{}] is not found", planId);
-            throw new RuntimeException(String.format("计划[%d]不存在", planId));
+            return false;
         }
         return planMapper.deleteById(planId) > 0;
     }

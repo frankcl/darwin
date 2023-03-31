@@ -54,7 +54,7 @@ public class URLServiceImpl extends URLService {
         URLRecord record = get(fetchRecord.key);
         if (record == null) {
             logger.error("record is not found for key[{}]", fetchRecord.key);
-            throw new RuntimeException(String.format("未找到URL记录[%s]", fetchRecord.key));
+            return false;
         }
         LambdaUpdateWrapper<URLRecord> wrapper = new LambdaUpdateWrapper<>();
         wrapper.eq(URLRecord::getKey, fetchRecord.key);
@@ -94,7 +94,7 @@ public class URLServiceImpl extends URLService {
         URLRecord record = get(key);
         if (record == null) {
             logger.error("record is not found for key[{}]", key);
-            throw new RuntimeException(String.format("未找到URL记录[%s]", key));
+            return false;
         }
         LambdaUpdateWrapper<URLRecord> wrapper = new LambdaUpdateWrapper<>();
         wrapper.eq(URLRecord::getKey, key).set(URLRecord::getStatus, status).
@@ -117,7 +117,7 @@ public class URLServiceImpl extends URLService {
     public Boolean delete(String key) {
         if (urlMapper.selectById(key) == null) {
             logger.error("url record[{}] is not found", key);
-            throw new RuntimeException(String.format("URL记录[%s]不存在", key));
+            return false;
         }
         return urlMapper.deleteById(key) > 0;
     }

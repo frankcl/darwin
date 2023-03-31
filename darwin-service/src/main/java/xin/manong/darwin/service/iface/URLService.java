@@ -63,9 +63,12 @@ public abstract class URLService {
                 searchRequest.status = Constants.URL_STATUS_SUCCESS;
                 searchRequest.fetchTime.start = System.currentTimeMillis() - 86400000L;
                 Pager<URLRecord> pager = search(searchRequest, 1, 1);
-                return Optional.of(pager.records.size() > 0 ? pager.records.get(0) : null);
+                return Optional.ofNullable(pager.records.size() > 0 ? pager.records.get(0) : null);
             });
-            if (!optional.isPresent()) recordCache.invalidate(hash);
+            if (!optional.isPresent()) {
+                recordCache.invalidate(hash);
+                return null;
+            }
             return optional.get();
         } catch (ExecutionException e) {
             throw new RuntimeException(e);

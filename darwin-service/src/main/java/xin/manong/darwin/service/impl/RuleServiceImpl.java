@@ -48,7 +48,7 @@ public class RuleServiceImpl extends RuleService {
     public Boolean update(Rule rule) {
         if (ruleMapper.selectById(rule.id) == null) {
             logger.error("rule[{}] is not found", rule.id);
-            throw new RuntimeException(String.format("规则[%d]不存在", rule.id));
+            return false;
         }
         return ruleMapper.updateById(rule) > 0;
     }
@@ -57,7 +57,7 @@ public class RuleServiceImpl extends RuleService {
     public Boolean delete(Long id) {
         if (ruleMapper.selectById(id) == null) {
             logger.error("rule[{}] is not found", id);
-            throw new RuntimeException(String.format("规则[%d]不存在", id));
+            return false;
         }
         return ruleMapper.deleteById(id) > 0;
     }

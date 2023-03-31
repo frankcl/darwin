@@ -80,7 +80,7 @@ public abstract class Spider {
      * @return 成功返回true，否则返回false
      */
     protected boolean writeContent(URLRecord record, byte[] bytes, Context context) {
-        String key = String.format("%s/%s/%s", config.contentDirectory, category, record.hash);
+        String key = String.format("%s/%s/%s", config.contentDirectory, category, record.key);
         String suffix = (String) context.get(Constants.RESOURCE_SUFFIX);
         if (!StringUtils.isEmpty(suffix)) key = String.format("%s.%s", key, suffix);
         if (!ossClient.putObject(config.contentBucket, key, bytes)) return false;
@@ -101,7 +101,7 @@ public abstract class Spider {
      * @return 成功返回true，否则返回false
      */
     protected boolean writeContent(URLRecord record, InputStream inputStream, Context context) {
-        String key = String.format("%s/%s/%s", config.contentDirectory, category, record.hash);
+        String key = String.format("%s/%s/%s", config.contentDirectory, category, record.key);
         String suffix = (String) context.get(Constants.RESOURCE_SUFFIX);
         if (!StringUtils.isEmpty(suffix)) key = String.format("%s.%s", key, suffix);
         if (!ossClient.putObject(config.contentBucket, key, inputStream)) return false;
@@ -122,6 +122,7 @@ public abstract class Spider {
      */
     protected Response fetch(URLRecord record, Context context) {
         try {
+            buildHttpClient();
             HttpRequest httpRequest = new HttpRequest.Builder().requestURL(record.url).method(RequestMethod.GET).build();
             if (!StringUtils.isEmpty(config.userAgent)) httpRequest.headers.put("User-Agent", config.userAgent);
             if (!StringUtils.isEmpty(record.parentURL)) httpRequest.headers.put("Referer", record.parentURL);
@@ -131,6 +132,7 @@ public abstract class Spider {
             Response httpResponse = httpClient.execute(httpRequest);
             if (httpResponse != null) context.put(Constants.HTTP_CODE, httpResponse.code());
             if (httpResponse == null || !httpResponse.isSuccessful()) {
+                if (httpResponse != null) httpResponse.close();
                 record.status = Constants.URL_STATUS_FAIL;
                 context.put(Constants.DARWIN_DEBUG_MESSAGE, "抓取失败");
                 logger.error("execute http request failed for url[{}]", record.url);
@@ -152,7 +154,7 @@ public abstract class Spider {
     /**
      * 构建HTTPClient
      */
-    private void buildHttpClient() {
+    protected void buildHttpClient() {
         if (httpClient != null) return;
         HttpClientConfig httpClientConfig = new HttpClientConfig();
         httpClientConfig.connectTimeoutSeconds = config.connectTimeoutSeconds;
@@ -295,7 +297,6 @@ public abstract class Spider {
     public void process(URLRecord record, Context context) {
         Long startTime = System.currentTimeMillis();
         try {
-            buildHttpClient();
             reuseFetchContent(record, context);
             handle(record, context);
         } catch (Throwable t) {

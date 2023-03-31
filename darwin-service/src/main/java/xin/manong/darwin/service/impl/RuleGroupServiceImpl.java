@@ -43,7 +43,7 @@ public class RuleGroupServiceImpl implements RuleGroupService {
     public Boolean update(RuleGroup ruleGroup) {
         if (ruleGroupMapper.selectById(ruleGroup.id) == null) {
             logger.error("rule group[{}] is not found", ruleGroup.id);
-            throw new RuntimeException(String.format("规则分组[%d]不存在", ruleGroup.id));
+            return false;
         }
         return ruleGroupMapper.updateById(ruleGroup) > 0;
     }
@@ -52,7 +52,7 @@ public class RuleGroupServiceImpl implements RuleGroupService {
     public Boolean delete(Long id) {
         if (ruleGroupMapper.selectById(id) == null) {
             logger.error("rule group[{}] is not found", id);
-            throw new RuntimeException(String.format("规则分组[%d]不存在", id));
+            return false;
         }
         return ruleGroupMapper.deleteById(id) > 0;
     }

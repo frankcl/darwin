@@ -40,12 +40,13 @@ public class ResourceSpider extends Spider {
                 String suffix = getResourceSuffix(httpResponse);
                 if (!StringUtils.isEmpty(suffix)) context.put(Constants.RESOURCE_SUFFIX, suffix);
                 inputStream = httpResponse.body().byteStream();
-            }
+            } else record.fetchTime = System.currentTimeMillis();
             if (inputStream == null || !writeContent(record, inputStream, context)) {
                 record.status = Constants.URL_STATUS_FAIL;
                 logger.error("write fetch content failed for url[{}]", record.url);
                 context.put(Constants.DARWIN_DEBUG_MESSAGE, "抓取内容写入OSS失败");
             }
+            record.status = Constants.URL_STATUS_SUCCESS;
         } finally {
             if (inputStream != null) inputStream.close();
             if (httpResponse != null) httpResponse.close();
