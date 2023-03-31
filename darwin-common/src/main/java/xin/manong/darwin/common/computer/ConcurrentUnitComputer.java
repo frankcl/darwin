@@ -21,7 +21,7 @@ public class ConcurrentUnitComputer {
      */
     public static String compute(URLRecord record) {
         String host = CommonUtil.getHost(record.url);
-        if (record.concurrentLevel == null || record.concurrentLevel == Constants.CONCURRENT_LEVEL_HOST) return host;
+        if (record.concurrentLevel != null && record.concurrentLevel == Constants.CONCURRENT_LEVEL_HOST) return host;
         return DomainUtil.getDomain(host);
     }
 }
