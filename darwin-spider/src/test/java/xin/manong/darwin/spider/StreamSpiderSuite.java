@@ -4,19 +4,15 @@ import org.apache.commons.lang3.StringUtils;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit4.SpringRunner;
 import xin.manong.darwin.common.Constants;
 import xin.manong.darwin.common.model.URLRecord;
 import xin.manong.weapon.aliyun.oss.OSSClient;
 import xin.manong.weapon.aliyun.oss.OSSMeta;
 import xin.manong.weapon.base.common.Context;
 import xin.manong.weapon.base.util.RandomID;
-import xin.manong.weapon.spring.boot.annotation.EnableONSProducer;
-import xin.manong.weapon.spring.boot.annotation.EnableOSSClient;
-import xin.manong.weapon.spring.boot.annotation.EnableRedisClient;
 
 import javax.annotation.Resource;
 
@@ -24,14 +20,10 @@ import javax.annotation.Resource;
  * @author frankcl
  * @date 2023-03-31 14:36:24
  */
-@EnableRedisClient
-@EnableONSProducer
-@EnableOSSClient
-@EnableAutoConfiguration
-@RunWith(SpringJUnit4ClassRunner.class)
+@RunWith(SpringRunner.class)
 @ActiveProfiles(value = { "dev", "service", "service-dev", "queue", "queue-dev" })
-@SpringBootTest(classes = { ApplicationTest.class })
-public class StreamSpiderSuite extends ApplicationTest {
+@SpringBootTest(classes = ApplicationTest.class)
+public class StreamSpiderSuite {
 
     @Resource
     protected SpiderConfig config;
