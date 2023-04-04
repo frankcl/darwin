@@ -65,10 +65,6 @@ public class App extends Model {
      * @return 如果有效返回true，否则返回false
      */
     public boolean check() {
-        if (id == null) {
-            logger.error("app id is null");
-            return false;
-        }
         if (StringUtils.isEmpty(name)) {
             logger.error("app name is empty");
             return false;

@@ -20,6 +20,7 @@ public class PlanSuite {
         plan.appName = "test";
         plan.planId = "test_id";
         plan.name = "test_job";
+        plan.status = Constants.PLAN_STATUS_RUNNING;
         plan.category = Constants.PLAN_CATEGORY_ONCE;
         plan.priority = Constants.PRIORITY_HIGH;
         plan.seedURLs = new ArrayList<>();

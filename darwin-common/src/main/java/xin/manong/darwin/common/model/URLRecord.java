@@ -9,7 +9,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import xin.manong.darwin.common.Constants;
@@ -168,19 +167,17 @@ public class URLRecord extends FetchRecord {
     }
 
     /**
-     * 检测URLRecord有效性
-     * 1. url不能为空
-     * 2. category不能为空
+     * 检测有效性，满足FetchRecord合法性同时满足以下条件
+     * 1. category合法
+     * 2. fetchMethod合法
+     * 2. concurrentLevel合法
      *
      * @return 有效返回true，否则返回false
      */
     public boolean check() {
-        if (StringUtils.isEmpty(url)) {
-            logger.error("url is empty");
-            return false;
-        }
-        if (StringUtils.isEmpty(jobId)) {
-            logger.error("job id is empty");
+        if (!super.check()) return false;
+        if (appId == null) {
+            logger.error("app id is null");
             return false;
         }
         if (!Constants.SUPPORT_CONTENT_CATEGORIES.containsKey(category)) {
@@ -191,11 +188,6 @@ public class URLRecord extends FetchRecord {
             logger.error("not support fetch method[{}]", fetchMethod);
             return false;
         }
-        if (status == null) status = Constants.URL_STATUS_CREATED;
-        else if (!Constants.SUPPORT_URL_STATUSES.containsKey(status)) {
-            logger.error("not support url status[{}]", status);
-            return false;
-        }
         if (concurrentLevel == null) concurrentLevel = Constants.CONCURRENT_LEVEL_DOMAIN;
         if (depth == null || depth < 0) depth = 0;
         if (!Constants.SUPPORT_CONCURRENT_LEVELS.containsKey(concurrentLevel)) {
@@ -204,19 +196,5 @@ public class URLRecord extends FetchRecord {
         }
         if (priority == null) priority = Constants.PRIORITY_NORMAL;
         return true;
-    }
-
-    @Override
-    public boolean equals(Object object) {
-        if (object == null || !(object instanceof URLRecord)) return false;
-        URLRecord other = (URLRecord) object;
-        if (other == this || key == other.key) return true;
-        if (key == null || other.key == null) return false;
-        return key.equals(other.key);
-    }
-
-    @Override
-    public int hashCode() {
-        return key == null ? 0 : key.hashCode();
     }
 }

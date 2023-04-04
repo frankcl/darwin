@@ -14,6 +14,7 @@ public class RuleSuite {
     public void testCheckOK() {
         Rule rule = new Rule();
         rule.name = "测试规则";
+        rule.ruleGroup = 1L;
         rule.category = Constants.RULE_CATEGORY_LINK_FOLLOW;
         rule.scriptType = Constants.SCRIPT_TYPE_GROOVY;
         rule.script = "def A() {}";
@@ -26,6 +27,7 @@ public class RuleSuite {
     public void testCheckError() {
         Rule rule = new Rule();
         rule.name = "测试规则";
+        rule.ruleGroup = 1L;
         rule.category = 5;
         rule.scriptType = Constants.SCRIPT_TYPE_GROOVY;
         rule.script = "def A() {}";

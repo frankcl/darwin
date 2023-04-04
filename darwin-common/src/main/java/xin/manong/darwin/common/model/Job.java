@@ -140,6 +140,10 @@ public class Job extends Model {
      * @return 如果有效返回true，否则返回false
      */
     public boolean check() {
+        if (appId == null) {
+            logger.error("app id is null");
+            return false;
+        }
         if (StringUtils.isEmpty(planId)) {
             logger.error("plan id is empty");
             return false;

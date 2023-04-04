@@ -10,6 +10,7 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 import org.apache.commons.codec.digest.DigestUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import xin.manong.darwin.common.Constants;
@@ -154,5 +155,54 @@ public class FetchRecord extends Model {
      */
     public void rebuildKey() {
         key = RandomID.build();
+    }
+
+    /**
+     * 检测有效性
+     * 1. url不能为空
+     * 2. key不能为空
+     * 3. hash不能为空
+     * 4. jobId不能为空
+     * 5. status合法
+     *
+     * @return 有效返回true，否则返回false
+     */
+    public boolean check() {
+        if (StringUtils.isEmpty(key)) {
+            logger.error("key is empty");
+            return false;
+        }
+        if (StringUtils.isEmpty(hash)) {
+            logger.error("hash is empty");
+            return false;
+        }
+        if (StringUtils.isEmpty(url)) {
+            logger.error("url is empty");
+            return false;
+        }
+        if (StringUtils.isEmpty(jobId)) {
+            logger.error("job id is empty");
+            return false;
+        }
+        if (status == null) status = Constants.URL_STATUS_CREATED;
+        else if (!Constants.SUPPORT_URL_STATUSES.containsKey(status)) {
+            logger.error("not support url status[{}]", status);
+            return false;
+        }
+        return true;
+    }
+
+    @Override
+    public boolean equals(Object object) {
+        if (object == null || !(object instanceof URLRecord)) return false;
+        URLRecord other = (URLRecord) object;
+        if (other == this || key == other.key) return true;
+        if (key == null || other.key == null) return false;
+        return key.equals(other.key);
+    }
+
+    @Override
+    public int hashCode() {
+        return key == null ? 0 : key.hashCode();
     }
 }

@@ -132,8 +132,8 @@ public class Rule extends Model {
      * @return 合法返回true，否则返回false
      */
     public boolean check() {
-        if (ruleGroup == null || ruleGroup < 0) {
-            logger.error("rule group is null or invalid");
+        if (ruleGroup == null) {
+            logger.error("rule group is null");
             return false;
         }
         if (StringUtils.isEmpty(name)) {

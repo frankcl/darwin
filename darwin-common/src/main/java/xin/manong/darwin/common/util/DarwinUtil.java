@@ -30,11 +30,14 @@ public class DarwinUtil {
         if (!StringUtils.isEmpty(record.fetchContentURL)) context.put(Constants.FETCH_CONTENT_URL, record.fetchContentURL);
         if (!StringUtils.isEmpty(record.jobId)) context.put(Constants.JOB_ID, record.jobId);
         if (!StringUtils.isEmpty(record.hash)) context.put(Constants.HASH, record.hash);
+        if (record.appId != null) context.put(Constants.APP_ID, record.appId);
+        if (record.status != null) context.put(Constants.STATUS, Constants.SUPPORT_URL_STATUSES.get(record.status));
         if (record.fetchTime != null) context.put(Constants.FETCH_TIME, record.fetchTime);
         if (record.inQueueTime != null) context.put(Constants.IN_QUEUE_TIME, record.inQueueTime);
         if (record.outQueueTime != null) context.put(Constants.OUT_QUEUE_TIME, record.outQueueTime);
         if (record.depth != null) context.put(Constants.DEPTH, record.depth);
         if (record.timeout != null) context.put(Constants.TIMEOUT, record.timeout);
+        if (record.priority != null) context.put(Constants.PRIORITY, record.priority);
         if (record.category != null) context.put(Constants.CATEGORY, Constants.SUPPORT_CONTENT_CATEGORIES.get(record.category));
         if (record.concurrentLevel != null) context.put(Constants.CONCURRENT_LEVEL, Constants.SUPPORT_CONCURRENT_LEVELS.get(record.concurrentLevel));
     }
@@ -52,6 +55,7 @@ public class DarwinUtil {
         if (!StringUtils.isEmpty(plan.name)) context.put(Constants.NAME, plan.name);
         if (!StringUtils.isEmpty(plan.crontabExpression)) context.put(Constants.CRONTAB_EXPRESSION, plan.crontabExpression);
         if (plan.status != null) context.put(Constants.STATUS, Constants.SUPPORT_PLAN_STATUSES.get(plan.status));
+        if (plan.category != null) context.put(Constants.CATEGORY, Constants.SUPPORT_PLAN_CATEGORIES.get(plan.category));
         if (plan.appId != null) context.put(Constants.APP_ID, plan.appId);
         if (plan.priority != null) context.put(Constants.PRIORITY, plan.priority);
         if (plan.avoidRepeatedFetch != null) context.put(Constants.AVOID_REPEATED_FETCH, plan.avoidRepeatedFetch);
