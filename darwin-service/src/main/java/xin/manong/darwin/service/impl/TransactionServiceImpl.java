@@ -42,7 +42,11 @@ public class TransactionServiceImpl implements TransactionService {
     @Transactional
     public Job buildJobRepeatedPlan(Plan plan) {
         if (plan == null || plan.category != Constants.PLAN_CATEGORY_REPEAT) {
-            logger.error("plan is null or is not repeated plan");
+            logger.warn("plan is null or is not repeated plan");
+            return null;
+        }
+        if (plan.status != Constants.PLAN_STATUS_RUNNING) {
+            logger.warn("plan is not running for status[{}]", Constants.SUPPORT_PLAN_STATUSES.get(plan.status));
             return null;
         }
         Job job = null;

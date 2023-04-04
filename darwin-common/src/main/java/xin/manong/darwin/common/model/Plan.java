@@ -177,8 +177,10 @@ public class Plan extends Model {
             seedRecord.jobId = job.jobId;
             seedRecord.status = Constants.URL_STATUS_CREATED;
             if (seedRecord.category == null) seedRecord.category = Constants.CONTENT_CATEGORY_LIST;
-            if (seedRecord.priority == null) seedRecord.priority = Constants.PRIORITY_NORMAL;
             if (seedRecord.concurrentLevel == null) seedRecord.concurrentLevel = Constants.CONCURRENT_LEVEL_DOMAIN;
+            if (seedRecord.priority == null) {
+                seedRecord.priority = job.priority == null ? Constants.PRIORITY_NORMAL : job.priority;
+            }
             return seedRecord;
         }).collect(Collectors.toList());
         return job;

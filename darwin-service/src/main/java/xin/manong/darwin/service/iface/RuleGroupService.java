@@ -60,5 +60,5 @@ public interface RuleGroupService {
      * @param size 每页数量
      * @return 搜索列表
      */
-    Pager<RuleGroup> searchByName(String name, int current, int size);
+    Pager<RuleGroup> search(String name, int current, int size);
 }

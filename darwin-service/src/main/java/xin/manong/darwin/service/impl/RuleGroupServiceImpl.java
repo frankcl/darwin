@@ -75,7 +75,7 @@ public class RuleGroupServiceImpl implements RuleGroupService {
     }
 
     @Override
-    public Pager<RuleGroup> searchByName(String name, int current, int size) {
+    public Pager<RuleGroup> search(String name, int current, int size) {
         LambdaQueryWrapper<RuleGroup> query = new LambdaQueryWrapper<>();
         query.like(RuleGroup::getName, name).orderByDesc(RuleGroup::getCreateTime);
         IPage<RuleGroup> page = ruleGroupMapper.selectPage(new Page<>(current, size), query);

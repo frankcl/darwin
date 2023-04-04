@@ -82,6 +82,9 @@ public class JobServiceImplSuite {
         Assert.assertEquals("http://www.sohu.com/", jobInDB.seedURLs.get(0).url);
         Assert.assertEquals("http://www.163.net/", jobInDB.seedURLs.get(1).url);
 
+        jobInDB = jobService.getCache(job.jobId);
+        Assert.assertTrue(jobInDB != null);
+
         Pager<Job> pager = jobService.search(null, 1, 10);
         Assert.assertEquals(1L, pager.current.longValue());
         Assert.assertEquals(1L, pager.total.longValue());
