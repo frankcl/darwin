@@ -25,11 +25,11 @@ public class SearchQueryBuilder {
         TermQuery termQuery = new TermQuery();
         termQuery.setFieldName(field);
         if (termValue instanceof Long) termQuery.setTerm(ColumnValue.fromLong((Long) termValue));
-        if (termValue instanceof Integer) termQuery.setTerm(ColumnValue.fromLong((Integer) termValue));
-        if (termValue instanceof String) termQuery.setTerm(ColumnValue.fromString((String) termValue));
-        if (termValue instanceof Boolean) termQuery.setTerm(ColumnValue.fromBoolean((Boolean) termValue));
-        if (termValue instanceof Double) termQuery.setTerm(ColumnValue.fromDouble((Double) termValue));
-        if (termValue instanceof Float) termQuery.setTerm(ColumnValue.fromDouble((Float) termValue));
+        else if (termValue instanceof Integer) termQuery.setTerm(ColumnValue.fromLong((Integer) termValue));
+        else if (termValue instanceof String) termQuery.setTerm(ColumnValue.fromString((String) termValue));
+        else if (termValue instanceof Boolean) termQuery.setTerm(ColumnValue.fromBoolean((Boolean) termValue));
+        else if (termValue instanceof Double) termQuery.setTerm(ColumnValue.fromDouble((Double) termValue));
+        else if (termValue instanceof Float) termQuery.setTerm(ColumnValue.fromDouble((Float) termValue));
         else throw new RuntimeException(String.format("unsupported term type[%s]", termValue.getClass().getName()));
         return termQuery;
     }
@@ -67,10 +67,10 @@ public class SearchQueryBuilder {
             if (rangeValue.includeLower) rangeQuery.setIncludeLower(true);
         }
         if (rangeValue.end != null) {
-            if (rangeValue.end instanceof Long) rangeQuery.setFrom(ColumnValue.fromLong((Long) rangeValue.end));
-            else if (rangeValue.end instanceof Integer) rangeQuery.setFrom(ColumnValue.fromLong((Integer) rangeValue.end));
-            else if (rangeValue.end instanceof Double) rangeQuery.setFrom(ColumnValue.fromDouble((Double) rangeValue.end));
-            else if (rangeValue.end instanceof Float) rangeQuery.setFrom(ColumnValue.fromDouble((Float) rangeValue.end));
+            if (rangeValue.end instanceof Long) rangeQuery.setTo(ColumnValue.fromLong((Long) rangeValue.end));
+            else if (rangeValue.end instanceof Integer) rangeQuery.setTo(ColumnValue.fromLong((Integer) rangeValue.end));
+            else if (rangeValue.end instanceof Double) rangeQuery.setTo(ColumnValue.fromDouble((Double) rangeValue.end));
+            else if (rangeValue.end instanceof Float) rangeQuery.setTo(ColumnValue.fromDouble((Float) rangeValue.end));
             else throw new RuntimeException(String.format("unsupported term type[%s]", rangeValue.end.getClass().getName()));
             if (rangeValue.includeUpper) rangeQuery.setIncludeUpper(true);
         }
