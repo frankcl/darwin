@@ -56,7 +56,9 @@ public class JobServiceImpl extends JobService {
             logger.error("job[{}] is not found", job.jobId);
             return false;
         }
-        return jobMapper.updateById(job) > 0;
+        int n = jobMapper.updateById(job);
+        if (n > 0) jobCache.invalidate(job.jobId);
+        return n > 0;
     }
 
     @Override
@@ -65,7 +67,9 @@ public class JobServiceImpl extends JobService {
             logger.error("job[{}] is not found", jobId);
             return false;
         }
-        return jobMapper.deleteById(jobId) > 0;
+        int n = jobMapper.deleteById(jobId);
+        if (n > 0) jobCache.invalidate(jobId);
+        return n > 0;
     }
 
     @Override

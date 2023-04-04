@@ -67,7 +67,9 @@ public class URLServiceImpl extends URLService {
         if (fetchRecord.structureMap != null && !fetchRecord.structureMap.isEmpty()) {
             wrapper.set(URLRecord::getStructureMap, fetchRecord.structureMap);
         }
-        return urlMapper.update(null, wrapper) > 0;
+        int n = urlMapper.update(null, wrapper);
+        if (n > 0 && !StringUtils.isEmpty(record.url)) recordCache.invalidate(record.url);
+        return n > 0;
     }
 
     @Override
@@ -82,7 +84,9 @@ public class URLServiceImpl extends URLService {
         if (record.status != null) wrapper.set(URLRecord::getStatus, record.status);
         if (record.inQueueTime != null) wrapper.set(URLRecord::getInQueueTime, record.inQueueTime);
         if (record.outQueueTime != null) wrapper.set(URLRecord::getOutQueueTime, record.outQueueTime);
-        return urlMapper.update(null, wrapper) > 0;
+        int n = urlMapper.update(null, wrapper);
+        if (n > 0 && !StringUtils.isEmpty(record.url)) recordCache.invalidate(record.url);
+        return n > 0;
     }
 
     @Override
@@ -99,7 +103,9 @@ public class URLServiceImpl extends URLService {
         LambdaUpdateWrapper<URLRecord> wrapper = new LambdaUpdateWrapper<>();
         wrapper.eq(URLRecord::getKey, key).set(URLRecord::getStatus, status).
                 set(URLRecord::getUpdateTime, System.currentTimeMillis());
-        return urlMapper.update(null, wrapper) > 0;
+        int n = urlMapper.update(null, wrapper);
+        if (n > 0 && !StringUtils.isEmpty(record.url)) recordCache.invalidate(record.url);
+        return n > 0;
     }
 
 
@@ -115,11 +121,14 @@ public class URLServiceImpl extends URLService {
 
     @Override
     public Boolean delete(String key) {
-        if (urlMapper.selectById(key) == null) {
+        URLRecord record = urlMapper.selectById(key);
+        if (record == null) {
             logger.error("url record[{}] is not found", key);
             return false;
         }
-        return urlMapper.deleteById(key) > 0;
+        int n = urlMapper.deleteById(key);
+        if (n > 0 && !StringUtils.isEmpty(record.url)) recordCache.invalidate(record.url);
+        return n > 0;
     }
 
     @Override

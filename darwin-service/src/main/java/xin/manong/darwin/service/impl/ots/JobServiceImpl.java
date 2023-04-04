@@ -89,7 +89,9 @@ public class JobServiceImpl extends JobService {
         }
         job.updateTime = System.currentTimeMillis();
         kvRecord = OTSConverter.convertJavaObjectToKVRecord(job);
-        return otsClient.update(serviceConfig.jobTable, kvRecord, null) == OTSStatus.SUCCESS;
+        OTSStatus status = otsClient.update(serviceConfig.jobTable, kvRecord, null);
+        if (status == OTSStatus.SUCCESS) jobCache.invalidate(job.jobId);
+        return status == OTSStatus.SUCCESS;
     }
 
     @Override
@@ -101,7 +103,9 @@ public class JobServiceImpl extends JobService {
             logger.error("job[{}] is not found", jobId);
             return false;
         }
-        return otsClient.delete(serviceConfig.jobTable, keyMap, null) == OTSStatus.SUCCESS;
+        OTSStatus status = otsClient.delete(serviceConfig.jobTable, keyMap, null);
+        if (status == OTSStatus.SUCCESS) jobCache.invalidate(jobId);
+        return status == OTSStatus.SUCCESS;
     }
 
     @Override

@@ -50,7 +50,9 @@ public class RuleServiceImpl extends RuleService {
             logger.error("rule[{}] is not found", rule.id);
             return false;
         }
-        return ruleMapper.updateById(rule) > 0;
+        int n = ruleMapper.updateById(rule);
+        if (n > 0) ruleCache.invalidate(rule.id);
+        return n > 0;
     }
 
     @Override
@@ -59,7 +61,9 @@ public class RuleServiceImpl extends RuleService {
             logger.error("rule[{}] is not found", id);
             return false;
         }
-        return ruleMapper.deleteById(id) > 0;
+        int n = ruleMapper.deleteById(id);
+        if (n > 0) ruleCache.invalidate(id);
+        return n > 0;
     }
 
     @Override

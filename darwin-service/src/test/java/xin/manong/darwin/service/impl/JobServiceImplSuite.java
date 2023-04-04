@@ -4,8 +4,10 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.annotation.Rollback;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.transaction.annotation.Transactional;
 import xin.manong.darwin.common.Constants;
 import xin.manong.darwin.common.model.Job;
 import xin.manong.darwin.common.model.Pager;
@@ -22,8 +24,8 @@ import java.util.ArrayList;
  * @author frankcl
  * @date 2023-03-15 15:18:57
  */
-@RunWith(SpringJUnit4ClassRunner.class)
-@ActiveProfiles(value = { "service", "service-dev" })
+@RunWith(SpringRunner.class)
+@ActiveProfiles(value = { "service", "service-dev", "queue", "queue-dev" })
 @SpringBootTest(classes = { ApplicationTest.class })
 public class JobServiceImplSuite {
 
@@ -31,10 +33,13 @@ public class JobServiceImplSuite {
     protected JobService jobService;
 
     @Test
+    @Transactional
+    @Rollback
     public void testPlanOperations() {
         URLRecord record = new URLRecord("http://www.sina.com.cn/");
         Job job = new Job();
         job.name = "测试任务";
+        job.appId = 1;
         job.jobId = RandomID.build();
         job.planId = RandomID.build();
         job.priority = Constants.PRIORITY_HIGH;
@@ -48,6 +53,7 @@ public class JobServiceImplSuite {
         Job jobInDB = jobService.get(job.jobId);
         Assert.assertTrue(jobInDB != null);
         Assert.assertEquals("测试任务", jobInDB.name);
+        Assert.assertEquals(1, jobInDB.appId.intValue());
         Assert.assertEquals(job.planId, jobInDB.planId);
         Assert.assertEquals(job.priority.intValue(), jobInDB.priority.intValue());
         Assert.assertEquals(1, jobInDB.ruleIds.size());

@@ -77,7 +77,9 @@ public class URLServiceImpl extends URLService {
         updateRecord.fetchContentURL = fetchRecord.fetchContentURL;
         updateRecord.structureMap = fetchRecord.structureMap;
         kvRecord = OTSConverter.convertJavaObjectToKVRecord(updateRecord);
-        return otsClient.update(serviceConfig.urlTable, kvRecord, null) == OTSStatus.SUCCESS;
+        OTSStatus status = otsClient.update(serviceConfig.urlTable, kvRecord, null);
+        if (status == OTSStatus.SUCCESS && !StringUtils.isEmpty(fetchRecord.url)) recordCache.invalidate(fetchRecord.url);
+        return status == OTSStatus.SUCCESS;
     }
 
     @Override
@@ -98,7 +100,9 @@ public class URLServiceImpl extends URLService {
         updateRecord.outQueueTime = record.outQueueTime;
         updateRecord.status = record.status;
         kvRecord = OTSConverter.convertJavaObjectToKVRecord(updateRecord);
-        return otsClient.update(serviceConfig.urlTable, kvRecord, null) == OTSStatus.SUCCESS;
+        OTSStatus status = otsClient.update(serviceConfig.urlTable, kvRecord, null);
+        if (status == OTSStatus.SUCCESS && !StringUtils.isEmpty(record.url)) recordCache.invalidate(record.url);
+        return status == OTSStatus.SUCCESS;
     }
 
     @Override

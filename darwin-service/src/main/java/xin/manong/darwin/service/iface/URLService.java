@@ -9,6 +9,7 @@ import org.slf4j.LoggerFactory;
 import xin.manong.darwin.common.Constants;
 import xin.manong.darwin.common.model.FetchRecord;
 import xin.manong.darwin.common.model.Pager;
+import xin.manong.darwin.common.model.RangeValue;
 import xin.manong.darwin.common.model.URLRecord;
 import xin.manong.darwin.service.request.URLSearchRequest;
 
@@ -61,6 +62,7 @@ public abstract class URLService {
                 URLSearchRequest searchRequest = new URLSearchRequest();
                 searchRequest.url = url;
                 searchRequest.status = Constants.URL_STATUS_SUCCESS;
+                searchRequest.fetchTime = new RangeValue<>();
                 searchRequest.fetchTime.start = System.currentTimeMillis() - 86400000L;
                 Pager<URLRecord> pager = search(searchRequest, 1, 1);
                 return Optional.ofNullable(pager.records.size() > 0 ? pager.records.get(0) : null);

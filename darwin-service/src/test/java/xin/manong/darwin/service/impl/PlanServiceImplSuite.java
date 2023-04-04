@@ -4,8 +4,10 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.annotation.Rollback;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.transaction.annotation.Transactional;
 import xin.manong.darwin.common.Constants;
 import xin.manong.darwin.common.model.Pager;
 import xin.manong.darwin.common.model.Plan;
@@ -21,8 +23,8 @@ import java.util.ArrayList;
  * @author frankcl
  * @date 2023-03-15 15:18:57
  */
-@RunWith(SpringJUnit4ClassRunner.class)
-@ActiveProfiles(value = { "service", "service-dev" })
+@RunWith(SpringRunner.class)
+@ActiveProfiles(value = { "service", "service-dev", "queue", "queue-dev" })
 @SpringBootTest(classes = { ApplicationTest.class })
 public class PlanServiceImplSuite {
 
@@ -30,6 +32,8 @@ public class PlanServiceImplSuite {
     protected PlanService planService;
 
     @Test
+    @Transactional
+    @Rollback
     public void testPlanOperations() {
         URLRecord record = new URLRecord("http://www.sina.com.cn/");
         Plan plan = new Plan();
@@ -38,6 +42,7 @@ public class PlanServiceImplSuite {
         plan.appId = 0;
         plan.appName = "测试应用";
         plan.category = Constants.PLAN_CATEGORY_REPEAT;
+        plan.status = Constants.PLAN_STATUS_RUNNING;
         plan.crontabExpression = "0 0 6-23 * * ?";
         plan.ruleIds = new ArrayList<>();
         plan.ruleIds.add(0);
