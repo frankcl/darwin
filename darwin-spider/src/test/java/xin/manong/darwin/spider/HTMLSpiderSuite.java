@@ -5,16 +5,25 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.annotation.Rollback;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.transaction.annotation.Transactional;
 import xin.manong.darwin.common.Constants;
+import xin.manong.darwin.common.model.Job;
+import xin.manong.darwin.common.model.Rule;
 import xin.manong.darwin.common.model.URLRecord;
+import xin.manong.darwin.service.iface.JobService;
+import xin.manong.darwin.service.iface.RuleService;
 import xin.manong.weapon.aliyun.oss.OSSClient;
 import xin.manong.weapon.aliyun.oss.OSSMeta;
 import xin.manong.weapon.base.common.Context;
-import xin.manong.weapon.base.util.RandomID;
 
 import javax.annotation.Resource;
+import java.io.ByteArrayOutputStream;
+import java.io.InputStream;
+import java.nio.charset.Charset;
+import java.util.ArrayList;
 
 /**
  * @author frankcl
@@ -28,17 +37,60 @@ public class HTMLSpiderSuite {
     @Resource
     protected SpiderConfig config;
     @Resource
+    protected RuleService ruleService;
+    @Resource
+    protected JobService jobService;
+    @Resource
     protected OSSClient ossClient;
     @Resource
     protected HTMLSpider spider;
 
+    private void prepareJobAndRule() throws Exception {
+        InputStream inputStream = this.getClass().getResourceAsStream("/rule_script");
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        try {
+            int bufferSize = 4096, n;
+            byte[] buffer = new byte[bufferSize];
+            while ((n = inputStream.read(buffer, 0, bufferSize)) != -1) {
+                outputStream.write(buffer, 0, n);
+            }
+            Rule rule = new Rule();
+            rule.domain = "people.com.cn";
+            rule.name = "人民网结构化规则";
+            rule.regex = "http://politics.people.com.cn/n1/\\d{4}/\\d{4}/c\\d+?-\\d+?\\.html";
+            rule.ruleGroup = 1L;
+            rule.category = Constants.RULE_CATEGORY_STRUCTURE;
+            rule.scriptType = Constants.SCRIPT_TYPE_GROOVY;
+            rule.script = new String(outputStream.toByteArray(), Charset.forName("UTF-8"));
+            Assert.assertTrue(ruleService.add(rule));
+
+            Job job = new Job();
+            job.jobId = "aaa";
+            job.name = "测试任务";
+            job.priority = Constants.PRIORITY_NORMAL;
+            job.planId = "xxx";
+            job.appId = 1;
+            job.status = Constants.JOB_STATUS_RUNNING;
+            job.avoidRepeatedFetch = true;
+            job.ruleIds = new ArrayList<>();
+            job.ruleIds.add(rule.id.intValue());
+            Assert.assertTrue(jobService.add(job));
+        } finally {
+            if (outputStream != null) outputStream.close();
+            if (inputStream != null) inputStream.close();
+        }
+    }
+
     @Test
-    public void testFetchSuccess() {
-        String url = "https://www.sina.com.cn/";
+    @Rollback
+    @Transactional
+    public void testFetchSuccess() throws Exception {
+        prepareJobAndRule();
+        String url = "http://politics.people.com.cn/n1/2023/0406/c1001-32658085.html";
         URLRecord record = new URLRecord(url);
-        record.category = Constants.CONTENT_CATEGORY_LIST;
-        record.jobId = RandomID.build();
-        record.appId = 0;
+        record.category = Constants.CONTENT_CATEGORY_TEXT;
+        record.jobId = "aaa";
+        record.appId = 1;
         Context context = new Context();
         spider.process(record, context);
         String key = String.format("%s/%s/%s.html", config.contentDirectory, "html", record.key);
@@ -50,18 +102,23 @@ public class HTMLSpiderSuite {
         Assert.assertEquals(OSSClient.buildURL(ossMeta), record.fetchContentURL);
         Assert.assertTrue(record.fetchTime != null && record.fetchTime > 0L);
         Assert.assertTrue(!StringUtils.isEmpty(record.fetchContentURL));
+        Assert.assertTrue(record.structureMap != null && !record.structureMap.isEmpty());
+        Assert.assertTrue(record.structureMap.containsKey("title"));
         ossMeta = OSSClient.parseURL(record.fetchContentURL);
         Assert.assertTrue(ossClient.exist(ossMeta.bucket, ossMeta.key));
         ossClient.deleteObject(ossMeta.bucket, ossMeta.key);
     }
 
     @Test
-    public void testFetchFail() {
-        String url = "https://www.sina.com.cn/not_found.html";
+    @Rollback
+    @Transactional
+    public void testFetchFail() throws Exception {
+        prepareJobAndRule();
+        String url = "http://politics.people.com.cn/n1/2023/0406/c1001-32658085111.html";
         URLRecord record = new URLRecord(url);
-        record.category = Constants.CONTENT_CATEGORY_LIST;
-        record.jobId = RandomID.build();
-        record.appId = 0;
+        record.category = Constants.CONTENT_CATEGORY_TEXT;
+        record.jobId = "aaa";
+        record.appId = 1;
         Context context = new Context();
         spider.process(record, context);
         Assert.assertEquals(Constants.URL_STATUS_FAIL, record.status.intValue());

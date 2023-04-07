@@ -138,6 +138,8 @@ public abstract class Spider {
                 logger.error("execute http request failed for url[{}]", record.url);
                 return null;
             }
+            String targetURL = httpResponse.request().url().url().toString();
+            if (!StringUtils.isEmpty(targetURL) && !targetURL.equals(record.url)) record.redirectURL = targetURL;
             return httpResponse;
         } catch (Exception e) {
             record.status = Constants.URL_STATUS_FAIL;

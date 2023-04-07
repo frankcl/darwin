@@ -82,6 +82,15 @@ public class FetchRecord extends Model {
     public String url;
 
     /**
+     * 重定向URL
+     */
+    @TableField(value = "redirect_url")
+    @Column(name = "redirect_url")
+    @JSONField(name = "redirect_url")
+    @JsonProperty("redirect_url")
+    public String redirectURL;
+
+    /**
      * 父URL
      */
     @TableField(value = "parent_url")

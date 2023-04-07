@@ -1,5 +1,7 @@
 package xin.manong.darwin.parse.parser;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import xin.manong.darwin.common.parser.ParseRequest;
 import xin.manong.darwin.common.parser.ParseResponse;
 
@@ -11,6 +13,8 @@ import xin.manong.darwin.common.parser.ParseResponse;
  * @date 2023-03-16 15:07:13
  */
 public abstract class Parser {
+
+    protected static final Logger logger = LoggerFactory.getLogger(Parser.class);
 
     /**
      * 脚本解析

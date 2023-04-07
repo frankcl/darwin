@@ -1,8 +1,13 @@
 package xin.manong.darwin.spider;
 
+import okhttp3.MediaType;
 import okhttp3.Response;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
+import org.jsoup.select.Elements;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
@@ -163,10 +168,63 @@ public class HTMLSpider extends Spider {
         String suffix = getResourceSuffix(httpResponse);
         if (!StringUtils.isEmpty(suffix)) context.put(Constants.RESOURCE_SUFFIX, suffix);
         try {
-            return httpResponse.body().string();
+            byte[] body = httpResponse.body().bytes();
+            String charset = parseCharset(body, httpResponse);
+            return new String(body, charset);
         } finally {
             httpResponse.close();
         }
+    }
+
+    /**
+     * 解析HTML编码
+     * 1. 从HTTP响应头中获取编码
+     * 2. 从HTML正文head->meta中获取编码
+     * 3. 猜测HTML编码
+     *
+     * @param body HTML字节数组
+     * @param httpResponse HTTP响应
+     * @return 成功返回编码，否则返回默认编码UTF-8
+     */
+    private String parseCharset(byte[] body, Response httpResponse) {
+        MediaType mediaType = httpResponse.body().contentType();
+        Charset c = mediaType.charset();
+        if (c != null) return c.name();
+        String charset = parseCharsetFromHTML(body);
+        return StringUtils.isEmpty(charset) ? EncodeDetector.detect(body) : charset;
+    }
+
+    /**
+     * 从HTML中解析编码
+     *
+     * @param body HTML字节数组
+     * @return 成功返回编码，否则返回null
+     */
+    private String parseCharsetFromHTML(byte[] body) {
+        try {
+            Document document = Jsoup.parse(new String(body, Charset.forName("UTF-8")));
+            Element head = document.head();
+            if (head == null) return null;
+            Elements elements = head.select("meta[http-equiv=content-type]");
+            for (int i = 0; elements != null && i < elements.size(); i++) {
+                Element element = elements.get(i);
+                if (!element.hasAttr("content")) continue;
+                String content = element.attr("content");
+                if (StringUtils.isEmpty(content)) continue;
+                int index = content.indexOf("charset=");
+                if (index == -1) continue;
+                String charset = content.substring(index + "charset=".length()).trim();
+                try {
+                    Charset.forName(charset);
+                    return charset;
+                } catch (Exception e) {
+                }
+            }
+        } catch (Exception e) {
+            logger.error("parse charset failed from HTML");
+            logger.error(e.getMessage(), e);
+        }
+        return null;
     }
 
     /**
@@ -178,6 +236,7 @@ public class HTMLSpider extends Spider {
      */
     private void processLinks(List<URLRecord> followLinks, URLRecord record,
                               Context context) {
+        if (followLinks == null || followLinks.isEmpty()) return;
         int discardLinkNum = 0;
         for (URLRecord followLink : followLinks) {
             Context linkContext = new Context();
