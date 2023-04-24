@@ -7,16 +7,16 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import xin.manong.darwin.common.Constants;
 import xin.manong.darwin.common.model.*;
-import xin.manong.darwin.service.iface.AppService;
-import xin.manong.darwin.service.iface.MultiQueueService;
-import xin.manong.darwin.service.iface.PlanService;
-import xin.manong.darwin.service.iface.TransactionService;
+import xin.manong.darwin.service.iface.*;
 import xin.manong.darwin.service.request.PlanSearchRequest;
 import xin.manong.darwin.web.request.ConsumedPlanSeedRequest;
 
 import javax.annotation.Resource;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 
 /**
  * 计划控制器
@@ -36,6 +36,8 @@ public class PlanController {
     protected AppService appService;
     @Resource
     protected PlanService planService;
+    @Resource
+    protected RuleService ruleService;
     @Resource
     protected TransactionService transactionService;
     @Resource
@@ -99,6 +101,7 @@ public class PlanController {
             throw new RuntimeException(String.format("所属应用[%d]不存在", plan.appId));
         }
         plan.appName = app.name;
+        checkSeedURLsWithRules(plan);
         if (!plan.check()) {
             logger.error("plan is not valid");
             throw new RuntimeException("计划非法");
@@ -186,6 +189,7 @@ public class PlanController {
                     Constants.SUPPORT_PLAN_CATEGORIES.get(plan.category)));
         }
         plan.seedURLs = request.seedURLs;
+        checkSeedURLsWithRules(plan);
         if (!plan.check()) {
             logger.error("plan is not valid");
             throw new RuntimeException("计划检测失败");
@@ -223,5 +227,46 @@ public class PlanController {
             throw new RuntimeException(String.format("计划[%s]不存在", id));
         }
         return planService.delete(id);
+    }
+
+    /**
+     * 检测规则及种子URL是否存在匹配规则
+     * 删除不匹配的种子URL
+     *
+     * @param plan 计划
+     */
+    private void checkSeedURLsWithRules(Plan plan) {
+        List<Rule> rules = new ArrayList<>();
+        for (int i = 0; plan.ruleIds != null && i < plan.ruleIds.size(); i++) {
+            Integer ruleId = plan.ruleIds.get(i);
+            Rule rule = ruleService.get(ruleId.longValue());
+            if (rule == null) {
+                logger.error("rule[{}] is not found", ruleId);
+                throw new RuntimeException(String.format("规则[%d]不存在", ruleId));
+            }
+            rules.add(rule);
+        }
+        if (plan.seedURLs == null) return;
+        Iterator<URLRecord> iterator = plan.seedURLs.iterator();
+        while (iterator.hasNext()) {
+            URLRecord record = iterator.next();
+            if (record.category != null && record.category == Constants.CONTENT_CATEGORY_RESOURCE) continue;
+            if (record.category != null && record.category == Constants.CONTENT_CATEGORY_STREAM) continue;
+            if (!findMatchRule(record, rules)) iterator.remove();
+        }
+    }
+
+    /**
+     * 获取匹配规则
+     *
+     * @param record URL记录
+     * @param rules 规则列表
+     * @return 存在返回true，否则返回false
+     */
+    private boolean findMatchRule(URLRecord record, List<Rule> rules) {
+        for (Rule rule : rules) {
+            if (ruleService.match(record, rule)) return true;
+        }
+        return false;
     }
 }
