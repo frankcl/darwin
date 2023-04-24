@@ -5,7 +5,6 @@ import org.redisson.api.RMap;
 import org.redisson.client.codec.Codec;
 import org.redisson.codec.SnappyCodecV2;
 import xin.manong.weapon.base.redis.RedisClient;
-import xin.manong.weapon.base.util.FP63;
 
 import javax.annotation.Resource;
 import java.time.Duration;
