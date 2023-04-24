@@ -155,8 +155,8 @@ public class PlanController {
     @POST
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    @Path("addConsumeSeeds")
-    @PostMapping("addConsumeSeedURLs")
+    @Path("addConsumedSeeds")
+    @PostMapping("addConsumedSeeds")
     public Boolean addConsumedSeedURLs(ConsumedPlanSeedRequest request) {
         if (request == null) {
             logger.error("consumed plan seed request is null");
