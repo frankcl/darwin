@@ -186,7 +186,9 @@ public abstract class Spider {
         searchRequest.fetchTime = new RangeValue<>();
         searchRequest.fetchTime.start = System.currentTimeMillis() - config.reuseExpiredTimeMs;
         searchRequest.fetchTime.includeLower = true;
-        Pager<URLRecord> pager = urlService.search(searchRequest, 1, 1);
+        searchRequest.current = 1;
+        searchRequest.size = 1;
+        Pager<URLRecord> pager = urlService.search(searchRequest);
         if (pager == null || pager.records == null || pager.records.isEmpty()) return;
         URLRecord prevRecord = pager.records.get(0);
         if (StringUtils.isEmpty(prevRecord.fetchContentURL)) return;
