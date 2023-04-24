@@ -44,6 +44,15 @@ public interface AppService {
     App get(Long id);
 
     /**
+     * 获取应用列表
+     *
+     * @param current 页码，从1开始
+     * @param size 每页数量
+     * @return 应用列表
+     */
+    Pager<App> getList(int current, int size);
+
+    /**
      * 根据名称搜索应用列表
      *
      * @param name 应用名

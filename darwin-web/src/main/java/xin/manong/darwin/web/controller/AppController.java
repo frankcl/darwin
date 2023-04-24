@@ -1,5 +1,6 @@
 package xin.manong.darwin.web.controller;
 
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
@@ -31,7 +32,6 @@ public class AppController {
 
     /**
      * 根据应用名搜索应用
-     * 应用名为空返回所有应用列表
      *
      * @param name 应用名
      * @param current 页码，从1开始
@@ -47,24 +47,47 @@ public class AppController {
                              @QueryParam("size") Integer size) {
         if (current == null || current < 1) current = 1;
         if (size == null || size <= 0) size = 20;
+        if (StringUtils.isEmpty(name)) {
+            logger.error("search app name is empty");
+            throw new RuntimeException("搜索应用名为空");
+        }
         return appService.search(name, current, size);
+    }
+
+    /**
+     * 列表应用
+     *
+     * @param current 页码，从1开始
+     * @param size 分页大小，默认20
+     * @return 应用分页列表
+     */
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("list")
+    @GetMapping("list")
+    public Pager<App> list(@QueryParam("current") Integer current,
+                           @QueryParam("size") Integer size) {
+        if (current == null || current < 1) current = 1;
+        if (size == null || size <= 0) size = 20;
+        return appService.getList(current, size);
     }
 
     /**
      * 根据ID获取应用信息
      *
+     * @param id 应用ID
      * @return 应用信息
      */
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Path("get")
     @GetMapping("get")
-    public App get(@QueryParam("app_id") Long appId) {
-        if (appId == null) {
-            logger.error("missing param[app_id]");
+    public App get(@QueryParam("id") Long id) {
+        if (id == null) {
+            logger.error("missing param[id]");
             throw new RuntimeException("应用ID缺失");
         }
-        return appService.get(appId);
+        return appService.get(id);
     }
 
     /**
@@ -112,22 +135,22 @@ public class AppController {
     /**
      * 删除应用信息
      *
-     * @param appId 应用ID
+     * @param id 应用ID
      * @return 删除成功返回true，否则返回false
      */
     @DELETE
     @Produces(MediaType.APPLICATION_JSON)
     @Path("delete")
     @DeleteMapping("delete")
-    public Boolean delete(@QueryParam("app_id") Long appId) {
-        if (appId == null) {
-            logger.error("missing param[app_id]");
+    public Boolean delete(@QueryParam("id") Long id) {
+        if (id == null) {
+            logger.error("missing param[id]");
             throw new RuntimeException("应用ID缺失");
         }
-        if (appService.get(appId) == null) {
-            logger.error("app is not found for id[{}]", appId);
-            throw new RuntimeException(String.format("应用[%d]不存在", appId));
+        if (appService.get(id) == null) {
+            logger.error("app is not found for id[{}]", id);
+            throw new RuntimeException(String.format("应用[%d]不存在", id));
         }
-        return appService.delete(appId);
+        return appService.delete(id);
     }
 }

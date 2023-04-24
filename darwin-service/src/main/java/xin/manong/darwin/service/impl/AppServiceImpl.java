@@ -68,6 +68,14 @@ public class AppServiceImpl implements AppService {
     }
 
     @Override
+    public Pager<App> getList(int current, int size) {
+        LambdaQueryWrapper<App> query = new LambdaQueryWrapper<>();
+        query.orderByDesc(App::getCreateTime).orderByAsc(App::getName);
+        IPage<App> page = appMapper.selectPage(new Page<>(current, size), query);
+        return Converter.convert(page);
+    }
+
+    @Override
     public Pager<App> search(String name, int current, int size) {
         LambdaQueryWrapper<App> query = new LambdaQueryWrapper<>();
         query.orderByDesc(App::getCreateTime);
