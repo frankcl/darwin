@@ -123,6 +123,8 @@ public class ConcurrentManager {
                 updateConnectionCount = 0;
             }
             if (connectionCount.compareAndSet(currentConnectionCount, updateConnectionCount)) {
+                concurrentConnectionCount.expiredTime = System.currentTimeMillis() +
+                        concurrentConnectionTtlSecond * 1000L;
                 connectionCount.expireAsync(Duration.ofSeconds(concurrentConnectionTtlSecond));
                 break;
             }
@@ -151,6 +153,8 @@ public class ConcurrentManager {
             }
             if (increasedConnections <= 0) return 0;
             if (connectionCount.compareAndSet(currentConnectionCount, updateConnectionCount)) {
+                concurrentConnectionCount.expiredTime = System.currentTimeMillis() +
+                        concurrentConnectionTtlSecond * 1000L;
                 connectionCount.expireAsync(Duration.ofSeconds(concurrentConnectionTtlSecond));
                 break;
             }
@@ -169,6 +173,8 @@ public class ConcurrentManager {
             ConcurrentConnectionCount concurrentConnectionCount = concurrentConnectionCountMap.get(concurrentUnit);
             long updateTime = concurrentConnectionCount.expiredTime - concurrentConnectionTtlSecond * 1000L / 2;
             if (System.currentTimeMillis() >= updateTime) {
+                concurrentConnectionCount.expiredTime = System.currentTimeMillis() +
+                        concurrentConnectionTtlSecond * 1000L;
                 concurrentConnectionCount.connectionCount.expireAsync(
                         Duration.ofSeconds(concurrentConnectionTtlSecond));
             }
@@ -180,7 +186,7 @@ public class ConcurrentManager {
             }
             String redisKey = String.format("%s%s", CONCURRENT_COUNT_PREFIX, concurrentUnit);
             RAtomicLong connectionCount = redisClient.getRedissonClient().getAtomicLong(redisKey);
-            connectionCount.set(0);
+            if (connectionCount.get() <= 0L) connectionCount.set(0);
             connectionCount.expireAsync(Duration.ofSeconds(concurrentConnectionTtlSecond));
             ConcurrentConnectionCount concurrentConnectionCount = new ConcurrentConnectionCount(
                     connectionCount, System.currentTimeMillis() + concurrentConnectionTtlSecond * 1000L);
