@@ -18,6 +18,7 @@ import xin.manong.darwin.service.impl.ots.JobServiceImpl;
 import xin.manong.darwin.service.impl.ots.URLServiceImpl;
 
 import javax.annotation.Resource;
+import java.text.ParseException;
 import java.util.Date;
 
 /**
@@ -40,34 +41,28 @@ public class TransactionServiceImpl implements TransactionService {
 
     @Override
     @Transactional
-    public Job buildJobRepeatedPlan(Plan plan) {
-        if (plan == null || plan.category != Constants.PLAN_CATEGORY_REPEAT) {
-            logger.warn("plan is null or is not repeated plan");
+    public Job buildJob(Plan plan) {
+        if (plan == null) {
+            logger.warn("plan is null");
             return null;
         }
         if (plan.status != Constants.PLAN_STATUS_RUNNING) {
-            logger.warn("plan is not running for status[{}]", Constants.SUPPORT_PLAN_STATUSES.get(plan.status));
+            logger.warn("plan[{}] is not running for status[{}]", plan.planId,
+                    Constants.SUPPORT_PLAN_STATUSES.get(plan.status));
             return null;
         }
         Job job = null;
         try {
             job = plan.buildJob();
             if (!jobService.add(job)) {
-                throw new RuntimeException(String.format("add job[%s] failed for repeated plan[%s]",
+                throw new RuntimeException(String.format("add job[%s] failed for plan[%s]",
                         job.name, plan.planId));
             }
             for (URLRecord seedURL : job.seedURLs) {
                 if (urlService.add(seedURL)) continue;
                 throw new RuntimeException(String.format("add seed record failed for job[%s]", job.jobId));
             }
-            Plan updatePlan = new Plan();
-            updatePlan.planId = plan.planId;
-            updatePlan.updateTime = System.currentTimeMillis();
-            updatePlan.nextTime = new CronExpression(plan.crontabExpression).getNextValidTimeAfter(new Date()).getTime();
-            if (!planService.update(updatePlan)) {
-                throw new RuntimeException(String.format("update next time failed for repeated plan[%s]",
-                        updatePlan.planId));
-            }
+            updateNextTime(plan);
             return job;
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
@@ -77,6 +72,25 @@ public class TransactionServiceImpl implements TransactionService {
             }
             if (job != null && jobService instanceof JobServiceImpl) jobService.delete(job.jobId);
             return null;
+        }
+    }
+
+    /**
+     * 更新周期性计划下次调度时间
+     *
+     * @param plan 计划
+     * @throws ParseException
+     */
+    private void updateNextTime(Plan plan) throws ParseException {
+        if (plan.category != Constants.PLAN_CATEGORY_REPEAT) return;
+        Plan updatePlan = new Plan();
+        updatePlan.planId = plan.planId;
+        updatePlan.updateTime = System.currentTimeMillis();
+        updatePlan.nextTime = new CronExpression(plan.crontabExpression).
+                    getNextValidTimeAfter(new Date()).getTime();
+        if (!planService.update(updatePlan)) {
+            throw new RuntimeException(String.format("update next time failed for repeated plan[%s]",
+                    updatePlan.planId));
         }
     }
 }

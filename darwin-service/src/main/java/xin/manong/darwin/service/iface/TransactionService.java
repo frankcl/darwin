@@ -12,13 +12,13 @@ import xin.manong.darwin.common.model.Plan;
 public interface TransactionService {
 
     /**
-     * 为周期性计划构建任务
-     * 1. 创建周期性计划任务
+     * 根据计划构建任务
+     * 1. 创建任务
      * 2. 添加种子URL记录
-     * 3. 更新周期性计划下次调度时间
+     * 3. 针对周期性计划，更新计划下次调度时间
      *
-     * @param plan 周期性计划
+     * @param plan 计划
      * @return 成功返回任务，否则返回null
      */
-    Job buildJobRepeatedPlan(Plan plan);
+    Job buildJob(Plan plan);
 }

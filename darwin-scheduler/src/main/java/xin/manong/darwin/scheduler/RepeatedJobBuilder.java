@@ -151,7 +151,7 @@ public class RepeatedJobBuilder implements Runnable {
                 }
             }
             context = new Context();
-            Job job = transactionService.buildJobRepeatedPlan(plan);
+            Job job = transactionService.buildJob(plan);
             if (job == null) {
                 context.put(Constants.BUILD_STATUS, Constants.BUILD_STATUS_FAIL);
                 context.put(Constants.DARWIN_DEBUG_MESSAGE, "构建周期性计划任务失败");
@@ -211,6 +211,8 @@ public class RepeatedJobBuilder implements Runnable {
         PlanSearchRequest searchRequest = new PlanSearchRequest();
         searchRequest.category = Constants.PLAN_CATEGORY_REPEAT;
         searchRequest.status = Constants.PLAN_STATUS_RUNNING;
-        return planService.search(searchRequest, current, size);
+        searchRequest.current = current;
+        searchRequest.size = size;
+        return planService.search(searchRequest);
     }
 }

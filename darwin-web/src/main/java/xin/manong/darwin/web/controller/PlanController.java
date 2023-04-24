@@ -5,12 +5,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
-import xin.manong.darwin.common.model.App;
-import xin.manong.darwin.common.model.Pager;
-import xin.manong.darwin.common.model.Plan;
+import xin.manong.darwin.common.Constants;
+import xin.manong.darwin.common.model.*;
 import xin.manong.darwin.service.iface.AppService;
+import xin.manong.darwin.service.iface.MultiQueueService;
 import xin.manong.darwin.service.iface.PlanService;
+import xin.manong.darwin.service.iface.TransactionService;
 import xin.manong.darwin.service.request.PlanSearchRequest;
+import xin.manong.darwin.web.request.ConsumedPlanSeedURL;
 
 import javax.annotation.Resource;
 import javax.ws.rs.*;
@@ -34,6 +36,10 @@ public class PlanController {
     protected AppService appService;
     @Resource
     protected PlanService planService;
+    @Resource
+    protected TransactionService transactionService;
+    @Resource
+    protected MultiQueueService multiQueueService;
 
     /**
      * 根据ID获取计划
@@ -97,7 +103,22 @@ public class PlanController {
             logger.error("plan is not valid");
             throw new RuntimeException("计划非法");
         }
-        return planService.add(plan);
+        boolean success = planService.add(plan);
+        if (!success) return false;
+        if (plan.category == Constants.PLAN_CATEGORY_REPEAT) return true;
+        Job job = transactionService.buildJob(plan);
+        if (job == null) {
+            planService.delete(plan.planId);
+            logger.error("build job failed for plan[{}]", plan.planId);
+            throw new RuntimeException(String.format("%s[%s]构建任务失败",
+                    Constants.SUPPORT_PLAN_CATEGORIES.get(plan.category), plan.planId));
+        }
+        for (URLRecord seedURL : job.seedURLs) {
+            URLRecord record = multiQueueService.pushQueue(seedURL);
+            logger.info("push record[{}] into queue, status[{}]", record.url,
+                    Constants.SUPPORT_URL_STATUSES.get(record.status));
+        }
+        return true;
     }
 
     /**
@@ -120,7 +141,60 @@ public class PlanController {
             logger.error("plan[{}] is not found", plan.planId);
             throw new RuntimeException(String.format("计划[%s]不存在", plan.planId));
         }
+        //非周期性计划不允许更新种子列表
+        if (plan.category != Constants.PLAN_CATEGORY_REPEAT) plan.seedURLs = null;
         return planService.update(plan);
+    }
+
+    @POST
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Path("addConsumeSeeds")
+    @PostMapping("addConsumeSeedURLs")
+    public Boolean addConsumedSeedURLs(ConsumedPlanSeedURL request) {
+        if (request == null) {
+            logger.error("consumed plan seed request is null");
+            throw new RuntimeException("补充种子请求为空");
+        }
+        if (StringUtils.isEmpty(request.planId)) {
+            logger.error("plan id is empty");
+            throw new RuntimeException("计划ID为空");
+        }
+        if (request.seedURLs == null || request.seedURLs.isEmpty()) {
+            logger.error("seed urls are empty");
+            throw new RuntimeException("种子URL列表为空");
+        }
+        Plan plan = planService.get(request.planId);
+        if (plan == null) {
+            logger.error("plan[{}] is not found", request.planId);
+            throw new NotFoundException(String.format("计划[%s]不存在", request.planId));
+        }
+        if (plan.status != Constants.PLAN_STATUS_RUNNING) {
+            logger.error("plan is not running for status[{}]", Constants.SUPPORT_PLAN_STATUSES.get(plan.status));
+            throw new RuntimeException(String.format("计划[%s]非运行状态",
+                    Constants.SUPPORT_PLAN_STATUSES.get(plan.status)));
+        }
+        if (plan.category != Constants.PLAN_CATEGORY_CONSUME) {
+            logger.error("plan[%s] is not a consuming plan", Constants.SUPPORT_PLAN_CATEGORIES.get(plan.category));
+            throw new RuntimeException(String.format("非消费型计划类型[%s]",
+                    Constants.SUPPORT_PLAN_CATEGORIES.get(plan.category)));
+        }
+        plan.seedURLs = request.seedURLs;
+        if (!plan.check()) {
+            logger.error("plan is not valid");
+            throw new RuntimeException("计划检测失败");
+        }
+        Job job = transactionService.buildJob(plan);
+        if (job == null) {
+            logger.error("build job failed for consuming plan[{}]", plan.planId);
+            throw new RuntimeException(String.format("消费型计划[%s]构建任务失败", plan.planId));
+        }
+        for (URLRecord seedURL : job.seedURLs) {
+            URLRecord record = multiQueueService.pushQueue(seedURL);
+            logger.info("push record[{}] into queue, status[{}]", record.url,
+                    Constants.SUPPORT_URL_STATUSES.get(record.status));
+        }
+        return true;
     }
 
     /**
