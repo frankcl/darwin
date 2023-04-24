@@ -46,7 +46,7 @@ public class JobController {
     public Job get(@QueryParam("id") String id) {
         if (StringUtils.isEmpty(id)) {
             logger.error("job id is empty");
-            throw new RuntimeException("任务ID缺失");
+            throw new BadRequestException("任务ID缺失");
         }
         return jobService.get(id);
     }

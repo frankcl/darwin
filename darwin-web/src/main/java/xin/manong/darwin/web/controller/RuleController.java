@@ -46,7 +46,7 @@ public class RuleController {
     public Rule get(@QueryParam("id") Long id) {
         if (id == null) {
             logger.error("missing param[id]");
-            throw new RuntimeException("规则ID缺失");
+            throw new BadRequestException("规则ID缺失");
         }
         return ruleService.get(id);
     }
@@ -83,11 +83,11 @@ public class RuleController {
     public Boolean add(Rule rule) {
         if (rule == null || !rule.check()) {
             logger.error("rule is null or is not valid");
-            throw new RuntimeException("规则为空或非法");
+            throw new BadRequestException("规则为空或非法");
         }
         if (ruleGroupService.get(rule.ruleGroup) == null) {
             logger.error("rule group[{}] is not found", rule.ruleGroup);
-            throw new RuntimeException(String.format("规则分组[%d]不存在", rule.ruleGroup));
+            throw new NotFoundException(String.format("规则分组[%d]不存在", rule.ruleGroup));
         }
         rule.id = null;
         return ruleService.add(rule);
@@ -107,11 +107,11 @@ public class RuleController {
     public Boolean update(Rule rule) {
         if (rule == null || rule.id == null) {
             logger.error("rule is null or rule id is null");
-            throw new RuntimeException("规则为空或规则ID为空");
+            throw new BadRequestException("规则为空或规则ID为空");
         }
         if (ruleService.get(rule.id) == null) {
             logger.error("rule[{}] is not found", rule.id);
-            throw new RuntimeException(String.format("规则[%d]不存在", rule.id));
+            throw new NotFoundException(String.format("规则[%d]不存在", rule.id));
         }
         return ruleService.update(rule);
     }
@@ -129,11 +129,11 @@ public class RuleController {
     public Boolean delete(@QueryParam("id") Long id) {
         if (id == null) {
             logger.error("rule id is null");
-            throw new RuntimeException("规则ID为空");
+            throw new BadRequestException("规则ID为空");
         }
         if (ruleService.get(id) == null) {
             logger.error("rule[{}] is not found", id);
-            throw new RuntimeException(String.format("规则[%d]不存在", id));
+            throw new NotFoundException(String.format("规则[%d]不存在", id));
         }
         return ruleService.delete(id);
     }

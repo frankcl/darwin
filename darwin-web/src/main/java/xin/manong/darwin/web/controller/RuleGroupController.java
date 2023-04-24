@@ -49,7 +49,7 @@ public class RuleGroupController {
         if (size == null || size <= 0) size = 20;
         if (StringUtils.isEmpty(name)) {
             logger.error("search rule group name is empty");
-            throw new RuntimeException("搜索规则分组名为空");
+            throw new BadRequestException("搜索规则分组名为空");
         }
         return ruleGroupService.search(name, current, size);
     }
@@ -85,7 +85,7 @@ public class RuleGroupController {
     public RuleGroup get(@QueryParam("id") Long id) {
         if (id == null) {
             logger.error("missing param[id]");
-            throw new RuntimeException("规则分组ID缺失");
+            throw new BadRequestException("规则分组ID缺失");
         }
         return ruleGroupService.get(id);
     }
@@ -104,7 +104,7 @@ public class RuleGroupController {
     public Boolean add(RuleGroup ruleGroup) {
         if (ruleGroup == null || !ruleGroup.check()) {
             logger.error("rule group is null or not valid");
-            throw new RuntimeException("规则分组信息非法");
+            throw new BadRequestException("规则分组信息非法");
         }
         ruleGroup.id = null;
         return ruleGroupService.add(ruleGroup);
@@ -124,11 +124,11 @@ public class RuleGroupController {
     public Boolean update(RuleGroup ruleGroup) {
         if (ruleGroup == null || ruleGroup.id == null) {
             logger.error("rule group is null or rule group id is null");
-            throw new RuntimeException("规则分组信息或ID为空");
+            throw new BadRequestException("规则分组信息或ID为空");
         }
         if (ruleGroupService.get(ruleGroup.id) == null) {
             logger.error("rule group is not found for id[{}]", ruleGroup.id);
-            throw new RuntimeException(String.format("规则分组[%d]不存在", ruleGroup.id));
+            throw new NotFoundException(String.format("规则分组[%d]不存在", ruleGroup.id));
         }
         return ruleGroupService.update(ruleGroup);
     }
@@ -146,11 +146,11 @@ public class RuleGroupController {
     public Boolean delete(@QueryParam("id") Long id) {
         if (id == null) {
             logger.error("missing param[id]");
-            throw new RuntimeException("规则分组ID缺失");
+            throw new BadRequestException("规则分组ID缺失");
         }
         if (ruleGroupService.get(id) == null) {
             logger.error("rule group is not found for id[{}]", id);
-            throw new RuntimeException(String.format("规则分组[%d]不存在", id));
+            throw new NotFoundException(String.format("规则分组[%d]不存在", id));
         }
         return ruleGroupService.delete(id);
     }

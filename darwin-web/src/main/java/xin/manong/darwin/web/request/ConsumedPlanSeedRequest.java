@@ -2,6 +2,9 @@ package xin.manong.darwin.web.request;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import xin.manong.darwin.common.model.URLRecord;
 
 import java.io.Serializable;
@@ -16,6 +19,8 @@ import java.util.List;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class ConsumedPlanSeedRequest implements Serializable {
 
+    private static final Logger logger = LoggerFactory.getLogger(ConsumedPlanSeedRequest.class);
+
     /**
      * 计划ID
      */
@@ -26,4 +31,21 @@ public class ConsumedPlanSeedRequest implements Serializable {
      */
     @JsonProperty("seed_urls")
     public List<URLRecord> seedURLs;
+
+    /**
+     * 检测请求合法性
+     *
+     * @return 合法返回true，否则返回false
+     */
+    public boolean check() {
+        if (StringUtils.isEmpty(planId)) {
+            logger.error("plan id is empty");
+            return false;
+        }
+        if (seedURLs == null || seedURLs.isEmpty()) {
+            logger.error("seed URL list are empty");
+            return false;
+        }
+        return true;
+    }
 }

@@ -56,7 +56,7 @@ public class PlanController {
     public Plan get(@QueryParam("id") String id) {
         if (StringUtils.isEmpty(id)) {
             logger.error("plan id is empty");
-            throw new RuntimeException("计划ID缺失");
+            throw new BadRequestException("计划ID缺失");
         }
         return planService.get(id);
     }
@@ -93,18 +93,18 @@ public class PlanController {
     public Boolean add(Plan plan) {
         if (plan == null || plan.appId == null) {
             logger.error("plan is null or app id is null");
-            throw new RuntimeException("计划或所属应用ID为空");
+            throw new BadRequestException("计划或所属应用ID为空");
         }
         App app = appService.get(plan.appId.longValue());
         if (app == null) {
             logger.error("app[{}] is not found", plan.appId);
-            throw new RuntimeException(String.format("所属应用[%d]不存在", plan.appId));
+            throw new NotFoundException(String.format("所属应用[%d]不存在", plan.appId));
         }
         plan.appName = app.name;
         checkSeedURLsWithRules(plan);
         if (!plan.check()) {
             logger.error("plan is not valid");
-            throw new RuntimeException("计划非法");
+            throw new BadRequestException("计划非法");
         }
         boolean success = planService.add(plan);
         if (!success) return false;
@@ -138,11 +138,11 @@ public class PlanController {
     public Boolean update(Plan plan) {
         if (plan == null || StringUtils.isEmpty(plan.planId)) {
             logger.error("plan is null or plan id is empty");
-            throw new RuntimeException("计划或计划ID为空");
+            throw new BadRequestException("计划或计划ID为空");
         }
         if (planService.get(plan.planId) == null) {
             logger.error("plan[{}] is not found", plan.planId);
-            throw new RuntimeException(String.format("计划[%s]不存在", plan.planId));
+            throw new NotFoundException(String.format("计划[%s]不存在", plan.planId));
         }
         //非周期性计划不允许更新种子列表
         if (plan.category != Constants.PLAN_CATEGORY_REPEAT) plan.seedURLs = null;
@@ -161,17 +161,9 @@ public class PlanController {
     @Path("addConsumedSeeds")
     @PostMapping("addConsumedSeeds")
     public Boolean addConsumedSeedURLs(ConsumedPlanSeedRequest request) {
-        if (request == null) {
-            logger.error("consumed plan seed request is null");
-            throw new RuntimeException("补充种子请求为空");
-        }
-        if (StringUtils.isEmpty(request.planId)) {
-            logger.error("plan id is empty");
-            throw new RuntimeException("计划ID为空");
-        }
-        if (request.seedURLs == null || request.seedURLs.isEmpty()) {
-            logger.error("seed urls are empty");
-            throw new RuntimeException("种子URL列表为空");
+        if (request == null || !request.check()) {
+            logger.error("consumed plan seed request is null or is not valid");
+            throw new BadRequestException("补充种子请求为空或非法");
         }
         Plan plan = planService.get(request.planId);
         if (plan == null) {
@@ -220,11 +212,11 @@ public class PlanController {
     public Boolean delete(@QueryParam("id") String id) {
         if (StringUtils.isEmpty(id)) {
             logger.error("plan id is empty");
-            throw new RuntimeException("计划ID为空");
+            throw new BadRequestException("计划ID为空");
         }
         if (planService.get(id) == null) {
             logger.error("plan[{}] is not found", id);
-            throw new RuntimeException(String.format("计划[%s]不存在", id));
+            throw new NotFoundException(String.format("计划[%s]不存在", id));
         }
         return planService.delete(id);
     }

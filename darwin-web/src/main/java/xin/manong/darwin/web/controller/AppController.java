@@ -49,7 +49,7 @@ public class AppController {
         if (size == null || size <= 0) size = 20;
         if (StringUtils.isEmpty(name)) {
             logger.error("search app name is empty");
-            throw new RuntimeException("搜索应用名为空");
+            throw new BadRequestException("搜索应用名为空");
         }
         return appService.search(name, current, size);
     }
@@ -85,7 +85,7 @@ public class AppController {
     public App get(@QueryParam("id") Long id) {
         if (id == null) {
             logger.error("missing param[id]");
-            throw new RuntimeException("应用ID缺失");
+            throw new BadRequestException("应用ID缺失");
         }
         return appService.get(id);
     }
@@ -104,7 +104,7 @@ public class AppController {
     public Boolean add(App app) {
         if (app == null || !app.check()) {
             logger.error("app is null or not valid");
-            throw new RuntimeException("应用信息非法");
+            throw new BadRequestException("应用信息非法");
         }
         app.id = null;
         return appService.add(app);
@@ -124,11 +124,11 @@ public class AppController {
     public Boolean update(App app) {
         if (app == null || app.id == null) {
             logger.error("app is null or app id is null");
-            throw new RuntimeException("应用信息或ID为空");
+            throw new BadRequestException("应用信息或ID为空");
         }
         if (appService.get(app.id) == null) {
             logger.error("app is not found for id[{}]", app.id);
-            throw new RuntimeException(String.format("应用[%d]不存在", app.id));
+            throw new NotFoundException(String.format("应用[%d]不存在", app.id));
         }
         return appService.update(app);
     }
@@ -146,11 +146,11 @@ public class AppController {
     public Boolean delete(@QueryParam("id") Long id) {
         if (id == null) {
             logger.error("missing param[id]");
-            throw new RuntimeException("应用ID缺失");
+            throw new BadRequestException("应用ID缺失");
         }
         if (appService.get(id) == null) {
             logger.error("app is not found for id[{}]", id);
-            throw new RuntimeException(String.format("应用[%d]不存在", id));
+            throw new NotFoundException(String.format("应用[%d]不存在", id));
         }
         return appService.delete(id);
     }

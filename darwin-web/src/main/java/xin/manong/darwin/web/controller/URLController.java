@@ -46,7 +46,7 @@ public class URLController {
     public URLRecord get(@QueryParam("key") String key) {
         if (StringUtils.isEmpty(key)) {
             logger.error("key is empty");
-            throw new RuntimeException("key缺失");
+            throw new BadRequestException("key缺失");
         }
         return urlService.get(key);
     }
