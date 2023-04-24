@@ -103,9 +103,7 @@ public abstract class JobService {
      * 搜索任务列表
      *
      * @param searchRequest 搜索请求
-     * @param current 页码，从1开始
-     * @param size 每页数量
      * @return 分页列表
      */
-    public abstract Pager<Job> search(JobSearchRequest searchRequest, int current, int size);
+    public abstract Pager<Job> search(JobSearchRequest searchRequest);
 }

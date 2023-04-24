@@ -16,12 +16,24 @@ import lombok.experimental.Accessors;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class RangeValue<T extends Number> {
 
+    /**
+     * 是否包含下界，默认不包含
+     */
     @JsonProperty("include_lower")
     public boolean includeLower = false;
+    /**
+     * 是否包含上界，默认不包含
+     */
     @JsonProperty("include_upper")
     public boolean includeUpper = false;
+    /**
+     * 左区间
+     */
     @JsonProperty("start")
     public T start;
+    /**
+     * 右区间
+     */
     @JsonProperty("end")
     public T end;
 }

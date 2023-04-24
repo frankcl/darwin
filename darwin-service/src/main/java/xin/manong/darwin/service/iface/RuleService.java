@@ -104,11 +104,9 @@ public abstract class RuleService {
      * 搜索规则列表
      *
      * @param searchRequest 搜索请求
-     * @param current 页码，从1开始
-     * @param size 每页数量
      * @return 搜索列表
      */
-    public abstract Pager<Rule> search(RuleSearchRequest searchRequest, int current, int size);
+    public abstract Pager<Rule> search(RuleSearchRequest searchRequest);
 
     /**
      * 判断URL是否匹配规则

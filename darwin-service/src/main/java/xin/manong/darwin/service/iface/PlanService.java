@@ -48,9 +48,7 @@ public interface PlanService {
      * 搜索计划列表
      *
      * @param searchRequest 搜索请求
-     * @param current 页码，从1开始
-     * @param size 每页数量
      * @return 搜索列表
      */
-    Pager<Plan> search(PlanSearchRequest searchRequest, int current, int size);
+    Pager<Plan> search(PlanSearchRequest searchRequest);
 }

@@ -132,7 +132,7 @@ public class URLServiceImpl extends URLService {
     }
 
     @Override
-    public Pager<URLRecord> search(URLSearchRequest searchRequest, int current, int size) {
+    public Pager<URLRecord> search(URLSearchRequest searchRequest) {
         LambdaQueryWrapper<URLRecord> query = new LambdaQueryWrapper<>();
         query.orderByDesc(URLRecord::getCreateTime);
         if (searchRequest != null) {
@@ -150,7 +150,7 @@ public class URLServiceImpl extends URLService {
                 else query.lt(URLRecord::getFetchTime, searchRequest.fetchTime.end);
             }
         }
-        IPage<URLRecord> page = urlMapper.selectPage(new Page<>(current, size), query);
+        IPage<URLRecord> page = urlMapper.selectPage(new Page<>(searchRequest.current, searchRequest.size), query);
         return Converter.convert(page);
     }
 }

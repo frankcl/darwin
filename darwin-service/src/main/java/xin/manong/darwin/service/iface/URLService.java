@@ -64,7 +64,9 @@ public abstract class URLService {
                 searchRequest.status = Constants.URL_STATUS_SUCCESS;
                 searchRequest.fetchTime = new RangeValue<>();
                 searchRequest.fetchTime.start = System.currentTimeMillis() - 86400000L;
-                Pager<URLRecord> pager = search(searchRequest, 1, 1);
+                searchRequest.current = 1;
+                searchRequest.size = 1;
+                Pager<URLRecord> pager = search(searchRequest);
                 return Optional.ofNullable(pager.records.size() > 0 ? pager.records.get(0) : null);
             });
             if (!optional.isPresent()) {
@@ -130,9 +132,7 @@ public abstract class URLService {
      * 搜索URL列表
      *
      * @param searchRequest 搜索请求
-     * @param current 页码，从1开始
-     * @param size 每页数量
      * @return 搜索列表
      */
-    public abstract Pager<URLRecord> search(URLSearchRequest searchRequest, int current, int size);
+    public abstract Pager<URLRecord> search(URLSearchRequest searchRequest);
 }

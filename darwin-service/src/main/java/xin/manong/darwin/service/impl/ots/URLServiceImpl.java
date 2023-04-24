@@ -150,10 +150,8 @@ public class URLServiceImpl extends URLService {
     }
 
     @Override
-    public Pager<URLRecord> search(URLSearchRequest searchRequest, int current, int size) {
-        if (current < 1) current = 1;
-        if (size <= 0) size = 20;
-        int offset = (current - 1) * size;
+    public Pager<URLRecord> search(URLSearchRequest searchRequest) {
+        int offset = (searchRequest.current - 1) * searchRequest.size;
         BoolQuery boolQuery = new BoolQuery();
         if (searchRequest != null) {
             List<Query> queryList = new ArrayList<>();
@@ -177,7 +175,7 @@ public class URLServiceImpl extends URLService {
             }
             boolQuery.setFilterQueries(queryList);
         }
-        OTSSearchRequest request = new OTSSearchRequest.Builder().offset(offset).limit(size).
+        OTSSearchRequest request = new OTSSearchRequest.Builder().offset(offset).limit(searchRequest.size).
                 tableName(serviceConfig.urlTable).indexName(serviceConfig.urlIndexName).query(boolQuery).build();
         OTSSearchResponse response = otsClient.search(request);
         if (!response.status) {
@@ -185,6 +183,6 @@ public class URLServiceImpl extends URLService {
                     serviceConfig.urlTable, serviceConfig.urlIndexName);
             throw new RuntimeException("搜索URL记录失败");
         }
-        return Converter.convert(response, URLRecord.class, current, size);
+        return Converter.convert(response, URLRecord.class, searchRequest.current, searchRequest.size);
     }
 }

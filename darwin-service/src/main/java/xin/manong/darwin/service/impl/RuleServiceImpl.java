@@ -76,7 +76,7 @@ public class RuleServiceImpl extends RuleService {
     }
 
     @Override
-    public Pager<Rule> search(RuleSearchRequest searchRequest, int current, int size) {
+    public Pager<Rule> search(RuleSearchRequest searchRequest) {
         LambdaQueryWrapper<Rule> query = new LambdaQueryWrapper<>();
         query.orderByDesc(Rule::getCreateTime);
         if (searchRequest != null) {
@@ -86,7 +86,7 @@ public class RuleServiceImpl extends RuleService {
             if (!StringUtils.isEmpty(searchRequest.domain)) query.eq(Rule::getDomain, searchRequest.domain);
             if (!StringUtils.isEmpty(searchRequest.name)) query.like(Rule::getName, searchRequest.name);
         }
-        IPage<Rule> page = ruleMapper.selectPage(new Page<>(current, size), query);
+        IPage<Rule> page = ruleMapper.selectPage(new Page<>(searchRequest.current, searchRequest.size), query);
         return Converter.convert(page);
     }
 

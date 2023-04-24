@@ -69,7 +69,7 @@ public class PlanServiceImpl implements PlanService {
     }
 
     @Override
-    public Pager<Plan> search(PlanSearchRequest searchRequest, int current, int size) {
+    public Pager<Plan> search(PlanSearchRequest searchRequest) {
         LambdaQueryWrapper<Plan> query = new LambdaQueryWrapper<>();
         query.orderByDesc(Plan::getCreateTime);
         if (searchRequest != null) {
@@ -79,7 +79,7 @@ public class PlanServiceImpl implements PlanService {
             if (searchRequest.appId != null) query.eq(Plan::getAppId, searchRequest.appId);
             if (!StringUtils.isEmpty(searchRequest.name)) query.like(Plan::getName, searchRequest.name);
         }
-        IPage<Plan> page = planMapper.selectPage(new Page<>(current, size), query);
+        IPage<Plan> page = planMapper.selectPage(new Page<>(searchRequest.current, searchRequest.size), query);
         return Converter.convert(page);
     }
 }

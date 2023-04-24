@@ -106,6 +106,7 @@ public class AppController {
             logger.error("app is null or not valid");
             throw new RuntimeException("应用信息非法");
         }
+        app.id = null;
         return appService.add(app);
     }
 

@@ -106,6 +106,7 @@ public class RuleGroupController {
             logger.error("rule group is null or not valid");
             throw new RuntimeException("规则分组信息非法");
         }
+        ruleGroup.id = null;
         return ruleGroupService.add(ruleGroup);
     }
 

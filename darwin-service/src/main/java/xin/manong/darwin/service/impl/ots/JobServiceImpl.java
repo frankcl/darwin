@@ -109,10 +109,8 @@ public class JobServiceImpl extends JobService {
     }
 
     @Override
-    public Pager<Job> search(JobSearchRequest searchRequest, int current, int size) {
-        if (current < 1) current = 1;
-        if (size <= 0) size = 20;
-        int offset = (current - 1) * size;
+    public Pager<Job> search(JobSearchRequest searchRequest) {
+        int offset = (searchRequest.current - 1) * searchRequest.size;
         BoolQuery boolQuery = new BoolQuery();
         if (searchRequest != null) {
             List<Query> queryList = new ArrayList<>();
@@ -130,7 +128,7 @@ public class JobServiceImpl extends JobService {
             }
             boolQuery.setFilterQueries(queryList);
         }
-        OTSSearchRequest request = new OTSSearchRequest.Builder().offset(offset).limit(size).
+        OTSSearchRequest request = new OTSSearchRequest.Builder().offset(offset).limit(searchRequest.size).
                 tableName(serviceConfig.jobTable).indexName(serviceConfig.jobIndexName).query(boolQuery).build();
         OTSSearchResponse response = otsClient.search(request);
         if (!response.status) {
@@ -138,6 +136,6 @@ public class JobServiceImpl extends JobService {
                     serviceConfig.jobTable, serviceConfig.jobIndexName);
             throw new RuntimeException("搜索任务失败");
         }
-        return Converter.convert(response, Job.class, current, size);
+        return Converter.convert(response, Job.class, searchRequest.current, searchRequest.size);
     }
 }

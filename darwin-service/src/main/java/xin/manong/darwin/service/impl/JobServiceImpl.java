@@ -73,7 +73,7 @@ public class JobServiceImpl extends JobService {
     }
 
     @Override
-    public Pager<Job> search(JobSearchRequest searchRequest, int current, int size) {
+    public Pager<Job> search(JobSearchRequest searchRequest) {
         LambdaQueryWrapper<Job> query = new LambdaQueryWrapper<>();
         query.orderByDesc(Job::getCreateTime);
         if (searchRequest != null) {
@@ -82,7 +82,7 @@ public class JobServiceImpl extends JobService {
             if (searchRequest.planId != null) query.eq(Job::getPlanId, searchRequest.planId);
             if (!StringUtils.isEmpty(searchRequest.name)) query.like(Job::getName, searchRequest.name);
         }
-        IPage<Job> page = jobMapper.selectPage(new Page<>(current, size), query);
+        IPage<Job> page = jobMapper.selectPage(new Page<>(searchRequest.current, searchRequest.size), query);
         return Converter.convert(page);
     }
 }
