@@ -12,7 +12,7 @@ import xin.manong.darwin.service.iface.MultiQueueService;
 import xin.manong.darwin.service.iface.PlanService;
 import xin.manong.darwin.service.iface.TransactionService;
 import xin.manong.darwin.service.request.PlanSearchRequest;
-import xin.manong.darwin.web.request.ConsumedPlanSeedURL;
+import xin.manong.darwin.web.request.ConsumedPlanSeedRequest;
 
 import javax.annotation.Resource;
 import javax.ws.rs.*;
@@ -146,12 +146,18 @@ public class PlanController {
         return planService.update(plan);
     }
 
+    /**
+     * 补充消费型计划种子URL
+     *
+     * @param request 种子补充请求
+     * @return 成功返回true，否则返回false
+     */
     @POST
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     @Path("addConsumeSeeds")
     @PostMapping("addConsumeSeedURLs")
-    public Boolean addConsumedSeedURLs(ConsumedPlanSeedURL request) {
+    public Boolean addConsumedSeedURLs(ConsumedPlanSeedRequest request) {
         if (request == null) {
             logger.error("consumed plan seed request is null");
             throw new RuntimeException("补充种子请求为空");

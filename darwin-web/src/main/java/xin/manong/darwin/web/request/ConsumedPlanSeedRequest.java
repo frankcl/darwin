@@ -14,7 +14,7 @@ import java.util.List;
  * @date 2023-04-24 14:22:47
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class ConsumedPlanSeedURL implements Serializable {
+public class ConsumedPlanSeedRequest implements Serializable {
 
     /**
      * 计划ID
