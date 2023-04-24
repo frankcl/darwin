@@ -65,7 +65,9 @@ public class RuleServiceImplSuite {
         RuleSearchRequest request = new RuleSearchRequest();
         request.scriptType = Constants.SCRIPT_TYPE_GROOVY;
         request.domain = "sina.com.cn";
-        Pager<Rule> pager = ruleService.search(request, 1, 10);
+        request.current = 1;
+        request.size = 10;
+        Pager<Rule> pager = ruleService.search(request);
         Assert.assertEquals(1, pager.total.intValue());
         Assert.assertEquals(1, pager.records.size());
         Assert.assertEquals(rule.id.longValue(), pager.records.get(0).id.longValue());

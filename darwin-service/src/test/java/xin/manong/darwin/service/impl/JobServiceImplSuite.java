@@ -85,14 +85,16 @@ public class JobServiceImplSuite {
         jobInDB = jobService.getCache(job.jobId);
         Assert.assertTrue(jobInDB != null);
 
-        Pager<Job> pager = jobService.search(null, 1, 10);
+        Pager<Job> pager = jobService.search(null);
         Assert.assertEquals(1L, pager.current.longValue());
         Assert.assertEquals(1L, pager.total.longValue());
         Assert.assertEquals(1, pager.records.size());
 
         JobSearchRequest searchRequest = new JobSearchRequest();
         searchRequest.status = Constants.JOB_STATUS_RUNNING;
-        pager = jobService.search(searchRequest, 1, 10);
+        searchRequest.current = 1;
+        searchRequest.size = 10;
+        pager = jobService.search(searchRequest);
         Assert.assertEquals(1L, pager.current.longValue());
         Assert.assertEquals(1L, pager.total.longValue());
         Assert.assertEquals(1, pager.records.size());

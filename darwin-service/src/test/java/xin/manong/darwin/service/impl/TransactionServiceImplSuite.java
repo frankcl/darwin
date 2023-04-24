@@ -70,7 +70,7 @@ public class TransactionServiceImplSuite {
         }
         Assert.assertTrue(planService.add(plan));
 
-        Job job = transactionService.buildJobRepeatedPlan(plan);
+        Job job = transactionService.buildJob(plan);
         Assert.assertTrue(job != null);
         Assert.assertTrue(job.jobId != null);
         Assert.assertEquals(plan.planId, job.planId);
@@ -108,7 +108,9 @@ public class TransactionServiceImplSuite {
         URLSearchRequest request = new URLSearchRequest();
         request.status = Constants.URL_STATUS_CREATED;
         request.jobId = job.jobId;
-        Pager<URLRecord> pager = urlService.search(request, 1, 10);
+        request.current = 1;
+        request.size = 10;
+        Pager<URLRecord> pager = urlService.search(request);
         Assert.assertEquals(2, pager.total.intValue());
         Assert.assertEquals(2, pager.records.size());
 
