@@ -2,12 +2,13 @@ package xin.manong.darwin.monitor;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import xin.manong.darwin.queue.concurrent.ConcurrentConnectionCount;
 import xin.manong.darwin.queue.concurrent.ConcurrentManager;
+import xin.manong.darwin.queue.multi.MultiQueue;
 
 import javax.annotation.Resource;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * 并发连接监控器
@@ -23,6 +24,8 @@ public class ConcurrentConnectionMonitor implements Runnable {
     private long checkTimeIntervalMs;
     private long expiredTimeIntervalMs;
     private Thread thread;
+    @Resource
+    protected MultiQueue multiQueue;
     @Resource
     protected ConcurrentManager concurrentManager;
 
@@ -81,9 +84,8 @@ public class ConcurrentConnectionMonitor implements Runnable {
      */
     private void releaseExpiredConnections() {
         int releaseConnectionNum = 0, scanConcurrentUnitNum = 0;
-        Map<String, ConcurrentConnectionCount> concurrentConnectionCountMap =
-                concurrentManager.getConcurrentConnectionCountMap();
-        for (String concurrentUnit : concurrentConnectionCountMap.keySet()) {
+        Set<String> concurrentUnits = multiQueue.concurrentUnitsInQueue();
+        for (String concurrentUnit : concurrentUnits) {
             scanConcurrentUnitNum++;
             Map<String, Long> connectionRecordMap = concurrentManager.getConnectionRecordMap(concurrentUnit);
             Iterator<Map.Entry<String, Long>> iterator = connectionRecordMap.entrySet().iterator();

@@ -44,15 +44,6 @@ public class ConcurrentManager {
     }
 
     /**
-     * 获取并发连接计数Map
-     *
-     * @return 并发连接计数Map
-     */
-    public Map<String, ConcurrentConnectionCount> getConcurrentConnectionCountMap() {
-        return concurrentConnectionCountMap;
-    }
-
-    /**
      * 增加并发单元连接记录
      *
      * @param concurrentUnit 并发单元
@@ -62,6 +53,7 @@ public class ConcurrentManager {
         String redisKey = String.format("%s_%s", CONCURRENT_RECORD_PREFIX, concurrentUnit);
         RMap<String, Long> connectionRecordMap = redisClient.getRedissonClient().getMap(redisKey, codec);
         connectionRecordMap.put(key, System.currentTimeMillis());
+        connectionRecordMap.expireAsync(Duration.ofSeconds(concurrentConnectionTtlSecond));
     }
 
     /**
@@ -74,7 +66,9 @@ public class ConcurrentManager {
     public boolean removeConnectionRecord(String concurrentUnit, String key) {
         String redisKey = String.format("%s_%s", CONCURRENT_RECORD_PREFIX, concurrentUnit);
         RMap<String, Long> connectionRecordMap = redisClient.getRedissonClient().getMap(redisKey, codec);
-        return connectionRecordMap.remove(key) != null;
+        boolean result = connectionRecordMap.remove(key) != null;
+        connectionRecordMap.expireAsync(Duration.ofSeconds(concurrentConnectionTtlSecond));
+        return result;
     }
 
     /**
@@ -183,7 +177,7 @@ public class ConcurrentManager {
             if (concurrentConnectionCountMap.containsKey(concurrentUnit)) {
                 return concurrentConnectionCountMap.get(concurrentUnit);
             }
-            String redisKey = String.format("%s%s", CONCURRENT_COUNT_PREFIX, concurrentUnit);
+            String redisKey = String.format("%s_%s", CONCURRENT_COUNT_PREFIX, concurrentUnit);
             RAtomicLong connectionCount = redisClient.getRedissonClient().getAtomicLong(redisKey);
             if (connectionCount.get() <= 0L) connectionCount.set(0);
             connectionCount.expireAsync(Duration.ofSeconds(concurrentConnectionTtlSecond));
