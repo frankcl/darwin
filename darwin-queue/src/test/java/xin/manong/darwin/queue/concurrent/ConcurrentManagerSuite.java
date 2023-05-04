@@ -25,7 +25,7 @@ public class ConcurrentManagerSuite {
     private ConcurrentManager concurrentManager;
 
     @Test
-    public void testConcurrentManager() {
+    public void testConcurrentCount() {
         Assert.assertEquals(3, concurrentManager.getAvailableConnections("sohu.com"));
         Assert.assertEquals(1, concurrentManager.getAvailableConnections("news.cn"));
         Assert.assertEquals(200, concurrentManager.getAvailableConnections("sina.com.cn"));
@@ -44,5 +44,30 @@ public class ConcurrentManagerSuite {
         Assert.assertEquals(0, concurrentManager.getAvailableConnections("sina.com.cn"));
         Assert.assertEquals(200, concurrentManager.decreaseConnections("sina.com.cn", 300));
         Assert.assertEquals(200, concurrentManager.getAvailableConnections("sina.com.cn"));
+    }
+
+    @Test
+    public void testConcurrentRecord() {
+        Assert.assertEquals(3, concurrentManager.getAvailableConnectionCount("sohu.com"));
+        Assert.assertEquals(1, concurrentManager.getAvailableConnectionCount("news.cn"));
+        Assert.assertEquals(200, concurrentManager.getAvailableConnectionCount("sina.com.cn"));
+        Assert.assertEquals(50, concurrentManager.getAvailableConnectionCount("shuwen.com"));
+
+        concurrentManager.putConnectionRecord("sohu.com", "aaa");
+        Assert.assertEquals(2, concurrentManager.getAvailableConnectionCount("sohu.com"));
+        concurrentManager.putConnectionRecord("sohu.com", "bbb");
+        Assert.assertEquals(1, concurrentManager.getAvailableConnectionCount("sohu.com"));
+        concurrentManager.putConnectionRecord("sohu.com", "ccc");
+        Assert.assertEquals(0, concurrentManager.getAvailableConnectionCount("sohu.com"));
+        concurrentManager.putConnectionRecord("sohu.com", "ddd");
+        Assert.assertEquals(0, concurrentManager.getAvailableConnectionCount("sohu.com"));
+        Assert.assertTrue(concurrentManager.removeConnectionRecord("sohu.com", "aaa"));
+        Assert.assertTrue(concurrentManager.removeConnectionRecord("sohu.com", "bbb"));
+        Assert.assertTrue(concurrentManager.removeConnectionRecord("sohu.com", "ccc"));
+        Assert.assertEquals(2, concurrentManager.getAvailableConnectionCount("sohu.com"));
+        Assert.assertTrue(concurrentManager.removeConnectionRecord("sohu.com", "ddd"));
+        Assert.assertEquals(3, concurrentManager.getAvailableConnectionCount("sohu.com"));
+        Assert.assertFalse(concurrentManager.removeConnectionRecord("sohu.com", "eee"));
+        Assert.assertEquals(3, concurrentManager.getAvailableConnectionCount("sohu.com"));
     }
 }

@@ -81,7 +81,7 @@ public class ConcurrentManager {
         String redisKey = String.format("%s_%s", CONCURRENT_RECORD_PREFIX, concurrentUnit);
         RMap<String, Long> connectionRecordMap = redisClient.getRedissonClient().getMap(redisKey, codec);
         int size = connectionRecordMap == null ? 0 : connectionRecordMap.size();
-        int availableCount = (int) (getMaxConcurrentConnectionNum(concurrentUnit) - size);
+        int availableCount = getMaxConcurrentConnectionNum(concurrentUnit) - size;
         return availableCount < 0 ? 0 : availableCount;
     }
 
