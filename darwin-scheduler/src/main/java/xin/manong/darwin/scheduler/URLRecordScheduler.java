@@ -104,29 +104,19 @@ public class URLRecordScheduler implements Runnable {
      * @param concurrentUnit 并发单元
      */
     private void processConcurrentUnit(String concurrentUnit) {
-        int increaseConnections = 0, acquiredConnections = 0, releaseConnections = 0, returnConnections = 0;
+        int appliedConnections = 0, acquiredConnections = 0, releaseConnections = 0, returnConnections = 0;
         Context concurrentContext = new Context();
         try {
-            int connections = concurrentManager.getAvailableConnections(concurrentUnit);
-            if (connections <= 0) {
+            appliedConnections = concurrentManager.getAvailableConnectionCount(concurrentUnit);
+            if (appliedConnections <= 0) {
                 concurrentContext.put(Constants.SCHEDULE_STATUS, Constants.SCHEDULE_STATUS_FAIL);
                 concurrentContext.put(Constants.DARWIN_DEBUG_MESSAGE, "没有可用连接");
-                logger.warn("available connections[{}] for concurrent unit[{}]", connections, concurrentUnit);
-                return;
-            }
-            increaseConnections = concurrentManager.increaseConnections(concurrentUnit, connections);
-            if (increaseConnections <= 0) {
-                concurrentContext.put(Constants.SCHEDULE_STATUS, Constants.SCHEDULE_STATUS_FAIL);
-                concurrentContext.put(Constants.DARWIN_DEBUG_MESSAGE, "申请可用连接失败");
-                logger.warn("acquire connections failed for concurrent unit[{}]", concurrentUnit);
+                logger.warn("available connections[{}] for concurrent unit[{}]", appliedConnections, concurrentUnit);
                 return;
             }
             concurrentContext.put(Constants.SCHEDULE_STATUS, Constants.SCHEDULE_STATUS_SUCCESS);
-            List<URLRecord> records = multiQueue.pop(concurrentUnit, increaseConnections);
+            List<URLRecord> records = multiQueue.pop(concurrentUnit, appliedConnections);
             acquiredConnections = records.size();
-            releaseConnections = acquiredConnections;
-            returnConnections = increaseConnections - acquiredConnections;
-            if (returnConnections > 0) concurrentManager.decreaseConnections(concurrentUnit, returnConnections);
             for (URLRecord record : records) {
                 Context recordContext = new Context();
                 try {
@@ -146,7 +136,6 @@ public class URLRecordScheduler implements Runnable {
                     recordContext.put(Constants.DARWIN_MESSAGE_ID, sendResult.getMessageId());
                     recordContext.put(Constants.DARWIN_MESSAGE_KEY, record.key);
                     concurrentManager.putConnectionRecord(concurrentUnit, record.key);
-                    releaseConnections--;
                 } catch (Exception ex) {
                     recordContext.put(Constants.DARWIN_DEBUG_MESSAGE, ex.getMessage());
                     recordContext.put(Constants.DARWIN_STRACE_TRACE, ExceptionUtils.getStackTrace(ex));
@@ -163,9 +152,7 @@ public class URLRecordScheduler implements Runnable {
             logger.error("process concurrent unit[{}] failed while scheduling", concurrentUnit);
             logger.error(e.getMessage(), e);
         } finally {
-            commitAspectLog(concurrentContext, concurrentUnit, increaseConnections, acquiredConnections,
-                    returnConnections, releaseConnections);
-            if (releaseConnections > 0) concurrentManager.decreaseConnections(concurrentUnit, releaseConnections);
+            commitAspectLog(concurrentContext, concurrentUnit, appliedConnections, acquiredConnections);
         }
     }
 
@@ -196,20 +183,16 @@ public class URLRecordScheduler implements Runnable {
      *
      * @param concurrentContext 上下文
      * @param concurrentUnit 并发单元
-     * @param increaseConnections 申请增加连接数
+     * @param appliedConnections 申请连接数
      * @param acquiredConnections 获取连接数
-     * @param returnConnections 归还连接数
-     * @param releaseConnections 释放连接数
      */
-    private void commitAspectLog(Context concurrentContext, String concurrentUnit, int increaseConnections,
-                                 int acquiredConnections, int returnConnections, int releaseConnections) {
+    private void commitAspectLog(Context concurrentContext, String concurrentUnit,
+                                 int appliedConnections, int acquiredConnections) {
         if (aspectLogger == null) return;
         concurrentContext.put(Constants.DARWIN_RECORD_TYPE, Constants.RECORD_TYPE_CONCURRENT_UNIT);
         concurrentContext.put(Constants.CONCURRENT_UNIT, concurrentUnit);
-        concurrentContext.put(Constants.INCREASE_CONNECTION_NUM, increaseConnections);
-        concurrentContext.put(Constants.ACQUIRE_CONNECTION_NUM, acquiredConnections);
-        concurrentContext.put(Constants.RETURN_CONNECTION_NUM, returnConnections);
-        concurrentContext.put(Constants.RELEASE_CONNECTION_NUM, releaseConnections);
+        concurrentContext.put(Constants.APPLIED_CONNECTION_NUM, appliedConnections);
+        concurrentContext.put(Constants.ACQUIRED_CONNECTION_NUM, acquiredConnections);
         aspectLogger.commit(concurrentContext.getFeatureMap());
     }
 }

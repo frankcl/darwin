@@ -324,7 +324,6 @@ public abstract class Spider {
             }
             multiQueue.removeFromJobMap(record);
             String concurrentUnit = ConcurrentUnitComputer.compute(record);
-            concurrentManager.decreaseConnections(concurrentUnit, 1);
             concurrentManager.removeConnectionRecord(concurrentUnit, record.key);
             pushFinishRecord(record, context);
             if (multiQueue.isEmptyJobMap(record.jobId)) pushFinishJob(record);

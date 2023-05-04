@@ -97,11 +97,8 @@ public class ConcurrentConnectionMonitor implements Runnable {
                 long timeInterval = recordTime == null ? currentTime : currentTime - recordTime;
                 if (timeInterval < expiredTimeIntervalMs) continue;
                 iterator.remove();
-                if (concurrentManager.decreaseConnections(concurrentUnit, 1) > 0) {
-                    releaseConnectionNum++;
-                    logger.info("release expired connection for concurrent unit[{}] and record[{}]",
-                            concurrentUnit, recordKey);
-                }
+                releaseConnectionNum++;
+                logger.info("release expired connection[{}] for concurrent unit[{}]", recordKey, concurrentUnit);
             }
         }
         logger.info("scanning concurrent unit num[{}], releasing connection num[{}]",

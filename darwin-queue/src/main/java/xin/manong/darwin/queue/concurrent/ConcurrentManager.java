@@ -72,6 +72,20 @@ public class ConcurrentManager {
     }
 
     /**
+     * 获取并发单元可用连接数
+     *
+     * @param concurrentUnit 并发单元
+     * @return 可用连接数
+     */
+    public int getAvailableConnectionCount(String concurrentUnit) {
+        String redisKey = String.format("%s_%s", CONCURRENT_RECORD_PREFIX, concurrentUnit);
+        RMap<String, Long> connectionRecordMap = redisClient.getRedissonClient().getMap(redisKey, codec);
+        int size = connectionRecordMap == null ? 0 : connectionRecordMap.size();
+        int availableCount = (int) (getMaxConcurrentConnectionNum(concurrentUnit) - size);
+        return availableCount < 0 ? 0 : availableCount;
+    }
+
+    /**
      * 获取并发单元连接记录map
      *
      * @param concurrentUnit 并发单元

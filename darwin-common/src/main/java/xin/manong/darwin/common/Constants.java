@@ -209,10 +209,8 @@ public class Constants {
     public static final String SCHEDULE_STATUS = "schedule_status";
     public static final String SCHEDULE_STATUS_SUCCESS = "SUCCESS";
     public static final String SCHEDULE_STATUS_FAIL = "FAIL";
-    public static final String INCREASE_CONNECTION_NUM = "increase_connection_num";
-    public static final String ACQUIRE_CONNECTION_NUM = "acquire_connection_num";
-    public static final String RELEASE_CONNECTION_NUM = "release_connection_num";
-    public static final String RETURN_CONNECTION_NUM = "return_connection_num";
+    public static final String APPLIED_CONNECTION_NUM = "applied_connection_num";
+    public static final String ACQUIRED_CONNECTION_NUM = "acquired_connection_num";
 
     /**
      * 切面日志字段定义
