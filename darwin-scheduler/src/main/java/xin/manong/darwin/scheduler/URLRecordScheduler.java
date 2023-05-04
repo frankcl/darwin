@@ -104,7 +104,7 @@ public class URLRecordScheduler implements Runnable {
      * @param concurrentUnit 并发单元
      */
     private void processConcurrentUnit(String concurrentUnit) {
-        int appliedConnections = 0, acquiredConnections = 0, releaseConnections = 0, returnConnections = 0;
+        int appliedConnections = 0, acquiredConnections = 0;
         Context concurrentContext = new Context();
         try {
             appliedConnections = concurrentManager.getAvailableConnectionCount(concurrentUnit);
