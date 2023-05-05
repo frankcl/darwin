@@ -199,7 +199,7 @@ public class MultiQueue {
         List<Boolean> responses = result.getResponses();
         for (Boolean response : responses) if (response) return false;
         RSetCache<String> concurrentUnits = concurrentUnitsInQueue();
-        concurrentUnits.add(concurrentUnit, 3600, TimeUnit.SECONDS);
+        concurrentUnits.add(concurrentUnit, 600, TimeUnit.SECONDS);
         logger.info("remove concurrent unit[{}] in 600 seconds from global concurrent unit set", concurrentUnit);
         return true;
     }
@@ -287,6 +287,10 @@ public class MultiQueue {
      * @return 状态列表
      */
     public List<MultiQueueStatus> push(List<URLRecord> records) {
+        if (records == null) {
+            logger.error("push records are null");
+            throw new RuntimeException("push records are null");
+        }
         List<MultiQueueStatus> statusList = new ArrayList<>();
         for (URLRecord record : records) statusList.add(push(record));
         return statusList;
