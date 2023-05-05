@@ -82,9 +82,10 @@ public class RepeatedJobBuilder implements Runnable {
         while (running) {
             if (!multiQueue.tryLockInQueue()) {
                 logger.info("acquire in queue lock failed");
-                waitMoment();
+                waitMoment(0L);
                 continue;
             }
+            long spendTime = 0L;
             try {
                 logger.info("begin building repeated jobs");
                 int current = 1, size = 100;
@@ -107,22 +108,26 @@ public class RepeatedJobBuilder implements Runnable {
                         current++;
                     }
                 }
-                long spendTime = System.currentTimeMillis() - startTime;
+                spendTime = System.currentTimeMillis() - startTime;
                 logger.info("finish building repeated jobs, process plan num[{}], spend time[{}]ms",
                         processedIds.size(), spendTime);
             } finally {
                 multiQueue.unlockInQueue();
-                waitMoment();
+                waitMoment(spendTime);
             }
         }
     }
 
     /**
-     * 等待
+     * 如果本轮调度使用时间小于调度间隔则等待，否则跳过等待
+     *
+     * @param spendTime 本轮调度使用时间
      */
-    private void waitMoment() {
+    private void waitMoment(long spendTime) {
         try {
-            Thread.sleep(config.repeatedJobBuildTimeIntervalMs);
+            if (spendTime <= 0L || spendTime < config.repeatedJobBuildTimeIntervalMs) {
+                Thread.sleep(config.repeatedJobBuildTimeIntervalMs);
+            }
         } catch (InterruptedException e) {
             logger.warn(e.getMessage(), e);
         }
