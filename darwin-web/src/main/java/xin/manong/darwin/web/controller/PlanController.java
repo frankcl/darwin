@@ -244,7 +244,14 @@ public class PlanController {
             URLRecord record = iterator.next();
             if (record.category != null && record.category == Constants.CONTENT_CATEGORY_RESOURCE) continue;
             if (record.category != null && record.category == Constants.CONTENT_CATEGORY_STREAM) continue;
-            if (!findMatchRule(record, rules)) iterator.remove();
+            if (!findMatchRule(record, rules)) {
+                logger.warn("rule is not found for seed url[{}]", record.url);
+                iterator.remove();
+            }
+        }
+        if (plan.seedURLs.isEmpty()) {
+            logger.error("seed urls are not found for matching rules");
+            throw new RuntimeException("没有匹配规则的种子URL");
         }
     }
 
