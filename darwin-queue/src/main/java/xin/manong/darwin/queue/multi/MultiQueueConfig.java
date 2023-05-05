@@ -17,15 +17,17 @@ import org.springframework.context.annotation.Configuration;
 public class MultiQueueConfig {
 
     private static final int DEFAULT_MAX_QUEUE_SIZE = 5000;
+    private static final int DEFAULT_MAX_CONCURRENT_UNIT_EXPIRED_TIME_SECONDS = 600;
     private static final double DEFAULT_WARN_USED_MEMORY_RATIO = 0.9d;
     private static final double DEFAULT_MAX_USED_MEMORY_RATIO = 0.95d;
 
     public int maxQueueSize = DEFAULT_MAX_QUEUE_SIZE;
+    public int maxConcurrentUnitExpiredTimeSeconds = DEFAULT_MAX_CONCURRENT_UNIT_EXPIRED_TIME_SECONDS;
     public double maxUsedMemoryRatio = DEFAULT_MAX_USED_MEMORY_RATIO;
     public double warnUsedMemoryRatio = DEFAULT_WARN_USED_MEMORY_RATIO;
 
     @Bean
     public MultiQueue buildMultiQueue() {
-        return new MultiQueue(maxQueueSize, warnUsedMemoryRatio, maxUsedMemoryRatio);
+        return new MultiQueue(this);
     }
 }

@@ -28,9 +28,7 @@ public class MultiQueue {
 
     private static final Logger logger = LoggerFactory.getLogger(MultiQueue.class);
 
-    private int maxQueueSize;
-    private double maxUsedMemoryRatio;
-    private double warnUsedMemoryRatio;
+    private MultiQueueConfig config;
     private RSet<String> jobs;
     private RSetCache<String> concurrentUnits;
 
@@ -41,10 +39,8 @@ public class MultiQueue {
     @Resource
     protected RedisClient redisClient;
 
-    public MultiQueue(int maxQueueSize, double warnUsedMemoryRatio, double maxUsedMemoryRatio) {
-        this.maxQueueSize = maxQueueSize;
-        this.maxUsedMemoryRatio = maxUsedMemoryRatio;
-        this.warnUsedMemoryRatio = warnUsedMemoryRatio;
+    public MultiQueue(MultiQueueConfig config) {
+        this.config = config;
         this.codec = new SnappyCodecV2();
     }
 
@@ -58,7 +54,7 @@ public class MultiQueue {
         RedisMemory redisMemory = getCurrentMemory();
         if (redisMemory == null) return false;
         return redisMemory.maxMemoryBytes == 0 || redisMemory.usedMemoryRssBytes * 1.0d /
-                redisMemory.maxMemoryBytes >= maxUsedMemoryRatio;
+                redisMemory.maxMemoryBytes >= config.maxUsedMemoryRatio;
     }
 
     /**
@@ -71,8 +67,8 @@ public class MultiQueue {
         if (redisMemory == null) return MultiQueueConstants.MULTI_QUEUE_MEMORY_LEVEL_NORMAL;
         double memoryRatio = redisMemory.maxMemoryBytes == 0 ? 0d : redisMemory.usedMemoryRssBytes * 1.0d /
                 redisMemory.maxMemoryBytes;
-        if (memoryRatio < warnUsedMemoryRatio) return MultiQueueConstants.MULTI_QUEUE_MEMORY_LEVEL_NORMAL;
-        else if (memoryRatio < maxUsedMemoryRatio) return MultiQueueConstants.MULTI_QUEUE_MEMORY_LEVEL_WARN;
+        if (memoryRatio < config.warnUsedMemoryRatio) return MultiQueueConstants.MULTI_QUEUE_MEMORY_LEVEL_NORMAL;
+        else if (memoryRatio < config.maxUsedMemoryRatio) return MultiQueueConstants.MULTI_QUEUE_MEMORY_LEVEL_WARN;
         return MultiQueueConstants.MULTI_QUEUE_MEMORY_LEVEL_REFUSED;
     }
 
@@ -199,8 +195,9 @@ public class MultiQueue {
         List<Boolean> responses = result.getResponses();
         for (Boolean response : responses) if (response) return false;
         RSetCache<String> concurrentUnits = concurrentUnitsInQueue();
-        concurrentUnits.add(concurrentUnit, 600, TimeUnit.SECONDS);
-        logger.info("remove concurrent unit[{}] in 600 seconds from global concurrent unit set", concurrentUnit);
+        concurrentUnits.add(concurrentUnit, config.maxConcurrentUnitExpiredTimeSeconds, TimeUnit.SECONDS);
+        logger.info("remove concurrent unit[{}] in {} seconds from global concurrent unit set", concurrentUnit,
+                config.maxConcurrentUnitExpiredTimeSeconds);
         return true;
     }
 
@@ -326,7 +323,7 @@ public class MultiQueue {
         RBlockingQueue<URLRecord> queue = redisClient.getRedissonClient().
                 getBlockingQueue(concurrentURLQueueKey, codec);
         int queueSize = queue.size();
-        if (maxQueueSize > 0 && queueSize >= maxQueueSize) {
+        if (config.maxQueueSize > 0 && queueSize >= config.maxQueueSize) {
             logger.warn("queue is full for concurrent unit[{}]", concurrentUnit);
             return MultiQueueStatus.FULL;
         }
