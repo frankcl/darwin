@@ -1,4 +1,4 @@
-package xin.manong.darwin.scheduler;
+package xin.manong.darwin.schedule;
 
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -14,7 +14,7 @@ import xin.manong.weapon.base.log.JSONLogger;
  */
 @Data
 @Configuration
-@ConfigurationProperties(prefix = "app.scheduler.job-builder")
+@ConfigurationProperties(prefix = "app.schedule.builder")
 public class RepeatedJobBuilderConfig {
 
     private static final Long DEFAULT_REPEATED_JOB_BUILD_TIME_INTERVAL_MS = 60000L;
@@ -26,5 +26,10 @@ public class RepeatedJobBuilderConfig {
     @Bean(name = "buildAspectLogger")
     public JSONLogger buildAspectLogger() {
         return new JSONLogger(aspectLogFile, null);
+    }
+
+    @Bean(initMethod = "start", destroyMethod = "stop")
+    public RepeatedJobBuilder buildRepeatedJobBuilder() {
+        return new RepeatedJobBuilder();
     }
 }

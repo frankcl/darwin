@@ -1,6 +1,6 @@
 spring:
   application:
-    name: darwin-web-server
+    name: darwin-web
   profiles:
     active: @profileActive@
     include: service,service-@profileActive@,queue,queue-@profileActive@
@@ -8,4 +8,4 @@ spring:
 
 app:
   web:
-    name: darwin-web-server
+    name: darwin-web

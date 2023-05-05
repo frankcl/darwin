@@ -5,8 +5,8 @@ weapon:
         default:
           serverURL: http://onsaddr.mq-internet-access.mq-internet.aliyuncs.com:80
 app:
-  scheduler:
-    job-builder:
+  schedule:
+    builder:
       aspectLogFile: ./logs/aspect/job_builder.log
-    url-scheduler:
+    scheduler:
       aspectLogFile: ./logs/aspect/scheduler.log

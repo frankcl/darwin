@@ -1,4 +1,4 @@
-package xin.manong.darwin.scheduler;
+package xin.manong.darwin.schedule;
 
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
@@ -14,7 +14,6 @@ import xin.manong.darwin.queue.multi.MultiQueueConstants;
 import xin.manong.darwin.service.iface.MultiQueueService;
 import xin.manong.darwin.service.iface.PlanService;
 import xin.manong.darwin.service.iface.TransactionService;
-import xin.manong.darwin.service.iface.URLService;
 import xin.manong.darwin.service.request.PlanSearchRequest;
 import xin.manong.weapon.base.common.Context;
 import xin.manong.weapon.base.log.JSONLogger;
@@ -38,7 +37,6 @@ public class RepeatedJobBuilder implements Runnable {
     @Resource
     protected RepeatedJobBuilderConfig config;
     @Resource
-    protected URLService urlService;
     protected PlanService planService;
     @Resource
     protected TransactionService transactionService;

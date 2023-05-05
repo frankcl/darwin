@@ -1,8 +1,8 @@
 app:
-  scheduler:
-    job-builder:
+  schedule:
+    builder:
       retryCnt: 3
       repeatedJobBuildTimeIntervalMs: 60000
-    url-scheduler:
+    scheduler:
       topic: xxx
       scheduleTimeIntervalMs: 10000

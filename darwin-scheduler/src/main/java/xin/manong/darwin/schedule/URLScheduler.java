@@ -1,4 +1,4 @@
-package xin.manong.darwin.scheduler;
+package xin.manong.darwin.schedule;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.serializer.SerializerFeature;
@@ -29,14 +29,14 @@ import java.util.Set;
  * @author frankcl
  * @date 2023-03-22 17:33:16
  */
-public class URLRecordScheduler implements Runnable {
+public class URLScheduler implements Runnable {
 
-    private static final Logger logger = LoggerFactory.getLogger(URLRecordScheduler.class);
+    private static final Logger logger = LoggerFactory.getLogger(URLScheduler.class);
 
     private boolean running;
     private Thread thread;
     @Resource
-    protected URLRecordSchedulerConfig config;
+    protected URLSchedulerConfig config;
     @Resource
     protected URLService urlService;
     @Resource
@@ -48,7 +48,7 @@ public class URLRecordScheduler implements Runnable {
     @Resource(name = "scheduleAspectLogger")
     protected JSONLogger aspectLogger;
 
-    public URLRecordScheduler() {
+    public URLScheduler() {
         this.running = false;
     }
 
