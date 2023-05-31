@@ -191,7 +191,7 @@ public class HTMLSpider extends Spider {
         Charset c = mediaType.charset();
         if (c != null) return c.name();
         String charset = parseCharsetFromHTML(body);
-        return StringUtils.isEmpty(charset) ? EncodeDetector.detect(body) : charset;
+        return StringUtils.isEmpty(charset) ? CharsetDetector.detect(body) : charset;
     }
 
     /**

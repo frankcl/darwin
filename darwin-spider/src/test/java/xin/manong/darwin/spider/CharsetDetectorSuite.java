@@ -11,7 +11,7 @@ import xin.manong.weapon.base.http.RequestMethod;
  * @author frankcl
  * @date 2023-04-07 16:39:53
  */
-public class EncodeDetectorSuite {
+public class CharsetDetectorSuite {
 
     @Test
     public void testDetect() throws Exception {
@@ -21,6 +21,6 @@ public class EncodeDetectorSuite {
         Response response = httpClient.execute(httpRequest);
         Assert.assertTrue(response != null && response.isSuccessful());
         byte[] body = response.body().bytes();
-        Assert.assertEquals("GB18030", EncodeDetector.detect(body));
+        Assert.assertEquals("GB18030", CharsetDetector.detect(body));
     }
 }

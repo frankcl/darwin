@@ -11,12 +11,12 @@ import org.slf4j.LoggerFactory;
  * @author frankcl
  * @date 2023-04-06 17:52:17
  */
-public class EncodeDetector {
+public class CharsetDetector {
 
-    private static final Logger logger = LoggerFactory.getLogger(EncodeDetector.class);
+    private static final Logger logger = LoggerFactory.getLogger(CharsetDetector.class);
 
     private static final int MAX_BYTE_SIZE = 1024;
-    private static final String ENCODE_UTF8 = "UTF-8";
+    private static final String CHARSET_UTF8 = "UTF-8";
 
     /**
      * 探测字节数组编码类型
@@ -46,7 +46,7 @@ public class EncodeDetector {
             detector.handleData(body, 0, body.length > byteSize ? byteSize : body.length);
             detector.dataEnd();
             String charset = detector.getDetectedCharset();
-            return StringUtils.isEmpty(charset) ? ENCODE_UTF8 : charset;
+            return StringUtils.isEmpty(charset) ? CHARSET_UTF8 : charset;
         } finally {
             detector.reset();
         }
