@@ -1,6 +1,6 @@
 app:
   monitor:
-    multi:
+    queue:
       check-time-interval-ms: 3600000
       expired-time-interval-ms: 86400000
     concurrent:

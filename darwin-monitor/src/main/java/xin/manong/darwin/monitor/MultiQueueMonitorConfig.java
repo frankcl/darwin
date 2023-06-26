@@ -13,7 +13,7 @@ import org.springframework.context.annotation.Configuration;
  */
 @Data
 @Configuration
-@ConfigurationProperties(prefix = "app.monitor.multi")
+@ConfigurationProperties(prefix = "app.monitor.queue")
 public class MultiQueueMonitorConfig {
 
     private static final long DEFAULT_CHECK_TIME_INTERVAL_MS = 3600000L;
