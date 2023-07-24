@@ -27,6 +27,7 @@ public class DarwinUtil {
         if (!StringUtils.isEmpty(record.key)) context.put(Constants.KEY, record.key);
         if (!StringUtils.isEmpty(record.url)) context.put(Constants.URL, record.url);
         if (!StringUtils.isEmpty(record.parentURL)) context.put(Constants.PARENT_URL, record.parentURL);
+        if (!StringUtils.isEmpty(record.redirectURL)) context.put(Constants.REDIRECT_URL, record.redirectURL);
         if (!StringUtils.isEmpty(record.fetchContentURL)) context.put(Constants.FETCH_CONTENT_URL, record.fetchContentURL);
         if (!StringUtils.isEmpty(record.jobId)) context.put(Constants.JOB_ID, record.jobId);
         if (!StringUtils.isEmpty(record.hash)) context.put(Constants.HASH, record.hash);

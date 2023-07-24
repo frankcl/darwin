@@ -153,6 +153,7 @@ public class FetchRecord extends Model {
         this.jobId = record.jobId;
         this.fetchTime = record.fetchTime;
         this.parentURL = record.parentURL;
+        this.redirectURL = record.redirectURL;
         this.fetchContentURL = record.fetchContentURL;
         this.status = record.status;
         this.userDefinedMap = record.userDefinedMap;

@@ -156,6 +156,8 @@ public class URLRecord extends FetchRecord {
         super(record);
         this.concurrentLevel = record.concurrentLevel;
         this.timeout = record.timeout;
+        this.appId = record.appId;
+        this.fetchMethod = record.fetchMethod;
         this.priority = record.priority;
         this.createTime = record.createTime;
         this.updateTime = record.updateTime;
