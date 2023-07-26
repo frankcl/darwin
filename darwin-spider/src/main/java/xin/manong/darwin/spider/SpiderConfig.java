@@ -38,7 +38,6 @@ public class SpiderConfig {
     public String contentDirectory;
     public String aspectLogFile;
     public String tempDirectory;
-    public String jobTopic;
     public String recordTopic;
 
     @Bean(name = "spiderAspectLogger")

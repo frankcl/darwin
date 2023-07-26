@@ -8,6 +8,10 @@ spring:
 
 weapon:
   aliyun:
+    ons:
+      producer:
+        default:
+          serverURL: http://onsaddr.mq-internet-access.mq-internet.aliyuncs.com:80
     oss:
       client:
         default:
@@ -15,3 +19,8 @@ weapon:
           socket-timeout-ms: 3000
           connection-timeout-ms: 3000
           retry-cnt: 3
+
+app:
+  service:
+    job-topic: xxx
+    aspect-log-file: ./log/aspect/job.log

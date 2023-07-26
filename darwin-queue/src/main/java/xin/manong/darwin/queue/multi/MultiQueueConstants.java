@@ -16,12 +16,12 @@ public class MultiQueueConstants {
     public static final int MULTI_QUEUE_MEMORY_LEVEL_REFUSED = 2;
 
     public static final String MULTI_QUEUE_PREFIX = "DARWIN";
-    public static final String MULTI_QUEUE_IN_LOCK = String.format("%s_IN_LOCK", MULTI_QUEUE_PREFIX);
-    public static final String MULTI_QUEUE_OUT_LOCK = String.format("%s_OUT_LOCK", MULTI_QUEUE_PREFIX);
-    public static final String MULTI_QUEUE_HIGH_CONCURRENT_KEY_PREFIX = String.format("%s_H_CONCURRENT_", MULTI_QUEUE_PREFIX);
-    public static final String MULTI_QUEUE_NORMAL_CONCURRENT_KEY_PREFIX = String.format("%s_N_CONCURRENT_", MULTI_QUEUE_PREFIX);
-    public static final String MULTI_QUEUE_LOW_CONCURRENT_KEY_PREFIX = String.format("%s_L_CONCURRENT_", MULTI_QUEUE_PREFIX);
-    public static final String MULTI_QUEUE_JOB_KEY_PREFIX = String.format("%s_JOB_", MULTI_QUEUE_PREFIX);
-    public static final String MULTI_QUEUE_CONCURRENT_UNIT_KEY = String.format("%s_CONCURRENT_UNIT", MULTI_QUEUE_PREFIX);
-    public static final String MULTI_QUEUE_JOBS_KEY = String.format("%s_JOBS", MULTI_QUEUE_PREFIX);
+    public static final String MULTI_QUEUE_IN_QUEUE_LOCK = String.format("%s_IN_QUEUE_LOCK", MULTI_QUEUE_PREFIX);
+    public static final String MULTI_QUEUE_OUT_QUEUE_LOCK = String.format("%s_OUT_QUEUE_LOCK", MULTI_QUEUE_PREFIX);
+    public static final String MULTI_QUEUE_HIGH_CONCURRENT_UNIT_QUEUE = String.format("%s_H_QUEUE_", MULTI_QUEUE_PREFIX);
+    public static final String MULTI_QUEUE_NORMAL_CONCURRENT_UNIT_QUEUE = String.format("%s_N_QUEUE_", MULTI_QUEUE_PREFIX);
+    public static final String MULTI_QUEUE_LOW_CONCURRENT_UNIT_QUEUE = String.format("%s_L_QUEUE_", MULTI_QUEUE_PREFIX);
+    public static final String MULTI_QUEUE_JOB_RECORD = String.format("%s_JOB_RECORD_", MULTI_QUEUE_PREFIX);
+    public static final String MULTI_QUEUE_CONCURRENT_UNITS = String.format("%s_CONCURRENT_UNITS", MULTI_QUEUE_PREFIX);
+    public static final String MULTI_QUEUE_JOBS = String.format("%s_JOBS", MULTI_QUEUE_PREFIX);
 }

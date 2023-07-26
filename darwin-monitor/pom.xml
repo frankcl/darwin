@@ -21,5 +21,10 @@
             <artifactId>darwin-queue</artifactId>
             <version>${darwin.version}</version>
         </dependency>
+        <dependency>
+            <groupId>xin.manong</groupId>
+            <artifactId>darwin-service</artifactId>
+            <version>${darwin.version}</version>
+        </dependency>
     </dependencies>
 </project>

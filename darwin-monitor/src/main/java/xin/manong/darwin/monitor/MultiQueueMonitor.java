@@ -2,10 +2,15 @@ package xin.manong.darwin.monitor;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import xin.manong.darwin.common.Constants;
+import xin.manong.darwin.common.model.Job;
 import xin.manong.darwin.common.model.URLRecord;
 import xin.manong.darwin.queue.multi.MultiQueue;
+import xin.manong.darwin.service.iface.URLService;
+import xin.manong.darwin.service.listener.JobListener;
 
 import javax.annotation.Resource;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -23,13 +28,21 @@ public class MultiQueueMonitor implements Runnable {
     private long checkTimeIntervalMs;
     private long expiredTimeIntervalMs;
     private Thread thread;
+    private Set<Integer> updateStatusList;
     @Resource
-    private MultiQueue multiQueue;
+    protected URLService urlService;
+    @Resource
+    protected MultiQueue multiQueue;
+    @Resource
+    protected JobListener jobListener;
 
     public MultiQueueMonitor(long checkTimeIntervalMs, long expiredTimeIntervalMs) {
         this.running = false;
         this.checkTimeIntervalMs = checkTimeIntervalMs;
         this.expiredTimeIntervalMs = expiredTimeIntervalMs;
+        this.updateStatusList = new HashSet<>();
+        this.updateStatusList.add(Constants.URL_STATUS_FETCHING);
+        this.updateStatusList.add(Constants.URL_STATUS_QUEUING);
     }
 
     /**
@@ -81,10 +94,10 @@ public class MultiQueueMonitor implements Runnable {
      * 清理过期并发单元
      */
     private void sweepExpiredConcurrentUnits() {
-        Set<String> concurrentUnits = multiQueue.concurrentUnitsInQueue();
+        Set<String> concurrentUnits = multiQueue.currentConcurrentUnits();
         int sweepConcurrentUnitCount = 0;
         for (String concurrentUnit : concurrentUnits) {
-            if (multiQueue.removeConcurrentUnit(concurrentUnit)) sweepConcurrentUnitCount++;
+            if (multiQueue.expiredConcurrentUnit(concurrentUnit)) sweepConcurrentUnitCount++;
         }
         logger.info("scanning concurrent unit num[{}], sweeping concurrent unit num[{}]",
                 concurrentUnits.size(), sweepConcurrentUnitCount);
@@ -94,19 +107,37 @@ public class MultiQueueMonitor implements Runnable {
      * 清理过期任务
      */
     private void sweepExpiredJobs() {
-        Set<String> jobIds = multiQueue.jobsInQueue();
+        Set<String> jobIds = multiQueue.currentJobs();
         int sweepRecordCount = 0, sweepJobCount = 0;
         for (String jobId : jobIds) {
             List<URLRecord> sweepRecords = multiQueue.sweepExpiredJobRecords(
                     jobId, expiredTimeIntervalMs);
+            updateTimeoutStatus(sweepRecords);
             sweepRecordCount += sweepRecords.size();
-            if (multiQueue.isEmptyJobMap(jobId)) {
-                multiQueue.deleteJobMap(jobId);
-                sweepJobCount++;
+            if (multiQueue.isEmptyJobRecordMap(jobId)) {
+                multiQueue.deleteJobRecordMap(jobId);
+                if (!sweepRecords.isEmpty()) {
+                    sweepJobCount++;
+                    jobListener.onFinish(new Job(jobId, sweepRecords.get(0).appId));
+                }
             }
-            //TODO 处理清理数据
         }
         logger.info("scanning job num[{}], sweeping job num[{}], record num[{}]",
                 jobIds.size(), sweepJobCount, sweepRecordCount);
+    }
+
+    /**
+     * 更新URL超时状态
+     *
+     * @param sweepRecords 清理URL数据
+     */
+    private void updateTimeoutStatus(List<URLRecord> sweepRecords) {
+        for (URLRecord sweepRecord : sweepRecords) {
+            URLRecord record = urlService.get(sweepRecord.key);
+            if (!updateStatusList.contains(record.status)) continue;
+            if (!urlService.updateStatus(record.key, Constants.URL_STATUS_TIMEOUT)) {
+                logger.warn("update timeout status failed for url[{}]", record.key);
+            }
+        }
     }
 }

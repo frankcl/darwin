@@ -33,6 +33,7 @@ public class Constants {
     public static final int URL_STATUS_QUEUING = 3;             //排队中
     public static final int URL_STATUS_FETCHING = 4;            //抓取中
     public static final int URL_STATUS_INVALID = 5;             //URL非法
+    public static final int URL_STATUS_TIMEOUT = 6;             //超时
     public static final Map<Integer, String> SUPPORT_URL_STATUSES = new HashMap<Integer, String>() {{
         put(URL_STATUS_SUCCESS, "成功");
         put(URL_STATUS_FAIL, "失败");
@@ -41,6 +42,7 @@ public class Constants {
         put(URL_STATUS_QUEUING, "排队中");
         put(URL_STATUS_FETCHING, "抓取中");
         put(URL_STATUS_INVALID, "非法状态");
+        put(URL_STATUS_TIMEOUT, "超时");
     }};
 
     /**

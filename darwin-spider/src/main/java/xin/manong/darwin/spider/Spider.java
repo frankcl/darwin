@@ -17,11 +17,11 @@ import xin.manong.darwin.common.model.Job;
 import xin.manong.darwin.common.model.Pager;
 import xin.manong.darwin.common.model.RangeValue;
 import xin.manong.darwin.common.model.URLRecord;
-import xin.manong.darwin.common.util.DarwinUtil;
 import xin.manong.darwin.queue.concurrent.ConcurrentManager;
 import xin.manong.darwin.queue.multi.MultiQueue;
 import xin.manong.darwin.service.iface.JobService;
 import xin.manong.darwin.service.iface.URLService;
+import xin.manong.darwin.service.listener.JobListener;
 import xin.manong.darwin.service.request.URLSearchRequest;
 import xin.manong.weapon.aliyun.ons.ONSProducer;
 import xin.manong.weapon.aliyun.oss.OSSClient;
@@ -63,6 +63,8 @@ public abstract class Spider {
     protected MultiQueue multiQueue;
     @Resource
     protected ConcurrentManager concurrentManager;
+    @Resource
+    protected JobListener jobListener;
     @Resource
     protected ONSProducer producer;
     protected HttpClient httpClient;
@@ -208,39 +210,7 @@ public abstract class Spider {
      * @param record URL记录
      */
     private void pushFinishJob(URLRecord record) {
-        Context context = new Context();
-        Job updateJob = new Job();
-        try {
-            updateJob.avoidRepeatedFetch = null;
-            updateJob.jobId = record.jobId;
-            updateJob.status = Constants.JOB_STATUS_FINISHED;
-            if (!jobService.update(updateJob)) logger.warn("update finish status failed for job[{}]", updateJob.jobId);
-            Job job = jobService.getCache(record.jobId);
-            if (job != null) {
-                updateJob.planId = job.planId;
-                updateJob.appId = job.appId;
-                updateJob.name = job.name;
-            }
-            String jobString = JSON.toJSONString(updateJob, SerializerFeature.DisableCircularReferenceDetect);
-            Message message = new Message(config.jobTopic, String.format("%d", record.appId), updateJob.jobId,
-                    jobString.getBytes(Charset.forName("UTF-8")));
-            SendResult sendResult = producer.send(message);
-            if (sendResult == null || StringUtils.isEmpty(sendResult.getMessageId())) {
-                context.put(Constants.DARWIN_DEBUG_MESSAGE, "推送消息失败");
-                logger.warn("push finish message failed for job[{}]", record.jobId);
-                return;
-            }
-            context.put(Constants.DARWIN_MESSAGE_ID, sendResult.getMessageId());
-            context.put(Constants.DARWIN_MESSAGE_KEY, updateJob.jobId);
-        } catch (Exception e) {
-            context.put(Constants.DARWIN_DEBUG_MESSAGE, "推送消息异常");
-            context.put(Constants.DARWIN_STRACE_TRACE, ExceptionUtils.getStackTrace(e));
-            logger.error("process finished job[{}] failed", record.jobId);
-            logger.error(e.getMessage(), e);
-        } finally {
-            DarwinUtil.putContext(context, updateJob);
-            if (aspectLogger != null) aspectLogger.commit(context.getFeatureMap());
-        }
+
     }
 
     /**
@@ -322,11 +292,11 @@ public abstract class Spider {
             } catch (Exception e) {
                 logger.error(e.getMessage(), e);
             }
-            multiQueue.removeFromJobMap(record);
+            multiQueue.removeFromJobRecordMap(record);
             String concurrentUnit = ConcurrentUnitComputer.compute(record);
             concurrentManager.removeConnectionRecord(concurrentUnit, record.key);
             pushFinishRecord(record, context);
-            if (multiQueue.isEmptyJobMap(record.jobId)) pushFinishJob(record);
+            if (multiQueue.isEmptyJobRecordMap(record.jobId)) jobListener.onFinish(new Job(record.jobId, record.appId));
             context.put(Constants.DARWIN_PROCESS_TIME, System.currentTimeMillis() - startTime);
         }
     }

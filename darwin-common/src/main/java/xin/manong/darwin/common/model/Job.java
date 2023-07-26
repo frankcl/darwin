@@ -130,6 +130,14 @@ public class Job extends Model {
     @JsonProperty("seed_urls")
     public List<URLRecord> seedURLs;
 
+    public Job() {
+    }
+
+    public Job(String jobId, Integer appId) {
+        this.jobId = jobId;
+        this.appId = appId;
+    }
+
     /**
      * 检测任务有效性
      * 1. 计划ID不能为空

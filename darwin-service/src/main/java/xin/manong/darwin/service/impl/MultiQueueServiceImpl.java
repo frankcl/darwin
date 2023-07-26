@@ -49,7 +49,7 @@ public class MultiQueueServiceImpl implements MultiQueueService {
         }
         URLRecord prevRecord = urlService.get(record.key);
         boolean status = prevRecord == null ? urlService.add(record) : urlService.updateQueueTime(record);
-        if (!status) logger.warn("{} seed record[{}] failed", prevRecord == null ? "add" : "update", record.key);
+        if (!status) logger.warn("{} record[{}] failed", prevRecord == null ? "add" : "update", record.key);
         return record;
     }
 

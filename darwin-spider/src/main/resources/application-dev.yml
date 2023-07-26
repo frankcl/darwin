@@ -33,7 +33,6 @@ app:
     content-region: cn-hangzhou
     content-bucket: default-crawler-file
     content-directory: darwin
-    job-topic: xxx
     record-topic: xxx
     temp-directory: ./spider/temp/
     aspect-log-file: ./log/aspect/spider.log
