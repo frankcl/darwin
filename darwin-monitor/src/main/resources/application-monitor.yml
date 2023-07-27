@@ -1,8 +1,8 @@
 app:
   monitor:
     queue:
-      check-time-interval-ms: 3600000
-      expired-time-interval-ms: 86400000
+      checkTimeIntervalMs: 600000
+      expiredTimeIntervalMs: 600000
     concurrent:
-      check-time-interval-ms: 60000
-      expired-time-interval-ms: 300000
+      checkTimeIntervalMs: 60000
+      expiredTimeIntervalMs: 300000

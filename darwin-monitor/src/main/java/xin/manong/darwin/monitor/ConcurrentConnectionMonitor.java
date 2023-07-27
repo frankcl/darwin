@@ -84,7 +84,7 @@ public class ConcurrentConnectionMonitor implements Runnable {
      */
     private void releaseExpiredConnections() {
         int releaseConnectionNum = 0, scanConcurrentUnitNum = 0;
-        Set<String> concurrentUnits = multiQueue.currentConcurrentUnits();
+        Set<String> concurrentUnits = multiQueue.copyCurrentConcurrentUnits();
         for (String concurrentUnit : concurrentUnits) {
             scanConcurrentUnitNum++;
             Map<String, Long> connectionRecordMap = concurrentManager.getConnectionRecordMap(concurrentUnit);

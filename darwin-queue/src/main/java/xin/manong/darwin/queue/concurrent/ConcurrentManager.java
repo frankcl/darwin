@@ -102,6 +102,7 @@ public class ConcurrentManager {
      * @param concurrentUnit 并发单元
      * @return 当前可用连接数
      */
+    @Deprecated
     public int getAvailableConnections(String concurrentUnit) {
         ConcurrentConnectionCount concurrentConnectionCount = getConcurrentConnectionCount(concurrentUnit);
         int availableConnections = (int) (getMaxConcurrentConnectionNum(concurrentUnit) -
@@ -116,6 +117,7 @@ public class ConcurrentManager {
      * @param connectionNum 减少连接数
      * @return 实际减少连接数
      */
+    @Deprecated
     public int decreaseConnections(String concurrentUnit, int connectionNum) {
         if (connectionNum <= 0) return 0;
         int decreasedConnections = connectionNum;
@@ -146,6 +148,7 @@ public class ConcurrentManager {
      * @param connectionNum 增加连接数
      * @return 实际增加连接数
      */
+    @Deprecated
     public int increaseConnections(String concurrentUnit, int connectionNum) {
         int increasedConnections = connectionNum;
         int maxConcurrentConnectionNum = getMaxConcurrentConnectionNum(concurrentUnit);
@@ -175,6 +178,7 @@ public class ConcurrentManager {
      * @param concurrentUnit 并发单元
      * @return 连接计数
      */
+    @Deprecated
     private ConcurrentConnectionCount getConcurrentConnectionCount(String concurrentUnit) {
         if (concurrentConnectionCountMap.containsKey(concurrentUnit)) {
             ConcurrentConnectionCount concurrentConnectionCount = concurrentConnectionCountMap.get(concurrentUnit);

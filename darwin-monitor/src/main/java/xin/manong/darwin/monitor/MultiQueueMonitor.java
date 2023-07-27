@@ -94,7 +94,7 @@ public class MultiQueueMonitor implements Runnable {
      * 清理过期并发单元
      */
     private void sweepExpiredConcurrentUnits() {
-        Set<String> concurrentUnits = multiQueue.currentConcurrentUnits();
+        Set<String> concurrentUnits = multiQueue.copyCurrentConcurrentUnits();
         int sweepConcurrentUnitCount = 0;
         for (String concurrentUnit : concurrentUnits) {
             if (multiQueue.expiredConcurrentUnit(concurrentUnit)) sweepConcurrentUnitCount++;
@@ -107,7 +107,7 @@ public class MultiQueueMonitor implements Runnable {
      * 清理过期任务
      */
     private void sweepExpiredJobs() {
-        Set<String> jobIds = multiQueue.currentJobs();
+        Set<String> jobIds = multiQueue.copyCurrentJobs();
         int sweepRecordCount = 0, sweepJobCount = 0;
         for (String jobId : jobIds) {
             List<URLRecord> sweepRecords = multiQueue.sweepExpiredJobRecords(

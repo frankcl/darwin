@@ -51,7 +51,7 @@ public class MultiQueue {
      * @return 拒绝服务返回true，否则返回false
      */
     public boolean refuseService() {
-        RedisMemory redisMemory = getCurrentMemory();
+        RedisMemory redisMemory = redisClient.getMemoryInfo();
         if (redisMemory == null) return false;
         return redisMemory.maxMemoryBytes == 0 || redisMemory.usedMemoryRssBytes * 1.0d /
                 redisMemory.maxMemoryBytes >= config.maxUsedMemoryRatio;
@@ -63,22 +63,13 @@ public class MultiQueue {
      * @return 当前内存等级
      */
     public int getCurrentMemoryLevel() {
-        RedisMemory redisMemory = getCurrentMemory();
+        RedisMemory redisMemory = redisClient.getMemoryInfo();
         if (redisMemory == null) return MultiQueueConstants.MULTI_QUEUE_MEMORY_LEVEL_NORMAL;
         double memoryRatio = redisMemory.maxMemoryBytes == 0 ? 0d : redisMemory.usedMemoryRssBytes * 1.0d /
                 redisMemory.maxMemoryBytes;
         if (memoryRatio < config.warnUsedMemoryRatio) return MultiQueueConstants.MULTI_QUEUE_MEMORY_LEVEL_NORMAL;
         else if (memoryRatio < config.maxUsedMemoryRatio) return MultiQueueConstants.MULTI_QUEUE_MEMORY_LEVEL_WARN;
         return MultiQueueConstants.MULTI_QUEUE_MEMORY_LEVEL_REFUSED;
-    }
-
-    /**
-     * 获取当前redis内存情况
-     *
-     * @return redis内存，如果不支持返回null
-     */
-    public RedisMemory getCurrentMemory() {
-        return redisClient.getMemoryInfo();
     }
 
     /**
@@ -118,11 +109,23 @@ public class MultiQueue {
      *
      * @return 并发单元(host或domain)集合
      */
-    public RSetCache<String> currentConcurrentUnits() {
+    private RSetCache<String> currentConcurrentUnits() {
         if (concurrentUnits != null) return concurrentUnits;
         concurrentUnits = redisClient.getRedissonClient().getSetCache(
                 MultiQueueConstants.MULTI_QUEUE_CONCURRENT_UNITS);
         return concurrentUnits;
+    }
+
+    /**
+     * 获取当前并发单元拷贝集合
+     *
+     * @return 当前并发单元拷贝集合
+     */
+    public Set<String> copyCurrentConcurrentUnits() {
+        RSetCache<String> concurrentUnits = currentConcurrentUnits();
+        Set<String> currentConcurrentUnits = new HashSet<>();
+        for (String concurrentUnit : concurrentUnits) currentConcurrentUnits.add(concurrentUnit);
+        return currentConcurrentUnits;
     }
 
     /**
@@ -141,11 +144,11 @@ public class MultiQueue {
         RBatch batch = redisClient.getRedissonClient().createBatch(batchOptions);
         for (String concurrentURLQueueKey : concurrentURLQueueKeys) {
             RBlockingQueueAsync<URLRecord> urlQueue = batch.getBlockingQueue(concurrentURLQueueKey, codec);
-            urlQueue.isExistsAsync();
+            urlQueue.sizeAsync();
         }
         BatchResult result = batch.execute();
-        List<Boolean> responses = result.getResponses();
-        for (Boolean response : responses) if (response) return false;
+        List<Integer> responses = result.getResponses();
+        for (Integer response : responses) if (response != null && response > 0) return false;
         RSetCache<String> concurrentUnits = currentConcurrentUnits();
         concurrentUnits.add(concurrentUnit, config.maxConcurrentUnitExpiredTimeSeconds, TimeUnit.SECONDS);
         logger.info("remove concurrent unit[{}] in {} seconds from global concurrent unit set", concurrentUnit,
@@ -158,10 +161,22 @@ public class MultiQueue {
      *
      * @return 任务集合
      */
-    public RSet<String> currentJobs() {
+    private RSet<String> currentJobs() {
         if (jobs != null) return jobs;
         jobs = redisClient.getRedissonClient().getSet(MultiQueueConstants.MULTI_QUEUE_JOBS);
         return jobs;
+    }
+
+    /**
+     * 获取当前任务拷贝集合
+     *
+     * @return 当前任务拷贝集合
+     */
+    public Set<String> copyCurrentJobs() {
+        RSet<String> jobs = currentJobs();
+        Set<String> currentJobs = new HashSet<>();
+        for (String job : jobs) currentJobs.add(job);
+        return currentJobs;
     }
 
     /**
@@ -210,7 +225,7 @@ public class MultiQueue {
         }
         String jobRecordMapKey = String.format("%s%s", MultiQueueConstants.MULTI_QUEUE_JOB_RECORD, jobId);
         RMap<String, URLRecord> jobRecordMap = redisClient.getRedissonClient().getMap(jobRecordMapKey, codec);
-        return jobRecordMap.isEmpty();
+        return jobRecordMap == null || jobRecordMap.isEmpty();
     }
 
     /**
@@ -227,7 +242,7 @@ public class MultiQueue {
         RSet<String> jobs = currentJobs();
         if (jobs.contains(jobId)) jobs.remove(jobId);
         RMap<String, URLRecord> jobRecordMap = redisClient.getRedissonClient().getMap(jobRecordMapKey, codec);
-        jobRecordMap.delete();
+        if (jobRecordMap != null) jobRecordMap.delete();
         logger.info("delete job record map[{}] success", jobRecordMapKey);
     }
 
@@ -329,7 +344,7 @@ public class MultiQueue {
             batch.getSet(MultiQueueConstants.MULTI_QUEUE_JOBS).addAsync(record.jobId);
             BatchResult result = batch.execute();
             List responses = result.getResponses();
-            if (!((Boolean) responses.get(0))) throw new MultiQueueException("push record failed");
+            if (!checkPushResponses(responses)) throw new MultiQueueException("push record failed");
             return MultiQueueStatus.OK;
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
@@ -344,6 +359,20 @@ public class MultiQueue {
             record.inQueueTime = null;
             return MultiQueueStatus.REFUSED;
         }
+    }
+
+    /**
+     * 检测批量推送结果
+     * 任意批量操作不成功则不成功
+     *
+     * @param pushResponses 批量推送响应
+     * @return 成功返回true，否则返回false
+     */
+    private boolean checkPushResponses(List pushResponses) {
+        if (!((Boolean) pushResponses.get(0))) return false;
+        if (!((Boolean) pushResponses.get(2))) return false;
+        if (!((Boolean) pushResponses.get(3))) return false;
+        return true;
     }
 
     /**
