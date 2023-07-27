@@ -26,14 +26,14 @@ public class Constants {
     /**
      * URL状态
      */
-    public static final int URL_STATUS_SUCCESS = 0;             //抓取成功
-    public static final int URL_STATUS_FAIL = -1;               //抓取失败
-    public static final int URL_STATUS_CREATED = 1;             //创建
-    public static final int URL_STATUS_QUEUING_REFUSED = 2;     //排队拒绝
-    public static final int URL_STATUS_QUEUING = 3;             //排队中
-    public static final int URL_STATUS_FETCHING = 4;            //抓取中
-    public static final int URL_STATUS_INVALID = 5;             //URL非法
-    public static final int URL_STATUS_TIMEOUT = 6;             //超时
+    public static final int URL_STATUS_SUCCESS = 0;                 //抓取成功
+    public static final int URL_STATUS_FAIL = -1;                   //抓取失败
+    public static final int URL_STATUS_CREATED = 1;                 //创建
+    public static final int URL_STATUS_QUEUING_REFUSED = 2;         //排队拒绝
+    public static final int URL_STATUS_QUEUING = 3;                 //排队中
+    public static final int URL_STATUS_FETCHING = 4;                //抓取中
+    public static final int URL_STATUS_INVALID = 5;                 //URL非法
+    public static final int URL_STATUS_TIMEOUT = 6;                 //超时
     public static final Map<Integer, String> SUPPORT_URL_STATUSES = new HashMap<Integer, String>() {{
         put(URL_STATUS_SUCCESS, "成功");
         put(URL_STATUS_FAIL, "失败");
@@ -48,10 +48,10 @@ public class Constants {
     /**
      * 抓取方式
      */
-    public static final int FETCH_METHOD_COMMON = 0;            //普通抓取
-    public static final int FETCH_METHOD_PROXY = 1;             //代理抓取
-    public static final int FETCH_METHOD_HEADLESS_RENDER = 2;   //无头渲染
-    public static final int FETCH_METHOD_HEAD_RENDER = 3;       //有头渲染
+    public static final int FETCH_METHOD_COMMON = 0;                //普通抓取
+    public static final int FETCH_METHOD_PROXY = 1;                 //代理抓取
+    public static final int FETCH_METHOD_HEADLESS_RENDER = 2;       //无头渲染
+    public static final int FETCH_METHOD_HEAD_RENDER = 3;           //有头渲染
     public static final Map<Integer, String> SUPPORT_FETCH_METHODS = new HashMap<Integer, String>() {{
        put(FETCH_METHOD_COMMON, "普通抓取");
        put(FETCH_METHOD_PROXY, "代理抓取");
@@ -115,9 +115,9 @@ public class Constants {
     /**
      * 抽链范围
      */
-    public static final int LINK_FOLLOW_SCOPE_ALL = 0;          //全局抽链
-    public static final int LINK_FOLLOW_SCOPE_DOMAIN = 1;       //domain抽链
-    public static final int LINK_FOLLOW_SCOPE_HOST = 2;         //host抽链
+    public static final int LINK_FOLLOW_SCOPE_ALL = 0;              //全局抽链
+    public static final int LINK_FOLLOW_SCOPE_DOMAIN = 1;           //domain抽链
+    public static final int LINK_FOLLOW_SCOPE_HOST = 2;             //host抽链
     public static final Map<Integer, String> SUPPORT_LINK_FOLLOW_SCOPES = new HashMap<Integer, String>() {{
         put(LINK_FOLLOW_SCOPE_ALL, "ALL");
         put(LINK_FOLLOW_SCOPE_DOMAIN, "DOMAIN");
@@ -127,20 +127,20 @@ public class Constants {
     /**
      * 计划分类
      */
-    public static final int PLAN_CATEGORY_ONCE = 0;         //一次性计划任务
-    public static final int PLAN_CATEGORY_REPEAT = 1;       //周期性计划任务
-    public static final int PLAN_CATEGORY_CONSUME = 2;      //消费型计划任务
+    public static final int PLAN_CATEGORY_ONCE = 0;                 //一次性计划
+    public static final int PLAN_CATEGORY_REPEAT = 1;               //周期性计划
+    public static final int PLAN_CATEGORY_CONSUME = 2;              //消费型计划
     public static final Map<Integer, String> SUPPORT_PLAN_CATEGORIES = new HashMap<Integer, String>() {{
         put(PLAN_CATEGORY_ONCE, "一次性计划");
         put(PLAN_CATEGORY_REPEAT, "周期性计划");
-        put(PLAN_CATEGORY_CONSUME, "消费性计划");
+        put(PLAN_CATEGORY_CONSUME, "消费型计划");
     }};
 
     /**
      * 计划状态
      */
-    public static final int PLAN_STATUS_STOPPED = 0;        //停止
-    public static final int PLAN_STATUS_RUNNING = 1;        //运行
+    public static final int PLAN_STATUS_STOPPED = 0;                //停止
+    public static final int PLAN_STATUS_RUNNING = 1;                //运行
     public static final Map<Integer, String> SUPPORT_PLAN_STATUSES = new HashMap<Integer, String>() {{
         put(PLAN_STATUS_STOPPED, "停止");
         put(PLAN_STATUS_RUNNING, "运行");
@@ -149,8 +149,8 @@ public class Constants {
     /**
      * 任务状态
      */
-    public static final int JOB_STATUS_FINISHED = 0;        //结束
-    public static final int JOB_STATUS_RUNNING = 1;         //运行
+    public static final int JOB_STATUS_FINISHED = 0;                //结束
+    public static final int JOB_STATUS_RUNNING = 1;                 //运行
     public static final Map<Integer, String> SUPPORT_JOB_STATUSES = new HashMap<Integer, String>() {{
         put(JOB_STATUS_FINISHED, "结束");
         put(JOB_STATUS_RUNNING, "运行");
