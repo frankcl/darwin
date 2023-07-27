@@ -46,7 +46,7 @@ public class URLServiceImpl extends URLService {
     }
 
     @Override
-    public Boolean updateWithFetchRecord(FetchRecord fetchRecord) {
+    public Boolean updateResult(FetchRecord fetchRecord) {
         if (fetchRecord == null || StringUtils.isEmpty(fetchRecord.key)) {
             logger.error("fetch record is null or key is missing");
             throw new RuntimeException("抓取结果为空或key缺失");

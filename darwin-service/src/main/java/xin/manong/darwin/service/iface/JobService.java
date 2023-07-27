@@ -30,7 +30,7 @@ public abstract class JobService {
                 .recordStats()
                 .concurrencyLevel(1)
                 .maximumSize(100)
-                .expireAfterWrite(1, TimeUnit.MINUTES)
+                .expireAfterWrite(5, TimeUnit.MINUTES)
                 .removalListener(n -> onRemoval(n));
         jobCache = builder.build();
     }

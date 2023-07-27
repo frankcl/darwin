@@ -4,16 +4,14 @@ import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import xin.manong.darwin.common.Constants;
-import xin.manong.darwin.common.model.Job;
 import xin.manong.darwin.common.model.Pager;
 import xin.manong.darwin.common.model.Plan;
 import xin.manong.darwin.common.model.URLRecord;
 import xin.manong.darwin.common.util.DarwinUtil;
 import xin.manong.darwin.queue.multi.MultiQueue;
 import xin.manong.darwin.queue.multi.MultiQueueConstants;
-import xin.manong.darwin.service.iface.MultiQueueService;
 import xin.manong.darwin.service.iface.PlanService;
-import xin.manong.darwin.service.iface.TransactionService;
+import xin.manong.darwin.service.iface.URLService;
 import xin.manong.darwin.service.request.PlanSearchRequest;
 import xin.manong.weapon.base.common.Context;
 import xin.manong.weapon.base.log.JSONLogger;
@@ -39,9 +37,7 @@ public class RepeatedJobBuilder implements Runnable {
     @Resource
     protected PlanService planService;
     @Resource
-    protected TransactionService transactionService;
-    @Resource
-    protected MultiQueueService multiQueueService;
+    protected URLService urlService;
     @Resource
     protected MultiQueue multiQueue;
     @Resource(name = "buildAspectLogger")
@@ -154,16 +150,11 @@ public class RepeatedJobBuilder implements Runnable {
                 }
             }
             context = new Context();
-            Job job = transactionService.buildJob(plan);
-            if (job == null) {
+            if (planService.execute(plan) == null) {
                 context.put(Constants.BUILD_STATUS, Constants.BUILD_STATUS_FAIL);
                 context.put(Constants.DARWIN_DEBUG_MESSAGE, "构建周期性计划任务失败");
                 logger.error("build job failed for repeated plan[{}]", plan.planId);
                 return false;
-            }
-            for (URLRecord seedURL : job.seedURLs) {
-                URLRecord record = multiQueueService.pushQueue(seedURL);
-                commitAspectLog(record);
             }
             context.put(Constants.BUILD_STATUS, Constants.BUILD_STATUS_SUCCESS);
             logger.info("build job success for repeated plan[{}]", plan.planId);

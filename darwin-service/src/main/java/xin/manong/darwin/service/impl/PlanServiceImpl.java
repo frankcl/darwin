@@ -4,17 +4,31 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import org.apache.commons.lang3.StringUtils;
+import org.quartz.CronExpression;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.interceptor.TransactionAspectSupport;
+import xin.manong.darwin.common.Constants;
+import xin.manong.darwin.common.model.Job;
 import xin.manong.darwin.common.model.Pager;
 import xin.manong.darwin.common.model.Plan;
+import xin.manong.darwin.common.model.URLRecord;
+import xin.manong.darwin.queue.multi.MultiQueue;
 import xin.manong.darwin.service.convert.Converter;
 import xin.manong.darwin.service.dao.mapper.PlanMapper;
+import xin.manong.darwin.service.iface.JobService;
 import xin.manong.darwin.service.iface.PlanService;
+import xin.manong.darwin.service.iface.URLService;
+import xin.manong.darwin.service.impl.ots.JobServiceImpl;
+import xin.manong.darwin.service.impl.ots.URLServiceImpl;
 import xin.manong.darwin.service.request.PlanSearchRequest;
 
 import javax.annotation.Resource;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
 
 /**
  * MySQL计划服务实现
@@ -29,6 +43,12 @@ public class PlanServiceImpl implements PlanService {
 
     @Resource
     protected PlanMapper planMapper;
+    @Resource
+    protected JobService jobService;
+    @Resource
+    protected URLService urlService;
+    @Resource
+    protected MultiQueue multiQueue;
 
     @Override
     public Plan get(String planId) {
@@ -81,5 +101,58 @@ public class PlanServiceImpl implements PlanService {
         }
         IPage<Plan> page = planMapper.selectPage(new Page<>(searchRequest.current, searchRequest.size), query);
         return Converter.convert(page);
+    }
+
+    @Override
+    @Transactional
+    public String execute(Plan plan) {
+        if (plan == null) return null;
+        if (plan.status != Constants.PLAN_STATUS_RUNNING) {
+            logger.warn("plan[{}] is not running for status[{}]", plan.planId,
+                    Constants.SUPPORT_PLAN_STATUSES.get(plan.status));
+            return null;
+        }
+        Job job = plan.buildJob();
+        List<URLRecord> addRecords = new ArrayList<>(), pushQueueRecords = new ArrayList<>();
+        try {
+            if (!jobService.add(job)) throw new RuntimeException(String.format("添加计划任务失败[%s]", plan.planId));
+            for (URLRecord seedURL : job.seedURLs) {
+                URLRecord record = urlService.pushQueue(seedURL);
+                if (record.status == Constants.URL_STATUS_QUEUING) pushQueueRecords.add(record);
+                logger.info("push record[{}] into queue, status[{}]", seedURL.url,
+                        Constants.SUPPORT_URL_STATUSES.get(seedURL.status));
+                if (urlService.add(seedURL)) addRecords.add(seedURL);
+                else throw new RuntimeException(String.format("添加任务[%s]种子失败", job.jobId));
+            }
+            if (plan.category != Constants.PLAN_CATEGORY_REPEAT) return job.jobId;
+            Plan updatePlan = new Plan();
+            updatePlan.planId = plan.planId;
+            updatePlan.updateTime = System.currentTimeMillis();
+            updatePlan.nextTime = new CronExpression(plan.crontabExpression).
+                    getNextValidTimeAfter(new Date()).getTime();
+            if (update(updatePlan)) return job.jobId;
+            throw new RuntimeException(String.format("更新计划[%s]下次执行时间失败", updatePlan.planId));
+        } catch (Exception e) {
+            logger.error(e.getMessage(), e);
+            TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+            rollback(pushQueueRecords, addRecords, job.jobId);
+            return null;
+        }
+    }
+
+    /**
+     * 回滚数据
+     *
+     * @param pushQueueRecords 进入MultiQueue数据
+     * @param addRecords 添加数据库成功数据
+     * @param jobId 任务ID
+     */
+    private void rollback(List<URLRecord> pushQueueRecords, List<URLRecord> addRecords, String jobId) {
+        for (URLRecord pushQueueRecord : pushQueueRecords) {
+            multiQueue.removeFromJobRecordMap(pushQueueRecord);
+            multiQueue.removeFromConcurrentUnitQueue(pushQueueRecord);
+        }
+        if (urlService instanceof URLServiceImpl) for (URLRecord record : addRecords) urlService.delete(record.key);
+        if (jobService instanceof JobServiceImpl) jobService.delete(jobId);
     }
 }

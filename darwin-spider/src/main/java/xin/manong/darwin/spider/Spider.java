@@ -286,7 +286,7 @@ public abstract class Spider {
                     inputStream.close();
                     context.remove(Constants.DARWIN_INPUT_STREAM);
                 }
-                if (!urlService.updateWithFetchRecord(record)) {
+                if (!urlService.updateResult(record)) {
                     logger.warn("update fetch content failed for url[{}]", record.url);
                 }
             } catch (Exception e) {

@@ -19,8 +19,8 @@ import xin.manong.darwin.common.parser.ParseRequest;
 import xin.manong.darwin.common.parser.ParseResponse;
 import xin.manong.darwin.common.util.DarwinUtil;
 import xin.manong.darwin.parse.service.ParseService;
-import xin.manong.darwin.service.iface.MultiQueueService;
 import xin.manong.darwin.service.iface.RuleService;
+import xin.manong.darwin.service.iface.URLService;
 import xin.manong.weapon.base.common.Context;
 
 import javax.annotation.Resource;
@@ -52,7 +52,7 @@ public class HTMLSpider extends Spider {
     @Resource
     protected ParseService parseService;
     @Resource
-    protected MultiQueueService multiQueueService;
+    protected URLService urlService;
 
     public HTMLSpider() {
         super("html");
@@ -260,7 +260,7 @@ public class HTMLSpider extends Spider {
                     logger.warn("follow link[{}] is invalid for parent url[{}]", followLink.url, record.url);
                     continue;
                 }
-                multiQueueService.pushQueue(followLink);
+                urlService.pushQueue(followLink);
             } catch (Exception e) {
                 linkContext.put(Constants.DARWIN_DEBUG_MESSAGE, "处理抽链异常");
                 linkContext.put(Constants.DARWIN_STRACE_TRACE, ExceptionUtils.getStackTrace(e));

@@ -129,6 +129,16 @@ public class MultiQueue {
     }
 
     /**
+     * 移除并发单元
+     *
+     * @param concurrentUnit 并发单元
+     */
+    public void removeConcurrentUnit(String concurrentUnit) {
+        RSetCache<String> concurrentUnits = currentConcurrentUnits();
+        if (concurrentUnits != null) concurrentUnits.remove(concurrentUnit);
+    }
+
+    /**
      * 使全局集合中并发单元过期
      * 如果并发队列中存在记录则不能过期并发单元
      *
@@ -165,6 +175,16 @@ public class MultiQueue {
         if (jobs != null) return jobs;
         jobs = redisClient.getRedissonClient().getSet(MultiQueueConstants.MULTI_QUEUE_JOBS);
         return jobs;
+    }
+
+    /**
+     * 移除任务ID
+     *
+     * @param jobId 任务ID
+     */
+    public void removeJob(String jobId){
+        RSet<String> jobs = currentJobs();
+        if (jobs != null) jobs.remove(jobId);
     }
 
     /**
@@ -262,6 +282,18 @@ public class MultiQueue {
         if (!jobRecordMap.containsKey(record.key)) return;
         jobRecordMap.remove(record.key);
         logger.info("delete record[{}] success from job record map[{}]", record.key, record.jobId);
+    }
+
+    /**
+     * 从并发队列移除URL数据
+     *
+     * @param record URL数据
+     */
+    public void removeFromConcurrentUnitQueue(URLRecord record) {
+        String concurrentUnitQueueKey = buildConcurrentUnitQueueKey(record);
+        RBlockingQueue<URLRecord> recordQueue = redisClient.getRedissonClient().
+                getBlockingQueue(concurrentUnitQueueKey, codec);
+        if (recordQueue != null) recordQueue.remove(record);
     }
 
     /**

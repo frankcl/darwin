@@ -1,8 +1,10 @@
 package xin.manong.darwin.service.impl;
 
+import org.apache.commons.lang3.StringUtils;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.quartz.CronExpression;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.annotation.Rollback;
 import org.springframework.test.context.ActiveProfiles;
@@ -14,10 +16,13 @@ import xin.manong.darwin.common.model.Plan;
 import xin.manong.darwin.common.model.URLRecord;
 import xin.manong.darwin.service.ApplicationTest;
 import xin.manong.darwin.service.iface.PlanService;
+import xin.manong.darwin.service.iface.URLService;
+import xin.manong.darwin.service.request.URLSearchRequest;
 import xin.manong.weapon.base.util.RandomID;
 
 import javax.annotation.Resource;
 import java.util.ArrayList;
+import java.util.Date;
 
 /**
  * @author frankcl
@@ -30,6 +35,8 @@ public class PlanServiceImplSuite {
 
     @Resource
     protected PlanService planService;
+    @Resource
+    protected URLService urlService;
 
     @Test
     @Transactional
@@ -96,5 +103,50 @@ public class PlanServiceImplSuite {
         Assert.assertEquals(1, pager.records.size());
 
         Assert.assertTrue(planService.delete(plan.planId));
+    }
+
+    @Test
+    @Transactional
+    @Rollback
+    public void testExecute() throws Exception {
+        Plan plan = new Plan();
+        plan.name = "测试计划";
+        plan.planId = RandomID.build();
+        plan.category = Constants.PLAN_CATEGORY_REPEAT;
+        plan.status = Constants.PLAN_STATUS_RUNNING;
+        plan.appId = 1;
+        plan.avoidRepeatedFetch = true;
+        plan.priority = Constants.PRIORITY_HIGH;
+        plan.crontabExpression = "0 0 6-23/1 * * ?";
+        plan.ruleIds = new ArrayList<>();
+        plan.ruleIds.add(32);
+        plan.seedURLs = new ArrayList<>();
+        {
+            URLRecord seedURL = new URLRecord("http://www.sina.com.cn");
+            seedURL.category = Constants.CONTENT_CATEGORY_LIST;
+            plan.seedURLs.add(seedURL);
+        }
+        {
+            URLRecord seedURL = new URLRecord("http://www.sina.com.cn/123.html");
+            seedURL.category = Constants.CONTENT_CATEGORY_TEXT;
+            plan.seedURLs.add(seedURL);
+        }
+        Assert.assertTrue(planService.add(plan));
+
+        String jobId = planService.execute(plan);
+        Assert.assertFalse(StringUtils.isEmpty(jobId));
+
+        URLSearchRequest request = new URLSearchRequest();
+        request.status = Constants.URL_STATUS_CREATED;
+        request.jobId = jobId;
+        request.current = 1;
+        request.size = 10;
+        Pager<URLRecord> pager = urlService.search(request);
+        Assert.assertEquals(2, pager.total.intValue());
+        Assert.assertEquals(2, pager.records.size());
+
+        Plan getPlan = planService.get(plan.planId);
+        Assert.assertEquals(new CronExpression(plan.crontabExpression).getNextValidTimeAfter(new Date()).getTime(),
+                getPlan.nextTime.longValue());
     }
 }

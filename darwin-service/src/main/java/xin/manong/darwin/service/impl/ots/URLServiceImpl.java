@@ -59,7 +59,7 @@ public class URLServiceImpl extends URLService {
     }
 
     @Override
-    public Boolean updateWithFetchRecord(FetchRecord fetchRecord) {
+    public Boolean updateResult(FetchRecord fetchRecord) {
         Map<String, Object> keyMap = new HashMap<>();
         keyMap.put(KEY_KEY, fetchRecord.key);
         KVRecord kvRecord = otsClient.get(serviceConfig.urlTable, keyMap);

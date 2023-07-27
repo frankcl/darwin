@@ -11,8 +11,11 @@ import xin.manong.darwin.common.model.FetchRecord;
 import xin.manong.darwin.common.model.Pager;
 import xin.manong.darwin.common.model.RangeValue;
 import xin.manong.darwin.common.model.URLRecord;
+import xin.manong.darwin.queue.multi.MultiQueue;
+import xin.manong.darwin.queue.multi.MultiQueueStatus;
 import xin.manong.darwin.service.request.URLSearchRequest;
 
+import javax.annotation.Resource;
 import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -27,7 +30,10 @@ public abstract class URLService {
 
     private static final Logger logger = LoggerFactory.getLogger(URLService.class);
 
+    private int retryCnt = 3;
     protected Cache<String, Optional<URLRecord>> recordCache;
+    @Resource
+    protected MultiQueue multiQueue;
 
     public URLService() {
         CacheBuilder<String, Optional<URLRecord>> builder = CacheBuilder.newBuilder()
@@ -93,7 +99,7 @@ public abstract class URLService {
      * @param fetchRecord 抓取结果
      * @return 更新成功返回true，否则返回false
      */
-    public abstract Boolean updateWithFetchRecord(FetchRecord fetchRecord);
+    public abstract Boolean updateResult(FetchRecord fetchRecord);
 
     /**
      * 更新入队出队时间
@@ -135,4 +141,28 @@ public abstract class URLService {
      * @return 搜索列表
      */
     public abstract Pager<URLRecord> search(URLSearchRequest searchRequest);
+
+    /**
+     * 推送数据进入多级队列
+     *
+     * @param record URL记录
+     * @return URL记录
+     */
+    public URLRecord pushQueue(URLRecord record) {
+        for (int i = 0; i < retryCnt; i++) {
+            MultiQueueStatus status = multiQueue.push(record);
+            if (status == MultiQueueStatus.ERROR) {
+                logger.error("push record[{}] error", record.url);
+                record.status = Constants.URL_STATUS_INVALID;
+                return record;
+            } else if (status == MultiQueueStatus.REFUSED || status == MultiQueueStatus.FULL) {
+                logger.warn("push record[{}] refused, reason[{}]", record.url, status.name());
+                record.status = Constants.URL_STATUS_QUEUING_REFUSED;
+            } else {
+                record.status = Constants.URL_STATUS_QUEUING;
+                return record;
+            }
+        }
+        return record;
+    }
 }

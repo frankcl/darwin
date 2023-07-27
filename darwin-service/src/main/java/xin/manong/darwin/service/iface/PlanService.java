@@ -1,5 +1,6 @@
 package xin.manong.darwin.service.iface;
 
+import xin.manong.darwin.common.model.Job;
 import xin.manong.darwin.common.model.Pager;
 import xin.manong.darwin.common.model.Plan;
 import xin.manong.darwin.service.request.PlanSearchRequest;
@@ -51,4 +52,16 @@ public interface PlanService {
      * @return 搜索列表
      */
     Pager<Plan> search(PlanSearchRequest searchRequest);
+
+    /**
+     * 执行计划
+     * 1. 根据计划生成任务，将任务添加到任务表
+     * 2. 将任务种子URL添加到URL记录表
+     * 3. 将任务种子URL添加到MultiQueue
+     * 4. 更新周期计划下次执行时间
+     *
+     * @param plan 计划
+     * @return 成功返回任务ID，否则返回null
+     */
+    String execute(Plan plan);
 }

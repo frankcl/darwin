@@ -39,9 +39,7 @@ public class PlanController {
     @Resource
     protected RuleService ruleService;
     @Resource
-    protected TransactionService transactionService;
-    @Resource
-    protected MultiQueueService multiQueueService;
+    protected URLService urlService;
 
     /**
      * 根据ID获取计划
@@ -109,17 +107,11 @@ public class PlanController {
         boolean success = planService.add(plan);
         if (!success) return false;
         if (plan.category == Constants.PLAN_CATEGORY_REPEAT) return true;
-        Job job = transactionService.buildJob(plan);
-        if (job == null) {
+        if (planService.execute(plan) == null) {
             planService.delete(plan.planId);
             logger.error("build job failed for plan[{}]", plan.planId);
             throw new RuntimeException(String.format("%s[%s]构建任务失败",
                     Constants.SUPPORT_PLAN_CATEGORIES.get(plan.category), plan.planId));
-        }
-        for (URLRecord seedURL : job.seedURLs) {
-            URLRecord record = multiQueueService.pushQueue(seedURL);
-            logger.info("push record[{}] into queue, status[{}]", record.url,
-                    Constants.SUPPORT_URL_STATUSES.get(record.status));
         }
         return true;
     }
@@ -186,15 +178,9 @@ public class PlanController {
             logger.error("plan is not valid");
             throw new RuntimeException("计划检测失败");
         }
-        Job job = transactionService.buildJob(plan);
-        if (job == null) {
+        if (planService.execute(plan) == null) {
             logger.error("build job failed for consuming plan[{}]", plan.planId);
             throw new RuntimeException(String.format("消费型计划[%s]构建任务失败", plan.planId));
-        }
-        for (URLRecord seedURL : job.seedURLs) {
-            URLRecord record = multiQueueService.pushQueue(seedURL);
-            logger.info("push record[{}] into queue, status[{}]", record.url,
-                    Constants.SUPPORT_URL_STATUSES.get(record.status));
         }
         return true;
     }

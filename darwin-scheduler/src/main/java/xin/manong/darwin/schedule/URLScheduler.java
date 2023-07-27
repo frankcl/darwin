@@ -87,7 +87,7 @@ public class URLScheduler implements Runnable {
                 continue;
             }
             try {
-                Set<String> concurrentUnits = multiQueue.currentConcurrentUnits();
+                Set<String> concurrentUnits = multiQueue.copyCurrentConcurrentUnits();
                 for (String concurrentUnit : concurrentUnits) processConcurrentUnit(concurrentUnit);
             } catch (Exception e) {
                 logger.error(e.getMessage(), e);
