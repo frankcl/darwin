@@ -224,7 +224,7 @@ public class Plan extends Model {
             logger.error("not support plan status[{}]", status);
             return false;
         }
-        if (category == Constants.PLAN_CATEGORY_REPEAT && (StringUtils.isEmpty(crontabExpression) ||
+        if (category == Constants.PLAN_CATEGORY_PERIOD && (StringUtils.isEmpty(crontabExpression) ||
                 !CronExpression.isValidExpression(crontabExpression))) {
             logger.error("crontab expression[{}] is invalid", crontabExpression);
             return false;

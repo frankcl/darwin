@@ -11,6 +11,7 @@ public class MultiQueueConstants {
     /**
      * 队列内存级别
      */
+    public static final int MULTI_QUEUE_MEMORY_LEVEL_UNKNOWN = -1;
     public static final int MULTI_QUEUE_MEMORY_LEVEL_NORMAL = 0;
     public static final int MULTI_QUEUE_MEMORY_LEVEL_WARN = 1;
     public static final int MULTI_QUEUE_MEMORY_LEVEL_REFUSED = 2;

@@ -6,7 +6,6 @@ weapon:
           serverURL: http://onsaddr.mq-internet-access.mq-internet.aliyuncs.com:80
 app:
   schedule:
-    builder:
-      aspectLogFile: ./logs/aspect/job_builder.log
-    scheduler:
-      aspectLogFile: ./logs/aspect/scheduler.log
+    planAspectLogFile: ./logs/aspect/plan.log
+    recordAspectLogFile: ./logs/aspect/record.log
+    concurrentAspectLogFile: ./logs/aspect/concurrent.log

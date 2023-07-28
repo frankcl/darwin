@@ -1,8 +1,5 @@
 app:
   schedule:
-    builder:
-      retryCnt: 3
-      repeatedJobBuildTimeIntervalMs: 60000
-    scheduler:
-      topic: xxx
-      scheduleTimeIntervalMs: 10000
+    topic: xxx
+    planExecuteIntervalMs: 60000
+    queueScheduleIntervalMs: 10000

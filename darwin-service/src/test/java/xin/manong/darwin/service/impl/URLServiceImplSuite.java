@@ -9,7 +9,6 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.transaction.annotation.Transactional;
 import xin.manong.darwin.common.Constants;
-import xin.manong.darwin.common.computer.ConcurrentUnitComputer;
 import xin.manong.darwin.common.model.FetchRecord;
 import xin.manong.darwin.common.model.URLRecord;
 import xin.manong.darwin.queue.multi.MultiQueue;
@@ -109,64 +108,5 @@ public class URLServiceImplSuite {
         Assert.assertEquals("http://www.sohu.com/123.html", recordInDB.fetchContentURL);
 
         Assert.assertTrue(urlService.delete(record.key));
-    }
-
-    @Test
-    @Transactional
-    @Rollback
-    public void testPushQueue() {
-        List<URLRecord> records = new ArrayList<>();
-
-        URLRecord record1 = new URLRecord("http://www.sina.com.cn");
-        record1.category = Constants.CONTENT_CATEGORY_LIST;
-        record1.appId = 1;
-        record1.jobId = "xxx";
-        record1.priority = Constants.PRIORITY_HIGH;
-        Assert.assertTrue(record1.check());
-        Assert.assertTrue(urlService.add(record1));
-        records.add(record1);
-
-        URLRecord record2 = new URLRecord("http://www.sohu.com");
-        record2.category = Constants.CONTENT_CATEGORY_LIST;
-        record2.appId = 1;
-        record2.jobId = "xxx";
-        record2.priority = Constants.PRIORITY_NORMAL;
-        Assert.assertTrue(record2.check());
-        Assert.assertTrue(urlService.add(record2));
-        records.add(record2);
-
-        for (URLRecord record : records) {
-            URLRecord urlRecord = urlService.pushQueue(record);
-            Assert.assertEquals(Constants.URL_STATUS_QUEUING, urlRecord.status.intValue());
-        }
-
-        URLRecord getRecord1 = urlService.get(record1.key);
-        Assert.assertTrue(getRecord1 != null);
-        Assert.assertTrue(getRecord1.inQueueTime != null);
-        Assert.assertEquals(Constants.URL_STATUS_QUEUING, getRecord1.status.intValue());
-
-        URLRecord getRecord2 = urlService.get(record2.key);
-        Assert.assertTrue(getRecord2 != null);
-        Assert.assertTrue(getRecord2.inQueueTime != null);
-        Assert.assertEquals(Constants.URL_STATUS_QUEUING, getRecord2.status.intValue());
-
-        {
-            String concurrentUnit = ConcurrentUnitComputer.compute(record1);
-            List<URLRecord> queueRecords = multiQueue.pop(concurrentUnit, 10);
-            Assert.assertEquals(1, queueRecords.size());
-            Assert.assertEquals("http://www.sina.com.cn", queueRecords.get(0).url);
-            multiQueue.removeFromJobRecordMap(record1);
-            multiQueue.removeConcurrentUnit(concurrentUnit);
-            multiQueue.removeJob(record1.jobId);
-        }
-        {
-            String concurrentUnit = ConcurrentUnitComputer.compute(record2);
-            List<URLRecord> queueRecords = multiQueue.pop(concurrentUnit, 10);
-            Assert.assertEquals(1, queueRecords.size());
-            Assert.assertEquals("http://www.sohu.com", queueRecords.get(0).url);
-            multiQueue.removeFromJobRecordMap(record2);
-            multiQueue.removeConcurrentUnit(concurrentUnit);
-            multiQueue.removeJob(record2.jobId);
-        }
     }
 }

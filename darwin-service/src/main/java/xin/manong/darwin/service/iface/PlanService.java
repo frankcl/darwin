@@ -61,7 +61,7 @@ public interface PlanService {
      * 4. 更新周期计划下次执行时间
      *
      * @param plan 计划
-     * @return 成功返回任务ID，否则返回null
+     * @return 成功返回计划相关任务，否则返回null
      */
-    String execute(Plan plan);
+    Job execute(Plan plan);
 }

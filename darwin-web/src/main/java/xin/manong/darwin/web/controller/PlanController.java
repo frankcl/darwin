@@ -38,8 +38,6 @@ public class PlanController {
     protected PlanService planService;
     @Resource
     protected RuleService ruleService;
-    @Resource
-    protected URLService urlService;
 
     /**
      * 根据ID获取计划
@@ -106,7 +104,7 @@ public class PlanController {
         }
         boolean success = planService.add(plan);
         if (!success) return false;
-        if (plan.category == Constants.PLAN_CATEGORY_REPEAT) return true;
+        if (plan.category == Constants.PLAN_CATEGORY_PERIOD) return true;
         if (planService.execute(plan) == null) {
             planService.delete(plan.planId);
             logger.error("build job failed for plan[{}]", plan.planId);
@@ -137,7 +135,7 @@ public class PlanController {
             throw new NotFoundException(String.format("计划[%s]不存在", plan.planId));
         }
         //非周期性计划不允许更新种子列表
-        if (plan.category != Constants.PLAN_CATEGORY_REPEAT) plan.seedURLs = null;
+        if (plan.category != Constants.PLAN_CATEGORY_PERIOD) plan.seedURLs = null;
         return planService.update(plan);
     }
 

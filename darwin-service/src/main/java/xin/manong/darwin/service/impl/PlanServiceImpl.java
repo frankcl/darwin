@@ -16,6 +16,7 @@ import xin.manong.darwin.common.model.Pager;
 import xin.manong.darwin.common.model.Plan;
 import xin.manong.darwin.common.model.URLRecord;
 import xin.manong.darwin.queue.multi.MultiQueue;
+import xin.manong.darwin.queue.multi.MultiQueueStatus;
 import xin.manong.darwin.service.convert.Converter;
 import xin.manong.darwin.service.dao.mapper.PlanMapper;
 import xin.manong.darwin.service.iface.JobService;
@@ -105,7 +106,7 @@ public class PlanServiceImpl implements PlanService {
 
     @Override
     @Transactional
-    public String execute(Plan plan) {
+    public Job execute(Plan plan) {
         if (plan == null) return null;
         if (plan.status != Constants.PLAN_STATUS_RUNNING) {
             logger.warn("plan[{}] is not running for status[{}]", plan.planId,
@@ -117,20 +118,20 @@ public class PlanServiceImpl implements PlanService {
         try {
             if (!jobService.add(job)) throw new RuntimeException(String.format("添加计划任务失败[%s]", plan.planId));
             for (URLRecord seedURL : job.seedURLs) {
-                URLRecord record = urlService.pushQueue(seedURL);
-                if (record.status == Constants.URL_STATUS_QUEUING) pushQueueRecords.add(record);
+                MultiQueueStatus status = multiQueue.push(seedURL, 3);
+                if (status == MultiQueueStatus.OK) pushQueueRecords.add(seedURL);
                 logger.info("push record[{}] into queue, status[{}]", seedURL.url,
                         Constants.SUPPORT_URL_STATUSES.get(seedURL.status));
                 if (urlService.add(seedURL)) addRecords.add(seedURL);
                 else throw new RuntimeException(String.format("添加任务[%s]种子失败", job.jobId));
             }
-            if (plan.category != Constants.PLAN_CATEGORY_REPEAT) return job.jobId;
+            if (plan.category != Constants.PLAN_CATEGORY_PERIOD) return job;
             Plan updatePlan = new Plan();
             updatePlan.planId = plan.planId;
             updatePlan.updateTime = System.currentTimeMillis();
             updatePlan.nextTime = new CronExpression(plan.crontabExpression).
                     getNextValidTimeAfter(new Date()).getTime();
-            if (update(updatePlan)) return job.jobId;
+            if (update(updatePlan)) return job;
             throw new RuntimeException(String.format("更新计划[%s]下次执行时间失败", updatePlan.planId));
         } catch (Exception e) {
             logger.error(e.getMessage(), e);

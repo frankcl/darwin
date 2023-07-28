@@ -339,6 +339,24 @@ public class MultiQueue {
 
     /**
      * 推送数据进入多级队列
+     * 如果状态为拒绝或队列满进行重试
+     *
+     * @param record URL数据
+     * @param retryCnt 重试次数
+     * @return 状态
+     */
+    public MultiQueueStatus push(URLRecord record, int retryCnt) {
+        MultiQueueStatus status = push(record);
+        if (status == MultiQueueStatus.OK || status == MultiQueueStatus.ERROR) return status;
+        for (int i = 1; i < retryCnt; i++) {
+            status = push(record);
+            if (status == MultiQueueStatus.OK || status == MultiQueueStatus.ERROR) return status;
+        }
+        return status;
+    }
+
+    /**
+     * 推送数据进入多级队列
      *
      * @param record URL数据
      * @return 状态
@@ -346,11 +364,13 @@ public class MultiQueue {
     public MultiQueueStatus push(URLRecord record) {
         if (record == null || !record.check()) {
             logger.error("record is null or is invalid");
+            record.status = Constants.URL_STATUS_INVALID;
             return MultiQueueStatus.ERROR;
         }
         String concurrentUnit = ConcurrentUnitComputer.compute(record);
         if (StringUtils.isEmpty(concurrentUnit)) {
             logger.error("get concurrent unit failed for url[{}]", record.url);
+            record.status = Constants.URL_STATUS_INVALID;
             return MultiQueueStatus.ERROR;
         }
         record.inQueueTime = System.currentTimeMillis();
@@ -361,6 +381,7 @@ public class MultiQueue {
         int queueSize = queue.size();
         if (config.maxQueueSize > 0 && queueSize >= config.maxQueueSize) {
             logger.warn("queue is full for concurrent unit[{}]", concurrentUnit);
+            record.status = Constants.URL_STATUS_QUEUING_REFUSED;
             return MultiQueueStatus.FULL;
         }
         BatchOptions batchOptions = BatchOptions.defaults().
@@ -369,6 +390,7 @@ public class MultiQueue {
                 retryInterval(2, TimeUnit.SECONDS).retryAttempts(3);
         RBatch batch = redisClient.getRedissonClient().createBatch(batchOptions);
         try {
+            record.status = Constants.URL_STATUS_QUEUING;
             batch.getBlockingQueue(concurrentUnitQueueKey, codec).offerAsync(record);
             batch.getMap(jobRecordMapKey, codec).putAsync(record.key, record);
             batch.getSetCache(MultiQueueConstants.MULTI_QUEUE_CONCURRENT_UNITS).addAsync(
@@ -389,6 +411,7 @@ public class MultiQueue {
             rollbackBatch.getBlockingQueue(concurrentUnitQueueKey, codec).removeAsync(record);
             rollbackBatch.execute();
             record.inQueueTime = null;
+            record.status = Constants.URL_STATUS_QUEUING_REFUSED;
             return MultiQueueStatus.REFUSED;
         }
     }
