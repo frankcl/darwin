@@ -54,6 +54,23 @@
 
 ### darwin架构
 
+![architecture](https://github.com/frankcl/darwin/blob/main/images/darwin%E7%B3%BB%E7%BB%9F%E6%9E%B6%E6%9E%84.png)
+
 ### 并发控制模型
 
+![concurrent](https://github.com/frankcl/darwin/blob/main/images/darwin%E5%B9%B6%E5%8F%91%E6%8E%A7%E5%88%B6%E9%98%9F%E5%88%97%E6%A8%A1%E5%9E%8B.png)
+
 ### 调用时序关系
+
+* 周期型计划调度时序
+
+![period_time](https://github.com/frankcl/darwin/blob/main/images/darwin%E5%91%A8%E6%9C%9F%E5%9E%8B%E8%AE%A1%E5%88%92%E6%97%B6%E5%BA%8F%E5%9B%BE.png)
+
+* URL调度时序
+
+![url_schedule_time](https://github.com/frankcl/darwin/blob/main/images/darwin%E6%8A%93%E5%8F%96%E9%93%BE%E6%8E%A5%E8%B0%83%E5%BA%A6%E6%97%B6%E5%BA%8F%E5%9B%BE.png)
+
+* URL抓取时序
+
+![url_fetch_time](https://github.com/frankcl/darwin/blob/main/images/darwin%E9%93%BE%E6%8E%A5%E6%8A%93%E5%8F%96%E6%97%B6%E5%BA%8F%E5%9B%BE.png)
+
