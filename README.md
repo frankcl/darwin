@@ -68,6 +68,25 @@
 
 ![architecture](https://github.com/frankcl/darwin/blob/main/images/darwin%E7%B3%BB%E7%BB%9F%E6%9E%B6%E6%9E%84.png)
 
+* 数据存储层：负责基础数据存储，例如应用、计划、任务、规则、规则分组及URL记录等
+  * URL记录：元数据存储于MySQL/OTS，下载结果存储于OSS
+  * 任务及URL记录：由于数据量大，支持存储类型：MySQL和OTS
+* 并发管理层：负责抓取链接调度及站点抓取并发度控制
+  * MultiQueue：负责抓取链接调度的多级队列，分2个粒度存储链接
+    * 并发单元：以并发单元粒度调度链接抓取，控制对站点抓取礼貌性
+    * 任务粒度：监控管理任务的抓取链接，感知任务是否结束
+  * ConcurrentManager：负责并发单元当前抓取连接生命周期管理，获取并发单元当前抓取链接数及详情
+  * 监控：针对MultiQueue和ConcurrentManager中过期数据进行监控，保证无效连接和并发单元的及时清理
+* 数据服务层：对底层数据及业务操作的抽象和封装，涉及应用、计划、任务、规则、规则分组及URL记录等
+* 调度抓取层：负责链接的调度和抓取
+  * 周期性任务调度：负责为周期性计划定期生成任务，并将种子URL加入MultiQueue
+  * URL链接调度：负责周期性地从MultiQueue中弹出链接，发往下游爬虫进行抓取
+  * URL抓取：负责接收上游链接调度发送的URL，对URL进行抓取，支持3类资源抓取
+    * 文本抓取：抓取HTML/JSON文本资源，并利用规则进行结构化或抽链，并将抽链结果加入MultiQueue进行调度
+    * 资源抓取：抓取图片、视频资源
+    * 流抓取：抓取M3U8流媒体资源
+* Web接口层：提供RESTFul形式的web接口，支持应用、计划、任务、规则、规则分组及URL记录等粒度操作
+
 ### 并发控制模型
 
 ![concurrent](https://github.com/frankcl/darwin/blob/main/images/darwin%E5%B9%B6%E5%8F%91%E6%8E%A7%E5%88%B6%E9%98%9F%E5%88%97%E6%A8%A1%E5%9E%8B.png)
