@@ -121,6 +121,14 @@
 
 ![url_schedule_time](https://github.com/frankcl/darwin/blob/main/images/darwin%E6%8A%93%E5%8F%96%E9%93%BE%E6%8E%A5%E8%B0%83%E5%BA%A6%E6%97%B6%E5%BA%8F%E5%9B%BE.png)
 
+1. 获取MultiQueue出队锁，如果失败则放弃本轮调度，否则转第2步
+2. 从MultiQueue获取当前并发控制单元列表，针对每个并发控制单元进行以下处理
+   1. 获取并发控制单元当前可用连接数，如果可用连接数小于等于0，则放弃并发控制单元本轮调度，否则进行下一步
+   2. 根据可用连接数从MultiQueue中弹出抓取URL，并更新URL状态为抓取中
+   3. 将URL信息发送到消息队列，等待下游爬虫抓取
+   4. 并发单元链接TTL记录中添加抓取URL信息
+3. 释放MultiQueue出队锁
+
 * URL抓取时序
 
 ![url_fetch_time](https://github.com/frankcl/darwin/blob/main/images/darwin%E9%93%BE%E6%8E%A5%E6%8A%93%E5%8F%96%E6%97%B6%E5%BA%8F%E5%9B%BE.png)
