@@ -105,9 +105,17 @@
 
 ### 调用时序关系
 
-* 周期型计划调度时序
+* 周期性计划调度时序
 
 ![period_time](https://github.com/frankcl/darwin/blob/main/images/darwin%E5%91%A8%E6%9C%9F%E5%9E%8B%E8%AE%A1%E5%88%92%E6%97%B6%E5%BA%8F%E5%9B%BE.png)
+
+1. 获取MultiQueue入队锁，如果失败则放弃本轮调度，否则转第2步
+2. 获取当前需要进行调度的周期性计划，针对每个周期性计划进行以下步骤
+   1. 根据计划构建任务，将任务添加入库
+   2. 将任务种子URL加入MultiQueue
+   3. 将任务种子URL添加入库
+   4. 更新周期性计划下次调度时间
+3. 释放MultiQueue入队锁
 
 * URL调度时序
 
