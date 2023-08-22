@@ -133,3 +133,23 @@
 
 ![url_fetch_time](https://github.com/frankcl/darwin/blob/main/images/darwin%E9%93%BE%E6%8E%A5%E6%8A%93%E5%8F%96%E6%97%B6%E5%BA%8F%E5%9B%BE.png)
 
+1. 从消息队列获取待抓取URL，进行以下处理
+2. 根据URL信息选择抓取方案并执行数据抓取：文本抓取选择HTMLSpider，图片视频抓取选择ResourceSpider，直播流抓取选择StreamSpider
+   1. HTMLSpider
+      1. 获取URL关联任务，从任务关联规则列表中获取和抓取URL匹配的规则 
+      2. 下载URL内容，并将下载结果存储到OSS
+      3. 利用匹配规则解析下载内容，如果解析结果中有抽链结果，将抽链URL添加到MultiQueue中
+   2. ResourceSpider
+      1. 下载资源URL内容
+      2. 将下载结果存入OSS
+   3. StreamSpider
+      1. 判断M3U8直播流是否结束，如果没有结束，则下载失败，否则进行下一步
+      2. 执行FFMpeg命令，下载直播流视频
+      3. 将下载结果存入OSS
+3. 将抓取结果和URL信息更新入库
+4. 从MultiQueue任务记录中移除URL信息
+5. 从并发控制TTL记录中移除URL信息
+6. 通过消息队列发送URL抓取结果
+7. 判断URL所属任务是否结束，如果结束，执行以下步骤
+   1. 更新关联任务状态为结束
+   2. 通过消息队列发送结束任务信息
