@@ -109,6 +109,24 @@ public class FetchRecord extends Model {
     public String fetchContentURL;
 
     /**
+     * mimeType
+     */
+    @TableField(value = "mime_type")
+    @Column(name = "mime_type")
+    @JSONField(name = "mime_type")
+    @JsonProperty("mime_type")
+    public String mimeType;
+
+    /**
+     * 子mimeType
+     */
+    @TableField(value = "sub_mime_type")
+    @Column(name = "sub_mime_type")
+    @JSONField(name = "sub_mime_type")
+    @JsonProperty("sub_mime_type")
+    public String subMimeType;
+
+    /**
      * URL状态
      */
     @TableField(value = "status")
@@ -155,6 +173,8 @@ public class FetchRecord extends Model {
         this.parentURL = record.parentURL;
         this.redirectURL = record.redirectURL;
         this.fetchContentURL = record.fetchContentURL;
+        this.mimeType = record.mimeType;
+        this.subMimeType = record.subMimeType;
         this.status = record.status;
         this.userDefinedMap = record.userDefinedMap;
         this.structureMap = record.structureMap;

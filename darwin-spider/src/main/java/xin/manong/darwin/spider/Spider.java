@@ -48,6 +48,14 @@ public abstract class Spider {
 
     private static final Logger logger = LoggerFactory.getLogger(Spider.class);
 
+    protected static final String MIME_TYPE_TEXT = "text";
+    protected static final String MIME_TYPE_VIDEO = "video";
+    protected static final String MIME_TYPE_APPLICATION = "application";
+    protected static final String SUB_MIME_TYPE_PDF = "pdf";
+    protected static final String SUB_MIME_TYPE_MP4 = "mp4";
+    protected static final String SUB_MIME_TYPE_JSON = "json";
+    protected static final String SUB_MIME_TYPE_HTML = "html";
+
     protected String category;
     @Resource
     protected SpiderConfig config;
@@ -77,36 +85,20 @@ public abstract class Spider {
      * 写入抓取内容到OSS
      *
      * @param record URL记录
-     * @param bytes 内容字节数组
-     * @param context 上下文
-     * @return 成功返回true，否则返回false
-     */
-    protected boolean writeContent(URLRecord record, byte[] bytes, Context context) {
-        String key = String.format("%s/%s/%s", config.contentDirectory, category, record.key);
-        String suffix = (String) context.get(Constants.RESOURCE_SUFFIX);
-        if (!StringUtils.isEmpty(suffix)) key = String.format("%s.%s", key, suffix);
-        if (!ossClient.putObject(config.contentBucket, key, bytes)) return false;
-        OSSMeta ossMeta = new OSSMeta();
-        ossMeta.region = config.contentRegion;
-        ossMeta.bucket = config.contentBucket;
-        ossMeta.key = key;
-        record.fetchContentURL = OSSClient.buildURL(ossMeta);
-        return true;
-    }
-
-    /**
-     * 写入抓取内容到OSS
-     *
-     * @param record URL记录
      * @param inputStream 内容字节流
      * @param context 上下文
      * @return 成功返回true，否则返回false
      */
     protected boolean writeContent(URLRecord record, InputStream inputStream, Context context) {
         String key = String.format("%s/%s/%s", config.contentDirectory, category, record.key);
-        String suffix = (String) context.get(Constants.RESOURCE_SUFFIX);
+        String suffix = buildResourceFileSuffix(record);
         if (!StringUtils.isEmpty(suffix)) key = String.format("%s.%s", key, suffix);
-        if (!ossClient.putObject(config.contentBucket, key, inputStream)) return false;
+        if (!ossClient.putObject(config.contentBucket, key, inputStream)) {
+            record.status = Constants.URL_STATUS_FAIL;
+            logger.error("write fetch content failed for url[{}]", record.url);
+            context.put(Constants.DARWIN_DEBUG_MESSAGE, "抓取内容写入OSS失败");
+            return false;
+        }
         OSSMeta ossMeta = new OSSMeta();
         ossMeta.region = config.contentRegion;
         ossMeta.bucket = config.contentBucket;
@@ -150,8 +142,6 @@ public abstract class Spider {
             logger.error("fetch content error for url[{}]", record.url);
             logger.error(e.getMessage(), e);
             return null;
-        } finally {
-            record.fetchTime = System.currentTimeMillis();
         }
     }
 
@@ -170,18 +160,19 @@ public abstract class Spider {
     }
 
     /**
-     * 使用重复抓取结果：满足以下条件使用之前抓取结果
+     * 获取相同URL抓取资源，避免重复抓取
+     * 满足以下条件可以使用以前抓取资源
      * 1. 任务设置避免重复抓取
      * 2. URL在一天内抓取过
-     * 3. OSS数据存在
+     * 3. 抓取资源OSS数据存在
      *
      * @param record URL记录
      * @param context 上下文
+     * @return 成功返回抓取资源，否则返回null
      */
-    private void reuseFetchContent(URLRecord record, Context context) {
-        Job job = jobService.getCache(record.jobId);
-        if (job == null || !job.avoidRepeatedFetch) return;
-        context.put(Constants.AVOID_REPEATED_FETCH, true);
+    protected SpiderResource getSpiderResource(URLRecord record, Context context) {
+        if (context == null || !context.contains(Constants.AVOID_REPEATED_FETCH) ||
+                !((boolean) context.get(Constants.AVOID_REPEATED_FETCH))) return null;
         URLSearchRequest searchRequest = new URLSearchRequest();
         searchRequest.status = Constants.URL_STATUS_SUCCESS;
         searchRequest.url = record.url;
@@ -191,26 +182,34 @@ public abstract class Spider {
         searchRequest.current = 1;
         searchRequest.size = 1;
         Pager<URLRecord> pager = urlService.search(searchRequest);
-        if (pager == null || pager.records == null || pager.records.isEmpty()) return;
+        if (pager == null || pager.records == null || pager.records.isEmpty()) return null;
         URLRecord prevRecord = pager.records.get(0);
-        if (StringUtils.isEmpty(prevRecord.fetchContentURL)) return;
+        if (StringUtils.isEmpty(prevRecord.fetchContentURL)) return null;
         OSSMeta ossMeta = OSSClient.parseURL(prevRecord.fetchContentURL);
-        if (!ossClient.exist(ossMeta.bucket, ossMeta.key)) return;
+        if (!ossClient.exist(ossMeta.bucket, ossMeta.key)) return null;
         InputStream inputStream = ossClient.getObjectStream(ossMeta.bucket, ossMeta.key);
-        if (inputStream != null) {
-            context.put(Constants.DARWIN_INPUT_STREAM, inputStream);
-            int index = ossMeta.key.lastIndexOf(".");
-            if (index != -1) context.put(Constants.RESOURCE_SUFFIX, ossMeta.key.substring(index + 1).trim());
-        }
+        if (inputStream == null) return null;
+        SpiderResource spiderResource = new SpiderResource();
+        spiderResource.inputStream = inputStream;
+        spiderResource.mimeType = prevRecord.mimeType;
+        spiderResource.subMimeType = prevRecord.subMimeType;
+        return spiderResource;
     }
 
     /**
-     * 推送结束任务
+     * 抓取数据
      *
-     * @param record URL记录
+     * @param record URL数据
+     * @param context 上下文
+     * @return 成功返回抓取资源，否则返回null
      */
-    private void pushFinishJob(URLRecord record) {
-
+    protected SpiderResource fetchResource(URLRecord record, Context context) {
+        Response httpResponse = fetch(record, context);
+        record.fetchTime = System.currentTimeMillis();
+        if (httpResponse == null) return null;
+        SpiderResource spiderResource = new SpiderResource(httpResponse);
+        fillMimeTypeAndCharset(spiderResource, httpResponse);
+        return spiderResource;
     }
 
     /**
@@ -241,25 +240,36 @@ public abstract class Spider {
     }
 
     /**
-     * 获取资源后缀
+     * 根据HTTP响应填充MimeType和字符编码
      *
+     * @param spiderResource 抓取结果资源
      * @param response HTTP响应
-     * @return 成功返回资源后缀，否则返回null
      */
-    protected String getResourceSuffix(Response response) {
-        if (response == null || !response.isSuccessful()) return null;
+    protected void fillMimeTypeAndCharset(SpiderResource spiderResource, Response response) {
+        if (response == null || !response.isSuccessful()) return;
         ResponseBody responseBody = response.body();
         MediaType mediaType = responseBody.contentType();
-        if (mediaType == null || mediaType.type() == null || mediaType.subtype() == null) return null;
-        if (Constants.SUPPORT_MIME_TYPES.contains(mediaType.type())) {
-            String subType = mediaType.subtype();
-            if (StringUtils.isEmpty(subType)) return null;
-            String type = mediaType.type();
-            if (type.equalsIgnoreCase("text") && !subType.equalsIgnoreCase("html")) return null;
-            if (type.equalsIgnoreCase("application") && !subType.equalsIgnoreCase("pdf")) return null;
-            return subType.toLowerCase();
-        }
-        return null;
+        if (mediaType == null) return;
+        spiderResource.mimeType = mediaType.type();
+        spiderResource.subMimeType = mediaType.subtype();
+        spiderResource.charset = mediaType.charset();
+    }
+
+    /**
+     * 根据资源mimeType构建资源文件后缀
+     *
+     * @param record URL记录
+     * @return 成功返回资源文件后缀，否则返回null
+     */
+    protected String buildResourceFileSuffix(URLRecord record) {
+        if (!Constants.SUPPORT_MIME_TYPES.contains(record.mimeType)) return null;
+        if (StringUtils.isEmpty(record.subMimeType)) return null;
+        if (record.mimeType.equalsIgnoreCase(MIME_TYPE_TEXT) &&
+                !record.subMimeType.equalsIgnoreCase(SUB_MIME_TYPE_HTML)) return null;
+        if (record.mimeType.equalsIgnoreCase(MIME_TYPE_APPLICATION) &&
+                !record.subMimeType.equalsIgnoreCase(SUB_MIME_TYPE_PDF) &&
+                !record.subMimeType.equalsIgnoreCase(SUB_MIME_TYPE_JSON)) return null;
+        return record.subMimeType.toLowerCase();
     }
 
     /**
@@ -271,7 +281,8 @@ public abstract class Spider {
     public void process(URLRecord record, Context context) {
         Long startTime = System.currentTimeMillis();
         try {
-            reuseFetchContent(record, context);
+            Job job = jobService.getCache(record.jobId);
+            if (job != null && job.avoidRepeatedFetch) context.put(Constants.AVOID_REPEATED_FETCH, true);
             handle(record, context);
         } catch (Throwable t) {
             context.put(Constants.DARWIN_DEBUG_MESSAGE, "抓取处理数据异常");
@@ -279,24 +290,14 @@ public abstract class Spider {
             logger.error("process record error for url[{}]", record.url);
             logger.error(t.getMessage(), t);
         } finally {
-            try {
-                context.remove(Constants.RESOURCE_SUFFIX);
-                InputStream inputStream = (InputStream) context.get(Constants.DARWIN_INPUT_STREAM);
-                if (inputStream != null) {
-                    inputStream.close();
-                    context.remove(Constants.DARWIN_INPUT_STREAM);
-                }
-                if (!urlService.updateResult(record)) {
-                    logger.warn("update fetch content failed for url[{}]", record.url);
-                }
-            } catch (Exception e) {
-                logger.error(e.getMessage(), e);
-            }
+            if (!urlService.updateResult(record)) logger.warn("update fetch content failed for url[{}]", record.url);
             multiQueue.removeFromJobRecordMap(record);
             String concurrentUnit = ConcurrentUnitComputer.compute(record);
             concurrentManager.removeConnectionRecord(concurrentUnit, record.key);
             pushFinishRecord(record, context);
             if (multiQueue.isEmptyJobRecordMap(record.jobId)) jobListener.onFinish(new Job(record.jobId, record.appId));
+            if (!StringUtils.isEmpty(record.mimeType)) context.put(Constants.MIME_TYPE, record.mimeType);
+            if (!StringUtils.isEmpty(record.subMimeType)) context.put(Constants.SUB_MIME_TYPE, record.subMimeType);
             context.put(Constants.DARWIN_PROCESS_TIME, System.currentTimeMillis() - startTime);
         }
     }

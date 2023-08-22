@@ -184,7 +184,8 @@ public class Constants {
     public static final String HTTP_CODE = "http_code";
     public static final String FOLLOW_LINK_NUM = "follow_link_num";
     public static final String DISCARD_FOLLOW_LINK_NUM = "discard_follow_link_num";
-    public static final String RESOURCE_SUFFIX = "resource_suffix";
+    public static final String MIME_TYPE = "mime_type";
+    public static final String SUB_MIME_TYPE = "sub_mime_type";
 
     /**
      * 计划字段定义
@@ -227,7 +228,6 @@ public class Constants {
     public static final String DARWIN_MESSAGE_TIMESTAMP = "__DARWIN_MESSAGE_TIMESTAMP__";
     public static final String DARWIN_PROCESS_TIME = "__DARWIN_PROCESS_TIME__";
     public static final String DARWIN_FETCH_TIME = "__DARWIN_FETCH_TIME__";
-    public static final String DARWIN_PUT_TIME = "__DARWIN_PUT_TIME__";
+    public static final String DARWIN_WRITE_TIME = "__DARWIN_WRITE_TIME__";
     public static final String DARWIN_PARSE_TIME = "__DARWIN_PARSE_TIME__";
-    public static final String DARWIN_INPUT_STREAM = "__DARWIN_INPUT_STREAM__";
 }

@@ -1,15 +1,9 @@
 package xin.manong.darwin.spider;
 
-import okhttp3.Response;
-import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import xin.manong.darwin.common.Constants;
 import xin.manong.darwin.common.model.URLRecord;
 import xin.manong.weapon.base.common.Context;
-
-import java.io.InputStream;
 
 /**
  * 资源爬虫
@@ -23,33 +17,24 @@ import java.io.InputStream;
 @Component
 public class ResourceSpider extends Spider {
 
-    private static final Logger logger = LoggerFactory.getLogger(ResourceSpider.class);
-
     public ResourceSpider() {
         super("resource");
     }
 
     @Override
     protected void handle(URLRecord record, Context context) throws Exception {
-        Response httpResponse = null;
-        InputStream inputStream = (InputStream) context.get(Constants.DARWIN_INPUT_STREAM);
+        SpiderResource resource = null;
         try {
-            if (inputStream == null) {
-                httpResponse = fetch(record, context);
-                if (httpResponse == null) return;
-                String suffix = getResourceSuffix(httpResponse);
-                if (!StringUtils.isEmpty(suffix)) context.put(Constants.RESOURCE_SUFFIX, suffix);
-                inputStream = httpResponse.body().byteStream();
-            } else record.fetchTime = System.currentTimeMillis();
-            if (inputStream == null || !writeContent(record, inputStream, context)) {
-                record.status = Constants.URL_STATUS_FAIL;
-                logger.error("write fetch content failed for url[{}]", record.url);
-                context.put(Constants.DARWIN_DEBUG_MESSAGE, "抓取内容写入OSS失败");
-            }
+            resource = getSpiderResource(record, context);
+            if (resource == null) resource = fetchResource(record, context);
+            if (resource == null || resource.inputStream == null) return;
+            record.mimeType = resource.mimeType;
+            record.subMimeType = resource.subMimeType;
+            record.fetchTime = System.currentTimeMillis();
+            if (!writeContent(record, resource.inputStream, context)) return;
             record.status = Constants.URL_STATUS_SUCCESS;
         } finally {
-            if (inputStream != null) inputStream.close();
-            if (httpResponse != null) httpResponse.close();
+            if (resource != null) resource.close();
         }
     }
 }
