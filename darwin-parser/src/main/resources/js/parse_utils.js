@@ -1,13 +1,13 @@
-function buildLink(url, category, headers, userDefinedMap) {
+function buildURLRecord(url, category, headers, userDefinedMap) {
     if (category === undefined || category === null || category < 0 || category > 3) {
         throw '链接类型不符合预期[' + category + ']';
     }
-    var link = {};
-    link.url = url;
-    link.category = category;
-    if (typeof headers != 'undefined' && headers !== null) link.headers = headers;
-    if (typeof userDefinedMap != 'undefined' && userDefinedMap !== null) link.userDefinedMap = userDefinedMap;
-    return link;
+    var urlRecord = {};
+    urlRecord.url = url;
+    urlRecord.category = category;
+    if (typeof headers != 'undefined' && headers !== null) urlRecord.headers = headers;
+    if (typeof userDefinedMap != 'undefined' && userDefinedMap !== null) urlRecord.userDefinedMap = userDefinedMap;
+    return urlRecord;
 }
 
 function buildErrorResponse(message) {
@@ -17,10 +17,10 @@ function buildErrorResponse(message) {
     return response;
 }
 
-function buildFollowLinkResponse(followLinks) {
+function buildFollowURLsResponse(followURLs) {
     var response = {};
     response.status = true;
-    response.followLinks = followLinks;
+    response.followURLs = followURLs;
     return response;
 }
 

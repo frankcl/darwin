@@ -42,11 +42,11 @@ public class ParseResponseSuite {
         List<URLRecord> followLinks = new ArrayList<>();
         URLRecord record = new URLRecord("http://www.sina.com.cn");
         followLinks.add(record);
-        ParseResponse response = ParseResponse.buildFollowLinkResponse(followLinks);
+        ParseResponse response = ParseResponse.buildFollowURLsResponse(followLinks);
         Assert.assertTrue(response.status);
-        Assert.assertTrue(response.followLinks != null && !response.followLinks.isEmpty());
-        Assert.assertEquals(1, response.followLinks.size());
-        Assert.assertEquals("http://www.sina.com.cn", response.followLinks.get(0).url);
+        Assert.assertTrue(response.followURLs != null && !response.followURLs.isEmpty());
+        Assert.assertEquals(1, response.followURLs.size());
+        Assert.assertEquals("http://www.sina.com.cn", response.followURLs.get(0).url);
     }
 
     @Test

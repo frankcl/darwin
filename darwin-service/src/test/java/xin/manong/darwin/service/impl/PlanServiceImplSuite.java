@@ -1,6 +1,5 @@
 package xin.manong.darwin.service.impl;
 
-import org.apache.commons.lang3.StringUtils;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -11,6 +10,7 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.transaction.annotation.Transactional;
 import xin.manong.darwin.common.Constants;
+import xin.manong.darwin.common.model.Job;
 import xin.manong.darwin.common.model.Pager;
 import xin.manong.darwin.common.model.Plan;
 import xin.manong.darwin.common.model.URLRecord;
@@ -48,7 +48,7 @@ public class PlanServiceImplSuite {
         plan.planId = RandomID.build();
         plan.appId = 0;
         plan.appName = "测试应用";
-        plan.category = Constants.PLAN_CATEGORY_REPEAT;
+        plan.category = Constants.PLAN_CATEGORY_PERIOD;
         plan.status = Constants.PLAN_STATUS_RUNNING;
         plan.crontabExpression = "0 0 6-23 * * ?";
         plan.ruleIds = new ArrayList<>();
@@ -65,7 +65,7 @@ public class PlanServiceImplSuite {
         Assert.assertEquals(plan.planId, planInDB.planId);
         Assert.assertEquals("测试应用", planInDB.appName);
         Assert.assertEquals("0 0 6-23 * * ?", planInDB.crontabExpression);
-        Assert.assertEquals(Constants.PLAN_CATEGORY_REPEAT, planInDB.category.intValue());
+        Assert.assertEquals(Constants.PLAN_CATEGORY_PERIOD, planInDB.category.intValue());
         Assert.assertEquals(Constants.PLAN_STATUS_RUNNING, planInDB.status.intValue());
         Assert.assertEquals(1, planInDB.ruleIds.size());
         Assert.assertEquals(0, planInDB.ruleIds.get(0).intValue());
@@ -89,7 +89,7 @@ public class PlanServiceImplSuite {
         Assert.assertEquals(plan.planId, planInDB.planId);
         Assert.assertEquals("测试应用", planInDB.appName);
         Assert.assertEquals("0 0 6-23 * * ?", planInDB.crontabExpression);
-        Assert.assertEquals(Constants.PLAN_CATEGORY_REPEAT, planInDB.category.intValue());
+        Assert.assertEquals(Constants.PLAN_CATEGORY_PERIOD, planInDB.category.intValue());
         Assert.assertEquals(Constants.PLAN_STATUS_STOPPED, planInDB.status.intValue());
         Assert.assertEquals(1, planInDB.ruleIds.size());
         Assert.assertEquals(0, planInDB.ruleIds.get(0).intValue());
@@ -112,7 +112,7 @@ public class PlanServiceImplSuite {
         Plan plan = new Plan();
         plan.name = "测试计划";
         plan.planId = RandomID.build();
-        plan.category = Constants.PLAN_CATEGORY_REPEAT;
+        plan.category = Constants.PLAN_CATEGORY_PERIOD;
         plan.status = Constants.PLAN_STATUS_RUNNING;
         plan.appId = 1;
         plan.avoidRepeatedFetch = true;
@@ -133,12 +133,12 @@ public class PlanServiceImplSuite {
         }
         Assert.assertTrue(planService.add(plan));
 
-        String jobId = planService.execute(plan);
-        Assert.assertFalse(StringUtils.isEmpty(jobId));
+        Job job = planService.execute(plan);
+        Assert.assertFalse(job != null);
 
         URLSearchRequest request = new URLSearchRequest();
         request.status = Constants.URL_STATUS_CREATED;
-        request.jobId = jobId;
+        request.jobId = job.jobId;
         request.current = 1;
         request.size = 10;
         Pager<URLRecord> pager = urlService.search(request);

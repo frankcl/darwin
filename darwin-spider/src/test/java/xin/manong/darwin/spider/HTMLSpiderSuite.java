@@ -101,7 +101,6 @@ public class HTMLSpiderSuite {
         Assert.assertEquals(Constants.URL_STATUS_SUCCESS, record.status.intValue());
         Assert.assertEquals(OSSClient.buildURL(ossMeta), record.fetchContentURL);
         Assert.assertTrue(record.fetchTime != null && record.fetchTime > 0L);
-        Assert.assertTrue(!StringUtils.isEmpty(record.fetchContentURL));
         Assert.assertTrue(record.structureMap != null && !record.structureMap.isEmpty());
         Assert.assertTrue(record.structureMap.containsKey("title"));
         ossMeta = OSSClient.parseURL(record.fetchContentURL);

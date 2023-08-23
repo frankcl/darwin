@@ -25,8 +25,8 @@ public class ResourceSpider extends Spider {
     protected void handle(URLRecord record, Context context) throws Exception {
         SpiderResource resource = null;
         try {
-            resource = getSpiderResource(record, context);
-            if (resource == null) resource = fetchResource(record, context);
+            resource = getPreviousResource(record, context);
+            if (resource == null) resource = fetchCurrentResource(record, context);
             if (resource == null || resource.inputStream == null) return;
             record.mimeType = resource.mimeType;
             record.subMimeType = resource.subMimeType;

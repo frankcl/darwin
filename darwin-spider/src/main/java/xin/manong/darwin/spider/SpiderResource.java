@@ -4,6 +4,8 @@ import okhttp3.Response;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.Closeable;
+import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.Charset;
 
@@ -13,7 +15,7 @@ import java.nio.charset.Charset;
  * @author frankcl
  * @date 2023-08-22 15:24:58
  */
-public class SpiderResource {
+public class SpiderResource implements Closeable {
 
     private static final Logger logger = LoggerFactory.getLogger(SpiderResource.class);
 
@@ -43,6 +45,7 @@ public class SpiderResource {
     private Response httpResponse;
 
     public SpiderResource() {
+        this.guessCharset = false;
     }
 
     public SpiderResource(Response httpResponse) {
@@ -54,7 +57,8 @@ public class SpiderResource {
     /**
      * 销毁抓取资源
      */
-    public void close() {
+    @Override
+    public void close() throws IOException {
         try {
             if (inputStream != null) inputStream.close();
             if (httpResponse != null) httpResponse.close();

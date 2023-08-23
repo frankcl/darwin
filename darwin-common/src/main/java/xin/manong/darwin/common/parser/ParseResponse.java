@@ -35,8 +35,8 @@ public class ParseResponse {
             return this;
         }
 
-        public Builder followLinks(List<URLRecord> followLinks) {
-            template.followLinks = followLinks;
+        public Builder followURLs(List<URLRecord> followURLs) {
+            template.followURLs = followURLs;
             return this;
         }
 
@@ -54,7 +54,7 @@ public class ParseResponse {
             ParseResponse response = new ParseResponse();
             response.status = template.status;
             response.message = template.message;
-            response.followLinks = template.followLinks;
+            response.followURLs = template.followURLs;
             response.structureMap = template.structureMap;
             response.userDefinedMap = template.userDefinedMap;
             return response;
@@ -80,7 +80,7 @@ public class ParseResponse {
     /**
      * 抽链结果
      */
-    public List<URLRecord> followLinks;
+    public List<URLRecord> followURLs;
 
     /**
      * 构建错误响应
@@ -95,11 +95,11 @@ public class ParseResponse {
     /**
      * 构建抽链响应
      *
-     * @param followLinks 抽链列表
+     * @param followURLs 抽链列表
      * @return 抽链响应
      */
-    public static ParseResponse buildFollowLinkResponse(List<URLRecord> followLinks) {
-        return new Builder().status(true).followLinks(followLinks).build();
+    public static ParseResponse buildFollowURLsResponse(List<URLRecord> followURLs) {
+        return new Builder().status(true).followURLs(followURLs).build();
     }
 
     /**

@@ -4,7 +4,6 @@ spring:
   profiles:
     active: @profileActive@
     include: service,service-@profileActive@,queue,queue-@profileActive@
-  server: 8080
 
 app:
   spider:

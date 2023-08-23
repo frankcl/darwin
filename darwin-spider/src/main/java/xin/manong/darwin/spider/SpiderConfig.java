@@ -32,6 +32,7 @@ public class SpiderConfig {
     public int keepAliveMinutes = DEFAULT_KEEP_ALIVE_MINUTES;
     public int maxIdleConnections = DEFAULT_MAX_IDLE_CONNECTIONS;
     public int retryCnt = DEFAULT_RETRY_CNT;
+    public Boolean enableURLDispatcher = true;
     public String userAgent = DEFAULT_USER_AGENT;
     public String contentRegion;
     public String contentBucket;
@@ -43,5 +44,10 @@ public class SpiderConfig {
     @Bean(name = "spiderAspectLogger")
     public JSONLogger spiderAspectLogger() {
         return new JSONLogger(aspectLogFile, null);
+    }
+
+    @Bean
+    public URLDispatcher buildURLDispatcher() {
+        return new URLDispatcher(enableURLDispatcher, recordTopic);
     }
 }

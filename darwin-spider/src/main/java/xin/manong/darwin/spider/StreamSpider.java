@@ -45,10 +45,11 @@ public class StreamSpider extends Spider {
 
     @Override
     protected void handle(URLRecord record, Context context) throws Exception {
-        SpiderResource resource = getSpiderResource(record, context);
+        SpiderResource resource = getPreviousResource(record, context);
         String tempFile = String.format("%s/%s.mp4", config.tempDirectory, record.key);
         try {
             if (resource == null || resource.inputStream == null) {
+                record.fetchTime = System.currentTimeMillis();
                 String m3u8Body = fetchM3U8Meta(record, context);
                 if (m3u8Body.indexOf(LIVE_STREAM_FINISH_TAG) == -1) {
                     record.status = Constants.URL_STATUS_FAIL;
@@ -90,7 +91,7 @@ public class StreamSpider extends Spider {
         Process process = null;
         Long startTime = System.currentTimeMillis();
         try {
-            List<String> commands = buildFFMpegCommands(record.url, tempFile);
+            List<String> commands = buildFFMPEGCommands(record.url, tempFile);
             ProcessBuilder processBuilder = new ProcessBuilder();
             process = processBuilder.inheritIO().command(commands).start();
             int returnCode = process.waitFor();
@@ -151,7 +152,7 @@ public class StreamSpider extends Spider {
      * @param tempFilePath 本地临时文件地址
      * @return 命令
      */
-    private List<String> buildFFMpegCommands(String m3u8URL, String tempFilePath) {
+    private List<String> buildFFMPEGCommands(String m3u8URL, String tempFilePath) {
         List<String> commands = new ArrayList<>();
         commands.add(ffmpeg);
         commands.add("-user_agent");

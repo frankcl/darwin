@@ -30,8 +30,8 @@ public class JavaScriptSuite {
         ParseResponse response = javaScript.execute(request);
         Assert.assertTrue(response.status);
         Assert.assertTrue(response.structureMap == null);
-        Assert.assertEquals(1, response.followLinks.size());
-        Assert.assertEquals("http://www.sohu.com/", response.followLinks.get(0).url);
+        Assert.assertEquals(1, response.followURLs.size());
+        Assert.assertEquals("http://www.sohu.com/", response.followURLs.get(0).url);
         javaScript.close();
     }
 }

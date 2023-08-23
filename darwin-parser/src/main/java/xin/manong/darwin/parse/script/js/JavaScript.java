@@ -10,7 +10,6 @@ import xin.manong.darwin.common.model.URLRecord;
 import xin.manong.darwin.common.parser.ParseRequest;
 import xin.manong.darwin.common.parser.ParseResponse;
 import xin.manong.darwin.parse.script.Script;
-import xin.manong.weapon.base.util.RandomID;
 
 import javax.script.Invocable;
 import javax.script.ScriptEngine;
@@ -130,9 +129,9 @@ public class JavaScript extends Script {
             Map<String, Object> map = (Map<String, Object>) convertScriptObjectToMapList(scriptObjectMirror);
             if (map == null) return ParseResponse.buildErrorResponse("解析响应为空");
             ParseResponse response = JSON.toJavaObject(new JSONObject(map), ParseResponse.class);
-            if (response.status && response.followLinks != null) {
-                for (URLRecord followLink : response.followLinks) {
-                    if (followLink.url != null) followLink.hash = DigestUtils.md5Hex(followLink.url);
+            if (response.status && response.followURLs != null) {
+                for (URLRecord followURL : response.followURLs) {
+                    if (followURL.url != null) followURL.hash = DigestUtils.md5Hex(followURL.url);
                 }
             }
             return response;

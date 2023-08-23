@@ -18,6 +18,7 @@ import xin.manong.darwin.common.parser.ParseResponse;
 import xin.manong.darwin.common.util.DarwinUtil;
 import xin.manong.darwin.parse.service.ParseService;
 import xin.manong.darwin.queue.multi.MultiQueue;
+import xin.manong.darwin.queue.multi.MultiQueueStatus;
 import xin.manong.darwin.service.iface.RuleService;
 import xin.manong.weapon.aliyun.oss.OSSClient;
 import xin.manong.weapon.aliyun.oss.OSSMeta;
@@ -96,7 +97,7 @@ public class HTMLSpider extends Spider {
                 if (record.userDefinedMap == null) record.userDefinedMap = new HashMap<>();
                 record.userDefinedMap.putAll(response.userDefinedMap);
             }
-            processLinks(response.followLinks, record, context);
+            processFollowURLs(response.followURLs, record, context);
             return true;
         } finally {
             context.put(Constants.DARWIN_PARSE_TIME, System.currentTimeMillis() - startTime);
@@ -120,7 +121,7 @@ public class HTMLSpider extends Spider {
             if (!StringUtils.isEmpty(suffix)) key = String.format("%s.%s", key, suffix);
             if (!ossClient.putObject(config.contentBucket, key, bytes)) {
                 record.status = Constants.URL_STATUS_FAIL;
-                context.put(Constants.DARWIN_DEBUG_MESSAGE, "上传OSS内容失败");
+                context.put(Constants.DARWIN_DEBUG_MESSAGE, "HTML写入OSS失败");
                 return false;
             }
             OSSMeta ossMeta = new OSSMeta();
@@ -144,9 +145,9 @@ public class HTMLSpider extends Spider {
     private String fetchAndGetHTML(URLRecord record, Context context) throws Exception {
         Long startTime = System.currentTimeMillis();
         ByteArrayOutputStream outputStream = null;
-        SpiderResource resource = getSpiderResource(record, context);
+        SpiderResource resource = getPreviousResource(record, context);
         try {
-            if (resource == null) resource = fetchResource(record, context);
+            if (resource == null) resource = fetchCurrentResource(record, context);
             if (resource == null || resource.inputStream == null) return null;
             record.mimeType = resource.mimeType;
             record.subMimeType = resource.subMimeType;
@@ -156,12 +157,13 @@ public class HTMLSpider extends Spider {
             while ((n = resource.inputStream.read(buffer, 0, size)) != -1) outputStream.write(buffer, 0, n);
             byte[] body = outputStream.toByteArray();
             String charset = resource.guessCharset ? parseCharset(body, resource.charset) : CHARSET_UTF8;
+            context.put(Constants.CHARSET, charset);
             return new String(body, Charset.forName(charset));
         } catch (Exception e) {
             record.status = Constants.URL_STATUS_FAIL;
-            context.put(Constants.DARWIN_DEBUG_MESSAGE, "读取资源流异常");
+            context.put(Constants.DARWIN_DEBUG_MESSAGE, "获取HTML资源异常");
             context.put(Constants.DARWIN_STRACE_TRACE, ExceptionUtils.getStackTrace(e));
-            logger.error("read resource input stream failed");
+            logger.error("get html resource failed");
             logger.error(e.getMessage(), e);
             return null;
         } finally {
@@ -255,49 +257,73 @@ public class HTMLSpider extends Spider {
     }
 
     /**
-     * 处理抽链结果
+     * 处理抽链URL列表
      *
-     * @param records 抽链数据列表
-     * @param parentRecord 父链接
+     * @param followURLs 抽链URL列表
+     * @param parentRecord 父链URL
      * @param context 上下文
      */
-    private void processLinks(List<URLRecord> records, URLRecord parentRecord, Context context) {
-        if (records == null || records.isEmpty()) return;
-        int discardLinkNum = 0;
-        for (URLRecord record : records) {
-            Context linkContext = new Context();
-            try {
-                record.appId = parentRecord.appId;
-                record.jobId = parentRecord.jobId;
-                record.parentURL = parentRecord.url;
-                record.depth = parentRecord.depth + 1;
-                record.status = Constants.URL_STATUS_CREATED;
-                if (record.priority == null) record.priority = parentRecord.priority;
-                if (record.concurrentLevel == null) record.concurrentLevel = parentRecord.concurrentLevel;
-                if (record.fetchMethod == null) record.fetchMethod = parentRecord.fetchMethod;
-                if (parentRecord.userDefinedMap != null && !parentRecord.userDefinedMap.isEmpty()) {
-                    Map<String, Object> userDefinedMap = record.userDefinedMap;
-                    record.userDefinedMap = new HashMap<>();
-                    record.userDefinedMap.putAll(parentRecord.userDefinedMap);
-                    record.userDefinedMap.putAll(userDefinedMap);
-                }
-                if (!record.check()) {
-                    discardLinkNum++;
-                    logger.warn("follow link[{}] is invalid for parent url[{}]", record.url, parentRecord.url);
-                    continue;
-                }
-                multiQueue.push(record, 3);
-            } catch (Exception e) {
-                linkContext.put(Constants.DARWIN_DEBUG_MESSAGE, "处理抽链异常");
-                linkContext.put(Constants.DARWIN_STRACE_TRACE, ExceptionUtils.getStackTrace(e));
-                logger.error(e.getMessage(), e);
-            } finally {
-                DarwinUtil.putContext(linkContext, record);
-                linkContext.put(Constants.DARWIN_RECORD_TYPE, Constants.RECORD_TYPE_FOLLOW_LINK);
-                if (aspectLogger != null) aspectLogger.commit(linkContext.getFeatureMap());
-            }
+    private void processFollowURLs(List<URLRecord> followURLs, URLRecord parentRecord, Context context) {
+        context.put(Constants.FOLLOW_URL_COUNT, followURLs == null || followURLs.isEmpty() ? 0 : followURLs.size());
+        if (followURLs == null || followURLs.isEmpty()) return;
+        int failedFollowURLCount = 0;
+        for (URLRecord followURL : followURLs) {
+            if (processFollowURL(followURL, parentRecord)) continue;
+            failedFollowURLCount++;
         }
-        context.put(Constants.FOLLOW_LINK_NUM, records.size());
-        context.put(Constants.DISCARD_FOLLOW_LINK_NUM, discardLinkNum);
+        context.put(Constants.FAILED_FOLLOW_URL_COUNT, failedFollowURLCount);
+    }
+
+    /**
+     * 处理抽链URL
+     *
+     * @param followURL 抽链URL
+     * @param parentRecord 父链URL
+     * @return 处理成功返回true，否则返回false
+     */
+    private boolean processFollowURL(URLRecord followURL, URLRecord parentRecord) {
+        Context context = new Context();
+        try {
+            followURL.appId = parentRecord.appId;
+            followURL.jobId = parentRecord.jobId;
+            followURL.parentURL = parentRecord.url;
+            followURL.depth = parentRecord.depth + 1;
+            followURL.status = Constants.URL_STATUS_CREATED;
+            if (followURL.priority == null) followURL.priority = parentRecord.priority;
+            if (followURL.concurrentLevel == null) followURL.concurrentLevel = parentRecord.concurrentLevel;
+            if (followURL.fetchMethod == null) followURL.fetchMethod = parentRecord.fetchMethod;
+            if (parentRecord.userDefinedMap != null && !parentRecord.userDefinedMap.isEmpty()) {
+                Map<String, Object> userDefinedMap = followURL.userDefinedMap;
+                followURL.userDefinedMap = new HashMap<>();
+                followURL.userDefinedMap.putAll(parentRecord.userDefinedMap);
+                followURL.userDefinedMap.putAll(userDefinedMap);
+            }
+            if (!followURL.check()) {
+                context.put(Constants.DARWIN_DEBUG_MESSAGE, "非法抽链结果");
+                logger.warn("follow URL[{}] is invalid for parent URL[{}]", followURL.url, parentRecord.url);
+                return false;
+            }
+            if (!urlService.add(followURL)) {
+                context.put(Constants.DARWIN_DEBUG_MESSAGE, "新增抽链结果失败");
+                logger.warn("add follow URL[{}] failed for parent URL[{}]", followURL.url, parentRecord.url);
+                return false;
+            }
+            MultiQueueStatus status = multiQueue.push(followURL, 3);
+            if (status != MultiQueueStatus.OK) {
+                context.put(Constants.DARWIN_DEBUG_MESSAGE, String.format("抽链结果添加MultiQueue失败[%s]", status.name()));
+                logger.warn("push follow URL[{}] into MultiQueue failed, status[{}]", followURL.url, status.name());
+                return false;
+            }
+            return true;
+        } catch (Exception e) {
+            context.put(Constants.DARWIN_DEBUG_MESSAGE, "处理抽链结果异常");
+            context.put(Constants.DARWIN_STRACE_TRACE, ExceptionUtils.getStackTrace(e));
+            logger.error(e.getMessage(), e);
+            return false;
+        } finally {
+            DarwinUtil.putContext(context, followURL);
+            context.put(Constants.DARWIN_RECORD_TYPE, Constants.RECORD_TYPE_FOLLOW_URL);
+            if (aspectLogger != null) aspectLogger.commit(context.getFeatureMap());
+        }
     }
 }

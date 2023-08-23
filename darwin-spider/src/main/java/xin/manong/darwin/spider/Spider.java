@@ -1,9 +1,5 @@
 package xin.manong.darwin.spider;
 
-import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.serializer.SerializerFeature;
-import com.aliyun.openservices.ons.api.Message;
-import com.aliyun.openservices.ons.api.SendResult;
 import okhttp3.MediaType;
 import okhttp3.Response;
 import okhttp3.ResponseBody;
@@ -23,7 +19,6 @@ import xin.manong.darwin.service.iface.JobService;
 import xin.manong.darwin.service.iface.URLService;
 import xin.manong.darwin.service.listener.JobListener;
 import xin.manong.darwin.service.request.URLSearchRequest;
-import xin.manong.weapon.aliyun.ons.ONSProducer;
 import xin.manong.weapon.aliyun.oss.OSSClient;
 import xin.manong.weapon.aliyun.oss.OSSMeta;
 import xin.manong.weapon.base.common.Context;
@@ -36,7 +31,6 @@ import xin.manong.weapon.base.util.CommonUtil;
 
 import javax.annotation.Resource;
 import java.io.InputStream;
-import java.nio.charset.Charset;
 
 /**
  * 爬虫抽象实现
@@ -72,9 +66,9 @@ public abstract class Spider {
     @Resource
     protected ConcurrentManager concurrentManager;
     @Resource
-    protected JobListener jobListener;
+    protected URLDispatcher dispatcher;
     @Resource
-    protected ONSProducer producer;
+    protected JobListener jobListener;
     protected HttpClient httpClient;
 
     public Spider(String category) {
@@ -108,44 +102,6 @@ public abstract class Spider {
     }
 
     /**
-     * 抓取URL
-     *
-     * @param record URL记录
-     * @param context 上下文
-     * @return 抓取响应，失败返回null
-     */
-    protected Response fetch(URLRecord record, Context context) {
-        try {
-            buildHttpClient();
-            HttpRequest httpRequest = new HttpRequest.Builder().requestURL(record.url).method(RequestMethod.GET).build();
-            if (!StringUtils.isEmpty(config.userAgent)) httpRequest.headers.put("User-Agent", config.userAgent);
-            if (!StringUtils.isEmpty(record.parentURL)) httpRequest.headers.put("Referer", record.parentURL);
-            String host = CommonUtil.getHost(record.url);
-            if (!StringUtils.isEmpty(host) && !CommonUtil.isIP(host)) httpRequest.headers.put("Host", host);
-            if (record.headers != null && !record.headers.isEmpty()) httpRequest.headers.putAll(record.headers);
-            Response httpResponse = httpClient.execute(httpRequest);
-            if (httpResponse != null) context.put(Constants.HTTP_CODE, httpResponse.code());
-            if (httpResponse == null || !httpResponse.isSuccessful()) {
-                if (httpResponse != null) httpResponse.close();
-                record.status = Constants.URL_STATUS_FAIL;
-                context.put(Constants.DARWIN_DEBUG_MESSAGE, "抓取失败");
-                logger.error("execute http request failed for url[{}]", record.url);
-                return null;
-            }
-            String targetURL = httpResponse.request().url().url().toString();
-            if (!StringUtils.isEmpty(targetURL) && !targetURL.equals(record.url)) record.redirectURL = targetURL;
-            return httpResponse;
-        } catch (Exception e) {
-            record.status = Constants.URL_STATUS_FAIL;
-            context.put(Constants.DARWIN_DEBUG_MESSAGE, "抓取异常");
-            context.put(Constants.DARWIN_STRACE_TRACE, ExceptionUtils.getStackTrace(e));
-            logger.error("fetch content error for url[{}]", record.url);
-            logger.error(e.getMessage(), e);
-            return null;
-        }
-    }
-
-    /**
      * 构建HTTPClient
      */
     protected void buildHttpClient() {
@@ -160,7 +116,7 @@ public abstract class Spider {
     }
 
     /**
-     * 获取相同URL抓取资源，避免重复抓取
+     * 获取以前抓取资源，避免重复抓取
      * 满足以下条件可以使用以前抓取资源
      * 1. 任务设置避免重复抓取
      * 2. URL在一天内抓取过
@@ -170,7 +126,7 @@ public abstract class Spider {
      * @param context 上下文
      * @return 成功返回抓取资源，否则返回null
      */
-    protected SpiderResource getSpiderResource(URLRecord record, Context context) {
+    protected SpiderResource getPreviousResource(URLRecord record, Context context) {
         if (context == null || !context.contains(Constants.AVOID_REPEATED_FETCH) ||
                 !((boolean) context.get(Constants.AVOID_REPEATED_FETCH))) return null;
         URLSearchRequest searchRequest = new URLSearchRequest();
@@ -186,7 +142,7 @@ public abstract class Spider {
         URLRecord prevRecord = pager.records.get(0);
         if (StringUtils.isEmpty(prevRecord.fetchContentURL)) return null;
         OSSMeta ossMeta = OSSClient.parseURL(prevRecord.fetchContentURL);
-        if (!ossClient.exist(ossMeta.bucket, ossMeta.key)) return null;
+        if (ossMeta == null || !ossClient.exist(ossMeta.bucket, ossMeta.key)) return null;
         InputStream inputStream = ossClient.getObjectStream(ossMeta.bucket, ossMeta.key);
         if (inputStream == null) return null;
         SpiderResource spiderResource = new SpiderResource();
@@ -197,62 +153,19 @@ public abstract class Spider {
     }
 
     /**
-     * 抓取数据
+     * 抓取当前资源
      *
      * @param record URL数据
      * @param context 上下文
      * @return 成功返回抓取资源，否则返回null
      */
-    protected SpiderResource fetchResource(URLRecord record, Context context) {
+    protected SpiderResource fetchCurrentResource(URLRecord record, Context context) {
         Response httpResponse = fetch(record, context);
         record.fetchTime = System.currentTimeMillis();
         if (httpResponse == null) return null;
         SpiderResource spiderResource = new SpiderResource(httpResponse);
         fillMimeTypeAndCharset(spiderResource, httpResponse);
         return spiderResource;
-    }
-
-    /**
-     * 推送结束抓取记录
-     *
-     * @param record URL记录
-     * @param context 上下文
-     */
-    private void pushFinishRecord(URLRecord record, Context context) {
-        try {
-            String recordString = JSON.toJSONString(record, SerializerFeature.DisableCircularReferenceDetect);
-            Message message = new Message(config.recordTopic, String.format("%d", record.appId), record.key,
-                    recordString.getBytes(Charset.forName("UTF-8")));
-            SendResult sendResult = producer.send(message);
-            if (sendResult == null || StringUtils.isEmpty(sendResult.getMessageId())) {
-                context.put(Constants.DARWIN_DEBUG_MESSAGE, "推送消息失败");
-                logger.warn("push record finish message failed for key[{}]", record.key);
-                return;
-            }
-            context.put(Constants.DARWIN_MESSAGE_ID, sendResult.getMessageId());
-            context.put(Constants.DARWIN_MESSAGE_KEY, record.key);
-        } catch (Exception e) {
-            context.put(Constants.DARWIN_DEBUG_MESSAGE, "推送消息异常");
-            context.put(Constants.DARWIN_STRACE_TRACE, ExceptionUtils.getStackTrace(e));
-            logger.error("push record finish message failed for key[{}]", record.key);
-            logger.error(e.getMessage(), e);
-        }
-    }
-
-    /**
-     * 根据HTTP响应填充MimeType和字符编码
-     *
-     * @param spiderResource 抓取结果资源
-     * @param response HTTP响应
-     */
-    protected void fillMimeTypeAndCharset(SpiderResource spiderResource, Response response) {
-        if (response == null || !response.isSuccessful()) return;
-        ResponseBody responseBody = response.body();
-        MediaType mediaType = responseBody.contentType();
-        if (mediaType == null) return;
-        spiderResource.mimeType = mediaType.type();
-        spiderResource.subMimeType = mediaType.subtype();
-        spiderResource.charset = mediaType.charset();
     }
 
     /**
@@ -273,6 +186,60 @@ public abstract class Spider {
     }
 
     /**
+     * 根据HTTP响应填充MimeType和字符编码
+     *
+     * @param spiderResource 抓取结果资源
+     * @param response HTTP响应
+     */
+    private void fillMimeTypeAndCharset(SpiderResource spiderResource, Response response) {
+        if (response == null || !response.isSuccessful()) return;
+        ResponseBody responseBody = response.body();
+        MediaType mediaType = responseBody.contentType();
+        if (mediaType == null) return;
+        spiderResource.mimeType = mediaType.type();
+        spiderResource.subMimeType = mediaType.subtype();
+        spiderResource.charset = mediaType.charset();
+    }
+
+    /**
+     * 抓取URL
+     *
+     * @param record URL记录
+     * @param context 上下文
+     * @return 抓取响应，失败返回null
+     */
+    private Response fetch(URLRecord record, Context context) {
+        try {
+            buildHttpClient();
+            HttpRequest httpRequest = new HttpRequest.Builder().requestURL(record.url).method(RequestMethod.GET).build();
+            if (!StringUtils.isEmpty(config.userAgent)) httpRequest.headers.put("User-Agent", config.userAgent);
+            if (!StringUtils.isEmpty(record.parentURL)) httpRequest.headers.put("Referer", record.parentURL);
+            String host = CommonUtil.getHost(record.url);
+            if (!StringUtils.isEmpty(host) && !CommonUtil.isIP(host)) httpRequest.headers.put("Host", host);
+            if (record.headers != null && !record.headers.isEmpty()) httpRequest.headers.putAll(record.headers);
+            Response httpResponse = httpClient.execute(httpRequest);
+            if (httpResponse != null) context.put(Constants.HTTP_CODE, httpResponse.code());
+            if (httpResponse == null || !httpResponse.isSuccessful()) {
+                if (httpResponse != null) httpResponse.close();
+                record.status = Constants.URL_STATUS_FAIL;
+                context.put(Constants.DARWIN_DEBUG_MESSAGE, "执行HTTP请求失败");
+                logger.error("execute http request failed for url[{}]", record.url);
+                return null;
+            }
+            String targetURL = httpResponse.request().url().url().toString();
+            if (!StringUtils.isEmpty(targetURL) && !targetURL.equals(record.url)) record.redirectURL = targetURL;
+            return httpResponse;
+        } catch (Exception e) {
+            record.status = Constants.URL_STATUS_FAIL;
+            context.put(Constants.DARWIN_DEBUG_MESSAGE, "执行HTTP请求异常");
+            context.put(Constants.DARWIN_STRACE_TRACE, ExceptionUtils.getStackTrace(e));
+            logger.error("fetch content error for url[{}]", record.url);
+            logger.error(e.getMessage(), e);
+            return null;
+        }
+    }
+
+    /**
      * 处理抓取数据
      *
      * @param record URL记录
@@ -285,19 +252,17 @@ public abstract class Spider {
             if (job != null && job.avoidRepeatedFetch) context.put(Constants.AVOID_REPEATED_FETCH, true);
             handle(record, context);
         } catch (Throwable t) {
-            context.put(Constants.DARWIN_DEBUG_MESSAGE, "抓取处理数据异常");
+            context.put(Constants.DARWIN_DEBUG_MESSAGE, "抓取数据异常");
             context.put(Constants.DARWIN_STRACE_TRACE, ExceptionUtils.getStackTrace(t));
-            logger.error("process record error for url[{}]", record.url);
+            logger.error("fetch record error for url[{}]", record.url);
             logger.error(t.getMessage(), t);
         } finally {
             if (!urlService.updateResult(record)) logger.warn("update fetch content failed for url[{}]", record.url);
             multiQueue.removeFromJobRecordMap(record);
             String concurrentUnit = ConcurrentUnitComputer.compute(record);
             concurrentManager.removeConnectionRecord(concurrentUnit, record.key);
-            pushFinishRecord(record, context);
+            dispatcher.dispatch(record, context);
             if (multiQueue.isEmptyJobRecordMap(record.jobId)) jobListener.onFinish(new Job(record.jobId, record.appId));
-            if (!StringUtils.isEmpty(record.mimeType)) context.put(Constants.MIME_TYPE, record.mimeType);
-            if (!StringUtils.isEmpty(record.subMimeType)) context.put(Constants.SUB_MIME_TYPE, record.subMimeType);
             context.put(Constants.DARWIN_PROCESS_TIME, System.currentTimeMillis() - startTime);
         }
     }

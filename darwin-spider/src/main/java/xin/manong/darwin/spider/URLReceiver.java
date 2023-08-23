@@ -42,8 +42,7 @@ public class URLReceiver implements MessageListener {
         try {
             if (!StringUtils.isEmpty(message.getMsgID())) context.put(Constants.DARWIN_MESSAGE_ID, message.getMsgID());
             if (!StringUtils.isEmpty(message.getKey())) context.put(Constants.DARWIN_MESSAGE_KEY, message.getKey());
-            if (!StringUtils.isEmpty(message.getTopic()))
-                context.put(Constants.DARWIN_MESSAGE_TOPIC, message.getTopic());
+            if (!StringUtils.isEmpty(message.getTopic())) context.put(Constants.DARWIN_MESSAGE_TOPIC, message.getTopic());
             context.put(Constants.DARWIN_MESSAGE_TIMESTAMP, message.getBornTimestamp());
             byte[] body = message.getBody();
             if (body == null || body.length == 0) {
