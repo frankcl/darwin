@@ -51,7 +51,7 @@ public class HTMLSpiderSuite {
     }
 
     private Job prepareJobAndHTMLRule() throws Exception {
-        InputStream inputStream = this.getClass().getResourceAsStream("/rule_script_1");
+        InputStream inputStream = this.getClass().getResourceAsStream("/html_rule_script");
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
         try {
             int bufferSize = 4096, n;
@@ -88,7 +88,7 @@ public class HTMLSpiderSuite {
     }
 
     private Job prepareJobAndJSONRule() throws Exception {
-        InputStream inputStream = this.getClass().getResourceAsStream("/rule_script_2");
+        InputStream inputStream = this.getClass().getResourceAsStream("/json_rule_script");
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
         try {
             int bufferSize = 4096, n;
