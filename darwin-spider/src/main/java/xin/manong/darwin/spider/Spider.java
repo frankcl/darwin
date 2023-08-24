@@ -83,7 +83,7 @@ public abstract class Spider {
      * @param context 上下文
      * @return 成功返回true，否则返回false
      */
-    protected boolean writeContent(URLRecord record, InputStream inputStream, Context context) {
+    protected boolean writeStream(URLRecord record, InputStream inputStream, Context context) {
         String key = String.format("%s/%s/%s", config.contentDirectory, category, record.key);
         String suffix = buildResourceFileSuffix(record);
         if (!StringUtils.isEmpty(suffix)) key = String.format("%s.%s", key, suffix);

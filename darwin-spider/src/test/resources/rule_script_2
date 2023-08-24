@@ -1,0 +1,20 @@
+import com.alibaba.fastjson.JSONObject;
+import xin.manong.darwin.common.parser.ParseRequest;
+import xin.manong.darwin.common.parser.ParseResponse;
+import xin.manong.darwin.parse.parser.Parser;
+
+class WebParser extends Parser {
+
+    @Override
+    public ParseResponse parse(ParseRequest request) {
+        Map<String, Object> structureMap = new HashMap<>();
+        JSONObject body = JSONObject.parseObject(request.content);
+        if (!body.containsKey("status") || !body.getBooleanValue("status")) {
+            logger.error("parse content failed");
+            return ParseResponse.buildErrorResponse("解析失败");
+        }
+        int size = body.containsKey("data") ? body.getJSONArray("data").size() : 0;
+        structureMap.put("result_size", size);
+        return ParseResponse.buildStructureResponse(structureMap, null);
+    }
+}

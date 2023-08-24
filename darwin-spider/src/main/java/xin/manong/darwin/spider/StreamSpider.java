@@ -68,7 +68,7 @@ public class StreamSpider extends Spider {
             }
             Long startTime = System.currentTimeMillis();
             try {
-                if (!writeContent(record, resource.inputStream, context)) return;
+                if (!writeStream(record, resource.inputStream, context)) return;
                 record.status = Constants.URL_STATUS_SUCCESS;
             } finally {
                 context.put(Constants.DARWIN_WRITE_TIME, System.currentTimeMillis() - startTime);

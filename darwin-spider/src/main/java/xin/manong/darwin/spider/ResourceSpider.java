@@ -31,7 +31,7 @@ public class ResourceSpider extends Spider {
             record.mimeType = resource.mimeType;
             record.subMimeType = resource.subMimeType;
             record.fetchTime = System.currentTimeMillis();
-            if (!writeContent(record, resource.inputStream, context)) return;
+            if (!writeStream(record, resource.inputStream, context)) return;
             record.status = Constants.URL_STATUS_SUCCESS;
         } finally {
             if (resource != null) resource.close();

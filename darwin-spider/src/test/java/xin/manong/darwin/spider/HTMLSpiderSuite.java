@@ -45,8 +45,13 @@ public class HTMLSpiderSuite {
     @Resource
     protected HTMLSpider spider;
 
-    private void prepareJobAndRule() throws Exception {
-        InputStream inputStream = this.getClass().getResourceAsStream("/rule_script");
+    private void sweepJobAndRule(Job job) {
+        for (Integer ruleId : job.ruleIds) Assert.assertTrue(ruleService.delete((long) ruleId));
+        Assert.assertTrue(jobService.delete(job.jobId));
+    }
+
+    private Job prepareJobAndHTMLRule() throws Exception {
+        InputStream inputStream = this.getClass().getResourceAsStream("/rule_script_1");
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
         try {
             int bufferSize = 4096, n;
@@ -75,6 +80,44 @@ public class HTMLSpiderSuite {
             job.ruleIds = new ArrayList<>();
             job.ruleIds.add(rule.id.intValue());
             Assert.assertTrue(jobService.add(job));
+            return job;
+        } finally {
+            if (outputStream != null) outputStream.close();
+            if (inputStream != null) inputStream.close();
+        }
+    }
+
+    private Job prepareJobAndJSONRule() throws Exception {
+        InputStream inputStream = this.getClass().getResourceAsStream("/rule_script_2");
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        try {
+            int bufferSize = 4096, n;
+            byte[] buffer = new byte[bufferSize];
+            while ((n = inputStream.read(buffer, 0, bufferSize)) != -1) {
+                outputStream.write(buffer, 0, n);
+            }
+            Rule rule = new Rule();
+            rule.domain = "shuwen.com";
+            rule.name = "JSON解析规则";
+            rule.regex = "http://external-data-service.shuwen.com/report/histogram";
+            rule.ruleGroup = 1L;
+            rule.category = Constants.RULE_CATEGORY_STRUCTURE;
+            rule.scriptType = Constants.SCRIPT_TYPE_GROOVY;
+            rule.script = new String(outputStream.toByteArray(), Charset.forName("UTF-8"));
+            Assert.assertTrue(ruleService.add(rule));
+
+            Job job = new Job();
+            job.jobId = "aaa";
+            job.name = "测试任务";
+            job.priority = Constants.PRIORITY_NORMAL;
+            job.planId = "xxx";
+            job.appId = 1;
+            job.status = Constants.JOB_STATUS_RUNNING;
+            job.avoidRepeatedFetch = true;
+            job.ruleIds = new ArrayList<>();
+            job.ruleIds.add(rule.id.intValue());
+            Assert.assertTrue(jobService.add(job));
+            return job;
         } finally {
             if (outputStream != null) outputStream.close();
             if (inputStream != null) inputStream.close();
@@ -84,44 +127,84 @@ public class HTMLSpiderSuite {
     @Test
     @Rollback
     @Transactional
-    public void testFetchSuccess() throws Exception {
-        prepareJobAndRule();
-        String url = "http://politics.people.com.cn/n1/2023/0406/c1001-32658085.html";
-        URLRecord record = new URLRecord(url);
-        record.category = Constants.CONTENT_CATEGORY_TEXT;
-        record.jobId = "aaa";
-        record.appId = 1;
-        Context context = new Context();
-        spider.process(record, context);
-        String key = String.format("%s/%s/%s.html", config.contentDirectory, "html", record.key);
-        OSSMeta ossMeta = new OSSMeta();
-        ossMeta.region = config.contentRegion;
-        ossMeta.bucket = config.contentBucket;
-        ossMeta.key = key;
-        Assert.assertEquals(Constants.URL_STATUS_SUCCESS, record.status.intValue());
-        Assert.assertEquals(OSSClient.buildURL(ossMeta), record.fetchContentURL);
-        Assert.assertTrue(record.fetchTime != null && record.fetchTime > 0L);
-        Assert.assertTrue(record.structureMap != null && !record.structureMap.isEmpty());
-        Assert.assertTrue(record.structureMap.containsKey("title"));
-        ossMeta = OSSClient.parseURL(record.fetchContentURL);
-        Assert.assertTrue(ossClient.exist(ossMeta.bucket, ossMeta.key));
-        ossClient.deleteObject(ossMeta.bucket, ossMeta.key);
+    public void testFetchHTML() throws Exception {
+        Job job = prepareJobAndHTMLRule();
+        try {
+            String url = "http://politics.people.com.cn/n1/2023/0406/c1001-32658085.html";
+            URLRecord record = new URLRecord(url);
+            record.category = Constants.CONTENT_CATEGORY_TEXT;
+            record.jobId = "aaa";
+            record.appId = 1;
+            Context context = new Context();
+            spider.process(record, context);
+            String key = String.format("%s/%s/%s.html", config.contentDirectory, "html", record.key);
+            OSSMeta ossMeta = new OSSMeta();
+            ossMeta.region = config.contentRegion;
+            ossMeta.bucket = config.contentBucket;
+            ossMeta.key = key;
+            Assert.assertEquals(Constants.URL_STATUS_SUCCESS, record.status.intValue());
+            Assert.assertEquals(OSSClient.buildURL(ossMeta), record.fetchContentURL);
+            Assert.assertTrue(record.fetchTime != null && record.fetchTime > 0L);
+            Assert.assertTrue(record.structureMap != null && !record.structureMap.isEmpty());
+            Assert.assertTrue(record.structureMap.containsKey("title"));
+            ossMeta = OSSClient.parseURL(record.fetchContentURL);
+            Assert.assertTrue(ossClient.exist(ossMeta.bucket, ossMeta.key));
+            ossClient.deleteObject(ossMeta.bucket, ossMeta.key);
+        } finally {
+            sweepJobAndRule(job);
+        }
+    }
+
+    @Test
+    @Rollback
+    @Transactional
+    public void testFetchJSON() throws Exception {
+        Job job = prepareJobAndJSONRule();
+        try {
+            String url = "http://external-data-service.shuwen.com/report/histogram";
+            URLRecord record = new URLRecord(url);
+            record.category = Constants.CONTENT_CATEGORY_TEXT;
+            record.jobId = "aaa";
+            record.appId = 1;
+            Context context = new Context();
+            spider.process(record, context);
+            String key = String.format("%s/%s/%s.json", config.contentDirectory, "html", record.key);
+            OSSMeta ossMeta = new OSSMeta();
+            ossMeta.region = config.contentRegion;
+            ossMeta.bucket = config.contentBucket;
+            ossMeta.key = key;
+            Assert.assertEquals(Constants.URL_STATUS_SUCCESS, record.status.intValue());
+            Assert.assertEquals(OSSClient.buildURL(ossMeta), record.fetchContentURL);
+            Assert.assertTrue(record.fetchTime != null && record.fetchTime > 0L);
+            Assert.assertTrue(record.structureMap != null && !record.structureMap.isEmpty());
+            Assert.assertTrue(record.structureMap.containsKey("result_size"));
+            Assert.assertEquals(7, (int) record.structureMap.get("result_size"));
+            ossMeta = OSSClient.parseURL(record.fetchContentURL);
+            Assert.assertTrue(ossClient.exist(ossMeta.bucket, ossMeta.key));
+            ossClient.deleteObject(ossMeta.bucket, ossMeta.key);
+        } finally {
+            sweepJobAndRule(job);
+        }
     }
 
     @Test
     @Rollback
     @Transactional
     public void testFetchFail() throws Exception {
-        prepareJobAndRule();
-        String url = "http://politics.people.com.cn/n1/2023/0406/c1001-32658085111.html";
-        URLRecord record = new URLRecord(url);
-        record.category = Constants.CONTENT_CATEGORY_TEXT;
-        record.jobId = "aaa";
-        record.appId = 1;
-        Context context = new Context();
-        spider.process(record, context);
-        Assert.assertEquals(Constants.URL_STATUS_FAIL, record.status.intValue());
-        Assert.assertTrue(record.fetchTime != null && record.fetchTime > 0L);
-        Assert.assertTrue(StringUtils.isEmpty(record.fetchContentURL));
+        Job job = prepareJobAndHTMLRule();
+        try {
+            String url = "http://politics.people.com.cn/n1/2023/0406/c1001-32658085111.html";
+            URLRecord record = new URLRecord(url);
+            record.category = Constants.CONTENT_CATEGORY_TEXT;
+            record.jobId = "aaa";
+            record.appId = 1;
+            Context context = new Context();
+            spider.process(record, context);
+            Assert.assertEquals(Constants.URL_STATUS_FAIL, record.status.intValue());
+            Assert.assertTrue(record.fetchTime != null && record.fetchTime > 0L);
+            Assert.assertTrue(StringUtils.isEmpty(record.fetchContentURL));
+        } finally {
+            sweepJobAndRule(job);
+        }
     }
 }
