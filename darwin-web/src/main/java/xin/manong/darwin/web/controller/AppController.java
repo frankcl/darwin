@@ -107,6 +107,8 @@ public class AppController {
             throw new BadRequestException("应用信息非法");
         }
         app.id = null;
+        app.createTime = null;
+        app.updateTime = null;
         return appService.add(app);
     }
 
@@ -130,6 +132,8 @@ public class AppController {
             logger.error("app is not found for id[{}]", app.id);
             throw new NotFoundException(String.format("应用[%d]不存在", app.id));
         }
+        app.createTime = null;
+        app.updateTime = null;
         return appService.update(app);
     }
 

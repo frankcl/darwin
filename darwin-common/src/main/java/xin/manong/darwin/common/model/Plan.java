@@ -47,7 +47,7 @@ public class Plan extends Model {
     @TableField(value = "avoid_repeated_fetch")
     @JSONField(name = "avoid_repeated_fetch")
     @JsonProperty("avoid_repeated_fetch")
-    public Boolean avoidRepeatedFetch = true;
+    public Boolean avoidRepeatedFetch;
 
     /**
      * 计划状态
@@ -175,6 +175,7 @@ public class Plan extends Model {
             seedRecord.rebuildKey();
             seedRecord.appId = job.appId;
             seedRecord.jobId = job.jobId;
+            seedRecord.planId = job.planId;
             seedRecord.status = Constants.URL_STATUS_CREATED;
             if (seedRecord.category == null) seedRecord.category = Constants.CONTENT_CATEGORY_LIST;
             if (seedRecord.concurrentLevel == null) seedRecord.concurrentLevel = Constants.CONCURRENT_LEVEL_DOMAIN;
@@ -232,12 +233,6 @@ public class Plan extends Model {
         if (avoidRepeatedFetch == null) avoidRepeatedFetch = true;
         if (priority == null) priority = Constants.PRIORITY_NORMAL;
         if (status == null) status = Constants.PLAN_STATUS_RUNNING;
-        if (seedURLs != null) {
-            for (URLRecord record : seedURLs) {
-                if (record.category == null) record.category = Constants.CONTENT_CATEGORY_LIST;
-                if (record.priority == null) record.priority = priority;
-            }
-        }
         return true;
     }
 }

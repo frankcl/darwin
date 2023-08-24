@@ -11,15 +11,15 @@ import java.io.Serializable;
 import java.util.List;
 
 /**
- * 消费型计划种子URL补充请求
+ * 执行计划请求
  *
  * @author frankcl
  * @date 2023-04-24 14:22:47
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class ConsumedPlanSeedRequest implements Serializable {
+public class ExecuteRequest implements Serializable {
 
-    private static final Logger logger = LoggerFactory.getLogger(ConsumedPlanSeedRequest.class);
+    private static final Logger logger = LoggerFactory.getLogger(ExecuteRequest.class);
 
     /**
      * 计划ID
@@ -28,6 +28,8 @@ public class ConsumedPlanSeedRequest implements Serializable {
     public String planId;
     /**
      * 种子URL列表
+     * 一次性计划：种子列表为空，使用原先种子列表
+     * 周期性计划：忽略种子列表
      */
     @JsonProperty("seed_urls")
     public List<URLRecord> seedURLs;
@@ -40,10 +42,6 @@ public class ConsumedPlanSeedRequest implements Serializable {
     public boolean check() {
         if (StringUtils.isEmpty(planId)) {
             logger.error("plan id is empty");
-            return false;
-        }
-        if (seedURLs == null || seedURLs.isEmpty()) {
-            logger.error("seed URL list are empty");
             return false;
         }
         return true;

@@ -97,7 +97,8 @@ public class RuleServiceImpl extends RuleService {
             return false;
         }
         if (rule.category != null && rule.category == Constants.RULE_CATEGORY_GLOBAL_LINK_FOLLOW &&
-            record.category != null && record.category == Constants.CONTENT_CATEGORY_LIST) {
+                (record.category == null || (record.category != null &&
+                        record.category == Constants.CONTENT_CATEGORY_LIST))) {
             return true;
         }
         if (rule == null || StringUtils.isEmpty(rule.regex)) {

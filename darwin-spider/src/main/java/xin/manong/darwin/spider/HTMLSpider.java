@@ -286,6 +286,7 @@ public class HTMLSpider extends Spider {
         try {
             followURL.appId = parentRecord.appId;
             followURL.jobId = parentRecord.jobId;
+            followURL.planId = parentRecord.planId;
             followURL.parentURL = parentRecord.url;
             followURL.depth = parentRecord.depth + 1;
             followURL.status = Constants.URL_STATUS_CREATED;

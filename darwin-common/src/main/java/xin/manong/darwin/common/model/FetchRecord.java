@@ -64,6 +64,15 @@ public class FetchRecord extends Model {
     public String jobId;
 
     /**
+     * 计划ID
+     */
+    @TableField(value = "plan_id")
+    @Column(name = "plan_id")
+    @JSONField(name = "plan_id")
+    @JsonProperty("plan_id")
+    public String planId;
+
+    /**
      * 抓取时间
      */
     @TableField(value = "fetch_time")
@@ -169,6 +178,7 @@ public class FetchRecord extends Model {
         this.hash = record.hash;
         this.url = record.url;
         this.jobId = record.jobId;
+        this.planId = record.planId;
         this.fetchTime = record.fetchTime;
         this.parentURL = record.parentURL;
         this.redirectURL = record.redirectURL;
@@ -212,6 +222,10 @@ public class FetchRecord extends Model {
         }
         if (StringUtils.isEmpty(jobId)) {
             logger.error("job id is empty");
+            return false;
+        }
+        if (StringUtils.isEmpty(planId)) {
+            logger.error("plan id is empty");
             return false;
         }
         if (status == null) status = Constants.URL_STATUS_CREATED;

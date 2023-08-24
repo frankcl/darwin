@@ -57,11 +57,11 @@ public class RuleController {
      * @param request 规则搜索请求
      * @return 规则分页列表
      */
-    @GET
+    @POST
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     @Path("search")
-    @GetMapping("search")
+    @PostMapping("search")
     public Pager<Rule> search(RuleSearchRequest request) {
         if (request == null) request = new RuleSearchRequest();
         if (request.current == null || request.current < 1) request.current = 1;
@@ -90,6 +90,8 @@ public class RuleController {
             throw new NotFoundException(String.format("规则分组[%d]不存在", rule.ruleGroup));
         }
         rule.id = null;
+        rule.createTime = null;
+        rule.updateTime = null;
         return ruleService.add(rule);
     }
 
@@ -113,6 +115,8 @@ public class RuleController {
             logger.error("rule[{}] is not found", rule.id);
             throw new NotFoundException(String.format("规则[%d]不存在", rule.id));
         }
+        rule.createTime = null;
+        rule.updateTime = null;
         return ruleService.update(rule);
     }
 

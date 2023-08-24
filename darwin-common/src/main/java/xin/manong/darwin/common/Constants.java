@@ -129,11 +129,9 @@ public class Constants {
      */
     public static final int PLAN_CATEGORY_ONCE = 0;                 //一次性计划
     public static final int PLAN_CATEGORY_PERIOD = 1;               //周期性计划
-    public static final int PLAN_CATEGORY_CONSUME = 2;              //消费型计划
     public static final Map<Integer, String> SUPPORT_PLAN_CATEGORIES = new HashMap<Integer, String>() {{
         put(PLAN_CATEGORY_ONCE, "一次性计划");
         put(PLAN_CATEGORY_PERIOD, "周期性计划");
-        put(PLAN_CATEGORY_CONSUME, "消费型计划");
     }};
 
     /**

@@ -66,7 +66,7 @@ public class RuleGroupController {
     @Path("list")
     @GetMapping("list")
     public Pager<RuleGroup> list(@QueryParam("current") Integer current,
-                           @QueryParam("size") Integer size) {
+                                 @QueryParam("size") Integer size) {
         if (current == null || current < 1) current = 1;
         if (size == null || size <= 0) size = 20;
         return ruleGroupService.getList(current, size);
@@ -107,6 +107,8 @@ public class RuleGroupController {
             throw new BadRequestException("规则分组信息非法");
         }
         ruleGroup.id = null;
+        ruleGroup.createTime = null;
+        ruleGroup.updateTime = null;
         return ruleGroupService.add(ruleGroup);
     }
 
@@ -130,6 +132,8 @@ public class RuleGroupController {
             logger.error("rule group is not found for id[{}]", ruleGroup.id);
             throw new NotFoundException(String.format("规则分组[%d]不存在", ruleGroup.id));
         }
+        ruleGroup.createTime = null;
+        ruleGroup.updateTime = null;
         return ruleGroupService.update(ruleGroup);
     }
 

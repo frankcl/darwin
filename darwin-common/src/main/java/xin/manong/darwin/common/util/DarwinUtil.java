@@ -32,7 +32,7 @@ public class DarwinUtil {
         if (!StringUtils.isEmpty(record.jobId)) context.put(Constants.JOB_ID, record.jobId);
         if (!StringUtils.isEmpty(record.hash)) context.put(Constants.HASH, record.hash);
         if (!StringUtils.isEmpty(record.mimeType)) context.put(Constants.MIME_TYPE, record.mimeType);
-        if (!StringUtils.isEmpty(record.subMimeType)) context.put(Constants.MIME_TYPE, record.subMimeType);
+        if (!StringUtils.isEmpty(record.subMimeType)) context.put(Constants.SUB_MIME_TYPE, record.subMimeType);
         if (record.appId != null) context.put(Constants.APP_ID, record.appId);
         if (record.status != null) context.put(Constants.STATUS, Constants.SUPPORT_URL_STATUSES.get(record.status));
         if (record.fetchTime != null) context.put(Constants.FETCH_TIME, record.fetchTime);

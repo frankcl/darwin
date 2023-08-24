@@ -9,13 +9,13 @@ import xin.manong.darwin.common.Constants;
 import xin.manong.darwin.common.model.*;
 import xin.manong.darwin.service.iface.*;
 import xin.manong.darwin.service.request.PlanSearchRequest;
-import xin.manong.darwin.web.request.ConsumedPlanSeedRequest;
+import xin.manong.darwin.web.request.ExecuteRequest;
+import xin.manong.weapon.base.util.RandomID;
 
 import javax.annotation.Resource;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -63,11 +63,11 @@ public class PlanController {
      * @param request 搜索请求
      * @return 计划分页列表
      */
-    @GET
+    @POST
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     @Path("search")
-    @GetMapping("search")
+    @PostMapping("search")
     public Pager<Plan> search(PlanSearchRequest request) {
         if (request == null) request = new PlanSearchRequest();
         if (request.current == null || request.current < 1) request.current = 1;
@@ -97,21 +97,16 @@ public class PlanController {
             throw new NotFoundException(String.format("所属应用[%d]不存在", plan.appId));
         }
         plan.appName = app.name;
-        checkSeedURLsWithRules(plan);
+        if (plan.seedURLs != null && !plan.seedURLs.isEmpty()) checkSeedURLs(plan.seedURLs, plan);
+        plan.planId = RandomID.build();
         if (!plan.check()) {
             logger.error("plan is not valid");
             throw new BadRequestException("计划非法");
         }
-        boolean success = planService.add(plan);
-        if (!success) return false;
-        if (plan.category == Constants.PLAN_CATEGORY_PERIOD) return true;
-        if (planService.execute(plan) == null) {
-            planService.delete(plan.planId);
-            logger.error("build job failed for plan[{}]", plan.planId);
-            throw new RuntimeException(String.format("%s[%s]构建任务失败",
-                    Constants.SUPPORT_PLAN_CATEGORIES.get(plan.category), plan.planId));
-        }
-        return true;
+        plan.createTime = null;
+        plan.updateTime = null;
+        plan.nextTime = null;
+        return planService.add(plan);
     }
 
     /**
@@ -130,30 +125,38 @@ public class PlanController {
             logger.error("plan is null or plan id is empty");
             throw new BadRequestException("计划或计划ID为空");
         }
-        if (planService.get(plan.planId) == null) {
+        Plan previous = planService.get(plan.planId);
+        if (previous == null) {
             logger.error("plan[{}] is not found", plan.planId);
             throw new NotFoundException(String.format("计划[%s]不存在", plan.planId));
         }
-        //非周期性计划不允许更新种子列表
-        if (plan.category != Constants.PLAN_CATEGORY_PERIOD) plan.seedURLs = null;
+        if (plan.seedURLs != null && !plan.seedURLs.isEmpty()) checkSeedURLs(plan.seedURLs, previous);
+        /**
+         * 不能修改所属应用信息
+         */
+        plan.appId = null;
+        plan.appName = null;
+        plan.createTime = null;
+        plan.updateTime = null;
+        plan.nextTime = null;
         return planService.update(plan);
     }
 
     /**
-     * 补充消费型计划种子URL
+     * 执行计划
      *
-     * @param request 种子补充请求
+     * @param request 执行计划请求
      * @return 成功返回true，否则返回false
      */
     @POST
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    @Path("addConsumedSeeds")
-    @PostMapping("addConsumedSeeds")
-    public Boolean addConsumedSeedURLs(ConsumedPlanSeedRequest request) {
+    @Path("execute")
+    @PostMapping("execute")
+    public Boolean execute(ExecuteRequest request) {
         if (request == null || !request.check()) {
-            logger.error("consumed plan seed request is null or is not valid");
-            throw new BadRequestException("补充种子请求为空或非法");
+            logger.error("execute request is null or invalid");
+            throw new BadRequestException("执行计划请求为空或非法");
         }
         Plan plan = planService.get(request.planId);
         if (plan == null) {
@@ -165,20 +168,18 @@ public class PlanController {
             throw new RuntimeException(String.format("计划[%s]非运行状态",
                     Constants.SUPPORT_PLAN_STATUSES.get(plan.status)));
         }
-        if (plan.category != Constants.PLAN_CATEGORY_CONSUME) {
-            logger.error("plan[%s] is not a consuming plan", Constants.SUPPORT_PLAN_CATEGORIES.get(plan.category));
-            throw new RuntimeException(String.format("非消费型计划类型[%s]",
-                    Constants.SUPPORT_PLAN_CATEGORIES.get(plan.category)));
+        if (plan.category == Constants.PLAN_CATEGORY_ONCE &&
+                request.seedURLs != null && !request.seedURLs.isEmpty()) {
+            checkSeedURLs(request.seedURLs, plan);
+            plan.seedURLs = request.seedURLs;
         }
-        plan.seedURLs = request.seedURLs;
-        checkSeedURLsWithRules(plan);
         if (!plan.check()) {
             logger.error("plan is not valid");
             throw new RuntimeException("计划检测失败");
         }
         if (planService.execute(plan) == null) {
-            logger.error("build job failed for consuming plan[{}]", plan.planId);
-            throw new RuntimeException(String.format("消费型计划[%s]构建任务失败", plan.planId));
+            logger.error("execute plan[{}] failed", plan.planId);
+            throw new RuntimeException(String.format("执行计划[%s]失败", plan.planId));
         }
         return true;
     }
@@ -206,15 +207,39 @@ public class PlanController {
     }
 
     /**
-     * 检测规则及种子URL是否存在匹配规则
-     * 删除不匹配的种子URL
+     * 检测种子URL是否匹配规则
+     * 如果存在不匹配规则种子URL则抛出异常
      *
+     * @param seedURLs 种子列表
      * @param plan 计划
      */
-    private void checkSeedURLsWithRules(Plan plan) {
+    private void checkSeedURLs(List<URLRecord> seedURLs, Plan plan) {
+        List<URLRecord> records = new ArrayList<>();
+        List<Rule> rules = getRuleList(plan);
+        for (URLRecord seedURL : seedURLs) {
+            if ((seedURL.category != null && (seedURL.category == Constants.CONTENT_CATEGORY_RESOURCE ||
+                    seedURL.category == Constants.CONTENT_CATEGORY_STREAM)) || matchRule(seedURL, rules)) {
+                records.add(seedURL);
+                continue;
+            }
+            logger.warn("matched rule is not found for seed url[{}]", seedURL.url);
+        }
+        if (seedURLs.size() != records.size()) {
+            logger.error("seed urls not match rules");
+            throw new RuntimeException("种子URL不匹配规则");
+        }
+    }
+
+    /**
+     * 获取计划规则列表
+     *
+     * @param plan 计划
+     * @return 规则列表
+     */
+    private List<Rule> getRuleList(Plan plan) {
         List<Rule> rules = new ArrayList<>();
-        for (int i = 0; plan.ruleIds != null && i < plan.ruleIds.size(); i++) {
-            Integer ruleId = plan.ruleIds.get(i);
+        if (plan.ruleIds == null || plan.ruleIds.isEmpty()) return rules;
+        for (Integer ruleId : plan.ruleIds) {
             Rule rule = ruleService.get(ruleId.longValue());
             if (rule == null) {
                 logger.error("rule[{}] is not found", ruleId);
@@ -222,34 +247,21 @@ public class PlanController {
             }
             rules.add(rule);
         }
-        if (plan.seedURLs == null) return;
-        Iterator<URLRecord> iterator = plan.seedURLs.iterator();
-        while (iterator.hasNext()) {
-            URLRecord record = iterator.next();
-            if (record.category != null && record.category == Constants.CONTENT_CATEGORY_RESOURCE) continue;
-            if (record.category != null && record.category == Constants.CONTENT_CATEGORY_STREAM) continue;
-            if (!findMatchRule(record, rules)) {
-                logger.warn("rule is not found for seed url[{}]", record.url);
-                iterator.remove();
-            }
-        }
-        if (plan.seedURLs.isEmpty()) {
-            logger.error("seed urls are not found for matching rules");
-            throw new RuntimeException("没有匹配规则的种子URL");
-        }
+        return rules;
     }
 
     /**
-     * 获取匹配规则
+     * 匹配规则
      *
      * @param record URL记录
      * @param rules 规则列表
-     * @return 存在返回true，否则返回false
+     * @return 匹配返回true，否则返回false
      */
-    private boolean findMatchRule(URLRecord record, List<Rule> rules) {
+    private boolean matchRule(URLRecord record, List<Rule> rules) {
+        List<Rule> matchedRules = new ArrayList<>();
         for (Rule rule : rules) {
-            if (ruleService.match(record, rule)) return true;
+            if (ruleService.match(record, rule)) matchedRules.add(rule);
         }
-        return false;
+        return matchedRules.size() == 1;
     }
 }
