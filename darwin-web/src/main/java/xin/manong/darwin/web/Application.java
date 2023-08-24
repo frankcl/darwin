@@ -1,8 +1,12 @@
 package xin.manong.darwin.web;
 
+import com.shuwen.dynamic.secret.property.ShamanPropertySourceFactory;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.context.annotation.PropertySource;
+import xin.manong.weapon.spring.boot.annotation.EnableONSProducer;
 import xin.manong.weapon.spring.boot.annotation.EnableOSSClient;
+import xin.manong.weapon.spring.boot.annotation.EnableRedisClient;
 
 /**
  * 应用程序入口
@@ -12,6 +16,9 @@ import xin.manong.weapon.spring.boot.annotation.EnableOSSClient;
  * @date 2022-08-24 12:58:39
  */
 @EnableOSSClient
+@EnableRedisClient
+@EnableONSProducer
+@PropertySource(name = "configmap", value = "xhzy-data#express-stream", factory = ShamanPropertySourceFactory.class)
 @SpringBootApplication(scanBasePackages = {"xin.manong.darwin", "xin.manong.weapon.spring.web.ws.aspect"})
 public class Application {
 
