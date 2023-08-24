@@ -7,6 +7,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+import xin.manong.darwin.common.Constants;
 import xin.manong.darwin.common.model.Job;
 import xin.manong.darwin.common.model.Pager;
 import xin.manong.darwin.service.convert.Converter;
@@ -74,6 +75,11 @@ public class JobServiceImpl extends JobService {
 
     @Override
     public Pager<Job> search(JobSearchRequest searchRequest) {
+        if (searchRequest == null) {
+            searchRequest = new JobSearchRequest();
+            searchRequest.current = Constants.DEFAULT_CURRENT;
+            searchRequest.size = Constants.DEFAULT_PAGE_SIZE;
+        }
         LambdaQueryWrapper<Job> query = new LambdaQueryWrapper<>();
         query.orderByDesc(Job::getCreateTime);
         if (searchRequest != null) {

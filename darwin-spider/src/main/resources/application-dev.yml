@@ -35,4 +35,3 @@ app:
     content-directory: darwin
     record-topic: xxx
     temp-directory: ./spider/temp/
-    aspect-log-file: ./log/aspect/spider.log

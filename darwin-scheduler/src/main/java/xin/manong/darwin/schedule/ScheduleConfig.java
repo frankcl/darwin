@@ -4,7 +4,6 @@ import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import xin.manong.weapon.base.log.JSONLogger;
 
 /**
  * 调度配置信息
@@ -23,24 +22,6 @@ public class ScheduleConfig {
     public Long planExecuteIntervalMs = DEFAULT_PLAN_EXECUTE_INTERVAL_MS;
     public Long queueScheduleIntervalMs = DEFAULT_QUEUE_SCHEDULE_INTERVAL_MS;
     public String topic;
-    public String planAspectLogFile;
-    public String recordAspectLogFile;
-    public String concurrentAspectLogFile;
-
-    @Bean(name = "recordAspectLogger")
-    public JSONLogger buildRecordAspectLogger() {
-        return new JSONLogger(recordAspectLogFile, null);
-    }
-
-    @Bean(name = "planAspectLogger")
-    public JSONLogger buildPlanAspectLogger() {
-        return new JSONLogger(planAspectLogFile, null);
-    }
-
-    @Bean(name = "concurrentAspectLogger")
-    public JSONLogger buildConcurrentAspectLogger() {
-        return new JSONLogger(concurrentAspectLogFile, null);
-    }
 
     @Bean(initMethod = "start", destroyMethod = "stop")
     public PeriodPlanScheduler buildPeriodPlanExecutor() {

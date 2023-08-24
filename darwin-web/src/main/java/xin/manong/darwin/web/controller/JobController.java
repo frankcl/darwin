@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import xin.manong.darwin.common.Constants;
 import xin.manong.darwin.common.model.Job;
 import xin.manong.darwin.common.model.Pager;
 import xin.manong.darwin.service.iface.JobService;
@@ -65,8 +66,8 @@ public class JobController {
     @PostMapping("search")
     public Pager<Job> search(JobSearchRequest request) {
         if (request == null) request = new JobSearchRequest();
-        if (request.current == null || request.current < 1) request.current = 1;
-        if (request.size == null || request.size <= 0) request.size = 20;
+        if (request.current == null || request.current < 1) request.current = Constants.DEFAULT_CURRENT;
+        if (request.size == null || request.size <= 0) request.size = Constants.DEFAULT_PAGE_SIZE;
         return jobService.search(request);
     }
 }

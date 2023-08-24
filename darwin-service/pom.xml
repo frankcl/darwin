@@ -114,6 +114,11 @@
         </dependency>
         <dependency>
             <groupId>xin.manong</groupId>
+            <artifactId>darwin-log</artifactId>
+            <version>${darwin.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>xin.manong</groupId>
             <artifactId>darwin-queue</artifactId>
             <version>${darwin.version}</version>
         </dependency>

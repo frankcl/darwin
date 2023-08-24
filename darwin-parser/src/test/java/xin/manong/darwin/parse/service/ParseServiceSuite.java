@@ -22,7 +22,7 @@ import javax.annotation.Resource;
  * @date 2023-04-04 18:00:24
  */
 @RunWith(SpringRunner.class)
-@ActiveProfiles(value = { "parse", "parse-dev", "service", "service-dev", "queue", "queue-dev" })
+@ActiveProfiles(value = { "parse", "parse-dev", "service", "service-dev", "queue", "queue-dev", "log", "log-dev" })
 @SpringBootTest(classes = ApplicationTest.class)
 public class ParseServiceSuite {
 
@@ -51,6 +51,7 @@ public class ParseServiceSuite {
         URLRecord record = new URLRecord("http://www.sina.com.cn/");
         record.appId = 1;
         record.jobId = "xxx";
+        record.planId = "xxx";
         record.category = Constants.CONTENT_CATEGORY_LIST;
         ParseRequest request = new ParseRequest.Builder().record(record).content("<p>Hello world</p>").build();
         ParseResponse response = parseService.parse(Constants.SCRIPT_TYPE_GROOVY, scriptText, request);
@@ -78,6 +79,7 @@ public class ParseServiceSuite {
             URLRecord record = new URLRecord("http://www.sina.com.cn/");
             record.appId = 1;
             record.jobId = "xxx";
+            record.planId = "xxx";
             record.category = Constants.CONTENT_CATEGORY_LIST;
             ParseRequest request = new ParseRequest.Builder().record(record).content("<p>Hello world</p>").build();
             ParseResponse response = parseService.parse(rule.id, request);

@@ -35,6 +35,8 @@ public class MultiQueueSuite {
             URLRecord record = new URLRecord("http://www.sina.com.cn");
             record.category = Constants.CONTENT_CATEGORY_TEXT;
             record.jobId = "abc";
+            record.planId = "abc";
+            record.appId = 0;
             record.priority = Constants.PRIORITY_LOW;
             record.concurrentLevel = Constants.CONCURRENT_LEVEL_HOST;
             records.add(record);
@@ -43,6 +45,8 @@ public class MultiQueueSuite {
             URLRecord record = new URLRecord("http://www.sina.com.cn/index.html");
             record.category = Constants.CONTENT_CATEGORY_TEXT;
             record.jobId = "abc";
+            record.planId = "abc";
+            record.appId = 0;
             record.priority = Constants.PRIORITY_HIGH;
             record.concurrentLevel = Constants.CONCURRENT_LEVEL_HOST;
             records.add(record);
@@ -55,6 +59,8 @@ public class MultiQueueSuite {
             URLRecord record = new URLRecord("http://www.sohu.com/index.html");
             record.category = Constants.CONTENT_CATEGORY_TEXT;
             record.jobId = "def";
+            record.planId = "def";
+            record.appId = 0;
             record.priority = Constants.PRIORITY_HIGH;
             record.concurrentLevel = Constants.CONCURRENT_LEVEL_DOMAIN;
             Assert.assertEquals(MultiQueueStatus.OK, multiQueue.push(record));

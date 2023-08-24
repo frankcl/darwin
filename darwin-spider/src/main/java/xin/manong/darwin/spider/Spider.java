@@ -53,7 +53,7 @@ public abstract class Spider {
     protected String category;
     @Resource
     protected SpiderConfig config;
-    @Resource(name = "spiderAspectLogger")
+    @Resource(name = "recordAspectLogger")
     protected JSONLogger aspectLogger;
     @Resource
     protected OSSClient ossClient;

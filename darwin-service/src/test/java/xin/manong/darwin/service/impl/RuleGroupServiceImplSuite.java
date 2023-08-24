@@ -20,7 +20,7 @@ import javax.annotation.Resource;
  * @date 2023-04-04 14:10:46
  */
 @RunWith(SpringRunner.class)
-@ActiveProfiles(value = { "service", "service-dev", "queue", "queue-dev" })
+@ActiveProfiles(value = { "service", "service-dev", "queue", "queue-dev", "log", "log-dev" })
 @SpringBootTest(classes = { ApplicationTest.class })
 public class RuleGroupServiceImplSuite {
 

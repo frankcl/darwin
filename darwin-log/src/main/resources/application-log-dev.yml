@@ -1,0 +1,6 @@
+app:
+  log:
+    job-log-file: ./log/aspect/job.log
+    plan-log-file: ./log/aspect/plan.log
+    record-log-file: ./log/aspect/record.log
+    concurrent-log-file: ./log/aspect/concurrent.log

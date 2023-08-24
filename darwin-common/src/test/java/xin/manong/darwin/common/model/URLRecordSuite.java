@@ -18,6 +18,7 @@ public class URLRecordSuite {
         record.priority = Constants.PRIORITY_HIGH;
         record.appId = 1;
         record.jobId = "xxx";
+        record.planId = "xxx";
         Assert.assertTrue(record.check());
     }
 

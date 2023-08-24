@@ -15,10 +15,10 @@ public class JavaScriptSuite {
     private String script = "function parse(request) {\n" +
             "var userDefinedMap = {};\n" +
             "userDefinedMap.url = request.record.url;\n" +
-            "var link = buildLink(\"http://www.sohu.com/\", 3);\n" +
+            "var link = buildURLRecord(\"http://www.sohu.com/\", 3);\n" +
             "var followLinks = new Array();\n" +
             "followLinks[0] = link;" +
-            "return buildFollowLinkResponse(followLinks);\n" +
+            "return buildFollowURLsResponse(followLinks);\n" +
             "}";
 
 

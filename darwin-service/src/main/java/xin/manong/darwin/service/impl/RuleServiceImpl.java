@@ -77,6 +77,11 @@ public class RuleServiceImpl extends RuleService {
 
     @Override
     public Pager<Rule> search(RuleSearchRequest searchRequest) {
+        if (searchRequest == null) {
+            searchRequest = new RuleSearchRequest();
+            searchRequest.current = Constants.DEFAULT_CURRENT;
+            searchRequest.size = Constants.DEFAULT_PAGE_SIZE;
+        }
         LambdaQueryWrapper<Rule> query = new LambdaQueryWrapper<>();
         query.orderByDesc(Rule::getCreateTime);
         if (searchRequest != null) {

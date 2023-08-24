@@ -20,6 +20,6 @@ import xin.manong.weapon.spring.boot.annotation.EnableRedisClient;
 @EnableAutoConfiguration
 @PropertySource(name = "configmap", value = "xhzy-data#express-stream", factory = ShamanPropertySourceFactory.class)
 @SpringBootApplication(scanBasePackages = { "xin.manong.darwin.spider", "xin.manong.darwin.service",
-        "xin.manong.darwin.queue", "xin.manong.darwin.parse" })
+        "xin.manong.darwin.queue", "xin.manong.darwin.parse", "xin.manong.darwin.log" })
 public class ApplicationTest {
 }

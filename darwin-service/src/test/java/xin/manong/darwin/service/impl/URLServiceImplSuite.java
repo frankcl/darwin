@@ -25,7 +25,7 @@ import java.util.List;
  * @date 2023-03-15 15:18:57
  */
 @RunWith(SpringRunner.class)
-@ActiveProfiles(value = { "service", "service-dev", "queue", "queue-dev" })
+@ActiveProfiles(value = { "service", "service-dev", "queue", "queue-dev", "log", "log-dev" })
 @SpringBootTest(classes = { ApplicationTest.class })
 public class URLServiceImplSuite {
 
@@ -43,6 +43,7 @@ public class URLServiceImplSuite {
         list.add("xyz");
         URLRecord record = new URLRecord("http://www.sina.com.cn/");
         record.jobId = "test_job_id";
+        record.planId = "test_plan_id";
         record.appId = 1;
         record.status = Constants.URL_STATUS_CREATED;
         record.category = Constants.CONTENT_CATEGORY_TEXT;
@@ -60,6 +61,7 @@ public class URLServiceImplSuite {
         Assert.assertEquals(record.url, recordInDB.url);
         Assert.assertEquals(record.hash, recordInDB.hash);
         Assert.assertEquals("test_job_id", recordInDB.jobId);
+        Assert.assertEquals("test_plan_id", recordInDB.planId);
         Assert.assertEquals(1, recordInDB.getAppId().intValue());
         Assert.assertEquals(Constants.URL_STATUS_CREATED, recordInDB.status.intValue());
         Assert.assertEquals(Constants.CONTENT_CATEGORY_TEXT, recordInDB.category.intValue());

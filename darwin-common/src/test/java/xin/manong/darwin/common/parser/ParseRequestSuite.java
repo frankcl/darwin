@@ -16,6 +16,7 @@ public class ParseRequestSuite {
         URLRecord record = new URLRecord("http://www.sina.com.cn");
         record.appId = 1;
         record.jobId = "xxx";
+        record.planId = "xxx";
         record.category = Constants.CONTENT_CATEGORY_LIST;
         ParseRequest request = new ParseRequest.Builder().content("xxx").record(record).build();
         Assert.assertTrue(request.check());

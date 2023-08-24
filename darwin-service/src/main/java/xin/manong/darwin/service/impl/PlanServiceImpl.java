@@ -91,6 +91,11 @@ public class PlanServiceImpl implements PlanService {
 
     @Override
     public Pager<Plan> search(PlanSearchRequest searchRequest) {
+        if (searchRequest == null) {
+            searchRequest = new PlanSearchRequest();
+            searchRequest.current = Constants.DEFAULT_CURRENT;
+            searchRequest.size = Constants.DEFAULT_PAGE_SIZE;
+        }
         LambdaQueryWrapper<Plan> query = new LambdaQueryWrapper<>();
         query.orderByDesc(Plan::getCreateTime);
         if (searchRequest != null) {

@@ -32,7 +32,7 @@ public class URLReceiver implements MessageListener {
 
     @Resource
     protected SpiderFactory spiderFactory;
-    @Resource(name = "spiderAspectLogger")
+    @Resource(name = "recordAspectLogger")
     protected JSONLogger aspectLogger;
 
     @Override

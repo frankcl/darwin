@@ -25,7 +25,7 @@ import java.util.ArrayList;
  * @date 2023-03-15 15:18:57
  */
 @RunWith(SpringRunner.class)
-@ActiveProfiles(value = { "service", "service-dev", "queue", "queue-dev" })
+@ActiveProfiles(value = { "service", "service-dev", "queue", "queue-dev", "log", "log-dev" })
 @SpringBootTest(classes = { ApplicationTest.class })
 public class JobServiceImplSuite {
 
@@ -35,7 +35,7 @@ public class JobServiceImplSuite {
     @Test
     @Transactional
     @Rollback
-    public void testPlanOperations() {
+    public void testJobOperations() {
         URLRecord record = new URLRecord("http://www.sina.com.cn/");
         Job job = new Job();
         job.name = "测试任务";

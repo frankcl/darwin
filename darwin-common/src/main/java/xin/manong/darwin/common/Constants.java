@@ -13,6 +13,9 @@ import java.util.Set;
  */
 public class Constants {
 
+    public static final int DEFAULT_CURRENT = 1;
+    public static final int DEFAULT_PAGE_SIZE = 20;
+
     /**
      * 支持MimeType
      */

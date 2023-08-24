@@ -64,20 +64,6 @@
             </exclusions>
         </dependency>
         <dependency>
-            <groupId>com.shuwen.ops</groupId>
-            <artifactId>shaman-configmap</artifactId>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.yaml</groupId>
-                    <artifactId>snakeyaml</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-        <dependency>
-            <groupId>com.shuwen</groupId>
-            <artifactId>shaman-dynamic-secret-listener</artifactId>
-        </dependency>
-        <dependency>
             <groupId>xin.manong</groupId>
             <artifactId>darwin-service</artifactId>
             <version>${darwin.version}</version>

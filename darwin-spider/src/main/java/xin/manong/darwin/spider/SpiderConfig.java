@@ -4,7 +4,6 @@ import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import xin.manong.weapon.base.log.JSONLogger;
 
 /**
  * 爬虫配置信息
@@ -37,14 +36,8 @@ public class SpiderConfig {
     public String contentRegion;
     public String contentBucket;
     public String contentDirectory;
-    public String aspectLogFile;
     public String tempDirectory;
     public String recordTopic;
-
-    @Bean(name = "spiderAspectLogger")
-    public JSONLogger spiderAspectLogger() {
-        return new JSONLogger(aspectLogFile, null);
-    }
 
     @Bean
     public URLDispatcher buildURLDispatcher() {

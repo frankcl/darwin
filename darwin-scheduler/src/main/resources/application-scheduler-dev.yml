@@ -4,8 +4,3 @@ weapon:
       producer:
         default:
           serverURL: http://onsaddr.mq-internet-access.mq-internet.aliyuncs.com:80
-app:
-  schedule:
-    planAspectLogFile: ./logs/aspect/plan.log
-    recordAspectLogFile: ./logs/aspect/record.log
-    concurrentAspectLogFile: ./logs/aspect/concurrent.log

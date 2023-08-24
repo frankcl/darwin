@@ -70,8 +70,8 @@ public class PlanController {
     @PostMapping("search")
     public Pager<Plan> search(PlanSearchRequest request) {
         if (request == null) request = new PlanSearchRequest();
-        if (request.current == null || request.current < 1) request.current = 1;
-        if (request.size == null || request.size <= 0) request.size = 20;
+        if (request.current == null || request.current < 1) request.current = Constants.DEFAULT_CURRENT;
+        if (request.size == null || request.size <= 0) request.size = Constants.DEFAULT_PAGE_SIZE;
         return planService.search(request);
     }
 

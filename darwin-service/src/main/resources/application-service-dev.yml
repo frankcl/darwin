@@ -23,4 +23,3 @@ weapon:
 app:
   service:
     job-topic: xxx
-    aspect-log-file: ./log/aspect/job.log

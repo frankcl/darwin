@@ -398,7 +398,9 @@ public class MultiQueue {
             batch.getSet(MultiQueueConstants.MULTI_QUEUE_JOBS).addAsync(record.jobId);
             BatchResult result = batch.execute();
             List responses = result.getResponses();
-            if (!checkPushResponses(responses)) throw new MultiQueueException("push record failed");
+            if (responses.size() != 4 || !((Boolean) responses.get(0))) {
+                throw new MultiQueueException("push record failed");
+            }
             return MultiQueueStatus.OK;
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
@@ -414,20 +416,6 @@ public class MultiQueue {
             record.status = Constants.URL_STATUS_QUEUING_REFUSED;
             return MultiQueueStatus.REFUSED;
         }
-    }
-
-    /**
-     * 检测批量推送结果
-     * 任意批量操作不成功则不成功
-     *
-     * @param pushResponses 批量推送响应
-     * @return 成功返回true，否则返回false
-     */
-    private boolean checkPushResponses(List pushResponses) {
-        if (!((Boolean) pushResponses.get(0))) return false;
-        if (!((Boolean) pushResponses.get(2))) return false;
-        if (!((Boolean) pushResponses.get(3))) return false;
-        return true;
     }
 
     /**

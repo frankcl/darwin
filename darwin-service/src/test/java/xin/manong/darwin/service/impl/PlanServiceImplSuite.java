@@ -29,7 +29,7 @@ import java.util.Date;
  * @date 2023-03-15 15:18:57
  */
 @RunWith(SpringRunner.class)
-@ActiveProfiles(value = { "service", "service-dev", "queue", "queue-dev" })
+@ActiveProfiles(value = { "service", "service-dev", "queue", "queue-dev", "log", "log-dev" })
 @SpringBootTest(classes = { ApplicationTest.class })
 public class PlanServiceImplSuite {
 
@@ -134,10 +134,10 @@ public class PlanServiceImplSuite {
         Assert.assertTrue(planService.add(plan));
 
         Job job = planService.execute(plan);
-        Assert.assertFalse(job != null);
+        Assert.assertTrue(job != null);
 
         URLSearchRequest request = new URLSearchRequest();
-        request.status = Constants.URL_STATUS_CREATED;
+        request.status = Constants.URL_STATUS_QUEUING;
         request.jobId = job.jobId;
         request.current = 1;
         request.size = 10;

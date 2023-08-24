@@ -135,6 +135,11 @@ public class URLServiceImpl extends URLService {
 
     @Override
     public Pager<URLRecord> search(URLSearchRequest searchRequest) {
+        if (searchRequest == null) {
+            searchRequest = new URLSearchRequest();
+            searchRequest.current = Constants.DEFAULT_CURRENT;
+            searchRequest.size = Constants.DEFAULT_PAGE_SIZE;
+        }
         LambdaQueryWrapper<URLRecord> query = new LambdaQueryWrapper<>();
         query.orderByDesc(URLRecord::getCreateTime);
         if (searchRequest != null) {

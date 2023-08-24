@@ -29,7 +29,7 @@ import java.util.ArrayList;
  * @author frankcl
  * @date 2023-03-31 14:36:24
  */
-@ActiveProfiles(value = { "dev", "service", "service-dev", "queue", "queue-dev" })
+@ActiveProfiles(value = { "dev", "service", "service-dev", "queue", "queue-dev", "log", "log-dev" })
 @RunWith(SpringRunner.class)
 @SpringBootTest(classes = ApplicationTest.class)
 public class HTMLSpiderSuite {
@@ -134,6 +134,7 @@ public class HTMLSpiderSuite {
             URLRecord record = new URLRecord(url);
             record.category = Constants.CONTENT_CATEGORY_TEXT;
             record.jobId = "aaa";
+            record.planId = "xxx";
             record.appId = 1;
             Context context = new Context();
             spider.process(record, context);
@@ -165,6 +166,7 @@ public class HTMLSpiderSuite {
             URLRecord record = new URLRecord(url);
             record.category = Constants.CONTENT_CATEGORY_TEXT;
             record.jobId = "aaa";
+            record.planId = "xxx";
             record.appId = 1;
             Context context = new Context();
             spider.process(record, context);
@@ -197,6 +199,7 @@ public class HTMLSpiderSuite {
             URLRecord record = new URLRecord(url);
             record.category = Constants.CONTENT_CATEGORY_TEXT;
             record.jobId = "aaa";
+            record.planId = "xxx";
             record.appId = 1;
             Context context = new Context();
             spider.process(record, context);

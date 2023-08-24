@@ -21,7 +21,7 @@ import javax.annotation.Resource;
  * @date 2023-03-30 15:50:07
  */
 @RunWith(SpringRunner.class)
-@ActiveProfiles(value = { "dev", "service", "service-dev", "queue", "queue-dev" })
+@ActiveProfiles(value = { "dev", "service", "service-dev", "queue", "queue-dev", "log", "log-dev" })
 @SpringBootTest(classes = ApplicationTest.class)
 public class ResourceSpiderSuite {
 
