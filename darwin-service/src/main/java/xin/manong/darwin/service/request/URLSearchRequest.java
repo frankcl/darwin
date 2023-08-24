@@ -39,6 +39,11 @@ public class URLSearchRequest extends SearchRequest {
     @JsonProperty("job_id")
     public String jobId;
     /**
+     * 计划ID
+     */
+    @JsonProperty("plan_id")
+    public String planId;
+    /**
      * 抓取时间范围
      */
     @JsonProperty("fetch_time")

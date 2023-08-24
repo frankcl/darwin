@@ -34,6 +34,7 @@ public class URLServiceImpl extends URLService {
 
     private static final String KEY_KEY = "key";
     private static final String KEY_JOB_ID = "job_id";
+    private static final String KEY_PLAN_ID = "plan_id";
     private static final String KEY_HASH = "hash";
     private static final String KEY_STATUS = "status";
     private static final String KEY_PRIORITY = "priority";
@@ -166,6 +167,9 @@ public class URLServiceImpl extends URLService {
             }
             if (!StringUtils.isEmpty(searchRequest.jobId)) {
                 queryList.add(SearchQueryBuilder.buildTermQuery(KEY_JOB_ID, searchRequest.jobId));
+            }
+            if (!StringUtils.isEmpty(searchRequest.planId)) {
+                queryList.add(SearchQueryBuilder.buildTermQuery(KEY_PLAN_ID, searchRequest.planId));
             }
             if (!StringUtils.isEmpty(searchRequest.url)) {
                 queryList.add(SearchQueryBuilder.buildTermQuery(KEY_HASH, DigestUtils.md5Hex(searchRequest.url)));
