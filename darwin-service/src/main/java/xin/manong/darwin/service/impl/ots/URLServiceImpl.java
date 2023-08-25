@@ -76,7 +76,7 @@ public class URLServiceImpl extends URLService {
         updateRecord.status = fetchRecord.status;
         updateRecord.fetchTime = fetchRecord.fetchTime;
         updateRecord.fetchContentURL = fetchRecord.fetchContentURL;
-        updateRecord.structureMap = fetchRecord.structureMap;
+        updateRecord.fieldMap = fetchRecord.fieldMap;
         kvRecord = OTSConverter.convertJavaObjectToKVRecord(updateRecord);
         OTSStatus status = otsClient.update(serviceConfig.urlTable, kvRecord, null);
         if (status == OTSStatus.SUCCESS && !StringUtils.isEmpty(fetchRecord.url)) recordCache.invalidate(fetchRecord.url);

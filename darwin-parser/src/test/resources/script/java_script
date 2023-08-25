@@ -1,0 +1,8 @@
+function parse(request) {
+    var userDefinedMap = {};
+    userDefinedMap.url = request.url;
+    var followURL = createFollowURL("http://www.sohu.com/", 3);
+    var followURLs = new Array();
+    followURLs[0] = followURL;
+    return buildOK(undefined, followURLs, userDefinedMap);
+}

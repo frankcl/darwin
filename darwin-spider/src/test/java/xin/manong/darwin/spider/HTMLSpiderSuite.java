@@ -20,16 +20,13 @@ import xin.manong.weapon.aliyun.oss.OSSMeta;
 import xin.manong.weapon.base.common.Context;
 
 import javax.annotation.Resource;
-import java.io.ByteArrayOutputStream;
-import java.io.InputStream;
-import java.nio.charset.Charset;
 import java.util.ArrayList;
 
 /**
  * @author frankcl
  * @date 2023-03-31 14:36:24
  */
-@ActiveProfiles(value = { "dev", "service", "service-dev", "queue", "queue-dev", "log", "log-dev" })
+@ActiveProfiles(value = { "dev", "service", "service-dev", "parse", "parse-dev", "queue", "queue-dev", "log", "log-dev" })
 @RunWith(SpringRunner.class)
 @SpringBootTest(classes = ApplicationTest.class)
 public class HTMLSpiderSuite {
@@ -51,77 +48,55 @@ public class HTMLSpiderSuite {
     }
 
     private Job prepareJobAndHTMLRule() throws Exception {
-        InputStream inputStream = this.getClass().getResourceAsStream("/html_rule_script");
-        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-        try {
-            int bufferSize = 4096, n;
-            byte[] buffer = new byte[bufferSize];
-            while ((n = inputStream.read(buffer, 0, bufferSize)) != -1) {
-                outputStream.write(buffer, 0, n);
-            }
-            Rule rule = new Rule();
-            rule.domain = "people.com.cn";
-            rule.name = "人民网结构化规则";
-            rule.regex = "http://politics.people.com.cn/n1/\\d{4}/\\d{4}/c\\d+?-\\d+?\\.html";
-            rule.ruleGroup = 1L;
-            rule.category = Constants.RULE_CATEGORY_STRUCTURE;
-            rule.scriptType = Constants.SCRIPT_TYPE_GROOVY;
-            rule.script = new String(outputStream.toByteArray(), Charset.forName("UTF-8"));
-            Assert.assertTrue(ruleService.add(rule));
+        String scriptCode = ApplicationTest.readScript("/html_parse_script");
+        Rule rule = new Rule();
+        rule.domain = "people.com.cn";
+        rule.name = "人民网结构化规则";
+        rule.regex = "http://politics.people.com.cn/n1/\\d{4}/\\d{4}/c\\d+?-\\d+?\\.html";
+        rule.ruleGroup = 1L;
+        rule.category = Constants.RULE_CATEGORY_STRUCTURE;
+        rule.scriptType = Constants.SCRIPT_TYPE_GROOVY;
+        rule.script = scriptCode;
+        Assert.assertTrue(ruleService.add(rule));
 
-            Job job = new Job();
-            job.jobId = "aaa";
-            job.name = "测试任务";
-            job.priority = Constants.PRIORITY_NORMAL;
-            job.planId = "xxx";
-            job.appId = 1;
-            job.status = Constants.JOB_STATUS_RUNNING;
-            job.avoidRepeatedFetch = true;
-            job.ruleIds = new ArrayList<>();
-            job.ruleIds.add(rule.id.intValue());
-            Assert.assertTrue(jobService.add(job));
-            return job;
-        } finally {
-            if (outputStream != null) outputStream.close();
-            if (inputStream != null) inputStream.close();
-        }
+        Job job = new Job();
+        job.jobId = "aaa";
+        job.name = "测试任务";
+        job.priority = Constants.PRIORITY_NORMAL;
+        job.planId = "xxx";
+        job.appId = 1;
+        job.status = Constants.JOB_STATUS_RUNNING;
+        job.avoidRepeatedFetch = true;
+        job.ruleIds = new ArrayList<>();
+        job.ruleIds.add(rule.id.intValue());
+        Assert.assertTrue(jobService.add(job));
+        return job;
     }
 
     private Job prepareJobAndJSONRule() throws Exception {
-        InputStream inputStream = this.getClass().getResourceAsStream("/json_rule_script");
-        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-        try {
-            int bufferSize = 4096, n;
-            byte[] buffer = new byte[bufferSize];
-            while ((n = inputStream.read(buffer, 0, bufferSize)) != -1) {
-                outputStream.write(buffer, 0, n);
-            }
-            Rule rule = new Rule();
-            rule.domain = "shuwen.com";
-            rule.name = "JSON解析规则";
-            rule.regex = "http://external-data-service.shuwen.com/report/histogram";
-            rule.ruleGroup = 1L;
-            rule.category = Constants.RULE_CATEGORY_STRUCTURE;
-            rule.scriptType = Constants.SCRIPT_TYPE_GROOVY;
-            rule.script = new String(outputStream.toByteArray(), Charset.forName("UTF-8"));
-            Assert.assertTrue(ruleService.add(rule));
+        String scriptCode = ApplicationTest.readScript("/json_parse_script");
+        Rule rule = new Rule();
+        rule.domain = "shuwen.com";
+        rule.name = "JSON解析规则";
+        rule.regex = "http://external-data-service.shuwen.com/report/histogram";
+        rule.ruleGroup = 1L;
+        rule.category = Constants.RULE_CATEGORY_STRUCTURE;
+        rule.scriptType = Constants.SCRIPT_TYPE_GROOVY;
+        rule.script = scriptCode;
+        Assert.assertTrue(ruleService.add(rule));
 
-            Job job = new Job();
-            job.jobId = "aaa";
-            job.name = "测试任务";
-            job.priority = Constants.PRIORITY_NORMAL;
-            job.planId = "xxx";
-            job.appId = 1;
-            job.status = Constants.JOB_STATUS_RUNNING;
-            job.avoidRepeatedFetch = true;
-            job.ruleIds = new ArrayList<>();
-            job.ruleIds.add(rule.id.intValue());
-            Assert.assertTrue(jobService.add(job));
-            return job;
-        } finally {
-            if (outputStream != null) outputStream.close();
-            if (inputStream != null) inputStream.close();
-        }
+        Job job = new Job();
+        job.jobId = "aaa";
+        job.name = "测试任务";
+        job.priority = Constants.PRIORITY_NORMAL;
+        job.planId = "xxx";
+        job.appId = 1;
+        job.status = Constants.JOB_STATUS_RUNNING;
+        job.avoidRepeatedFetch = true;
+        job.ruleIds = new ArrayList<>();
+        job.ruleIds.add(rule.id.intValue());
+        Assert.assertTrue(jobService.add(job));
+        return job;
     }
 
     @Test
@@ -146,8 +121,8 @@ public class HTMLSpiderSuite {
             Assert.assertEquals(Constants.URL_STATUS_SUCCESS, record.status.intValue());
             Assert.assertEquals(OSSClient.buildURL(ossMeta), record.fetchContentURL);
             Assert.assertTrue(record.fetchTime != null && record.fetchTime > 0L);
-            Assert.assertTrue(record.structureMap != null && !record.structureMap.isEmpty());
-            Assert.assertTrue(record.structureMap.containsKey("title"));
+            Assert.assertTrue(record.fieldMap != null && !record.fieldMap.isEmpty());
+            Assert.assertTrue(record.fieldMap.containsKey("title"));
             ossMeta = OSSClient.parseURL(record.fetchContentURL);
             Assert.assertTrue(ossClient.exist(ossMeta.bucket, ossMeta.key));
             ossClient.deleteObject(ossMeta.bucket, ossMeta.key);
@@ -178,9 +153,9 @@ public class HTMLSpiderSuite {
             Assert.assertEquals(Constants.URL_STATUS_SUCCESS, record.status.intValue());
             Assert.assertEquals(OSSClient.buildURL(ossMeta), record.fetchContentURL);
             Assert.assertTrue(record.fetchTime != null && record.fetchTime > 0L);
-            Assert.assertTrue(record.structureMap != null && !record.structureMap.isEmpty());
-            Assert.assertTrue(record.structureMap.containsKey("result_size"));
-            Assert.assertEquals(7, (int) record.structureMap.get("result_size"));
+            Assert.assertTrue(record.fieldMap != null && !record.fieldMap.isEmpty());
+            Assert.assertTrue(record.fieldMap.containsKey("result_size"));
+            Assert.assertEquals(7, (int) record.fieldMap.get("result_size"));
             ossMeta = OSSClient.parseURL(record.fetchContentURL);
             Assert.assertTrue(ossClient.exist(ossMeta.bucket, ossMeta.key));
             ossClient.deleteObject(ossMeta.bucket, ossMeta.key);

@@ -156,11 +156,11 @@ public class FetchRecord extends Model {
     /**
      * 结构化字段
      */
-    @TableField(value = "structure_map", typeHandler = JSONMapObjectTypeHandler.class)
-    @Column(name = "structure_map")
-    @JSONField(name = "structure_map")
-    @JsonProperty("structure_map")
-    public Map<String, Object> structureMap = new HashMap<>();
+    @TableField(value = "field_map", typeHandler = JSONMapObjectTypeHandler.class)
+    @Column(name = "field_map")
+    @JSONField(name = "field_map")
+    @JsonProperty("field_map")
+    public Map<String, Object> fieldMap = new HashMap<>();
 
     public FetchRecord() {
         key = RandomID.build();
@@ -187,7 +187,7 @@ public class FetchRecord extends Model {
         this.subMimeType = record.subMimeType;
         this.status = record.status;
         this.userDefinedMap = record.userDefinedMap;
-        this.structureMap = record.structureMap;
+        this.fieldMap = record.fieldMap;
     }
 
     /**

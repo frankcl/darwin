@@ -1,0 +1,14 @@
+import xin.manong.darwin.parser.sdk.ParseRequest;
+import xin.manong.darwin.parser.sdk.ParseResponse;
+import xin.manong.darwin.parser.sdk.HTMLParser;
+
+class GroovyParser extends HTMLParser {
+
+    @Override
+    public ParseResponse parse(ParseRequest request) {
+        if (request != null && request.url != null) logger.info("parse url[{}]", request.url);
+        Map<String, Object> fieldMap = new HashMap<>();
+        fieldMap.put("k1", 1L);
+        return ParseResponse.buildOK(fieldMap, null, null);
+    }
+}

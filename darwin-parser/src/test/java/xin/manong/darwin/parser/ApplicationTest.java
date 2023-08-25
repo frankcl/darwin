@@ -1,12 +1,6 @@
-package xin.manong.darwin.spider;
+package xin.manong.darwin.parser;
 
-import com.shuwen.dynamic.secret.property.ShamanPropertySourceFactory;
-import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.context.annotation.PropertySource;
-import xin.manong.weapon.spring.boot.annotation.EnableONSProducer;
-import xin.manong.weapon.spring.boot.annotation.EnableOSSClient;
-import xin.manong.weapon.spring.boot.annotation.EnableRedisClient;
 
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
@@ -18,13 +12,7 @@ import java.nio.charset.Charset;
  * @author frankcl
  * @date 2022-08-15 21:08:20
  */
-@EnableRedisClient
-@EnableONSProducer
-@EnableOSSClient
-@EnableAutoConfiguration
-@PropertySource(name = "configmap", value = "xhzy-data#express-stream", factory = ShamanPropertySourceFactory.class)
-@SpringBootApplication(scanBasePackages = { "xin.manong.darwin.spider", "xin.manong.darwin.service",
-        "xin.manong.darwin.queue", "xin.manong.darwin.parser", "xin.manong.darwin.log" })
+@SpringBootApplication(scanBasePackages = { "xin.manong.darwin.parser" })
 public class ApplicationTest {
 
     public static String readScript(String path) throws Exception {

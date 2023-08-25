@@ -11,7 +11,7 @@
  Target Server Version : 80030 (8.0.30)
  File Encoding         : 65001
 
- Date: 24/08/2023 17:26:34
+ Date: 25/08/2023 16:47:43
 */
 
 SET NAMES utf8mb4;
@@ -30,7 +30,7 @@ CREATE TABLE `app` (
   KEY `INDEX_NAME` (`name`) USING BTREE,
   KEY `INDEX_CREATE_TIME` (`create_time`) USING BTREE,
   KEY `INDEX_UPDATE_TIME` (`update_time`) USING BTREE
-) ENGINE=InnoDB AUTO_INCREMENT=9 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- ----------------------------
 -- Table structure for job
@@ -111,7 +111,7 @@ CREATE TABLE `rule` (
   KEY `INDEX_RULE_GROUP` (`rule_group`) USING BTREE,
   KEY `INDEX_CREATE_TIME` (`create_time`) USING BTREE,
   KEY `INDEX_UPDATE_TIME` (`update_time`) USING BTREE
-) ENGINE=InnoDB AUTO_INCREMENT=95 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- ----------------------------
 -- Table structure for rule_group
@@ -126,7 +126,7 @@ CREATE TABLE `rule_group` (
   KEY `INDEX_NAME` (`name`) USING BTREE,
   KEY `INDEX_CREATE_TIME` (`create_time`) USING BTREE,
   KEY `INDEX_UPDATE_TIME` (`update_time`) USING BTREE
-) ENGINE=InnoDB AUTO_INCREMENT=9 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- ----------------------------
 -- Table structure for url
@@ -151,7 +151,7 @@ CREATE TABLE `url` (
   `fetch_content_url` text COLLATE utf8mb4_general_ci,
   `status` int NOT NULL,
   `user_defined_map` json DEFAULT NULL,
-  `structure_map` json DEFAULT NULL,
+  `field_map` json DEFAULT NULL,
   `hash` varchar(255) COLLATE utf8mb4_general_ci NOT NULL,
   `fetch_method` int DEFAULT NULL,
   `app_id` int NOT NULL,

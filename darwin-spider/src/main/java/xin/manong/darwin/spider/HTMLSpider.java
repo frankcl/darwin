@@ -13,10 +13,11 @@ import xin.manong.darwin.common.Constants;
 import xin.manong.darwin.common.model.Job;
 import xin.manong.darwin.common.model.Rule;
 import xin.manong.darwin.common.model.URLRecord;
-import xin.manong.darwin.common.parser.ParseRequest;
-import xin.manong.darwin.common.parser.ParseResponse;
 import xin.manong.darwin.common.util.DarwinUtil;
-import xin.manong.darwin.parse.service.ParseService;
+import xin.manong.darwin.parser.sdk.ParseResponse;
+import xin.manong.darwin.parser.service.ParseService;
+import xin.manong.darwin.parser.service.request.HTMLScriptRequest;
+import xin.manong.darwin.parser.service.request.HTMLScriptRequestBuilder;
 import xin.manong.darwin.queue.multi.MultiQueue;
 import xin.manong.darwin.queue.multi.MultiQueueStatus;
 import xin.manong.darwin.service.iface.RuleService;
@@ -82,16 +83,18 @@ public class HTMLSpider extends Spider {
     private boolean parseHTML(String html, URLRecord record, Rule rule, Context context) {
         Long startTime = System.currentTimeMillis();
         try {
-            ParseRequest request = new ParseRequest.Builder().content(html).record(record).build();
-            ParseResponse response = parseService.parse(rule, request);
+            HTMLScriptRequest request = new HTMLScriptRequestBuilder().html(html).
+                    url(record.url).redirectURL(record.redirectURL).userDefinedMap(record.userDefinedMap).
+                    scriptType(rule.scriptType).scriptCode(rule.script).build();
+            ParseResponse response = parseService.parse(request);
             if (!response.status) {
                 record.status = Constants.URL_STATUS_FAIL;
                 context.put(Constants.DARWIN_DEBUG_MESSAGE, response.message);
                 logger.error("parse HTML failed for url[{}], cause[{}]", record.url, response.message);
                 return false;
             }
-            if (response.structureMap != null && !response.structureMap.isEmpty()) {
-                record.structureMap = response.structureMap;
+            if (response.fieldMap != null && !response.fieldMap.isEmpty()) {
+                record.fieldMap = response.fieldMap;
             }
             if (response.userDefinedMap != null && !response.userDefinedMap.isEmpty()) {
                 if (record.userDefinedMap == null) record.userDefinedMap = new HashMap<>();

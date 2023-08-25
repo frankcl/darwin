@@ -1,0 +1,20 @@
+import com.alibaba.fastjson.JSONObject;
+import xin.manong.darwin.parser.sdk.ParseRequest;
+import xin.manong.darwin.parser.sdk.ParseResponse;
+import xin.manong.darwin.parser.sdk.HTMLParser;
+
+class GroovyParser extends HTMLParser {
+
+    @Override
+    public ParseResponse parse(ParseRequest request) {
+        Map<String, Object> fieldMap = new HashMap<>();
+        JSONObject body = JSONObject.parseObject(request.html);
+        if (!body.containsKey("status") || !body.getBooleanValue("status")) {
+            logger.error("parse json failed");
+            return ParseResponse.buildError("JSON解析失败");
+        }
+        int size = body.containsKey("data") ? body.getJSONArray("data").size() : 0;
+        fieldMap.put("result_size", size);
+        return ParseResponse.buildOK(fieldMap, null, null);
+    }
+}

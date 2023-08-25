@@ -66,8 +66,8 @@ public class URLServiceImpl extends URLService {
         if (!StringUtils.isEmpty(fetchRecord.fetchContentURL)) {
             wrapper.set(URLRecord::getFetchContentURL, fetchRecord.fetchContentURL);
         }
-        if (fetchRecord.structureMap != null && !fetchRecord.structureMap.isEmpty()) {
-            wrapper.set(URLRecord::getStructureMap, fetchRecord.structureMap);
+        if (fetchRecord.fieldMap != null && !fetchRecord.fieldMap.isEmpty()) {
+            wrapper.set(URLRecord::getFieldMap, fetchRecord.fieldMap);
         }
         int n = urlMapper.update(null, wrapper);
         if (n > 0 && !StringUtils.isEmpty(record.url)) recordCache.invalidate(record.url);
