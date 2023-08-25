@@ -7,10 +7,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import xin.manong.darwin.common.model.Pager;
+import xin.manong.darwin.common.model.Rule;
 import xin.manong.darwin.common.model.RuleGroup;
 import xin.manong.darwin.service.convert.Converter;
 import xin.manong.darwin.service.dao.mapper.RuleGroupMapper;
 import xin.manong.darwin.service.iface.RuleGroupService;
+import xin.manong.darwin.service.iface.RuleService;
+import xin.manong.darwin.service.request.RuleSearchRequest;
 
 import javax.annotation.Resource;
 
@@ -27,6 +30,8 @@ public class RuleGroupServiceImpl implements RuleGroupService {
 
     @Resource
     protected RuleGroupMapper ruleGroupMapper;
+    @Resource
+    protected RuleService ruleService;
 
     @Override
     public Boolean add(RuleGroup ruleGroup) {
@@ -53,6 +58,15 @@ public class RuleGroupServiceImpl implements RuleGroupService {
         if (ruleGroupMapper.selectById(id) == null) {
             logger.error("rule group[{}] is not found", id);
             return false;
+        }
+        RuleSearchRequest searchRequest = new RuleSearchRequest();
+        searchRequest.current = 1;
+        searchRequest.size = 1;
+        searchRequest.ruleGroup = id;
+        Pager<Rule> pager = ruleService.search(searchRequest);
+        if (pager.total > 0) {
+            logger.error("rules are not empty for rule group[{}]", id);
+            throw new RuntimeException(String.format("规则分组[%d]中规则不为空", id));
         }
         return ruleGroupMapper.deleteById(id) > 0;
     }

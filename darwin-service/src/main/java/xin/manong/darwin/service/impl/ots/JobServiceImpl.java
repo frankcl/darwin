@@ -9,10 +9,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import xin.manong.darwin.common.model.Job;
 import xin.manong.darwin.common.model.Pager;
+import xin.manong.darwin.common.model.URLRecord;
 import xin.manong.darwin.service.config.ServiceConfig;
 import xin.manong.darwin.service.convert.Converter;
 import xin.manong.darwin.service.iface.JobService;
+import xin.manong.darwin.service.iface.URLService;
 import xin.manong.darwin.service.request.JobSearchRequest;
+import xin.manong.darwin.service.request.URLSearchRequest;
 import xin.manong.weapon.aliyun.ots.*;
 import xin.manong.weapon.base.record.KVRecord;
 
@@ -42,6 +45,8 @@ public class JobServiceImpl extends JobService {
     protected ServiceConfig serviceConfig;
     @Resource
     protected OTSClient otsClient;
+    @Resource
+    protected URLService urlService;
 
     @Override
     public Job get(String jobId) {
@@ -102,6 +107,14 @@ public class JobServiceImpl extends JobService {
         if (kvRecord == null) {
             logger.error("job[{}] is not found", jobId);
             return false;
+        }
+        URLSearchRequest searchRequest = new URLSearchRequest();
+        searchRequest.current = 1;
+        searchRequest.size = 1;
+        Pager<URLRecord> pager = urlService.search(searchRequest);
+        if (pager.total > 0) {
+            logger.error("urls are not empty for job[{}]", jobId);
+            throw new RuntimeException(String.format("任务[%s]中URL记录不为空", jobId));
         }
         OTSStatus status = otsClient.delete(serviceConfig.jobTable, keyMap, null);
         if (status == OTSStatus.SUCCESS) jobCache.invalidate(jobId);

@@ -9,9 +9,12 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import xin.manong.darwin.common.model.App;
 import xin.manong.darwin.common.model.Pager;
+import xin.manong.darwin.common.model.Plan;
 import xin.manong.darwin.service.convert.Converter;
 import xin.manong.darwin.service.dao.mapper.AppMapper;
 import xin.manong.darwin.service.iface.AppService;
+import xin.manong.darwin.service.iface.PlanService;
+import xin.manong.darwin.service.request.PlanSearchRequest;
 
 import javax.annotation.Resource;
 
@@ -28,6 +31,8 @@ public class AppServiceImpl implements AppService {
 
     @Resource
     protected AppMapper appMapper;
+    @Resource
+    protected PlanService planService;
 
     @Override
     public Boolean add(App app) {
@@ -54,6 +59,15 @@ public class AppServiceImpl implements AppService {
         if (appMapper.selectById(id) == null) {
             logger.error("app[{}] is not found", id);
             return false;
+        }
+        PlanSearchRequest searchRequest = new PlanSearchRequest();
+        searchRequest.current = 1;
+        searchRequest.size = 1;
+        searchRequest.appId = id.intValue();
+        Pager<Plan> pager = planService.search(searchRequest);
+        if (pager.total > 0) {
+            logger.error("plans are not empty for app[{}]", id);
+            throw new RuntimeException(String.format("应用[%s]中计划不为空", id));
         }
         return appMapper.deleteById(id) > 0;
     }

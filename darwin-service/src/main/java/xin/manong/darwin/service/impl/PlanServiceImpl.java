@@ -24,6 +24,7 @@ import xin.manong.darwin.service.iface.PlanService;
 import xin.manong.darwin.service.iface.URLService;
 import xin.manong.darwin.service.impl.ots.JobServiceImpl;
 import xin.manong.darwin.service.impl.ots.URLServiceImpl;
+import xin.manong.darwin.service.request.JobSearchRequest;
 import xin.manong.darwin.service.request.PlanSearchRequest;
 
 import javax.annotation.Resource;
@@ -85,6 +86,15 @@ public class PlanServiceImpl implements PlanService {
         if (planMapper.selectById(planId) == null) {
             logger.error("plan[{}] is not found", planId);
             return false;
+        }
+        JobSearchRequest searchRequest = new JobSearchRequest();
+        searchRequest.current = 1;
+        searchRequest.size = 1;
+        searchRequest.planId = planId;
+        Pager<Job> pager = jobService.search(searchRequest);
+        if (pager.total > 0) {
+            logger.error("jobs are not empty for plan[{}]", planId);
+            throw new RuntimeException(String.format("计划[%s]中任务不为空", planId));
         }
         return planMapper.deleteById(planId) > 0;
     }

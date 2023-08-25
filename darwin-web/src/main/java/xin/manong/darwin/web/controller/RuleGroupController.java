@@ -6,11 +6,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import xin.manong.darwin.common.model.Pager;
-import xin.manong.darwin.common.model.Rule;
 import xin.manong.darwin.common.model.RuleGroup;
 import xin.manong.darwin.service.iface.RuleGroupService;
-import xin.manong.darwin.service.iface.RuleService;
-import xin.manong.darwin.service.request.RuleSearchRequest;
 
 import javax.annotation.Resource;
 import javax.ws.rs.*;
@@ -30,8 +27,6 @@ public class RuleGroupController {
 
     private static final Logger logger = LoggerFactory.getLogger(RuleGroupController.class);
 
-    @Resource
-    protected RuleService ruleService;
     @Resource
     protected RuleGroupService ruleGroupService;
 
@@ -160,15 +155,6 @@ public class RuleGroupController {
         if (ruleGroupService.get(id) == null) {
             logger.error("rule group is not found for id[{}]", id);
             throw new NotFoundException(String.format("规则分组[%d]不存在", id));
-        }
-        RuleSearchRequest searchRequest = new RuleSearchRequest();
-        searchRequest.current = 1;
-        searchRequest.size = 1;
-        searchRequest.ruleGroup = id;
-        Pager<Rule> pager = ruleService.search(searchRequest);
-        if (pager.total > 0) {
-            logger.error("rule exists for group[{}]", id);
-            throw new RuntimeException(String.format("规则分组[%d]下存在规则", id));
         }
         return ruleGroupService.delete(id);
     }

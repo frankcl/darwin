@@ -40,6 +40,44 @@ public class PlanController {
     protected RuleService ruleService;
 
     /**
+     * 启动计划
+     *
+     * @param planId 计划ID
+     * @return 启动成功返回true，否则返回false
+     */
+    @POST
+    @Consumes("application/x-www-form-urlencoded")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("start")
+    @GetMapping("start")
+    public Boolean start(@FormParam("plan_id") String planId) {
+        checkPeriodPlan(planId, Constants.PLAN_STATUS_STOPPED);
+        Plan updatePlan = new Plan();
+        updatePlan.planId = planId;
+        updatePlan.status = Constants.PLAN_STATUS_RUNNING;
+        return planService.update(updatePlan);
+    }
+
+    /**
+     * 停止计划
+     *
+     * @param planId 计划ID
+     * @return 停止成功返回true，否则返回false
+     */
+    @POST
+    @Consumes("application/x-www-form-urlencoded")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("stop")
+    @GetMapping("stop")
+    public Boolean stop(@FormParam("plan_id") String planId) {
+        checkPeriodPlan(planId, Constants.PLAN_STATUS_RUNNING);
+        Plan updatePlan = new Plan();
+        updatePlan.planId = planId;
+        updatePlan.status = Constants.PLAN_STATUS_STOPPED;
+        return planService.update(updatePlan);
+    }
+
+    /**
      * 根据ID获取计划
      *
      * @param id 计划ID
@@ -263,5 +301,32 @@ public class PlanController {
             if (ruleService.match(record, rule)) matchedRules.add(rule);
         }
         return matchedRules.size() == 1;
+    }
+
+    /**
+     * 检测周期性计划
+     *
+     * @param planId 计划ID
+     * @param expectedStatus 期待状态
+     */
+    private void checkPeriodPlan(String planId, int expectedStatus) {
+        if (StringUtils.isEmpty(planId)) {
+            logger.error("plan id is empty");
+            throw new BadRequestException("计划ID为空");
+        }
+        Plan plan = planService.get(planId);
+        if (plan == null) {
+            logger.error("plan[{}] is not found", planId);
+            throw new NotFoundException(String.format("计划[%s]未找到", planId));
+        }
+        if (plan.category != Constants.PLAN_CATEGORY_PERIOD) {
+            logger.error("plan is not period plan");
+            throw new RuntimeException("计划不是周期性计划");
+        }
+        if (plan.status != expectedStatus) {
+            logger.error("plan is not in expected status[{}]", expectedStatus);
+            throw new RuntimeException(String.format("计划不处于%s状态",
+                    Constants.SUPPORT_PLAN_STATUSES.get(expectedStatus)));
+        }
     }
 }

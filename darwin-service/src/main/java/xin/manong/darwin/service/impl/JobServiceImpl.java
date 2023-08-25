@@ -10,10 +10,13 @@ import org.springframework.stereotype.Service;
 import xin.manong.darwin.common.Constants;
 import xin.manong.darwin.common.model.Job;
 import xin.manong.darwin.common.model.Pager;
+import xin.manong.darwin.common.model.URLRecord;
 import xin.manong.darwin.service.convert.Converter;
 import xin.manong.darwin.service.dao.mapper.JobMapper;
 import xin.manong.darwin.service.iface.JobService;
+import xin.manong.darwin.service.iface.URLService;
 import xin.manong.darwin.service.request.JobSearchRequest;
+import xin.manong.darwin.service.request.URLSearchRequest;
 
 import javax.annotation.Resource;
 
@@ -30,6 +33,8 @@ public class JobServiceImpl extends JobService {
 
     @Resource
     protected JobMapper jobMapper;
+    @Resource
+    protected URLService urlService;
 
     @Override
     public Job get(String jobId) {
@@ -67,6 +72,14 @@ public class JobServiceImpl extends JobService {
         if (jobMapper.selectById(jobId) == null) {
             logger.error("job[{}] is not found", jobId);
             return false;
+        }
+        URLSearchRequest searchRequest = new URLSearchRequest();
+        searchRequest.current = 1;
+        searchRequest.size = 1;
+        Pager<URLRecord> pager = urlService.search(searchRequest);
+        if (pager.total > 0) {
+            logger.error("urls are not empty for job[{}]", jobId);
+            throw new RuntimeException(String.format("任务[%s]中URL记录不为空", jobId));
         }
         int n = jobMapper.deleteById(jobId);
         if (n > 0) jobCache.invalidate(jobId);
