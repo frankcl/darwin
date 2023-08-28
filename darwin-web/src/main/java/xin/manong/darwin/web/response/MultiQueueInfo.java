@@ -3,6 +3,8 @@ package xin.manong.darwin.web.response;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import java.io.Serializable;
+
 /**
  * 多级队列信息
  *
@@ -10,7 +12,9 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  * @date 2023-08-28 11:09:57
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class MultiQueueInfo {
+public class MultiQueueInfo implements Serializable {
+
+    private static final long serialVersionUID = 5192194278750852497L;
 
     /**
      * 内存级别
