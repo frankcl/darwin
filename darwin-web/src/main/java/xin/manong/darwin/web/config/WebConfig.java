@@ -17,6 +17,7 @@ import xin.manong.weapon.base.log.JSONLogger;
 @ConfigurationProperties(prefix = "app.web")
 public class WebConfig {
 
+    public Long connectionExpiredTimeMs;
     public String name;
     public String aspectLogFile;
 

@@ -9,3 +9,4 @@ spring:
 app:
   web:
     name: darwin-web
+    connectionExpiredTimeMs: 300000

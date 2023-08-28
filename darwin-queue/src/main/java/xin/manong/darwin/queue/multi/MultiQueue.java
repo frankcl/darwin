@@ -58,6 +58,15 @@ public class MultiQueue {
     }
 
     /**
+     * 获取内存信息
+     *
+     * @return 当前内存信息
+     */
+    public RedisMemory getMemoryInfo() {
+        return redisClient.getMemoryInfo();
+    }
+
+    /**
      * 获取当前内存等级
      *
      * @return 当前内存等级
@@ -294,6 +303,24 @@ public class MultiQueue {
         RBlockingQueue<URLRecord> recordQueue = redisClient.getRedissonClient().
                 getBlockingQueue(concurrentUnitQueueKey, codec);
         if (recordQueue != null) recordQueue.remove(record);
+    }
+
+    /**
+     * 获取并发单元排队URL数量
+     *
+     * @param concurrentUnit 并发单元
+     * @return 排队URL数量
+     */
+    public int getConcurrentUnitQueuingSize(String concurrentUnit) {
+        int queuingSize = 0;
+        if (StringUtils.isEmpty(concurrentUnit)) return queuingSize;
+        List<String> concurrentUnitQueueKeys = buildConcurrentUnitQueueKeys(concurrentUnit);
+        for (String concurrentQueueQueueKey : concurrentUnitQueueKeys) {
+            RBlockingQueue<URLRecord> urlQueue = redisClient.getRedissonClient().
+                    getBlockingQueue(concurrentQueueQueueKey, codec);
+            queuingSize += urlQueue.size();
+        }
+        return queuingSize;
     }
 
     /**

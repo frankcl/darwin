@@ -212,7 +212,7 @@ public class ConcurrentManager {
      * @param concurrentUnit 并发单元
      * @return 最大并发连接数量
      */
-    private int getMaxConcurrentConnectionNum(String concurrentUnit) {
+    public int getMaxConcurrentConnectionNum(String concurrentUnit) {
         if (concurrentUnitMaxConnectionMap.containsKey(concurrentUnit)) {
             return concurrentUnitMaxConnectionMap.get(concurrentUnit);
         }
