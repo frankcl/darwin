@@ -31,7 +31,7 @@ public class ScriptCache {
     }
 
     /**
-     * 缓存溢出回调函数
+     * 缓存移除回调函数
      *
      * @param notification 移除通知
      */

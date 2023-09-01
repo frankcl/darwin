@@ -6,6 +6,7 @@ import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import xin.manong.darwin.common.Constants;
 import xin.manong.darwin.common.model.FetchRecord;
 import xin.manong.darwin.common.model.Pager;
 import xin.manong.darwin.common.model.URLRecord;
@@ -152,33 +153,34 @@ public class URLServiceImpl extends URLService {
 
     @Override
     public Pager<URLRecord> search(URLSearchRequest searchRequest) {
+        if (searchRequest == null) searchRequest = new URLSearchRequest();
+        if (searchRequest.current == null || searchRequest.current < 1) searchRequest.current = Constants.DEFAULT_CURRENT;
+        if (searchRequest.size == null || searchRequest.size <= 0) searchRequest.size = Constants.DEFAULT_PAGE_SIZE;
         int offset = (searchRequest.current - 1) * searchRequest.size;
         BoolQuery boolQuery = new BoolQuery();
-        if (searchRequest != null) {
-            List<Query> queryList = new ArrayList<>();
-            if (searchRequest.status != null) {
-                queryList.add(SearchQueryBuilder.buildTermQuery(KEY_STATUS, searchRequest.status));
-            }
-            if (searchRequest.priority != null) {
-                queryList.add(SearchQueryBuilder.buildTermQuery(KEY_PRIORITY, searchRequest.priority));
-            }
-            if (searchRequest.category != null) {
-                queryList.add(SearchQueryBuilder.buildTermQuery(KEY_CATEGORY, searchRequest.category));
-            }
-            if (!StringUtils.isEmpty(searchRequest.jobId)) {
-                queryList.add(SearchQueryBuilder.buildTermQuery(KEY_JOB_ID, searchRequest.jobId));
-            }
-            if (!StringUtils.isEmpty(searchRequest.planId)) {
-                queryList.add(SearchQueryBuilder.buildTermQuery(KEY_PLAN_ID, searchRequest.planId));
-            }
-            if (!StringUtils.isEmpty(searchRequest.url)) {
-                queryList.add(SearchQueryBuilder.buildTermQuery(KEY_HASH, DigestUtils.md5Hex(searchRequest.url)));
-            }
-            if (searchRequest.fetchTime != null) {
-                queryList.add(SearchQueryBuilder.buildRangeQuery(KEY_FETCH_TIME, searchRequest.fetchTime));
-            }
-            boolQuery.setFilterQueries(queryList);
+        List<Query> queryList = new ArrayList<>();
+        if (searchRequest.status != null) {
+            queryList.add(SearchQueryBuilder.buildTermQuery(KEY_STATUS, searchRequest.status));
         }
+        if (searchRequest.priority != null) {
+            queryList.add(SearchQueryBuilder.buildTermQuery(KEY_PRIORITY, searchRequest.priority));
+        }
+        if (searchRequest.category != null) {
+            queryList.add(SearchQueryBuilder.buildTermQuery(KEY_CATEGORY, searchRequest.category));
+        }
+        if (!StringUtils.isEmpty(searchRequest.jobId)) {
+            queryList.add(SearchQueryBuilder.buildTermQuery(KEY_JOB_ID, searchRequest.jobId));
+        }
+        if (!StringUtils.isEmpty(searchRequest.planId)) {
+            queryList.add(SearchQueryBuilder.buildTermQuery(KEY_PLAN_ID, searchRequest.planId));
+        }
+        if (!StringUtils.isEmpty(searchRequest.url)) {
+            queryList.add(SearchQueryBuilder.buildTermQuery(KEY_HASH, DigestUtils.md5Hex(searchRequest.url)));
+        }
+        if (searchRequest.fetchTime != null) {
+            queryList.add(SearchQueryBuilder.buildRangeQuery(KEY_FETCH_TIME, searchRequest.fetchTime));
+        }
+        if (!queryList.isEmpty()) boolQuery.setFilterQueries(queryList);
         OTSSearchRequest request = new OTSSearchRequest.Builder().offset(offset).limit(searchRequest.size).
                 tableName(serviceConfig.urlTable).indexName(serviceConfig.urlIndexName).query(boolQuery).build();
         OTSSearchResponse response = otsClient.search(request);

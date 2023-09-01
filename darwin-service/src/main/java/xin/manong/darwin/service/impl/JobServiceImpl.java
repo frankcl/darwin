@@ -88,19 +88,15 @@ public class JobServiceImpl extends JobService {
 
     @Override
     public Pager<Job> search(JobSearchRequest searchRequest) {
-        if (searchRequest == null) {
-            searchRequest = new JobSearchRequest();
-            searchRequest.current = Constants.DEFAULT_CURRENT;
-            searchRequest.size = Constants.DEFAULT_PAGE_SIZE;
-        }
+        if (searchRequest == null) searchRequest = new JobSearchRequest();
+        if (searchRequest.current == null || searchRequest.current < 1) searchRequest.current = Constants.DEFAULT_CURRENT;
+        if (searchRequest.size == null || searchRequest.size <= 0) searchRequest.size = Constants.DEFAULT_PAGE_SIZE;
         LambdaQueryWrapper<Job> query = new LambdaQueryWrapper<>();
         query.orderByDesc(Job::getCreateTime);
-        if (searchRequest != null) {
-            if (searchRequest.priority != null) query.eq(Job::getPriority, searchRequest.priority);
-            if (searchRequest.status != null) query.eq(Job::getStatus, searchRequest.status);
-            if (searchRequest.planId != null) query.eq(Job::getPlanId, searchRequest.planId);
-            if (!StringUtils.isEmpty(searchRequest.name)) query.like(Job::getName, searchRequest.name);
-        }
+        if (searchRequest.priority != null) query.eq(Job::getPriority, searchRequest.priority);
+        if (searchRequest.status != null) query.eq(Job::getStatus, searchRequest.status);
+        if (searchRequest.planId != null) query.eq(Job::getPlanId, searchRequest.planId);
+        if (!StringUtils.isEmpty(searchRequest.name)) query.like(Job::getName, searchRequest.name);
         IPage<Job> page = jobMapper.selectPage(new Page<>(searchRequest.current, searchRequest.size), query);
         return Converter.convert(page);
     }

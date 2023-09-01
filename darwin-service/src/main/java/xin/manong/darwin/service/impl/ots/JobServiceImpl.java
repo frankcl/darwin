@@ -7,6 +7,7 @@ import com.alicloud.openservices.tablestore.model.search.query.TermQuery;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import xin.manong.darwin.common.Constants;
 import xin.manong.darwin.common.model.Job;
 import xin.manong.darwin.common.model.Pager;
 import xin.manong.darwin.common.model.URLRecord;
@@ -123,24 +124,17 @@ public class JobServiceImpl extends JobService {
 
     @Override
     public Pager<Job> search(JobSearchRequest searchRequest) {
+        if (searchRequest == null) searchRequest = new JobSearchRequest();
+        if (searchRequest.current == null || searchRequest.current < 1) searchRequest.current = Constants.DEFAULT_CURRENT;
+        if (searchRequest.size == null || searchRequest.size <= 0) searchRequest.size = Constants.DEFAULT_PAGE_SIZE;
         int offset = (searchRequest.current - 1) * searchRequest.size;
         BoolQuery boolQuery = new BoolQuery();
-        if (searchRequest != null) {
-            List<Query> queryList = new ArrayList<>();
-            if (searchRequest.status != null) {
-                queryList.add(SearchQueryBuilder.buildTermQuery(KEY_STATUS, searchRequest.status));
-            }
-            if (searchRequest.priority != null) {
-                queryList.add(SearchQueryBuilder.buildTermQuery(KEY_PRIORITY, searchRequest.priority));
-            }
-            if (!StringUtils.isEmpty(searchRequest.planId)) {
-                queryList.add(SearchQueryBuilder.buildTermQuery(KEY_PLAN_ID, searchRequest.planId));
-            }
-            if (!StringUtils.isEmpty(searchRequest.name)) {
-                queryList.add(SearchQueryBuilder.buildMatchPhraseQuery(KEY_NAME, searchRequest.name));
-            }
-            boolQuery.setFilterQueries(queryList);
-        }
+        List<Query> queryList = new ArrayList<>();
+        if (searchRequest.status != null) queryList.add(SearchQueryBuilder.buildTermQuery(KEY_STATUS, searchRequest.status));
+        if (searchRequest.priority != null) queryList.add(SearchQueryBuilder.buildTermQuery(KEY_PRIORITY, searchRequest.priority));
+        if (!StringUtils.isEmpty(searchRequest.planId)) queryList.add(SearchQueryBuilder.buildTermQuery(KEY_PLAN_ID, searchRequest.planId));
+        if (!StringUtils.isEmpty(searchRequest.name)) queryList.add(SearchQueryBuilder.buildMatchPhraseQuery(KEY_NAME, searchRequest.name));
+        if (!queryList.isEmpty()) boolQuery.setFilterQueries(queryList);
         OTSSearchRequest request = new OTSSearchRequest.Builder().offset(offset).limit(searchRequest.size).
                 tableName(serviceConfig.jobTable).indexName(serviceConfig.jobIndexName).query(boolQuery).build();
         OTSSearchResponse response = otsClient.search(request);

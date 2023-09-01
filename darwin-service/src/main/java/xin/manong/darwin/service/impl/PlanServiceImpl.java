@@ -101,20 +101,16 @@ public class PlanServiceImpl implements PlanService {
 
     @Override
     public Pager<Plan> search(PlanSearchRequest searchRequest) {
-        if (searchRequest == null) {
-            searchRequest = new PlanSearchRequest();
-            searchRequest.current = Constants.DEFAULT_CURRENT;
-            searchRequest.size = Constants.DEFAULT_PAGE_SIZE;
-        }
+        if (searchRequest == null) searchRequest = new PlanSearchRequest();
+        if (searchRequest.current == null || searchRequest.current < 1) searchRequest.current = Constants.DEFAULT_CURRENT;
+        if (searchRequest.size == null || searchRequest.size <= 0) searchRequest.size = Constants.DEFAULT_PAGE_SIZE;
         LambdaQueryWrapper<Plan> query = new LambdaQueryWrapper<>();
         query.orderByDesc(Plan::getCreateTime);
-        if (searchRequest != null) {
-            if (searchRequest.category != null) query.eq(Plan::getCategory, searchRequest.category);
-            if (searchRequest.status != null) query.eq(Plan::getStatus, searchRequest.status);
-            if (searchRequest.priority != null) query.eq(Plan::getPriority, searchRequest.priority);
-            if (searchRequest.appId != null) query.eq(Plan::getAppId, searchRequest.appId);
-            if (!StringUtils.isEmpty(searchRequest.name)) query.like(Plan::getName, searchRequest.name);
-        }
+        if (searchRequest.category != null) query.eq(Plan::getCategory, searchRequest.category);
+        if (searchRequest.status != null) query.eq(Plan::getStatus, searchRequest.status);
+        if (searchRequest.priority != null) query.eq(Plan::getPriority, searchRequest.priority);
+        if (searchRequest.appId != null) query.eq(Plan::getAppId, searchRequest.appId);
+        if (!StringUtils.isEmpty(searchRequest.name)) query.like(Plan::getName, searchRequest.name);
         IPage<Plan> page = planMapper.selectPage(new Page<>(searchRequest.current, searchRequest.size), query);
         return Converter.convert(page);
     }

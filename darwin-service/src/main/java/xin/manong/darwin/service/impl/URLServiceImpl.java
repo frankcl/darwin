@@ -135,28 +135,24 @@ public class URLServiceImpl extends URLService {
 
     @Override
     public Pager<URLRecord> search(URLSearchRequest searchRequest) {
-        if (searchRequest == null) {
-            searchRequest = new URLSearchRequest();
-            searchRequest.current = Constants.DEFAULT_CURRENT;
-            searchRequest.size = Constants.DEFAULT_PAGE_SIZE;
-        }
+        if (searchRequest == null) searchRequest = new URLSearchRequest();
+        if (searchRequest.current == null || searchRequest.current < 1) searchRequest.current = Constants.DEFAULT_CURRENT;
+        if (searchRequest.size == null || searchRequest.size <= 0) searchRequest.size = Constants.DEFAULT_PAGE_SIZE;
         LambdaQueryWrapper<URLRecord> query = new LambdaQueryWrapper<>();
         query.orderByDesc(URLRecord::getCreateTime);
-        if (searchRequest != null) {
-            if (searchRequest.category != null) query.eq(URLRecord::getCategory, searchRequest.category);
-            if (searchRequest.status != null) query.eq(URLRecord::getStatus, searchRequest.status);
-            if (searchRequest.priority != null) query.eq(URLRecord::getPriority, searchRequest.priority);
-            if (!StringUtils.isEmpty(searchRequest.jobId)) query.eq(URLRecord::getJobId, searchRequest.jobId);
-            if (!StringUtils.isEmpty(searchRequest.planId)) query.eq(URLRecord::getPlanId, searchRequest.planId);
-            if (!StringUtils.isEmpty(searchRequest.url)) query.eq(URLRecord::getHash, DigestUtils.md5Hex(searchRequest.url));
-            if (searchRequest.fetchTime != null && searchRequest.fetchTime.start != null) {
-                if (searchRequest.fetchTime.includeLower) query.ge(URLRecord::getFetchTime, searchRequest.fetchTime.start);
-                else query.gt(URLRecord::getFetchTime, searchRequest.fetchTime.start);
-            }
-            if (searchRequest.fetchTime != null && searchRequest.fetchTime.end != null) {
-                if (searchRequest.fetchTime.includeUpper) query.le(URLRecord::getFetchTime, searchRequest.fetchTime.end);
-                else query.lt(URLRecord::getFetchTime, searchRequest.fetchTime.end);
-            }
+        if (searchRequest.category != null) query.eq(URLRecord::getCategory, searchRequest.category);
+        if (searchRequest.status != null) query.eq(URLRecord::getStatus, searchRequest.status);
+        if (searchRequest.priority != null) query.eq(URLRecord::getPriority, searchRequest.priority);
+        if (!StringUtils.isEmpty(searchRequest.jobId)) query.eq(URLRecord::getJobId, searchRequest.jobId);
+        if (!StringUtils.isEmpty(searchRequest.planId)) query.eq(URLRecord::getPlanId, searchRequest.planId);
+        if (!StringUtils.isEmpty(searchRequest.url)) query.eq(URLRecord::getHash, DigestUtils.md5Hex(searchRequest.url));
+        if (searchRequest.fetchTime != null && searchRequest.fetchTime.start != null) {
+            if (searchRequest.fetchTime.includeLower) query.ge(URLRecord::getFetchTime, searchRequest.fetchTime.start);
+            else query.gt(URLRecord::getFetchTime, searchRequest.fetchTime.start);
+        }
+        if (searchRequest.fetchTime != null && searchRequest.fetchTime.end != null) {
+            if (searchRequest.fetchTime.includeUpper) query.le(URLRecord::getFetchTime, searchRequest.fetchTime.end);
+            else query.lt(URLRecord::getFetchTime, searchRequest.fetchTime.end);
         }
         IPage<URLRecord> page = urlMapper.selectPage(new Page<>(searchRequest.current, searchRequest.size), query);
         return Converter.convert(page);

@@ -77,20 +77,16 @@ public class RuleServiceImpl extends RuleService {
 
     @Override
     public Pager<Rule> search(RuleSearchRequest searchRequest) {
-        if (searchRequest == null) {
-            searchRequest = new RuleSearchRequest();
-            searchRequest.current = Constants.DEFAULT_CURRENT;
-            searchRequest.size = Constants.DEFAULT_PAGE_SIZE;
-        }
+        if (searchRequest == null) searchRequest = new RuleSearchRequest();
+        if (searchRequest.current == null || searchRequest.current < 1) searchRequest.current = Constants.DEFAULT_CURRENT;
+        if (searchRequest.size == null || searchRequest.size <= 0) searchRequest.size = Constants.DEFAULT_PAGE_SIZE;
         LambdaQueryWrapper<Rule> query = new LambdaQueryWrapper<>();
         query.orderByDesc(Rule::getCreateTime);
-        if (searchRequest != null) {
-            if (searchRequest.category != null) query.eq(Rule::getCategory, searchRequest.category);
-            if (searchRequest.ruleGroup != null) query.eq(Rule::getRuleGroup, searchRequest.ruleGroup);
-            if (searchRequest.scriptType != null) query.eq(Rule::getScriptType, searchRequest.scriptType);
-            if (!StringUtils.isEmpty(searchRequest.domain)) query.eq(Rule::getDomain, searchRequest.domain);
-            if (!StringUtils.isEmpty(searchRequest.name)) query.like(Rule::getName, searchRequest.name);
-        }
+        if (searchRequest.category != null) query.eq(Rule::getCategory, searchRequest.category);
+        if (searchRequest.ruleGroup != null) query.eq(Rule::getRuleGroup, searchRequest.ruleGroup);
+        if (searchRequest.scriptType != null) query.eq(Rule::getScriptType, searchRequest.scriptType);
+        if (!StringUtils.isEmpty(searchRequest.domain)) query.eq(Rule::getDomain, searchRequest.domain);
+        if (!StringUtils.isEmpty(searchRequest.name)) query.like(Rule::getName, searchRequest.name);
         IPage<Rule> page = ruleMapper.selectPage(new Page<>(searchRequest.current, searchRequest.size), query);
         return Converter.convert(page);
     }
