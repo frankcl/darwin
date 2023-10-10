@@ -1,5 +1,8 @@
 package xin.manong.darwin.web.controller;
 
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -12,9 +15,7 @@ import xin.manong.darwin.web.response.MultiQueueInfo;
 import xin.manong.weapon.base.redis.RedisMemory;
 
 import javax.annotation.Resource;
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
+import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import java.util.ArrayList;
 import java.util.List;
@@ -32,6 +33,8 @@ import java.util.Set;
 @Path("/concurrent_queue")
 @RequestMapping("/concurrent_queue")
 public class ConcurrentQueueController {
+
+    private static final Logger logger = LoggerFactory.getLogger(ConcurrentQueueController.class);
 
     @Resource
     protected WebConfig webConfig;
@@ -63,21 +66,25 @@ public class ConcurrentQueueController {
     @Produces(MediaType.APPLICATION_JSON)
     @Path("getConcurrentUnitInfo")
     @GetMapping("getConcurrentUnitInfo")
-    public ConcurrentUnitInfo getConcurrentUnitInfo(String concurrentUnit) {
+    public ConcurrentUnitInfo getConcurrentUnitInfo(@QueryParam("concurrent_unit") String concurrentUnit) {
+        if (StringUtils.isEmpty(concurrentUnit)) {
+            logger.error("concurrent unit is empty");
+            throw new BadRequestException("并发单元为空");
+        }
         Long currentTime = System.currentTimeMillis();
-        ConcurrentUnitInfo queueInfo = new ConcurrentUnitInfo();
-        queueInfo.fetchCapacity = concurrentManager.getMaxConcurrentConnectionNum(concurrentUnit);
-        queueInfo.queuingSize = multiQueue.getConcurrentUnitQueuingSize(concurrentUnit);
-        queueInfo.fetchingSize = 0;
-        queueInfo.fetchingExpiredSize = 0;
+        ConcurrentUnitInfo concurrentUnitInfo = new ConcurrentUnitInfo();
+        concurrentUnitInfo.fetchCapacity = concurrentManager.getMaxConcurrentConnectionNum(concurrentUnit);
+        concurrentUnitInfo.queuingSize = multiQueue.getConcurrentUnitQueuingSize(concurrentUnit);
+        concurrentUnitInfo.fetchingSize = 0;
+        concurrentUnitInfo.fetchingExpiredSize = 0;
         Map<String, Long> connectionRecordMap = concurrentManager.getConnectionRecordMap(concurrentUnit);
         for (Map.Entry<String, Long> entry : connectionRecordMap.entrySet()) {
             Long expiredTime = entry.getValue();
-            queueInfo.fetchingSize++;
-            if (currentTime + webConfig.connectionExpiredTimeMs >= expiredTime) queueInfo.fetchingExpiredSize++;
+            concurrentUnitInfo.fetchingSize++;
+            if (currentTime + webConfig.connectionExpiredTimeMs >= expiredTime) concurrentUnitInfo.fetchingExpiredSize++;
         }
-        queueInfo.availableFetchingSize = queueInfo.fetchCapacity - queueInfo.fetchingSize;
-        return queueInfo;
+        concurrentUnitInfo.availableFetchingSize = concurrentUnitInfo.fetchCapacity - concurrentUnitInfo.fetchingSize;
+        return concurrentUnitInfo;
     }
 
     /**
