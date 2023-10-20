@@ -9,6 +9,8 @@ import xin.manong.darwin.common.model.AppUser;
 import xin.manong.darwin.common.model.Pager;
 import xin.manong.darwin.service.iface.AppUserService;
 import xin.manong.darwin.service.request.AppUserSearchRequest;
+import xin.manong.darwin.web.convert.Converter;
+import xin.manong.darwin.web.request.AppUserRequest;
 
 import javax.annotation.Resource;
 import javax.ws.rs.*;
@@ -63,7 +65,7 @@ public class AppUserController {
     /**
      * 添加应用用户关系
      *
-     * @param appUser 应用用户关系
+     * @param request 应用用户关系
      * @return 添加成功返回true，否则返回false
      */
     @PUT
@@ -71,14 +73,13 @@ public class AppUserController {
     @Produces(MediaType.APPLICATION_JSON)
     @Path("add")
     @PutMapping("add")
-    public Boolean add(AppUser appUser) {
-        if (appUser == null || !appUser.check()) {
-            logger.error("app is null or not valid");
-            throw new BadRequestException("应用用户关系非法");
+    public Boolean add(AppUserRequest request) {
+        if (request == null) {
+            logger.error("app user relation is null");
+            throw new BadRequestException("应用用户关系为空");
         }
-        appUser.id = null;
-        appUser.createTime = null;
-        appUser.updateTime = null;
+        request.check();
+        AppUser appUser = Converter.convert(request);
         return appUserService.add(appUser);
     }
 

@@ -10,6 +10,9 @@ import xin.manong.darwin.common.model.Rule;
 import xin.manong.darwin.service.iface.RuleGroupService;
 import xin.manong.darwin.service.iface.RuleService;
 import xin.manong.darwin.service.request.RuleSearchRequest;
+import xin.manong.darwin.web.convert.Converter;
+import xin.manong.darwin.web.request.RuleRequest;
+import xin.manong.darwin.web.request.RuleUpdateRequest;
 
 import javax.annotation.Resource;
 import javax.ws.rs.*;
@@ -73,7 +76,7 @@ public class RuleController {
     /**
      * 添加规则
      *
-     * @param rule 规则
+     * @param request 规则
      * @return 添加成功返回true，否则返回false
      */
     @PUT
@@ -81,25 +84,24 @@ public class RuleController {
     @Consumes(MediaType.APPLICATION_JSON)
     @Path("add")
     @PutMapping("add")
-    public Boolean add(Rule rule) {
-        if (rule == null || !rule.check()) {
-            logger.error("rule is null or is not valid");
-            throw new BadRequestException("规则为空或非法");
+    public Boolean add(RuleRequest request) {
+        if (request == null) {
+            logger.error("rule request is null");
+            throw new BadRequestException("规则请求信息为空");
         }
-        if (ruleGroupService.get(rule.ruleGroup) == null) {
-            logger.error("rule group[{}] is not found", rule.ruleGroup);
-            throw new NotFoundException(String.format("规则分组[%d]不存在", rule.ruleGroup));
+        request.check();
+        if (ruleGroupService.get(request.ruleGroup) == null) {
+            logger.error("rule group[{}] is not found", request.ruleGroup);
+            throw new NotFoundException(String.format("规则分组[%d]不存在", request.ruleGroup));
         }
-        rule.id = null;
-        rule.createTime = null;
-        rule.updateTime = null;
+        Rule rule = Converter.convert(request);
         return ruleService.add(rule);
     }
 
     /**
      * 更新规则
      *
-     * @param rule 规则
+     * @param request 规则更新信息
      * @return 更新成功返回true，否则返回false
      */
     @POST
@@ -107,17 +109,17 @@ public class RuleController {
     @Consumes(MediaType.APPLICATION_JSON)
     @Path("update")
     @PostMapping("update")
-    public Boolean update(Rule rule) {
-        if (rule == null || rule.id == null) {
-            logger.error("rule is null or rule id is null");
-            throw new BadRequestException("规则为空或规则ID为空");
+    public Boolean update(RuleUpdateRequest request) {
+        if (request == null) {
+            logger.error("rule update info is null");
+            throw new BadRequestException("规则更新信息为空");
         }
-        if (ruleService.get(rule.id) == null) {
-            logger.error("rule[{}] is not found", rule.id);
-            throw new NotFoundException(String.format("规则[%d]不存在", rule.id));
+        request.check();
+        if (ruleService.get(request.id) == null) {
+            logger.error("rule[{}] is not found", request.id);
+            throw new NotFoundException(String.format("规则[%d]不存在", request.id));
         }
-        rule.createTime = null;
-        rule.updateTime = null;
+        Rule rule = Converter.convert(request);
         return ruleService.update(rule);
     }
 

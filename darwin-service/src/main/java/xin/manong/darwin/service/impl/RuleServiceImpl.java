@@ -17,6 +17,10 @@ import xin.manong.darwin.service.iface.RuleService;
 import xin.manong.darwin.service.request.RuleSearchRequest;
 
 import javax.annotation.Resource;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.concurrent.CountDownLatch;
 import java.util.regex.Pattern;
 
 /**
@@ -76,6 +80,30 @@ public class RuleServiceImpl extends RuleService {
     }
 
     @Override
+    public List<Rule> batchGet(List<Long> ids) {
+        if (ids == null || ids.isEmpty()) return new ArrayList<>();
+        List<Rule> rules = Collections.synchronizedList(new ArrayList<>());
+        CountDownLatch countDownLatch = new CountDownLatch(ids.size());
+        ids.stream().parallel().forEach(id -> {
+            try {
+                Rule rule = ruleMapper.selectById(id);
+                if (rule != null) rules.add(rule);
+            } catch (Exception e) {
+                logger.error("exception occurred for getting rule[{}]", id);
+                logger.error(e.getMessage(), e);
+            } finally {
+                countDownLatch.countDown();
+            }
+        });
+        try {
+            countDownLatch.await();
+        } catch (Exception e) {
+            logger.error(e.getMessage(), e);
+        }
+        return new ArrayList<>(rules);
+    }
+
+    @Override
     public Pager<Rule> search(RuleSearchRequest searchRequest) {
         if (searchRequest == null) searchRequest = new RuleSearchRequest();
         if (searchRequest.current == null || searchRequest.current < 1) searchRequest.current = Constants.DEFAULT_CURRENT;
@@ -97,7 +125,7 @@ public class RuleServiceImpl extends RuleService {
             logger.error("url is empty");
             return false;
         }
-        if (rule.category != null && rule.category == Constants.RULE_CATEGORY_GLOBAL_LINK_FOLLOW &&
+        if (rule.category != null && rule.category == Constants.RULE_CATEGORY_GLOBAL_LINK &&
                 (record.category == null || (record.category != null &&
                         record.category == Constants.CONTENT_CATEGORY_LIST))) {
             return true;
@@ -108,5 +136,12 @@ public class RuleServiceImpl extends RuleService {
         }
         Pattern pattern = Pattern.compile(rule.regex);
         return pattern.matcher(record.url).matches();
+    }
+
+    @Override
+    public int matchRuleCount(URLRecord record, List<Rule> rules) {
+        int matchCount = 0;
+        for (Rule rule : rules) if (match(record, rule)) matchCount++;
+        return matchCount;
     }
 }

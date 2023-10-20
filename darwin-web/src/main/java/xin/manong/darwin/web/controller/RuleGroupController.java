@@ -5,9 +5,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
+import xin.manong.darwin.common.Constants;
 import xin.manong.darwin.common.model.Pager;
 import xin.manong.darwin.common.model.RuleGroup;
 import xin.manong.darwin.service.iface.RuleGroupService;
+import xin.manong.darwin.web.convert.Converter;
+import xin.manong.darwin.web.request.RuleGroupRequest;
+import xin.manong.darwin.web.request.RuleGroupUpdateRequest;
 
 import javax.annotation.Resource;
 import javax.ws.rs.*;
@@ -45,8 +49,8 @@ public class RuleGroupController {
     public Pager<RuleGroup> search(@QueryParam("name") String name,
                                    @QueryParam("current") Integer current,
                                    @QueryParam("size") Integer size) {
-        if (current == null || current < 1) current = 1;
-        if (size == null || size <= 0) size = 20;
+        if (current == null || current < 1) current = Constants.DEFAULT_CURRENT;
+        if (size == null || size <= 0) size = Constants.DEFAULT_PAGE_SIZE;
         if (StringUtils.isEmpty(name)) {
             logger.error("search rule group name is empty");
             throw new BadRequestException("搜索规则分组名为空");
@@ -67,8 +71,8 @@ public class RuleGroupController {
     @GetMapping("list")
     public Pager<RuleGroup> list(@QueryParam("current") Integer current,
                                  @QueryParam("size") Integer size) {
-        if (current == null || current < 1) current = 1;
-        if (size == null || size <= 0) size = 20;
+        if (current == null || current < 1) current = Constants.DEFAULT_CURRENT;
+        if (size == null || size <= 0) size = Constants.DEFAULT_PAGE_SIZE;
         return ruleGroupService.getList(current, size);
     }
 
@@ -93,7 +97,7 @@ public class RuleGroupController {
     /**
      * 添加规则分组信息
      *
-     * @param ruleGroup 规则分组信息
+     * @param request 规则分组信息
      * @return 添加成功返回true，否则返回false
      */
     @PUT
@@ -101,21 +105,20 @@ public class RuleGroupController {
     @Produces(MediaType.APPLICATION_JSON)
     @Path("add")
     @PutMapping("add")
-    public Boolean add(RuleGroup ruleGroup) {
-        if (ruleGroup == null || !ruleGroup.check()) {
-            logger.error("rule group is null or not valid");
-            throw new BadRequestException("规则分组信息非法");
+    public Boolean add(RuleGroupRequest request) {
+        if (request == null) {
+            logger.error("rule group is null");
+            throw new BadRequestException("规则分组信息为空");
         }
-        ruleGroup.id = null;
-        ruleGroup.createTime = null;
-        ruleGroup.updateTime = null;
+        request.check();
+        RuleGroup ruleGroup = Converter.convert(request);
         return ruleGroupService.add(ruleGroup);
     }
 
     /**
      * 更新规则分组信息
      *
-     * @param ruleGroup 规则分组信息
+     * @param request 规则分组信息
      * @return 更新成功返回true，否则返回false
      */
     @POST
@@ -123,17 +126,17 @@ public class RuleGroupController {
     @Produces(MediaType.APPLICATION_JSON)
     @Path("update")
     @PostMapping("update")
-    public Boolean update(RuleGroup ruleGroup) {
-        if (ruleGroup == null || ruleGroup.id == null) {
-            logger.error("rule group is null or rule group id is null");
-            throw new BadRequestException("规则分组信息或ID为空");
+    public Boolean update(RuleGroupUpdateRequest request) {
+        if (request == null) {
+            logger.error("rule group is null");
+            throw new BadRequestException("规则分组更新信息为空");
         }
-        if (ruleGroupService.get(ruleGroup.id) == null) {
-            logger.error("rule group is not found for id[{}]", ruleGroup.id);
-            throw new NotFoundException(String.format("规则分组[%d]不存在", ruleGroup.id));
+        request.check();
+        if (ruleGroupService.get(request.id) == null) {
+            logger.error("rule group is not found for id[{}]", request.id);
+            throw new NotFoundException(String.format("规则分组[%d]不存在", request.id));
         }
-        ruleGroup.createTime = null;
-        ruleGroup.updateTime = null;
+        RuleGroup ruleGroup = Converter.convert(request);
         return ruleGroupService.update(ruleGroup);
     }
 

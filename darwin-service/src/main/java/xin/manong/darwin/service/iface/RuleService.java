@@ -10,6 +10,7 @@ import xin.manong.darwin.common.model.Rule;
 import xin.manong.darwin.common.model.URLRecord;
 import xin.manong.darwin.service.request.RuleSearchRequest;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -101,6 +102,14 @@ public abstract class RuleService {
     public abstract Rule get(Long id);
 
     /**
+     * 批量获取规则
+     *
+     * @param ids 规则ID列表
+     * @return 规则列表
+     */
+    public abstract List<Rule> batchGet(List<Long> ids);
+
+    /**
      * 搜索规则列表
      *
      * @param searchRequest 搜索请求
@@ -116,4 +125,13 @@ public abstract class RuleService {
      * @return 匹配返回true，否则返回false
      */
     public abstract Boolean match(URLRecord record, Rule rule);
+
+    /**
+     * 获取URL匹配规则数量
+     *
+     * @param record URL记录
+     * @param rules 规则列表
+     * @return 匹配规则数量
+     */
+    public abstract int matchRuleCount(URLRecord record, List<Rule> rules);
 }

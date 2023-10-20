@@ -106,25 +106,25 @@ public class Constants {
     /**
      * 规则分类
      */
-    public static final int RULE_CATEGORY_LINK_FOLLOW = 1;           //抽链规则
-    public static final int RULE_CATEGORY_STRUCTURE = 2;             //结构化规则
-    public static final int RULE_CATEGORY_GLOBAL_LINK_FOLLOW = 3;    //全局抽链规则
+    public static final int RULE_CATEGORY_LINK = 1;                 //抽链规则
+    public static final int RULE_CATEGORY_STRUCTURE = 2;            //结构化规则
+    public static final int RULE_CATEGORY_GLOBAL_LINK = 3;          //全局抽链规则
     public static final Map<Integer, String> SUPPORT_RULE_CATEGORIES = new HashMap<Integer, String>() {{
-        put(RULE_CATEGORY_LINK_FOLLOW, "抽链规则");
-        put(RULE_CATEGORY_GLOBAL_LINK_FOLLOW, "通用抽链规则");
+        put(RULE_CATEGORY_LINK, "抽链规则");
+        put(RULE_CATEGORY_GLOBAL_LINK, "全局抽链规则");
         put(RULE_CATEGORY_STRUCTURE, "结构化规则");
     }};
 
     /**
      * 抽链范围
      */
-    public static final int LINK_FOLLOW_SCOPE_ALL = 0;              //全局抽链
-    public static final int LINK_FOLLOW_SCOPE_DOMAIN = 1;           //domain抽链
-    public static final int LINK_FOLLOW_SCOPE_HOST = 2;             //host抽链
-    public static final Map<Integer, String> SUPPORT_LINK_FOLLOW_SCOPES = new HashMap<Integer, String>() {{
-        put(LINK_FOLLOW_SCOPE_ALL, "ALL");
-        put(LINK_FOLLOW_SCOPE_DOMAIN, "DOMAIN");
-        put(LINK_FOLLOW_SCOPE_HOST, "HOST");
+    public static final int LINK_SCOPE_ALL = 0;                     //全局抽链
+    public static final int LINK_SCOPE_DOMAIN = 1;                  //domain抽链
+    public static final int LINK_SCOPE_HOST = 2;                    //host抽链
+    public static final Map<Integer, String> SUPPORT_LINK_SCOPES = new HashMap<Integer, String>() {{
+        put(LINK_SCOPE_ALL, "ALL");
+        put(LINK_SCOPE_DOMAIN, "DOMAIN");
+        put(LINK_SCOPE_HOST, "HOST");
     }};
 
     /**

@@ -9,7 +9,10 @@ import xin.manong.darwin.common.Constants;
 import xin.manong.darwin.common.model.*;
 import xin.manong.darwin.service.iface.*;
 import xin.manong.darwin.service.request.PlanSearchRequest;
+import xin.manong.darwin.web.convert.Converter;
 import xin.manong.darwin.web.request.ExecuteRequest;
+import xin.manong.darwin.web.request.PlanRequest;
+import xin.manong.darwin.web.request.PlanUpdateRequest;
 import xin.manong.weapon.base.util.RandomID;
 
 import javax.annotation.Resource;
@@ -17,6 +20,7 @@ import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * 计划控制器
@@ -45,12 +49,11 @@ public class PlanController {
      * @param planId 计划ID
      * @return 启动成功返回true，否则返回false
      */
-    @POST
-    @Consumes("application/x-www-form-urlencoded")
+    @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Path("start")
     @GetMapping("start")
-    public Boolean start(@FormParam("plan_id") String planId) {
+    public Boolean start(@QueryParam("plan_id") String planId) {
         checkPeriodPlan(planId, Constants.PLAN_STATUS_STOPPED);
         Plan updatePlan = new Plan();
         updatePlan.planId = planId;
@@ -64,12 +67,11 @@ public class PlanController {
      * @param planId 计划ID
      * @return 停止成功返回true，否则返回false
      */
-    @POST
-    @Consumes("application/x-www-form-urlencoded")
+    @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Path("stop")
     @GetMapping("stop")
-    public Boolean stop(@FormParam("plan_id") String planId) {
+    public Boolean stop(@QueryParam("plan_id") String planId) {
         checkPeriodPlan(planId, Constants.PLAN_STATUS_RUNNING);
         Plan updatePlan = new Plan();
         updatePlan.planId = planId;
@@ -116,7 +118,7 @@ public class PlanController {
     /**
      * 添加计划
      *
-     * @param plan 计划
+     * @param request 计划请求
      * @return 添加成功返回true，否则返回false
      */
     @PUT
@@ -124,33 +126,34 @@ public class PlanController {
     @Consumes(MediaType.APPLICATION_JSON)
     @Path("add")
     @PutMapping("add")
-    public Boolean add(Plan plan) {
-        if (plan == null || plan.appId == null) {
-            logger.error("plan is null or app id is null");
-            throw new BadRequestException("计划或所属应用ID为空");
+    public Boolean add(PlanRequest request) {
+        if (request == null) {
+            logger.error("plan is null");
+            throw new BadRequestException("计划请求信息为空");
         }
-        App app = appService.get(plan.appId.longValue());
-        if (app == null) {
-            logger.error("app[{}] is not found", plan.appId);
-            throw new NotFoundException(String.format("所属应用[%d]不存在", plan.appId));
+        request.check();
+        Plan plan = Converter.convert(request);
+        if (StringUtils.isEmpty(plan.appName)) {
+            App app = appService.get(plan.appId.longValue());
+            if (app == null) {
+                logger.error("app[{}] is not found", request.appId);
+                throw new NotFoundException(String.format("所属应用[%d]不存在", request.appId));
+            }
+            plan.appName = app.name;
         }
-        plan.appName = app.name;
         if (plan.seedURLs != null && !plan.seedURLs.isEmpty()) checkSeedURLs(plan.seedURLs, plan);
         plan.planId = RandomID.build();
         if (!plan.check()) {
             logger.error("plan is not valid");
             throw new BadRequestException("计划非法");
         }
-        plan.createTime = null;
-        plan.updateTime = null;
-        plan.nextTime = null;
         return planService.add(plan);
     }
 
     /**
      * 更新计划
      *
-     * @param plan 计划
+     * @param request 计划更新信息
      * @return 更新成功返回true，否则返回false
      */
     @POST
@@ -158,25 +161,20 @@ public class PlanController {
     @Consumes(MediaType.APPLICATION_JSON)
     @Path("update")
     @PostMapping("update")
-    public Boolean update(Plan plan) {
-        if (plan == null || StringUtils.isEmpty(plan.planId)) {
-            logger.error("plan is null or plan id is empty");
-            throw new BadRequestException("计划或计划ID为空");
+    public Boolean update(PlanUpdateRequest request) {
+        if (request == null) {
+            logger.error("plan is null");
+            throw new BadRequestException("更新计划信息为空");
         }
-        Plan previous = planService.get(plan.planId);
+        request.check();
+        Plan previous = planService.get(request.planId);
         if (previous == null) {
-            logger.error("plan[{}] is not found", plan.planId);
-            throw new NotFoundException(String.format("计划[%s]不存在", plan.planId));
+            logger.error("plan[{}] is not found", request.planId);
+            throw new NotFoundException(String.format("计划[%s]不存在", request.planId));
         }
-        if (plan.seedURLs != null && !plan.seedURLs.isEmpty()) checkSeedURLs(plan.seedURLs, previous);
-        /**
-         * 不能修改所属应用信息
-         */
-        plan.appId = null;
-        plan.appName = null;
-        plan.createTime = null;
-        plan.updateTime = null;
-        plan.nextTime = null;
+        Plan plan = Converter.convert(request);
+        if (plan.ruleIds == null || plan.ruleIds.isEmpty()) plan.ruleIds = previous.ruleIds;
+        if (request.seedURLs != null && !request.seedURLs.isEmpty()) checkSeedURLs(request.seedURLs, plan);
         return planService.update(plan);
     }
 
@@ -253,10 +251,12 @@ public class PlanController {
      */
     private void checkSeedURLs(List<URLRecord> seedURLs, Plan plan) {
         List<URLRecord> records = new ArrayList<>();
-        List<Rule> rules = getRuleList(plan);
+        List<Rule> rules = plan.ruleIds == null ? new ArrayList<>() :
+                ruleService.batchGet(plan.ruleIds.stream().map(id -> id.longValue()).collect(Collectors.toList()));
         for (URLRecord seedURL : seedURLs) {
             if ((seedURL.category != null && (seedURL.category == Constants.CONTENT_CATEGORY_RESOURCE ||
-                    seedURL.category == Constants.CONTENT_CATEGORY_STREAM)) || matchRule(seedURL, rules)) {
+                    seedURL.category == Constants.CONTENT_CATEGORY_STREAM)) ||
+                    ruleService.matchRuleCount(seedURL, rules) == 1) {
                 records.add(seedURL);
                 continue;
             }
@@ -266,41 +266,6 @@ public class PlanController {
             logger.error("seed urls not match rules");
             throw new RuntimeException("种子URL不匹配规则");
         }
-    }
-
-    /**
-     * 获取计划规则列表
-     *
-     * @param plan 计划
-     * @return 规则列表
-     */
-    private List<Rule> getRuleList(Plan plan) {
-        List<Rule> rules = new ArrayList<>();
-        if (plan.ruleIds == null || plan.ruleIds.isEmpty()) return rules;
-        for (Integer ruleId : plan.ruleIds) {
-            Rule rule = ruleService.get(ruleId.longValue());
-            if (rule == null) {
-                logger.error("rule[{}] is not found", ruleId);
-                throw new RuntimeException(String.format("规则[%d]不存在", ruleId));
-            }
-            rules.add(rule);
-        }
-        return rules;
-    }
-
-    /**
-     * 匹配规则
-     *
-     * @param record URL记录
-     * @param rules 规则列表
-     * @return 匹配返回true，否则返回false
-     */
-    private boolean matchRule(URLRecord record, List<Rule> rules) {
-        List<Rule> matchedRules = new ArrayList<>();
-        for (Rule rule : rules) {
-            if (ruleService.match(record, rule)) matchedRules.add(rule);
-        }
-        return matchedRules.size() == 1;
     }
 
     /**

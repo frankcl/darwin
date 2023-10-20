@@ -15,7 +15,7 @@ public class RuleSuite {
         Rule rule = new Rule();
         rule.name = "测试规则";
         rule.ruleGroup = 1L;
-        rule.category = Constants.RULE_CATEGORY_LINK_FOLLOW;
+        rule.category = Constants.RULE_CATEGORY_LINK;
         rule.scriptType = Constants.SCRIPT_TYPE_GROOVY;
         rule.script = "def A() {}";
         rule.domain = "sina.com.cn";
