@@ -30,7 +30,7 @@ public class AppPermissionService {
      *
      * @param appId 应用ID
      */
-    public void checkAppPermission(Long appId) {
+    public void checkAppPermission(Integer appId) {
         if (appId == null) {
             logger.warn("app id is null");
             throw new ForbiddenException("应用ID为空");

@@ -43,7 +43,7 @@ public class HTMLSpiderSuite {
     protected HTMLSpider spider;
 
     private void sweepJobAndRule(Job job) {
-        for (Integer ruleId : job.ruleIds) Assert.assertTrue(ruleService.delete((long) ruleId));
+        for (Integer ruleId : job.ruleIds) Assert.assertTrue(ruleService.delete(ruleId));
         Assert.assertTrue(jobService.delete(job.jobId));
     }
 
@@ -53,7 +53,7 @@ public class HTMLSpiderSuite {
         rule.domain = "people.com.cn";
         rule.name = "人民网结构化规则";
         rule.regex = "http://politics.people.com.cn/n1/\\d{4}/\\d{4}/c\\d+?-\\d+?\\.html";
-        rule.ruleGroup = 1L;
+        rule.ruleGroup = 1;
         rule.category = Constants.RULE_CATEGORY_STRUCTURE;
         rule.scriptType = Constants.SCRIPT_TYPE_GROOVY;
         rule.script = scriptCode;
@@ -79,7 +79,7 @@ public class HTMLSpiderSuite {
         rule.domain = "shuwen.com";
         rule.name = "JSON解析规则";
         rule.regex = "http://external-data-service.shuwen.com/report/histogram";
-        rule.ruleGroup = 1L;
+        rule.ruleGroup = 1;
         rule.category = Constants.RULE_CATEGORY_STRUCTURE;
         rule.scriptType = Constants.SCRIPT_TYPE_GROOVY;
         rule.script = scriptCode;

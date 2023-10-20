@@ -47,7 +47,7 @@ public class RuleController {
     @Produces(MediaType.APPLICATION_JSON)
     @Path("get")
     @GetMapping("get")
-    public Rule get(@QueryParam("id") Long id) {
+    public Rule get(@QueryParam("id") Integer id) {
         if (id == null) {
             logger.error("missing param[id]");
             throw new BadRequestException("规则ID缺失");
@@ -133,7 +133,7 @@ public class RuleController {
     @Produces(MediaType.APPLICATION_JSON)
     @Path("delete")
     @DeleteMapping("delete")
-    public Boolean delete(@QueryParam("id") Long id) {
+    public Boolean delete(@QueryParam("id") Integer id) {
         if (id == null) {
             logger.error("rule id is null");
             throw new BadRequestException("规则ID为空");

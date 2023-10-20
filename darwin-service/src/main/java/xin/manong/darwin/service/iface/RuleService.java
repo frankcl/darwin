@@ -25,10 +25,10 @@ public abstract class RuleService {
 
     private static final Logger logger = LoggerFactory.getLogger(JobService.class);
 
-    protected Cache<Long, Optional<Rule>> ruleCache;
+    protected Cache<Integer, Optional<Rule>> ruleCache;
 
     public RuleService() {
-        CacheBuilder<Long, Optional<Rule>> builder = CacheBuilder.newBuilder()
+        CacheBuilder<Integer, Optional<Rule>> builder = CacheBuilder.newBuilder()
                 .recordStats()
                 .concurrencyLevel(1)
                 .maximumSize(100)
@@ -42,7 +42,7 @@ public abstract class RuleService {
      *
      * @param notification 移除通知
      */
-    private void onRemoval(RemovalNotification<Long, Optional<Rule>> notification) {
+    private void onRemoval(RemovalNotification<Integer, Optional<Rule>> notification) {
         if (!notification.getValue().isPresent()) return;
         logger.info("rule[{}] is removed from cache", notification.getValue().get().id);
     }
@@ -53,7 +53,7 @@ public abstract class RuleService {
      * @param ruleId 规则ID
      * @return 任务信息，如果不存在返回null
      */
-    public Rule getCache(Long ruleId) {
+    public Rule getCache(Integer ruleId) {
         try {
             Optional<Rule> optional = ruleCache.get(ruleId, () -> {
                 Rule rule = get(ruleId);
@@ -91,7 +91,7 @@ public abstract class RuleService {
      * @param id 规则ID
      * @return 删除成功返回true，否则返回false
      */
-    public abstract Boolean delete(Long id);
+    public abstract Boolean delete(Integer id);
 
     /**
      * 根据ID获取规则
@@ -99,7 +99,7 @@ public abstract class RuleService {
      * @param id 规则ID
      * @return 存在返回规则，否则返回null
      */
-    public abstract Rule get(Long id);
+    public abstract Rule get(Integer id);
 
     /**
      * 批量获取规则
@@ -107,7 +107,7 @@ public abstract class RuleService {
      * @param ids 规则ID列表
      * @return 规则列表
      */
-    public abstract List<Rule> batchGet(List<Long> ids);
+    public abstract List<Rule> batchGet(List<Integer> ids);
 
     /**
      * 搜索规则列表

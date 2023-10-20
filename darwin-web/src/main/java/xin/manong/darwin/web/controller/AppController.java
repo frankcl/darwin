@@ -89,7 +89,7 @@ public class AppController {
     @Produces(MediaType.APPLICATION_JSON)
     @Path("get")
     @GetMapping("get")
-    public App get(@QueryParam("id") Long id) {
+    public App get(@QueryParam("id") Integer id) {
         if (id == null) {
             logger.error("missing param[id]");
             throw new BadRequestException("应用ID缺失");
@@ -154,7 +154,7 @@ public class AppController {
     @Produces(MediaType.APPLICATION_JSON)
     @Path("delete")
     @DeleteMapping("delete")
-    public Boolean delete(@QueryParam("id") Long id) {
+    public Boolean delete(@QueryParam("id") Integer id) {
         if (id == null) {
             logger.error("missing param[id]");
             throw new BadRequestException("应用ID缺失");

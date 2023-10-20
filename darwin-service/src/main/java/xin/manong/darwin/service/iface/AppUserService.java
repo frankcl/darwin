@@ -26,7 +26,7 @@ public interface AppUserService {
      * @param id 应用用户关系ID
      * @return 删除成功返回true，否则返回false
      */
-    Boolean delete(Long id);
+    Boolean delete(Integer id);
 
     /**
      * 根据ID获取应用用户关系
@@ -34,7 +34,7 @@ public interface AppUserService {
      * @param id 应用用户关系ID
      * @return 成功返回应用用户关系，否则返回null
      */
-    AppUser get(Long id);
+    AppUser get(Integer id);
 
     /**
      * 用户是否有应用权限
@@ -43,7 +43,7 @@ public interface AppUserService {
      * @param appId 应用ID
      * @return 如果用户具备应用权限返回true，否则返回false
      */
-    Boolean hasAppPermission(String userId, Long appId);
+    Boolean hasAppPermission(String userId, Integer appId);
 
     /**
      * 搜索应用用户关系

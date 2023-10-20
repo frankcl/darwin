@@ -24,7 +24,7 @@ public class AppUpdateRequest implements Serializable {
      * 应用ID
      */
     @JsonProperty("id")
-    public Long id;
+    public Integer id;
     /**
      * 应用名
      */

@@ -34,10 +34,10 @@ public class AppUserServiceImplSuite {
     @Transactional
     @Rollback
     public void testAppUserOperations() {
-        List<Long> ids = new ArrayList<>();
+        List<Integer> ids = new ArrayList<>();
         {
             AppUser appUser = new AppUser();
-            appUser.appId = 1L;
+            appUser.appId = 1;
             appUser.userId = "user1";
             appUser.userRealName = "frankcl";
             Assert.assertTrue(appUserService.add(appUser));
@@ -45,22 +45,22 @@ public class AppUserServiceImplSuite {
         }
         {
             AppUser appUser = new AppUser();
-            appUser.appId = 2L;
+            appUser.appId = 2;
             appUser.userId = "user2";
             appUser.userRealName = "jack";
             Assert.assertTrue(appUserService.add(appUser));
             ids.add(appUser.id);
         }
-        Assert.assertTrue(appUserService.hasAppPermission("user1", 1L));
-        Assert.assertTrue(appUserService.hasAppPermission("user2", 2L));
-        Assert.assertFalse(appUserService.hasAppPermission("user2", 1L));
+        Assert.assertTrue(appUserService.hasAppPermission("user1", 1));
+        Assert.assertTrue(appUserService.hasAppPermission("user2", 2));
+        Assert.assertFalse(appUserService.hasAppPermission("user2", 1));
         {
             AppUserSearchRequest searchRequest = new AppUserSearchRequest();
-            searchRequest.appId = 1L;
+            searchRequest.appId = 1;
             Pager<AppUser> pager = appUserService.search(searchRequest);
             Assert.assertEquals(1, pager.total.intValue());
             Assert.assertEquals("user1", pager.records.get(0).userId);
         }
-        for (Long id : ids) Assert.assertTrue(appUserService.delete(id));
+        for (Integer id : ids) Assert.assertTrue(appUserService.delete(id));
     }
 }

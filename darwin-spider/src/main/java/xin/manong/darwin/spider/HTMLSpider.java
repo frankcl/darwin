@@ -197,7 +197,7 @@ public class HTMLSpider extends Spider {
         }
         List<Rule> rules = new ArrayList<>();
         for (Integer ruleId : job.ruleIds) {
-            Rule rule = ruleService.getCache(ruleId.longValue());
+            Rule rule = ruleService.getCache(ruleId);
             if (rule == null || !ruleService.match(record, rule)) continue;
             rules.add(rule);
         }

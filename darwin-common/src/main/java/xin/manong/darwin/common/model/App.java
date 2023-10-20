@@ -32,7 +32,7 @@ public class App extends BasicModel {
     @TableId(value = "id", type = IdType.AUTO)
     @JSONField(name = "id")
     @JsonProperty("id")
-    public Long id;
+    public Integer id;
 
     /**
      * 应用名称

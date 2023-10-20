@@ -54,7 +54,7 @@ public class RuleGroupServiceImpl implements RuleGroupService {
     }
 
     @Override
-    public Boolean delete(Long id) {
+    public Boolean delete(Integer id) {
         if (ruleGroupMapper.selectById(id) == null) {
             logger.error("rule group[{}] is not found", id);
             return false;
@@ -72,7 +72,7 @@ public class RuleGroupServiceImpl implements RuleGroupService {
     }
 
     @Override
-    public RuleGroup get(Long id) {
+    public RuleGroup get(Integer id) {
         if (id == null) {
             logger.error("rule group id is null");
             throw new RuntimeException("规则分组ID为空");

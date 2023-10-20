@@ -16,7 +16,7 @@ public class RuleSearchRequest extends SearchRequest {
      * 规则分组ID
      */
     @JsonProperty("rule_group")
-    public Long ruleGroup;
+    public Integer ruleGroup;
     /**
      * 脚本类型：Groovy脚本1，JavaScript脚本2
      */

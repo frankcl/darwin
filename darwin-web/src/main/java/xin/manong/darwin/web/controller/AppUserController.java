@@ -45,7 +45,7 @@ public class AppUserController {
     @Produces(MediaType.APPLICATION_JSON)
     @Path("getAppUsers")
     @GetMapping("getAppUsers")
-    public Pager<AppUser> getAppUsers(@QueryParam("app_id") Long appId,
+    public Pager<AppUser> getAppUsers(@QueryParam("app_id") Integer appId,
                                       @QueryParam("current") Integer current,
                                       @QueryParam("size") Integer size) {
         if (current == null || current < 1) current = Constants.DEFAULT_CURRENT;
@@ -93,7 +93,7 @@ public class AppUserController {
     @Produces(MediaType.APPLICATION_JSON)
     @Path("delete")
     @DeleteMapping("delete")
-    public Boolean delete(@QueryParam("id") Long id) {
+    public Boolean delete(@QueryParam("id") Integer id) {
         if (id == null) {
             logger.error("missing param[id]");
             throw new BadRequestException("应用用户关系ID缺失");

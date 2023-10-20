@@ -55,7 +55,7 @@ public class AppServiceImpl implements AppService {
     }
 
     @Override
-    public Boolean delete(Long id) {
+    public Boolean delete(Integer id) {
         if (appMapper.selectById(id) == null) {
             logger.error("app[{}] is not found", id);
             return false;
@@ -63,7 +63,7 @@ public class AppServiceImpl implements AppService {
         PlanSearchRequest searchRequest = new PlanSearchRequest();
         searchRequest.current = 1;
         searchRequest.size = 1;
-        searchRequest.appId = id.intValue();
+        searchRequest.appId = id;
         Pager<Plan> pager = planService.search(searchRequest);
         if (pager.total > 0) {
             logger.error("plans are not empty for app[{}]", id);
@@ -73,7 +73,7 @@ public class AppServiceImpl implements AppService {
     }
 
     @Override
-    public App get(Long id) {
+    public App get(Integer id) {
         if (id == null) {
             logger.error("app id is null");
             throw new RuntimeException("应用ID为空");

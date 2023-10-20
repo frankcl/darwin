@@ -33,7 +33,7 @@ public interface AppService {
      * @param id 应用ID
      * @return 删除成功返回true，否则返回false
      */
-    Boolean delete(Long id);
+    Boolean delete(Integer id);
 
     /**
      * 根据ID获取应用
@@ -41,7 +41,7 @@ public interface AppService {
      * @param id 应用ID
      * @return 存在返回规则，否则返回null
      */
-    App get(Long id);
+    App get(Integer id);
 
     /**
      * 获取应用列表

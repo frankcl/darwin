@@ -36,7 +36,7 @@ public class RuleServiceImplSuite {
     public void testRuleGroupOperations() {
         Rule rule = new Rule();
         rule.name = "测试规则";
-        rule.ruleGroup = 1L;
+        rule.ruleGroup = 1;
         rule.category = Constants.RULE_CATEGORY_STRUCTURE;
         rule.scriptType = Constants.SCRIPT_TYPE_GROOVY;
         rule.script = "function";
@@ -70,7 +70,7 @@ public class RuleServiceImplSuite {
         Pager<Rule> pager = ruleService.search(request);
         Assert.assertEquals(1, pager.total.intValue());
         Assert.assertEquals(1, pager.records.size());
-        Assert.assertEquals(rule.id.longValue(), pager.records.get(0).id.longValue());
+        Assert.assertEquals(rule.id.intValue(), pager.records.get(0).id.intValue());
 
         URLRecord record = new URLRecord("http://www.sina.com.cn/123.html");
         Assert.assertTrue(ruleService.match(record, rule));

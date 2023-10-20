@@ -16,7 +16,7 @@ public class AppUserSearchRequest extends SearchRequest {
      * 计划ID
      */
     @JsonProperty("app_id")
-    public Long appId;
+    public Integer appId;
     /**
      * 用户真实姓名
      */

@@ -24,7 +24,7 @@ public class RuleUpdateRequest extends RuleRequest {
      * 规则ID
      */
     @JsonProperty("id")
-    public Long id;
+    public Integer id;
 
     /**
      * 检测有效性，无效抛出异常

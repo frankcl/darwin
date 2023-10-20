@@ -32,7 +32,7 @@ public class AppUser extends BasicModel {
     @TableId(value = "id", type = IdType.AUTO)
     @JSONField(name = "id")
     @JsonProperty("id")
-    public Long id;
+    public Integer id;
 
     /**
      * 应用ID
@@ -40,7 +40,7 @@ public class AppUser extends BasicModel {
     @TableField(value = "app_id")
     @JSONField(name = "app_id")
     @JsonProperty("app_id")
-    public Long appId;
+    public Integer appId;
 
     /**
      * 用户ID

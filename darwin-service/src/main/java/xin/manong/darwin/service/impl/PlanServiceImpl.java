@@ -28,6 +28,7 @@ import xin.manong.darwin.service.request.JobSearchRequest;
 import xin.manong.darwin.service.request.PlanSearchRequest;
 
 import javax.annotation.Resource;
+import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -120,36 +121,48 @@ public class PlanServiceImpl implements PlanService {
     public Job execute(Plan plan) {
         if (plan == null) return null;
         if (plan.status != Constants.PLAN_STATUS_RUNNING) {
-            logger.warn("plan[{}] is not running for status[{}]", plan.planId,
-                    Constants.SUPPORT_PLAN_STATUSES.get(plan.status));
+            logger.warn("plan[{}] is not running", plan.planId);
             return null;
         }
         Job job = plan.buildJob();
         List<URLRecord> addRecords = new ArrayList<>(), pushQueueRecords = new ArrayList<>();
         try {
-            if (!jobService.add(job)) throw new RuntimeException(String.format("添加计划任务失败[%s]", plan.planId));
+            if (!jobService.add(job)) throw new RuntimeException("添加任务失败");
             for (URLRecord seedURL : job.seedURLs) {
                 MultiQueueStatus status = multiQueue.push(seedURL, 3);
                 if (status == MultiQueueStatus.OK) pushQueueRecords.add(seedURL);
                 logger.info("push record[{}] into queue, status[{}]", seedURL.url,
                         Constants.SUPPORT_URL_STATUSES.get(seedURL.status));
                 if (urlService.add(seedURL)) addRecords.add(seedURL);
-                else throw new RuntimeException(String.format("添加任务[%s]种子失败", job.jobId));
+                else throw new RuntimeException("添加任务种子失败");
             }
             if (plan.category != Constants.PLAN_CATEGORY_PERIOD) return job;
-            Plan updatePlan = new Plan();
-            updatePlan.planId = plan.planId;
-            updatePlan.updateTime = System.currentTimeMillis();
-            updatePlan.nextTime = new CronExpression(plan.crontabExpression).
-                    getNextValidTimeAfter(new Date()).getTime();
-            if (update(updatePlan)) return job;
-            throw new RuntimeException(String.format("更新计划[%s]下次执行时间失败", updatePlan.planId));
+            if (!updateNextTime(plan.planId, plan.crontabExpression)) {
+                logger.warn("update next time failed for plan[{}]", plan.planId);
+            }
+            return job;
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
             TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
             rollback(pushQueueRecords, addRecords, job.jobId);
             return null;
         }
+    }
+
+    /**
+     * 更新计划下次调度时间
+     *
+     * @param planId 计划ID
+     * @param crontabExpression crontab表达式
+     * @return 更新成功返回true，否则返回false
+     */
+    private Boolean updateNextTime(String planId, String crontabExpression) throws ParseException {
+        Date date = new Date();
+        Plan plan = new Plan();
+        plan.planId = planId;
+        plan.updateTime = date.getTime();
+        plan.nextTime = new CronExpression(crontabExpression).getNextValidTimeAfter(date).getTime();
+        return update(plan);
     }
 
     /**

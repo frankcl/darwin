@@ -32,7 +32,7 @@ public class RuleGroup extends BasicModel {
     @TableId(value = "id", type = IdType.AUTO)
     @JSONField(name = "id")
     @JsonProperty("id")
-    public Long id;
+    public Integer id;
 
     /**
      * 规则分组名称

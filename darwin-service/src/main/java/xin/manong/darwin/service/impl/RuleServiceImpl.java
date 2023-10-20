@@ -60,7 +60,7 @@ public class RuleServiceImpl extends RuleService {
     }
 
     @Override
-    public Boolean delete(Long id) {
+    public Boolean delete(Integer id) {
         if (ruleMapper.selectById(id) == null) {
             logger.error("rule[{}] is not found", id);
             return false;
@@ -71,7 +71,7 @@ public class RuleServiceImpl extends RuleService {
     }
 
     @Override
-    public Rule get(Long id) {
+    public Rule get(Integer id) {
         if (id == null) {
             logger.error("rule id is null");
             throw new RuntimeException("规则ID为空");
@@ -80,7 +80,7 @@ public class RuleServiceImpl extends RuleService {
     }
 
     @Override
-    public List<Rule> batchGet(List<Long> ids) {
+    public List<Rule> batchGet(List<Integer> ids) {
         if (ids == null || ids.isEmpty()) return new ArrayList<>();
         List<Rule> rules = Collections.synchronizedList(new ArrayList<>());
         CountDownLatch countDownLatch = new CountDownLatch(ids.size());

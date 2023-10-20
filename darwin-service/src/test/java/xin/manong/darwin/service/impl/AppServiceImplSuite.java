@@ -48,7 +48,7 @@ public class AppServiceImplSuite {
         Pager<App> pager = appService.search("测试", 1, 10);
         Assert.assertEquals(1, pager.total.intValue());
         Assert.assertEquals(1, pager.records.size());
-        Assert.assertEquals(app.id.longValue(), pager.records.get(0).id.longValue());
+        Assert.assertEquals(app.id, pager.records.get(0).id);
 
         Assert.assertTrue(appService.delete(app.id));
     }

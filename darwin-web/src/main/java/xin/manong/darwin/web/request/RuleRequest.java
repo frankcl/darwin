@@ -27,7 +27,7 @@ public class RuleRequest implements Serializable {
      * 规则分组ID
      */
     @JsonProperty("rule_group")
-    public Long ruleGroup;
+    public Integer ruleGroup;
 
     /**
      * 规则名称

@@ -10,7 +10,6 @@ import xin.manong.darwin.common.model.*;
 import xin.manong.darwin.service.iface.*;
 import xin.manong.darwin.service.request.PlanSearchRequest;
 import xin.manong.darwin.web.convert.Converter;
-import xin.manong.darwin.web.request.ExecuteRequest;
 import xin.manong.darwin.web.request.PlanRequest;
 import xin.manong.darwin.web.request.PlanUpdateRequest;
 import xin.manong.darwin.web.service.AppPermissionService;
@@ -21,7 +20,6 @@ import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * 计划控制器
@@ -135,17 +133,10 @@ public class PlanController {
             throw new BadRequestException("计划请求信息为空");
         }
         request.check();
-        appPermissionService.checkAppPermission(request.appId.longValue());
+        appPermissionService.checkAppPermission(request.appId);
         Plan plan = Converter.convert(request);
-        if (StringUtils.isEmpty(plan.appName)) {
-            App app = appService.get(plan.appId.longValue());
-            if (app == null) {
-                logger.error("app[{}] is not found", request.appId);
-                throw new NotFoundException(String.format("所属应用[%d]不存在", request.appId));
-            }
-            plan.appName = app.name;
-        }
-        if (plan.seedURLs != null && !plan.seedURLs.isEmpty()) checkSeedURLs(plan.seedURLs, plan);
+        fillAppName(plan);
+        checkSeeds(plan.seedURLs, plan.ruleIds);
         plan.planId = RandomID.build();
         if (!plan.check()) {
             logger.error("plan is not valid");
@@ -176,48 +167,38 @@ public class PlanController {
             logger.error("plan[{}] is not found", request.planId);
             throw new NotFoundException(String.format("计划[%s]不存在", request.planId));
         }
-        appPermissionService.checkAppPermission(previous.appId.longValue());
+        appPermissionService.checkAppPermission(previous.appId);
         Plan plan = Converter.convert(request);
         if (plan.ruleIds == null || plan.ruleIds.isEmpty()) plan.ruleIds = previous.ruleIds;
-        if (request.seedURLs != null && !request.seedURLs.isEmpty()) checkSeedURLs(request.seedURLs, plan);
+        checkSeeds(request.seedURLs, plan.ruleIds);
         return planService.update(plan);
     }
 
     /**
      * 执行计划
      *
-     * @param request 执行计划请求
+     * @param id 计划ID
      * @return 成功返回true，否则返回false
      */
-    @POST
+    @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @Consumes(MediaType.APPLICATION_JSON)
     @Path("execute")
-    @PostMapping("execute")
-    public Boolean execute(ExecuteRequest request) {
-        if (request == null || !request.check()) {
-            logger.error("execute request is null or invalid");
-            throw new BadRequestException("执行计划请求为空或非法");
+    @GetMapping("execute")
+    public Boolean execute(@QueryParam("id") String id) {
+        if (StringUtils.isEmpty(id)) {
+            logger.error("plan id is empty");
+            throw new BadRequestException("计划ID为空");
         }
-        Plan plan = planService.get(request.planId);
+        Plan plan = planService.get(id);
         if (plan == null) {
-            logger.error("plan[{}] is not found", request.planId);
-            throw new NotFoundException(String.format("计划[%s]不存在", request.planId));
+            logger.error("plan[{}] is not found", id);
+            throw new NotFoundException(String.format("计划[%s]不存在", id));
         }
-        appPermissionService.checkAppPermission(plan.appId.longValue());
+        appPermissionService.checkAppPermission(plan.appId);
         if (plan.status != Constants.PLAN_STATUS_RUNNING) {
             logger.error("plan is not running for status[{}]", Constants.SUPPORT_PLAN_STATUSES.get(plan.status));
             throw new RuntimeException(String.format("计划[%s]非运行状态",
                     Constants.SUPPORT_PLAN_STATUSES.get(plan.status)));
-        }
-        if (plan.category == Constants.PLAN_CATEGORY_ONCE &&
-                request.seedURLs != null && !request.seedURLs.isEmpty()) {
-            checkSeedURLs(request.seedURLs, plan);
-            plan.seedURLs = request.seedURLs;
-        }
-        if (!plan.check()) {
-            logger.error("plan is not valid");
-            throw new RuntimeException("计划检测失败");
         }
         if (planService.execute(plan) == null) {
             logger.error("execute plan[{}] failed", plan.planId);
@@ -246,31 +227,31 @@ public class PlanController {
             logger.error("plan[{}] is not found", id);
             throw new NotFoundException(String.format("计划[%s]不存在", id));
         }
-        appPermissionService.checkAppPermission(plan.appId.longValue());
+        appPermissionService.checkAppPermission(plan.appId);
         return planService.delete(id);
     }
 
     /**
      * 检测种子URL是否匹配规则
-     * 如果存在不匹配规则种子URL则抛出异常
+     * 如果存在不匹配规则的种子URL则抛出异常
      *
      * @param seedURLs 种子列表
-     * @param plan 计划
+     * @param ruleIds 规则ID列表
      */
-    private void checkSeedURLs(List<URLRecord> seedURLs, Plan plan) {
-        List<URLRecord> records = new ArrayList<>();
-        List<Rule> rules = plan.ruleIds == null ? new ArrayList<>() :
-                ruleService.batchGet(plan.ruleIds.stream().map(id -> id.longValue()).collect(Collectors.toList()));
+    private void checkSeeds(List<URLRecord> seedURLs, List<Integer> ruleIds) {
+        if (seedURLs == null || seedURLs.isEmpty()) return;
+        int passCount = 0;
+        List<Rule> rules = ruleIds == null ? new ArrayList<>() : ruleService.batchGet(ruleIds);
         for (URLRecord seedURL : seedURLs) {
             if ((seedURL.category != null && (seedURL.category == Constants.CONTENT_CATEGORY_RESOURCE ||
                     seedURL.category == Constants.CONTENT_CATEGORY_STREAM)) ||
                     ruleService.matchRuleCount(seedURL, rules) == 1) {
-                records.add(seedURL);
+                passCount++;
                 continue;
             }
             logger.warn("matched rule is not found for seed url[{}]", seedURL.url);
         }
-        if (seedURLs.size() != records.size()) {
+        if (seedURLs.size() != passCount) {
             logger.error("seed urls not match rules");
             throw new RuntimeException("种子URL不匹配规则");
         }
@@ -280,9 +261,9 @@ public class PlanController {
      * 检测周期性计划
      *
      * @param planId 计划ID
-     * @param expectedStatus 期待状态
+     * @param status 当前状态
      */
-    private void checkPeriodPlan(String planId, int expectedStatus) {
+    private void checkPeriodPlan(String planId, int status) {
         if (StringUtils.isEmpty(planId)) {
             logger.error("plan id is empty");
             throw new BadRequestException("计划ID为空");
@@ -296,11 +277,26 @@ public class PlanController {
             logger.error("plan is not period plan");
             throw new RuntimeException("计划不是周期性计划");
         }
-        if (plan.status != expectedStatus) {
-            logger.error("plan is not in expected status[{}]", expectedStatus);
+        if (plan.status != status) {
+            logger.error("plan is not in expected status[{}]", status);
             throw new RuntimeException(String.format("计划不处于%s状态",
-                    Constants.SUPPORT_PLAN_STATUSES.get(expectedStatus)));
+                    Constants.SUPPORT_PLAN_STATUSES.get(status)));
         }
-        appPermissionService.checkAppPermission(plan.appId.longValue());
+        appPermissionService.checkAppPermission(plan.appId);
+    }
+
+    /**
+     * 填充应用名
+     *
+     * @param plan 计划
+     */
+    private void fillAppName(Plan plan) {
+        if (!StringUtils.isEmpty(plan.appName)) return;
+        App app = appService.get(plan.appId);
+        if (app == null) {
+            logger.error("app[{}] is not found", plan.appId);
+            throw new NotFoundException(String.format("所属应用[%d]不存在", plan.appId));
+        }
+        plan.appName = app.name;
     }
 }

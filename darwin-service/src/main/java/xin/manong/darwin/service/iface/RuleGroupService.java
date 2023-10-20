@@ -33,7 +33,7 @@ public interface RuleGroupService {
      * @param id 规则分组ID
      * @return 删除成功返回true，否则返回false
      */
-    Boolean delete(Long id);
+    Boolean delete(Integer id);
 
     /**
      * 根据ID获取规则分组
@@ -41,7 +41,7 @@ public interface RuleGroupService {
      * @param id 规则分组ID
      * @return 存在返回规则分组，否则返回null
      */
-    RuleGroup get(Long id);
+    RuleGroup get(Integer id);
 
     /**
      * 获取分页规则分组列表

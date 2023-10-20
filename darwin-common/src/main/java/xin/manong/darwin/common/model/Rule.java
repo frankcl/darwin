@@ -36,7 +36,7 @@ public class Rule extends BasicModel {
     @TableId(value = "id", type = IdType.AUTO)
     @JSONField(name = "id")
     @JsonProperty("id")
-    public Long id;
+    public Integer id;
 
     /**
      * 规则分组ID
@@ -44,7 +44,7 @@ public class Rule extends BasicModel {
     @TableField(value = "rule_group")
     @JSONField(name = "rule_group")
     @JsonProperty("rule_group")
-    public Long ruleGroup;
+    public Integer ruleGroup;
 
     /**
      * 规则名称

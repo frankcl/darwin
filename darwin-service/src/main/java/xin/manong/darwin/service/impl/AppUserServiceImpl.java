@@ -44,7 +44,7 @@ public class AppUserServiceImpl implements AppUserService {
     }
 
     @Override
-    public Boolean delete(Long id) {
+    public Boolean delete(Integer id) {
         if (appUserMapper.selectById(id) == null) {
             logger.error("app user relation[{}] is not found", id);
             return false;
@@ -53,7 +53,7 @@ public class AppUserServiceImpl implements AppUserService {
     }
 
     @Override
-    public AppUser get(Long id) {
+    public AppUser get(Integer id) {
         if (id == null) {
             logger.error("app user id is null");
             throw new RuntimeException("应用用户关系ID为空");
@@ -62,7 +62,7 @@ public class AppUserServiceImpl implements AppUserService {
     }
 
     @Override
-    public Boolean hasAppPermission(String userId, Long appId) {
+    public Boolean hasAppPermission(String userId, Integer appId) {
         AppUserSearchRequest searchRequest = new AppUserSearchRequest();
         searchRequest.current = 1;
         searchRequest.size = 1;

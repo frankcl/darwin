@@ -24,7 +24,7 @@ public class AppUserRequest implements Serializable {
      * 应用ID
      */
     @JsonProperty("app_id")
-    public Long appId;
+    public Integer appId;
     /**
      * 用户ID
      */
