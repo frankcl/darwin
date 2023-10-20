@@ -13,6 +13,7 @@ import xin.manong.darwin.web.convert.Converter;
 import xin.manong.darwin.web.request.ExecuteRequest;
 import xin.manong.darwin.web.request.PlanRequest;
 import xin.manong.darwin.web.request.PlanUpdateRequest;
+import xin.manong.darwin.web.service.AppPermissionService;
 import xin.manong.weapon.base.util.RandomID;
 
 import javax.annotation.Resource;
@@ -42,6 +43,8 @@ public class PlanController {
     protected PlanService planService;
     @Resource
     protected RuleService ruleService;
+    @Resource
+    protected AppPermissionService appPermissionService;
 
     /**
      * 启动计划
@@ -132,6 +135,7 @@ public class PlanController {
             throw new BadRequestException("计划请求信息为空");
         }
         request.check();
+        appPermissionService.checkAppPermission(request.appId.longValue());
         Plan plan = Converter.convert(request);
         if (StringUtils.isEmpty(plan.appName)) {
             App app = appService.get(plan.appId.longValue());
@@ -172,6 +176,7 @@ public class PlanController {
             logger.error("plan[{}] is not found", request.planId);
             throw new NotFoundException(String.format("计划[%s]不存在", request.planId));
         }
+        appPermissionService.checkAppPermission(previous.appId.longValue());
         Plan plan = Converter.convert(request);
         if (plan.ruleIds == null || plan.ruleIds.isEmpty()) plan.ruleIds = previous.ruleIds;
         if (request.seedURLs != null && !request.seedURLs.isEmpty()) checkSeedURLs(request.seedURLs, plan);
@@ -199,6 +204,7 @@ public class PlanController {
             logger.error("plan[{}] is not found", request.planId);
             throw new NotFoundException(String.format("计划[%s]不存在", request.planId));
         }
+        appPermissionService.checkAppPermission(plan.appId.longValue());
         if (plan.status != Constants.PLAN_STATUS_RUNNING) {
             logger.error("plan is not running for status[{}]", Constants.SUPPORT_PLAN_STATUSES.get(plan.status));
             throw new RuntimeException(String.format("计划[%s]非运行状态",
@@ -235,10 +241,12 @@ public class PlanController {
             logger.error("plan id is empty");
             throw new BadRequestException("计划ID为空");
         }
-        if (planService.get(id) == null) {
+        Plan plan = planService.get(id);
+        if (plan == null) {
             logger.error("plan[{}] is not found", id);
             throw new NotFoundException(String.format("计划[%s]不存在", id));
         }
+        appPermissionService.checkAppPermission(plan.appId.longValue());
         return planService.delete(id);
     }
 
@@ -293,5 +301,6 @@ public class PlanController {
             throw new RuntimeException(String.format("计划不处于%s状态",
                     Constants.SUPPORT_PLAN_STATUSES.get(expectedStatus)));
         }
+        appPermissionService.checkAppPermission(plan.appId.longValue());
     }
 }

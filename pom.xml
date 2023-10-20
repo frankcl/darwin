@@ -51,6 +51,7 @@
         <shaman-configmap.version>1.0.9</shaman-configmap.version>
         <shaman-dynamic-secret-listener.version>1.0.0-SNAPSHOT</shaman-dynamic-secret-listener.version>
         <weapon.version>0.1.8</weapon.version>
+        <security-keeper.version>0.0.1</security-keeper.version>
         <darwin.version>0.0.1</darwin.version>
     </properties>
 
@@ -391,6 +392,11 @@
                 <groupId>xin.manong</groupId>
                 <artifactId>weapon-spring-boot-starter</artifactId>
                 <version>${weapon.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>xin.manong</groupId>
+                <artifactId>security-keeper-sso-client</artifactId>
+                <version>${security-keeper.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>

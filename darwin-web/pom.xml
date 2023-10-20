@@ -58,6 +58,10 @@
         </dependency>
         <dependency>
             <groupId>xin.manong</groupId>
+            <artifactId>security-keeper-sso-client</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>xin.manong</groupId>
             <artifactId>darwin-service</artifactId>
             <version>${darwin.version}</version>
         </dependency>
