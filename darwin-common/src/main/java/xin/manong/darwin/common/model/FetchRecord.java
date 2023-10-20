@@ -3,7 +3,6 @@ package xin.manong.darwin.common.model;
 import com.alibaba.fastjson.annotation.JSONField;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
-import com.baomidou.mybatisplus.extension.activerecord.Model;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
@@ -32,7 +31,7 @@ import java.util.Map;
 @Setter
 @Accessors(chain = true)
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class FetchRecord extends Model {
+public class FetchRecord extends BasicModel {
 
     private static final Logger logger = LoggerFactory.getLogger(FetchRecord.class);
 

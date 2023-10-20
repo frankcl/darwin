@@ -1,11 +1,9 @@
 package xin.manong.darwin.common.model;
 
 import com.alibaba.fastjson.annotation.JSONField;
-import com.baomidou.mybatisplus.annotation.FieldFill;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
-import com.baomidou.mybatisplus.extension.activerecord.Model;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
@@ -35,7 +33,7 @@ import java.util.stream.Collectors;
 @Accessors(chain = true)
 @TableName(value = "plan", autoResultMap = true)
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class Plan extends Model {
+public class Plan extends BasicModel {
 
     private static final Logger logger = LoggerFactory.getLogger(Plan.class);
 
@@ -72,22 +70,6 @@ public class Plan extends Model {
     @JSONField(name = "app_id")
     @JsonProperty("app_id")
     public Integer appId;
-
-    /**
-     * 创建时间
-     */
-    @TableField(value = "create_time", fill = FieldFill.INSERT)
-    @JSONField(name = "create_time")
-    @JsonProperty("create_time")
-    public Long createTime;
-
-    /**
-     * 更新时间
-     */
-    @TableField(value = "update_time", fill = FieldFill.INSERT_UPDATE)
-    @JSONField(name = "update_time")
-    @JsonProperty("update_time")
-    public Long updateTime;
 
     /**
      * 下次调度时间，针对周期性任务生效

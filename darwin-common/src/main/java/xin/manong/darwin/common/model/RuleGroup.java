@@ -2,7 +2,6 @@ package xin.manong.darwin.common.model;
 
 import com.alibaba.fastjson.annotation.JSONField;
 import com.baomidou.mybatisplus.annotation.*;
-import com.baomidou.mybatisplus.extension.activerecord.Model;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
@@ -23,7 +22,7 @@ import org.slf4j.LoggerFactory;
 @Accessors(chain = true)
 @TableName(value = "rule_group", autoResultMap = true)
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class RuleGroup extends Model {
+public class RuleGroup extends BasicModel {
 
     private static final Logger logger = LoggerFactory.getLogger(RuleGroup.class);
 
@@ -42,21 +41,6 @@ public class RuleGroup extends Model {
     @JSONField(name = "name")
     @JsonProperty("name")
     public String name;
-
-    /**
-     * 创建时间
-     */
-    @TableField(value = "create_time", fill = FieldFill.INSERT)
-    @JSONField(name = "create_time")
-    @JsonProperty("create_time")
-    public Long createTime;
-    /**
-     * 更新时间
-     */
-    @TableField(value = "update_time", fill = FieldFill.INSERT_UPDATE)
-    @JSONField(name = "update_time")
-    @JsonProperty("update_time")
-    public Long updateTime;
 
     /**
      * 检测合法性

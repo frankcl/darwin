@@ -1,7 +1,6 @@
 package xin.manong.darwin.common.model;
 
 import com.alibaba.fastjson.annotation.JSONField;
-import com.baomidou.mybatisplus.annotation.FieldFill;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -68,24 +67,6 @@ public class URLRecord extends FetchRecord {
     @JSONField(name = "fetch_method")
     @JsonProperty("fetch_method")
     public Integer fetchMethod;
-
-    /**
-     * 创建时间
-     */
-    @TableField(value = "create_time", fill = FieldFill.INSERT)
-    @Column(name = "create_time")
-    @JSONField(name = "create_time")
-    @JsonProperty("create_time")
-    public Long createTime;
-
-    /**
-     * 更新时间
-     */
-    @TableField(value = "update_time", fill = FieldFill.INSERT_UPDATE)
-    @Column(name = "update_time")
-    @JSONField(name = "update_time")
-    @JsonProperty("update_time")
-    public Long updateTime;
 
     /**
      * 出对时间

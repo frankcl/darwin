@@ -2,7 +2,6 @@ package xin.manong.darwin.common.model;
 
 import com.alibaba.fastjson.annotation.JSONField;
 import com.baomidou.mybatisplus.annotation.*;
-import com.baomidou.mybatisplus.extension.activerecord.Model;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
@@ -27,7 +26,7 @@ import java.net.URL;
 @Accessors(chain = true)
 @TableName(value = "rule", autoResultMap = true)
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class Rule extends Model {
+public class Rule extends BasicModel {
 
     private static final Logger logger = LoggerFactory.getLogger(Rule.class);
 
@@ -110,21 +109,6 @@ public class Rule extends Model {
     @JSONField(name = "link_follow_scope")
     @JsonProperty("link_follow_scope")
     public Integer linkFollowScope;
-
-    /**
-     * 创建时间
-     */
-    @TableField(value = "create_time", fill = FieldFill.INSERT)
-    @JSONField(name = "create_time")
-    @JsonProperty("create_time")
-    public Long createTime;
-    /**
-     * 更新时间
-     */
-    @TableField(value = "update_time", fill = FieldFill.INSERT_UPDATE)
-    @JSONField(name = "update_time")
-    @JsonProperty("update_time")
-    public Long updateTime;
 
     /**
      * 检测合法性

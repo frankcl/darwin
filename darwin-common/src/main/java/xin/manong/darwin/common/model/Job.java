@@ -2,7 +2,6 @@ package xin.manong.darwin.common.model;
 
 import com.alibaba.fastjson.annotation.JSONField;
 import com.baomidou.mybatisplus.annotation.*;
-import com.baomidou.mybatisplus.extension.activerecord.Model;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
@@ -30,7 +29,7 @@ import java.util.List;
 @Accessors(chain = true)
 @TableName(value = "job", autoResultMap = true)
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class Job extends Model {
+public class Job extends BasicModel {
 
     private static final Logger logger = LoggerFactory.getLogger(Job.class);
 
@@ -67,23 +66,6 @@ public class Job extends Model {
     @JSONField(name = "priority")
     @JsonProperty("priority")
     public Integer priority;
-
-    /**
-     * 创建时间
-     */
-    @TableField(value = "create_time", fill = FieldFill.INSERT)
-    @Column(name = "create_time")
-    @JSONField(name = "create_time")
-    @JsonProperty("create_time")
-    public Long createTime;
-    /**
-     * 更新时间
-     */
-    @TableField(value = "update_time", fill = FieldFill.INSERT_UPDATE)
-    @Column(name = "update_time")
-    @JSONField(name = "update_time")
-    @JsonProperty("update_time")
-    public Long updateTime;
 
     /**
      * 任务ID
