@@ -14,6 +14,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import xin.manong.darwin.common.Constants;
 import xin.manong.darwin.common.model.handler.JSONMapObjectTypeHandler;
+import xin.manong.darwin.common.model.json.MapDeserializer;
 import xin.manong.weapon.aliyun.ots.annotation.Column;
 import xin.manong.weapon.aliyun.ots.annotation.PrimaryKey;
 import xin.manong.weapon.base.util.RandomID;
@@ -157,7 +158,7 @@ public class FetchRecord extends BasicModel {
      */
     @TableField(value = "field_map", typeHandler = JSONMapObjectTypeHandler.class)
     @Column(name = "field_map")
-    @JSONField(name = "field_map")
+    @JSONField(name = "field_map", deserializeUsing = MapDeserializer.class)
     @JsonProperty("field_map")
     public Map<String, Object> fieldMap = new HashMap<>();
 
@@ -173,20 +174,20 @@ public class FetchRecord extends BasicModel {
     }
 
     public FetchRecord(FetchRecord record) {
-        this.key = record.key;
-        this.hash = record.hash;
-        this.url = record.url;
-        this.jobId = record.jobId;
-        this.planId = record.planId;
-        this.fetchTime = record.fetchTime;
-        this.parentURL = record.parentURL;
-        this.redirectURL = record.redirectURL;
-        this.fetchContentURL = record.fetchContentURL;
-        this.mimeType = record.mimeType;
-        this.subMimeType = record.subMimeType;
-        this.status = record.status;
-        this.userDefinedMap = record.userDefinedMap;
-        this.fieldMap = record.fieldMap;
+        key = record.key;
+        hash = record.hash;
+        url = record.url;
+        jobId = record.jobId;
+        planId = record.planId;
+        fetchTime = record.fetchTime;
+        parentURL = record.parentURL;
+        redirectURL = record.redirectURL;
+        fetchContentURL = record.fetchContentURL;
+        mimeType = record.mimeType;
+        subMimeType = record.subMimeType;
+        status = record.status;
+        userDefinedMap = record.userDefinedMap == null ? new HashMap<>() : new HashMap<>(record.userDefinedMap);
+        fieldMap = record.fieldMap == null ? new HashMap<>() : new HashMap<>(record.fieldMap);
     }
 
     /**
@@ -211,12 +212,12 @@ public class FetchRecord extends BasicModel {
             logger.error("key is empty");
             return false;
         }
-        if (StringUtils.isEmpty(hash)) {
-            logger.error("hash is empty");
-            return false;
-        }
         if (StringUtils.isEmpty(url)) {
             logger.error("url is empty");
+            return false;
+        }
+        if (StringUtils.isEmpty(hash)) {
+            logger.error("hash is empty");
             return false;
         }
         if (StringUtils.isEmpty(jobId)) {
@@ -247,5 +248,15 @@ public class FetchRecord extends BasicModel {
     @Override
     public int hashCode() {
         return key == null ? 0 : key.hashCode();
+    }
+
+    /**
+     * 设置URL，设置hash
+     *
+     * @param url
+     */
+    public void setUrl(String url) {
+        this.url = url;
+        this.hash = DigestUtils.md5Hex(url);
     }
 }

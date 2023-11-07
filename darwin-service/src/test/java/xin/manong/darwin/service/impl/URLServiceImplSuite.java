@@ -96,6 +96,7 @@ public class URLServiceImplSuite {
         fetchRecord.status = null;
         fetchRecord.parentURL = "http://www.sohu.com";
         fetchRecord.fetchContentURL = "http://www.sohu.com/123.html";
+        fetchRecord.fieldMap.put("AAA", 123);
         Assert.assertTrue(urlService.updateResult(fetchRecord));
 
         recordInDB = urlService.getCache("http://www.sina.com.cn/");

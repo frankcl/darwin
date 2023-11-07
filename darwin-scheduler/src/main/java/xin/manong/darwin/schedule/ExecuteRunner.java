@@ -71,10 +71,10 @@ public abstract class ExecuteRunner implements Runnable {
     @Override
     public void run() {
         while (running) {
-            Long startTime = System.currentTimeMillis();
-            execute();
-            Long processTime = System.currentTimeMillis() - startTime;
             try {
+                Long startTime = System.currentTimeMillis();
+                execute();
+                Long processTime = System.currentTimeMillis() - startTime;
                 if (processTime >= executeIntervalMs) continue;
                 logger.info("finish one round executing, sleep {} seconds", executeIntervalMs / 1000);
                 Thread.sleep(executeIntervalMs);

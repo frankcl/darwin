@@ -1,3 +1,7 @@
+app:
+  schedule:
+    topic: TEST_DARWIN_FETCH_URL
+
 weapon:
   aliyun:
     ons:

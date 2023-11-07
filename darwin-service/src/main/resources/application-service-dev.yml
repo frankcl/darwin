@@ -22,4 +22,4 @@ weapon:
 
 app:
   service:
-    job-topic: xxx
+    job-topic: TEST_DARWIN_DISPATCH_JOB

@@ -60,15 +60,34 @@ public class ParseServiceImpl implements ParseService {
         String key = DigestUtils.md5Hex(request.scriptCode);
         Script script = scriptCache.get(key);
         if (script == null) {
-            try {
-                script = ScriptFactory.make(request.scriptType, request.scriptCode);
-                scriptCache.put(script);
-            } catch (ScriptCompileException e) {
-                logger.error("compile {} failed", Constants.SUPPORT_SCRIPT_TYPES.get(request.scriptType));
+            script = makePutScript(key, request);
+            if (script == null) {
                 return ParseResponse.buildError(String.format("编译脚本[%s]失败",
                         Constants.SUPPORT_SCRIPT_TYPES.get(request.scriptType)));
             }
         }
         return script.execute(request);
+    }
+
+    /**
+     * 编译构建脚本并将脚本对象放入缓存
+     *
+     * @param key 脚本key
+     * @param request HTML脚本请求
+     * @return 成功返回脚本对象，否则返回null
+     */
+    private Script makePutScript(String key, HTMLScriptRequest request) {
+        synchronized (this) {
+            Script script = scriptCache.get(key);
+            if (script != null) return script;
+            try {
+                script = ScriptFactory.make(request.scriptType, request.scriptCode);
+                scriptCache.put(script);
+                return script;
+            } catch (ScriptCompileException e) {
+                logger.error("compile {} failed", Constants.SUPPORT_SCRIPT_TYPES.get(request.scriptType));
+                return null;
+            }
+        }
     }
 }

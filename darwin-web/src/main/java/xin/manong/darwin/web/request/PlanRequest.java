@@ -7,7 +7,6 @@ import org.quartz.CronExpression;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import xin.manong.darwin.common.Constants;
-import xin.manong.darwin.common.model.URLRecord;
 
 import javax.ws.rs.BadRequestException;
 import java.io.Serializable;
@@ -79,7 +78,7 @@ public class PlanRequest implements Serializable {
      * 种子列表
      */
     @JsonProperty("seed_urls")
-    public List<URLRecord> seedURLs;
+    public List<URLRequest> seedURLs;
 
     /**
      * 检测有效性
@@ -103,5 +102,6 @@ public class PlanRequest implements Serializable {
             logger.error("crontab expression[{}] is invalid", crontabExpression);
             throw new BadRequestException("非法crontab表达式");
         }
+        if (seedURLs != null) for (URLRequest seedURL : seedURLs) seedURL.check();
     }
 }

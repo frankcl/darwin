@@ -1,0 +1,11 @@
+spring:
+  application:
+    name: darwin-scheduler
+  profiles:
+    active: @profileActive@
+    include: service,service-@profileActive@,queue,queue-@profileActive@,log,log-@profileActive@
+
+app:
+  schedule:
+    planExecuteIntervalMs: 60000
+    queueScheduleIntervalMs: 10000

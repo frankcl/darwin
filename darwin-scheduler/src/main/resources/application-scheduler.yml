@@ -1,5 +1,0 @@
-app:
-  schedule:
-    topic: xxx
-    planExecuteIntervalMs: 60000
-    queueScheduleIntervalMs: 10000

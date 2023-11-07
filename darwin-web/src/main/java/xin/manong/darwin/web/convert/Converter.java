@@ -4,6 +4,10 @@ import xin.manong.darwin.common.Constants;
 import xin.manong.darwin.common.model.*;
 import xin.manong.darwin.web.request.*;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+
 /**
  * 数据转换
  *
@@ -72,7 +76,7 @@ public class Converter {
         plan.category = request.category;
         plan.crontabExpression = request.crontabExpression;
         plan.ruleIds = request.ruleIds;
-        plan.seedURLs = request.seedURLs;
+        plan.seedURLs = convert(request.seedURLs);
         return plan;
     }
 
@@ -92,8 +96,44 @@ public class Converter {
         plan.category = request.category;
         plan.crontabExpression = request.crontabExpression;
         plan.ruleIds = request.ruleIds;
-        plan.seedURLs = request.seedURLs;
+        plan.seedURLs = convert(request.seedURLs);
         return plan;
+    }
+
+    /**
+     * 转换URL请求列表为URL记录列表
+     *
+     * @param requests URL请求列表
+     * @return URL记录列表
+     */
+    public static List<URLRecord> convert(List<URLRequest> requests) {
+        List<URLRecord> records = new ArrayList<>();
+        if (requests == null || requests.isEmpty()) return records;
+        for (URLRequest request : requests) {
+            URLRecord record = convert(request);
+            if (record == null) continue;
+            records.add(record);
+        }
+        return records;
+    }
+
+    /**
+     * 转换URL请求为URL记录
+     *
+     * @param request URL请求
+     * @return URL记录
+     */
+    public static URLRecord convert(URLRequest request) {
+        if (request == null) return null;
+        URLRecord record = new URLRecord(request.url);
+        record.fetchMethod = request.fetchMethod;
+        record.category = request.category;
+        record.concurrentLevel = request.concurrentLevel;
+        record.priority = request.priority;
+        record.timeout = request.timeout;
+        record.headers = request.headers == null ? new HashMap<>() : new HashMap<>(request.headers);
+        record.userDefinedMap = request.userDefinedMap == null ? new HashMap<>() : new HashMap<>(request.userDefinedMap);
+        return record;
     }
 
     /**

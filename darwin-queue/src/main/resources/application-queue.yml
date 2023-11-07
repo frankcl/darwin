@@ -16,6 +16,6 @@ app:
       max-concurrent-connection-num: 50
       concurrent-connection-ttl-second: 3600
       concurrent-unit-max-connection-map:
-        sina.com.cn: 200
+        sina.com.cn: 20
         sohu.com: 3
         news.cn: 1

@@ -1,0 +1,81 @@
+import org.apache.commons.lang3.StringUtils;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
+import org.jsoup.select.Elements;
+import xin.manong.darwin.parser.sdk.HTMLParser;
+import xin.manong.darwin.parser.sdk.ParseRequest;
+import xin.manong.darwin.parser.sdk.ParseResponse;
+
+import java.text.SimpleDateFormat;
+import java.util.HashMap;
+import java.util.Map;
+
+public class GroovyParser extends HTMLParser {
+
+    @Override
+    public ParseResponse parse(ParseRequest request) {
+        Map<String, Object> fieldMap = new HashMap<>();
+        Document document = Jsoup.parse(request.html, StringUtils.isEmpty(request.redirectURL) ?
+                request.url : request.redirectURL);
+        String title = request.userDefinedMap == null ? null : (String) request.userDefinedMap.get("title");
+        if (StringUtils.isEmpty(title)) title = parseTitle(document);
+        if (!StringUtils.isEmpty(title)) fieldMap.put("title", title);
+        Long publishTime = parsePublishTime(document);
+        if (publishTime != null) fieldMap.put("publish_timestamp", publishTime);
+        String source = parseSource(document);
+        if (!StringUtils.isEmpty(source)) fieldMap.put("source", source);
+        Elements mainElements = document.selectXpath("//*[@class=\"rm_txt_con cf\"]");
+        if (!mainElements.isEmpty()) {
+            String mainHTML = mainElements.html();
+            String mainText = mainElements.text();
+            if (!StringUtils.isEmpty(mainHTML)) fieldMap.put("html", mainHTML);
+            if (!StringUtils.isEmpty(mainText)) fieldMap.put("content_text", mainText);
+        }
+        return ParseResponse.buildOK(fieldMap, null, request.userDefinedMap);
+    }
+
+    /**
+     * 解析标题
+     *
+     * @param document HTML文档
+     * @return 成功返回标题，否则返回null
+     */
+    private String parseTitle(Element document) {
+        Elements elements = document.selectXpath("//div[@class=\"col col-1 fl\"]/h1");
+        if (elements.isEmpty()) return null;
+        return elements.get(0).text().trim();
+    }
+
+    /**
+     * 解析发布时间，毫秒时间戳
+     *
+     * @param document HTML文档
+     * @return 成功返回发布时间，否则返回null
+     */
+    private Long parsePublishTime(Element document) {
+        Elements elements = document.selectXpath("//div[@class=\"col-1-1 fl\"]");
+        if (elements.isEmpty()) return null;
+        String text = elements.get(0).text().trim();
+        if (text.contains("|")) text = text.split("\\|")[0];
+        if (StringUtils.isEmpty(text)) return null;
+        try {
+            SimpleDateFormat format = new SimpleDateFormat("yyyy年MM月dd日HH:mm");
+            return format.parse(text).getTime();
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    /**
+     * 解析来源
+     *
+     * @param document HTML文档
+     * @return 成功返回来源，否则返回null
+     */
+    private String parseSource(Element document) {
+        Elements elements = document.selectXpath("//div[@class=\"col-1-1 fl\"]/a");
+        if (elements.isEmpty()) return null;
+        return elements.get(0).text().trim();
+    }
+}

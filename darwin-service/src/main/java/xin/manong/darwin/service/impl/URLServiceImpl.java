@@ -1,5 +1,6 @@
 package xin.manong.darwin.service.impl;
 
+import com.alibaba.fastjson.JSON;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
@@ -67,7 +68,7 @@ public class URLServiceImpl extends URLService {
             wrapper.set(URLRecord::getFetchContentURL, fetchRecord.fetchContentURL);
         }
         if (fetchRecord.fieldMap != null && !fetchRecord.fieldMap.isEmpty()) {
-            wrapper.set(URLRecord::getFieldMap, fetchRecord.fieldMap);
+            wrapper.set(URLRecord::getFieldMap, JSON.toJSONString(fetchRecord.fieldMap));
         }
         int n = urlMapper.update(null, wrapper);
         if (n > 0 && !StringUtils.isEmpty(record.url)) recordCache.invalidate(record.url);

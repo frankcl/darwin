@@ -12,6 +12,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import xin.manong.darwin.common.Constants;
 import xin.manong.darwin.common.model.handler.JSONMapObjectTypeHandler;
+import xin.manong.darwin.common.model.json.MapDeserializer;
 import xin.manong.weapon.aliyun.ots.annotation.Column;
 
 import java.util.HashMap;
@@ -118,7 +119,7 @@ public class URLRecord extends FetchRecord {
      */
     @TableField(value = "headers", typeHandler = JSONMapObjectTypeHandler.class)
     @Column(name = "headers")
-    @JSONField(name = "headers")
+    @JSONField(name = "headers", deserializeUsing = MapDeserializer.class)
     @JsonProperty("headers")
     public Map<String, String> headers = new HashMap<>();
 
@@ -129,24 +130,23 @@ public class URLRecord extends FetchRecord {
 
     public URLRecord(String url) {
         super(url);
-        this.url = url;
-        this.createTime = System.currentTimeMillis();
+        createTime = System.currentTimeMillis();
     }
 
     public URLRecord(URLRecord record) {
         super(record);
-        this.concurrentLevel = record.concurrentLevel;
-        this.timeout = record.timeout;
-        this.appId = record.appId;
-        this.fetchMethod = record.fetchMethod;
-        this.priority = record.priority;
-        this.createTime = record.createTime;
-        this.updateTime = record.updateTime;
-        this.inQueueTime = record.inQueueTime;
-        this.outQueueTime = record.outQueueTime;
-        this.category = record.category;
-        this.depth = record.depth;
-        this.headers = record.headers;
+        concurrentLevel = record.concurrentLevel;
+        timeout = record.timeout;
+        appId = record.appId;
+        fetchMethod = record.fetchMethod;
+        priority = record.priority;
+        createTime = record.createTime;
+        updateTime = record.updateTime;
+        inQueueTime = record.inQueueTime;
+        outQueueTime = record.outQueueTime;
+        category = record.category;
+        depth = record.depth;
+        headers = record.headers == null ? new HashMap<>() : new HashMap<>(record.headers);
     }
 
     /**

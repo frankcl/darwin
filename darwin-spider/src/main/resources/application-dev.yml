@@ -14,18 +14,18 @@ weapon:
       consumer:
         html:
           serverURL: http://onsaddr.mq-internet-access.mq-internet.aliyuncs.com:80
-          consumeId: xxx
-          consumeThreadNum: 20
+          consumeId: GID_TEST_DARWIN_FETCH_HTML
+          consumeThreadNum: 2
           subscribes:
-            - topic: xxx
+            - topic: TEST_DARWIN_FETCH_URL
               tags: 0||1
               listener-name: urlReceiver
         resource:
           serverURL: http://onsaddr.mq-internet-access.mq-internet.aliyuncs.com:80
-          consumeId: xxx
-          consumeThreadNum: 20
+          consumeId: GID_TEST_DARWIN_FETCH_RESOURCE
+          consumeThreadNum: 2
           subscribes:
-            - topic: xxx
+            - topic: TEST_DARWIN_FETCH_URL
               tags: 2||3
               listener-name: urlReceiver
 app:
@@ -33,5 +33,5 @@ app:
     content-region: cn-hangzhou
     content-bucket: default-crawler-file
     content-directory: darwin
-    record-topic: xxx
+    record-topic: TEST_DARWIN_DISPATCH_RECORD
     temp-directory: ./spider/temp/

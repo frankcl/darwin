@@ -3,7 +3,7 @@ spring:
     name: darwin-spider
   profiles:
     active: @profileActive@
-    include: service,service-@profileActive@,queue,queue-@profileActive@
+    include: service,service-@profileActive@,queue,queue-@profileActive@,log,log-@profileActive@
 
 app:
   spider:
