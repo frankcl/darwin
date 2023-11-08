@@ -9,6 +9,7 @@ import org.slf4j.LoggerFactory;
 import xin.manong.darwin.common.model.URLRecord;
 import xin.manong.darwin.parser.script.Script;
 import xin.manong.darwin.parser.script.ScriptCompileException;
+import xin.manong.darwin.parser.script.ScriptConcurrentException;
 import xin.manong.darwin.parser.sdk.ParseRequest;
 import xin.manong.darwin.parser.sdk.ParseResponse;
 
@@ -98,27 +99,22 @@ public class JavaScript extends Script {
     }
 
     @Override
-    public ParseResponse execute(ParseRequest request) {
-        try {
-            if (function == null) return ParseResponse.buildError("执行脚本对象未初始化");
-            ScriptObjectMirror scriptObjectMirror = (ScriptObjectMirror) function.invokeFunction(METHOD_PARSE, request);
-            Map<String, Object> map = (Map<String, Object>) convertScriptObjectMirror(scriptObjectMirror);
-            if (map == null) return ParseResponse.buildError("解析响应为空");
-            ParseResponse response = JSON.toJavaObject(new JSONObject(map), ParseResponse.class);
-            if (response.status && response.followURLs != null) {
-                for (URLRecord followURL : response.followURLs) {
-                    if (followURL.url != null) followURL.hash = DigestUtils.md5Hex(followURL.url);
-                }
+    public ParseResponse doExecute(ParseRequest request) throws Exception {
+        if (function == null) throw new ScriptConcurrentException();
+        ScriptObjectMirror scriptObjectMirror = (ScriptObjectMirror) function.invokeFunction(METHOD_PARSE, request);
+        Map<String, Object> map = (Map<String, Object>) convertScriptObjectMirror(scriptObjectMirror);
+        if (map == null) return ParseResponse.buildError("解析响应为空");
+        ParseResponse response = JSON.toJavaObject(new JSONObject(map), ParseResponse.class);
+        if (response.status && response.followURLs != null) {
+            for (URLRecord followURL : response.followURLs) {
+                if (followURL.url != null) followURL.hash = DigestUtils.md5Hex(followURL.url);
             }
-            return response;
-        } catch (Exception e) {
-            logger.error(e.getMessage(), e);
-            return ParseResponse.buildError(String.format("执行解析脚本异常[%s]", e.getMessage()));
         }
+        return response;
     }
 
     @Override
-    public void close() {
+    public void doClose() throws IOException {
         if (function != null) function = null;
     }
 

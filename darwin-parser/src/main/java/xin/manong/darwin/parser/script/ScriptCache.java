@@ -10,7 +10,7 @@ import org.slf4j.LoggerFactory;
 import java.util.concurrent.TimeUnit;
 
 /**
- * groovy脚本cache
+ * 脚本cache
  *
  * @author frankcl
  * @date 2023-03-16 15:06:10
@@ -37,6 +37,7 @@ public class ScriptCache {
      */
     private void onRemoval(RemovalNotification<String, Script> notification) {
         Script script = notification.getValue();
+        if (script != null && script.currentReferenceCount() == 0) script.close();
         RemovalCause cause = notification.getCause();
         logger.info("{}[{}] is removed, cause[{}]", script.getClass().getSimpleName(),
                 notification.getKey(), cause.name());
@@ -54,8 +55,11 @@ public class ScriptCache {
             return;
         }
         try {
-            Script previous = cache.get(script.getKey(), () -> script);
-            if (previous != null && previous != script) previous.close();
+            Script prevScript = cache.get(script.getKey(), () -> script);
+            if (prevScript != null && prevScript != script &&
+                    prevScript.currentReferenceCount() == 0) {
+                prevScript.close();
+            }
         } catch (Exception e) {
             logger.error("put script into cache failed");
             logger.error(e.getMessage(), e);

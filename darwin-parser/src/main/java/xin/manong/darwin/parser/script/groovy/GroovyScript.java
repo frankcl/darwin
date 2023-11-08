@@ -6,6 +6,7 @@ import org.apache.commons.codec.digest.DigestUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import xin.manong.darwin.parser.script.ScriptCompileException;
+import xin.manong.darwin.parser.script.ScriptConcurrentException;
 import xin.manong.darwin.parser.sdk.HTMLParser;
 import xin.manong.darwin.parser.script.Script;
 import xin.manong.darwin.parser.sdk.ParseRequest;
@@ -81,30 +82,20 @@ public class GroovyScript extends Script {
      * @return 解析响应
      */
     @Override
-    public ParseResponse execute(ParseRequest request) {
-        try {
-            if (groovyObject == null) return ParseResponse.buildError("执行脚本对象未初始化");
-            return (ParseResponse) groovyObject.invokeMethod(METHOD_PARSE, request);
-        } catch (Exception e) {
-            logger.error(e.getMessage(), e);
-            return ParseResponse.buildError(String.format("执行脚本异常[%s]", e.getMessage()));
-        }
+    public ParseResponse doExecute(ParseRequest request) throws Exception {
+        if (groovyObject == null) throw new ScriptConcurrentException();
+        return (ParseResponse) groovyObject.invokeMethod(METHOD_PARSE, request);
     }
 
     /**
      * 关闭销毁groovy脚本对象，防止内存溢出
      */
     @Override
-    public void close() {
+    public void doClose() throws IOException {
         groovyObject = null;
-        try {
-            if (classLoader != null) {
-                classLoader.close();
-                classLoader = null;
-            }
-        } catch (IOException e) {
-            logger.warn("close class loader failed for groovy script[{}]", key);
-            logger.warn(e.getMessage(), e);
+        if (classLoader != null) {
+            classLoader.close();
+            classLoader = null;
         }
     }
 }
