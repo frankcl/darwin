@@ -28,7 +28,7 @@ public class ConcurrentManagerSuite {
     public void testConcurrentCount() {
         Assert.assertEquals(3, concurrentManager.getAvailableConnections("sohu.com"));
         Assert.assertEquals(1, concurrentManager.getAvailableConnections("news.cn"));
-        Assert.assertEquals(200, concurrentManager.getAvailableConnections("sina.com.cn"));
+        Assert.assertEquals(20, concurrentManager.getAvailableConnections("sina.com.cn"));
         Assert.assertEquals(50, concurrentManager.getAvailableConnections("shuwen.com"));
 
         Assert.assertEquals(1, concurrentManager.increaseConnections("news.cn", 1));
@@ -38,19 +38,19 @@ public class ConcurrentManagerSuite {
         Assert.assertEquals(1, concurrentManager.decreaseConnections("news.cn", 2));
         Assert.assertEquals(1, concurrentManager.getAvailableConnections("news.cn"));
 
-        Assert.assertEquals(0, concurrentManager.decreaseConnections("sina.com.cn", 201));
-        Assert.assertEquals(200, concurrentManager.getAvailableConnections("sina.com.cn"));
-        Assert.assertEquals(200, concurrentManager.increaseConnections("sina.com.cn", 201));
+        Assert.assertEquals(0, concurrentManager.decreaseConnections("sina.com.cn", 21));
+        Assert.assertEquals(20, concurrentManager.getAvailableConnections("sina.com.cn"));
+        Assert.assertEquals(20, concurrentManager.increaseConnections("sina.com.cn", 21));
         Assert.assertEquals(0, concurrentManager.getAvailableConnections("sina.com.cn"));
-        Assert.assertEquals(200, concurrentManager.decreaseConnections("sina.com.cn", 300));
-        Assert.assertEquals(200, concurrentManager.getAvailableConnections("sina.com.cn"));
+        Assert.assertEquals(20, concurrentManager.decreaseConnections("sina.com.cn", 30));
+        Assert.assertEquals(20, concurrentManager.getAvailableConnections("sina.com.cn"));
     }
 
     @Test
     public void testConcurrentRecord() {
         Assert.assertEquals(3, concurrentManager.getAvailableConnectionCount("sohu.com"));
         Assert.assertEquals(1, concurrentManager.getAvailableConnectionCount("news.cn"));
-        Assert.assertEquals(200, concurrentManager.getAvailableConnectionCount("sina.com.cn"));
+        Assert.assertEquals(20, concurrentManager.getAvailableConnectionCount("sina.com.cn"));
         Assert.assertEquals(50, concurrentManager.getAvailableConnectionCount("shuwen.com"));
 
         concurrentManager.putConnectionRecord("sohu.com", "aaa");

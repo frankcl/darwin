@@ -46,7 +46,7 @@ public class URLServiceImplSuite {
         record.planId = "test_plan_id";
         record.appId = 1;
         record.status = Constants.URL_STATUS_CREATED;
-        record.category = Constants.CONTENT_CATEGORY_TEXT;
+        record.category = Constants.CONTENT_CATEGORY_LIST;
         record.fetchTime = System.currentTimeMillis();
         record.userDefinedMap = new HashMap<>();
         record.userDefinedMap.put("k1", "v1");
@@ -64,7 +64,7 @@ public class URLServiceImplSuite {
         Assert.assertEquals("test_plan_id", recordInDB.planId);
         Assert.assertEquals(1, recordInDB.getAppId().intValue());
         Assert.assertEquals(Constants.URL_STATUS_CREATED, recordInDB.status.intValue());
-        Assert.assertEquals(Constants.CONTENT_CATEGORY_TEXT, recordInDB.category.intValue());
+        Assert.assertEquals(Constants.CONTENT_CATEGORY_LIST, recordInDB.category.intValue());
         Assert.assertEquals(Constants.PRIORITY_NORMAL, recordInDB.priority.intValue());
         Assert.assertEquals(record.createTime.longValue(), recordInDB.createTime.longValue());
         Assert.assertEquals(3, recordInDB.userDefinedMap.size());

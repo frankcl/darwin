@@ -23,11 +23,6 @@ public class RuleSearchRequest extends SearchRequest {
     @JsonProperty("script_type")
     public Integer scriptType;
     /**
-     * 规则分类：抽链规则1，结构化规则2，全局抽链规则3
-     */
-    @JsonProperty("category")
-    public Integer category;
-    /**
      * 规则名称
      */
     @JsonProperty("name")

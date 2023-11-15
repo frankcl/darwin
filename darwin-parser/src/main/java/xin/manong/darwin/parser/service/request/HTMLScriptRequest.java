@@ -34,6 +34,7 @@ public class HTMLScriptRequest extends ParseRequest {
      */
     public boolean check() {
         if (!super.check()) return false;
+        if (Constants.SUPPORT_LINK_SCOPES.containsKey(scope)) return true;
         if (StringUtils.isEmpty(scriptCode)) {
             logger.error("script code is empty");
             return false;

@@ -22,7 +22,7 @@ import javax.annotation.Resource;
  */
 @RunWith(SpringRunner.class)
 @ActiveProfiles(value = { "dev", "service", "service-dev", "parse", "parse-dev", "queue", "queue-dev", "log", "log-dev" })
-@SpringBootTest(classes = ApplicationTest.class)
+@SpringBootTest(classes = { ApplicationTest.class })
 public class ResourceSpiderSuite {
 
     @Resource

@@ -17,6 +17,13 @@ public class ParseRequest {
     private static final Logger logger = LoggerFactory.getLogger(ParseRequest.class);
 
     /**
+     * 全局抽链范围
+     * 所有all：1
+     * 域domain：2
+     * 站点host：3
+     */
+    public int scope;
+    /**
      * 链接URL
      */
     public String url;

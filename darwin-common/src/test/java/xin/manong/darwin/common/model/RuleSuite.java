@@ -15,7 +15,6 @@ public class RuleSuite {
         Rule rule = new Rule();
         rule.name = "测试规则";
         rule.ruleGroup = 1;
-        rule.category = Constants.RULE_CATEGORY_LINK;
         rule.scriptType = Constants.SCRIPT_TYPE_GROOVY;
         rule.script = "def A() {}";
         rule.domain = "sina.com.cn";
@@ -28,8 +27,7 @@ public class RuleSuite {
         Rule rule = new Rule();
         rule.name = "测试规则";
         rule.ruleGroup = 1;
-        rule.category = 5;
-        rule.scriptType = Constants.SCRIPT_TYPE_GROOVY;
+        rule.scriptType = null;
         rule.script = "def A() {}";
         rule.regex = "http://\\w+.sina.com.cn/index.html";
         Assert.assertFalse(rule.check());

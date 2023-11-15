@@ -76,6 +76,7 @@ public class JobServiceImpl extends JobService {
         URLSearchRequest searchRequest = new URLSearchRequest();
         searchRequest.current = 1;
         searchRequest.size = 1;
+        searchRequest.jobId = jobId;
         Pager<URLRecord> pager = urlService.search(searchRequest);
         if (pager.total > 0) {
             logger.error("urls are not empty for job[{}]", jobId);

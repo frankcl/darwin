@@ -82,6 +82,7 @@ public class URLQueueScheduler extends ExecuteRunner {
             List<URLRecord> records = multiQueue.pop(concurrentUnit, appliedConnections);
             acquiredConnections = records.size();
             for (URLRecord record : records) handleURLRecord(record, concurrentUnit);
+            logger.info("handle records[{}] for concurrent unit[{}]", records.size(), concurrentUnit);
         } catch (Exception e) {
             concurrentContext.put(Constants.SCHEDULE_STATUS, Constants.SCHEDULE_STATUS_FAIL);
             concurrentContext.put(Constants.DARWIN_DEBUG_MESSAGE, e.getMessage());
@@ -110,7 +111,7 @@ public class URLQueueScheduler extends ExecuteRunner {
             byte[] bytes = JSON.toJSONString(record, SerializerFeature.DisableCircularReferenceDetect).
                     getBytes(Charset.forName("UTF-8"));
             String tags = String.format("%d", record.category == null ?
-                    Constants.CONTENT_CATEGORY_TEXT : record.category);
+                    Constants.CONTENT_CATEGORY_CONTENT : record.category);
             Message message = new Message(topic, tags, record.key, bytes);
             SendResult sendResult = producer.send(message);
             if (sendResult == null || StringUtils.isEmpty(sendResult.getMessageId())) {

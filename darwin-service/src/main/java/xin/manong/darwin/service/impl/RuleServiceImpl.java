@@ -110,7 +110,6 @@ public class RuleServiceImpl extends RuleService {
         if (searchRequest.size == null || searchRequest.size <= 0) searchRequest.size = Constants.DEFAULT_PAGE_SIZE;
         LambdaQueryWrapper<Rule> query = new LambdaQueryWrapper<>();
         query.orderByDesc(Rule::getCreateTime);
-        if (searchRequest.category != null) query.eq(Rule::getCategory, searchRequest.category);
         if (searchRequest.ruleGroup != null) query.eq(Rule::getRuleGroup, searchRequest.ruleGroup);
         if (searchRequest.scriptType != null) query.eq(Rule::getScriptType, searchRequest.scriptType);
         if (!StringUtils.isEmpty(searchRequest.domain)) query.eq(Rule::getDomain, searchRequest.domain);
@@ -124,11 +123,6 @@ public class RuleServiceImpl extends RuleService {
         if (record == null || StringUtils.isEmpty(record.url)) {
             logger.error("url is empty");
             return false;
-        }
-        if (rule.category != null && rule.category == Constants.RULE_CATEGORY_GLOBAL_LINK &&
-                (record.category == null || (record.category != null &&
-                        record.category == Constants.CONTENT_CATEGORY_LIST))) {
-            return true;
         }
         if (rule == null || StringUtils.isEmpty(rule.regex)) {
             logger.error("match rule is null");

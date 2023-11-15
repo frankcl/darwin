@@ -37,7 +37,6 @@ public class RuleServiceImplSuite {
         Rule rule = new Rule();
         rule.name = "测试规则";
         rule.ruleGroup = 1;
-        rule.category = Constants.RULE_CATEGORY_STRUCTURE;
         rule.scriptType = Constants.SCRIPT_TYPE_GROOVY;
         rule.script = "function";
         rule.regex = "http://www.sina.com.cn/\\d+.html";
@@ -56,7 +55,6 @@ public class RuleServiceImplSuite {
         Assert.assertTrue(getRule != null);
         Assert.assertEquals("test rule", getRule.name);
         Assert.assertEquals(1L, getRule.ruleGroup.longValue());
-        Assert.assertEquals(Constants.RULE_CATEGORY_STRUCTURE, getRule.category.intValue());
         Assert.assertEquals(Constants.SCRIPT_TYPE_GROOVY, getRule.scriptType.intValue());
         Assert.assertEquals("function() {}", getRule.script);
         Assert.assertEquals("http://www.sina.com.cn/\\d+.html", getRule.regex);

@@ -67,6 +67,15 @@ public class URLRequest implements Serializable {
     public Integer concurrentLevel;
 
     /**
+     * 全局抽链范围
+     * 所有：1
+     * 域domain：2
+     * 站点host：3
+     */
+    @JsonProperty("scope")
+    public Integer scope;
+
+    /**
      * 抓取URL
      */
     @JsonProperty("url")

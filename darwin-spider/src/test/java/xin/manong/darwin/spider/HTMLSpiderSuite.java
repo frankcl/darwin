@@ -26,9 +26,9 @@ import java.util.ArrayList;
  * @author frankcl
  * @date 2023-03-31 14:36:24
  */
-@ActiveProfiles(value = { "dev", "service", "service-dev", "parse", "parse-dev", "queue", "queue-dev", "log", "log-dev" })
 @RunWith(SpringRunner.class)
-@SpringBootTest(classes = ApplicationTest.class)
+@ActiveProfiles(value = { "dev", "service", "service-dev", "parse", "parse-dev", "queue", "queue-dev", "log", "log-dev" })
+@SpringBootTest(classes = { ApplicationTest.class })
 public class HTMLSpiderSuite {
 
     @Resource
@@ -54,7 +54,6 @@ public class HTMLSpiderSuite {
         rule.name = "人民网结构化规则";
         rule.regex = "http://politics.people.com.cn/n1/\\d{4}/\\d{4}/c\\d+?-\\d+?\\.html";
         rule.ruleGroup = 1;
-        rule.category = Constants.RULE_CATEGORY_STRUCTURE;
         rule.scriptType = Constants.SCRIPT_TYPE_GROOVY;
         rule.script = scriptCode;
         Assert.assertTrue(ruleService.add(rule));
@@ -80,7 +79,6 @@ public class HTMLSpiderSuite {
         rule.name = "JSON解析规则";
         rule.regex = "http://external-data-service.shuwen.com/report/histogram";
         rule.ruleGroup = 1;
-        rule.category = Constants.RULE_CATEGORY_STRUCTURE;
         rule.scriptType = Constants.SCRIPT_TYPE_GROOVY;
         rule.script = scriptCode;
         Assert.assertTrue(ruleService.add(rule));
@@ -107,7 +105,7 @@ public class HTMLSpiderSuite {
         try {
             String url = "http://politics.people.com.cn/n1/2023/0406/c1001-32658085.html";
             URLRecord record = new URLRecord(url);
-            record.category = Constants.CONTENT_CATEGORY_TEXT;
+            record.category = Constants.CONTENT_CATEGORY_CONTENT;
             record.jobId = "aaa";
             record.planId = "xxx";
             record.appId = 1;
@@ -139,7 +137,7 @@ public class HTMLSpiderSuite {
         try {
             String url = "http://external-data-service.shuwen.com/report/histogram";
             URLRecord record = new URLRecord(url);
-            record.category = Constants.CONTENT_CATEGORY_TEXT;
+            record.category = Constants.CONTENT_CATEGORY_CONTENT;
             record.jobId = "aaa";
             record.planId = "xxx";
             record.appId = 1;
@@ -172,7 +170,7 @@ public class HTMLSpiderSuite {
         try {
             String url = "http://politics.people.com.cn/n1/2023/0406/c1001-32658085111.html";
             URLRecord record = new URLRecord(url);
-            record.category = Constants.CONTENT_CATEGORY_TEXT;
+            record.category = Constants.CONTENT_CATEGORY_CONTENT;
             record.jobId = "aaa";
             record.planId = "xxx";
             record.appId = 1;

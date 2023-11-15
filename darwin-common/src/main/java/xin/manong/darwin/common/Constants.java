@@ -54,12 +54,10 @@ public class Constants {
     public static final int FETCH_METHOD_COMMON = 0;                //普通抓取
     public static final int FETCH_METHOD_PROXY = 1;                 //代理抓取
     public static final int FETCH_METHOD_HEADLESS_RENDER = 2;       //无头渲染
-    public static final int FETCH_METHOD_HEAD_RENDER = 3;           //有头渲染
     public static final Map<Integer, String> SUPPORT_FETCH_METHODS = new HashMap<Integer, String>() {{
        put(FETCH_METHOD_COMMON, "普通抓取");
        put(FETCH_METHOD_PROXY, "代理抓取");
        put(FETCH_METHOD_HEADLESS_RENDER, "无头渲染");
-//       put(FETCH_METHOD_HEAD_RENDER, "有头渲染");
     }};
 
     /**
@@ -82,13 +80,13 @@ public class Constants {
     /**
      * 内容分类
      */
-    public static final int CONTENT_CATEGORY_TEXT = 0;              //内容文本
-    public static final int CONTENT_CATEGORY_LIST = 1;              //内容列表页
+    public static final int CONTENT_CATEGORY_CONTENT = 0;           //内容页
+    public static final int CONTENT_CATEGORY_LIST = 1;              //列表页
     public static final int CONTENT_CATEGORY_RESOURCE = 2;          //资源：图片视频等
     public static final int CONTENT_CATEGORY_STREAM = 3;            //流：视频流等
     public static final Map<Integer, String> SUPPORT_CONTENT_CATEGORIES = new HashMap<Integer, String>() {{
-        put(CONTENT_CATEGORY_TEXT, "文本内容");
-        put(CONTENT_CATEGORY_LIST, "文本列表");
+        put(CONTENT_CATEGORY_CONTENT, "内容页");
+        put(CONTENT_CATEGORY_LIST, "列表页");
         put(CONTENT_CATEGORY_RESOURCE, "资源");
         put(CONTENT_CATEGORY_STREAM, "流媒体");
     }};
@@ -104,23 +102,11 @@ public class Constants {
     }};
 
     /**
-     * 规则分类
-     */
-    public static final int RULE_CATEGORY_LINK = 1;                 //抽链规则
-    public static final int RULE_CATEGORY_STRUCTURE = 2;            //结构化规则
-    public static final int RULE_CATEGORY_GLOBAL_LINK = 3;          //全局抽链规则
-    public static final Map<Integer, String> SUPPORT_RULE_CATEGORIES = new HashMap<Integer, String>() {{
-        put(RULE_CATEGORY_LINK, "抽链规则");
-        put(RULE_CATEGORY_GLOBAL_LINK, "全局抽链规则");
-        put(RULE_CATEGORY_STRUCTURE, "结构化规则");
-    }};
-
-    /**
      * 抽链范围
      */
-    public static final int LINK_SCOPE_ALL = 0;                     //全局抽链
-    public static final int LINK_SCOPE_DOMAIN = 1;                  //domain抽链
-    public static final int LINK_SCOPE_HOST = 2;                    //host抽链
+    public static final int LINK_SCOPE_ALL = 1;                     //全局抽链
+    public static final int LINK_SCOPE_DOMAIN = 2;                  //domain抽链
+    public static final int LINK_SCOPE_HOST = 3;                    //host抽链
     public static final Map<Integer, String> SUPPORT_LINK_SCOPES = new HashMap<Integer, String>() {{
         put(LINK_SCOPE_ALL, "ALL");
         put(LINK_SCOPE_DOMAIN, "DOMAIN");

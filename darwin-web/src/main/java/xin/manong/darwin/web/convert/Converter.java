@@ -127,6 +127,7 @@ public class Converter {
         if (request == null) return null;
         URLRecord record = new URLRecord(request.url);
         record.fetchMethod = request.fetchMethod;
+        record.scope = request.scope;
         record.category = request.category;
         record.concurrentLevel = request.concurrentLevel;
         record.priority = request.priority;
@@ -151,8 +152,6 @@ public class Converter {
         rule.regex = request.regex;
         rule.script = request.script;
         rule.scriptType = request.scriptType;
-        rule.category = request.category;
-        rule.linkScope = request.linkScope;
         return rule;
     }
 

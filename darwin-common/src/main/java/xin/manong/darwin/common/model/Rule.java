@@ -89,28 +89,6 @@ public class Rule extends BasicModel {
     public Integer scriptType;
 
     /**
-     * 规则分类
-     * 1：抽链规则
-     * 2：结构化规则
-     * 3：通用抽链规则
-     */
-    @TableField(value = "category")
-    @JSONField(name = "category")
-    @JsonProperty("category")
-    public Integer category;
-
-    /**
-     * 全局抽链范围
-     * 全局抽链：0
-     * 域内抽链：1
-     * 站点内抽链：2
-     */
-    @TableField(value = "link_scope")
-    @JSONField(name = "link_scope")
-    @JsonProperty("link_scope")
-    public Integer linkScope;
-
-    /**
      * 检测合法性
      *
      * @return 合法返回true，否则返回false
@@ -128,26 +106,13 @@ public class Rule extends BasicModel {
             logger.error("rule regex is empty");
             return false;
         }
-        if (!Constants.SUPPORT_RULE_CATEGORIES.containsKey(category)) {
-            logger.error("not support rule category[{}]", category);
+        if (!Constants.SUPPORT_SCRIPT_TYPES.containsKey(scriptType)) {
+            logger.error("not support script type[{}]", scriptType);
             return false;
         }
-        if (category != Constants.RULE_CATEGORY_GLOBAL_LINK) {
-            if (!Constants.SUPPORT_SCRIPT_TYPES.containsKey(scriptType)) {
-                logger.error("not support script type[{}]", scriptType);
-                return false;
-            }
-            if (StringUtils.isEmpty(script)) {
-                logger.error("script content is empty");
-                return false;
-            }
-        }
-        if (category == Constants.RULE_CATEGORY_GLOBAL_LINK) {
-            if (linkScope == null) linkScope = Constants.LINK_SCOPE_ALL;
-            if (!Constants.SUPPORT_LINK_SCOPES.containsKey(linkScope)) {
-                logger.error("unsupported link follow scope[{}]", linkScope);
-                return false;
-            }
+        if (StringUtils.isEmpty(script)) {
+            logger.error("script content is empty");
+            return false;
         }
         if (StringUtils.isEmpty(domain)) {
             try {

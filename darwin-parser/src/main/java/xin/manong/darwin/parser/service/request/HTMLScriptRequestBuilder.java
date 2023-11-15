@@ -72,6 +72,17 @@ public class HTMLScriptRequestBuilder {
     }
 
     /**
+     * 设置全局抽链范围
+     *
+     * @param scope 全局抽链范围
+     * @return 构建器
+     */
+    public HTMLScriptRequestBuilder scope(int scope) {
+        delegate.scope = scope;
+        return this;
+    }
+
+    /**
      * 设置用户自定义数据
      *
      * @param userDefinedMap 用户自定义数据

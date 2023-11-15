@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 import xin.manong.darwin.common.Constants;
 import xin.manong.darwin.parser.script.*;
 import xin.manong.darwin.parser.sdk.ParseResponse;
+import xin.manong.darwin.parser.service.LinkFollowService;
 import xin.manong.darwin.parser.service.ParseService;
 import xin.manong.darwin.parser.service.request.HTMLScriptRequest;
 import xin.manong.darwin.parser.service.response.CompileResponse;
@@ -29,6 +30,8 @@ public class ParseServiceImpl implements ParseService {
 
     @Resource
     protected ScriptCache scriptCache;
+    @Resource
+    protected LinkFollowService linkFollowService;
 
     @Override
     public CompileResponse compile(int scriptType, String scriptCode) {
@@ -55,6 +58,9 @@ public class ParseServiceImpl implements ParseService {
         if (request == null || !request.check()) {
             logger.error("parse request is invalid");
             return ParseResponse.buildError("解析请求非法");
+        }
+        if (Constants.SUPPORT_LINK_SCOPES.containsKey(request.scope)) {
+            return linkFollowService.parse(request);
         }
         String key = DigestUtils.md5Hex(request.scriptCode);
         for (int i = 0; i < RETRY_COUNT; i++) {

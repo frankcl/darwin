@@ -33,7 +33,7 @@ public class MultiQueueSuite {
         List<URLRecord> records = new ArrayList<>();
         {
             URLRecord record = new URLRecord("http://www.sina.com.cn");
-            record.category = Constants.CONTENT_CATEGORY_TEXT;
+            record.category = Constants.CONTENT_CATEGORY_LIST;
             record.jobId = "abc";
             record.planId = "abc";
             record.appId = 0;
@@ -43,7 +43,7 @@ public class MultiQueueSuite {
         }
         {
             URLRecord record = new URLRecord("http://www.sina.com.cn/index.html");
-            record.category = Constants.CONTENT_CATEGORY_TEXT;
+            record.category = Constants.CONTENT_CATEGORY_LIST;
             record.jobId = "abc";
             record.planId = "abc";
             record.appId = 0;
@@ -57,7 +57,7 @@ public class MultiQueueSuite {
         Assert.assertEquals(MultiQueueStatus.OK, statusList.get(1));
         {
             URLRecord record = new URLRecord("http://www.sohu.com/index.html");
-            record.category = Constants.CONTENT_CATEGORY_TEXT;
+            record.category = Constants.CONTENT_CATEGORY_LIST;
             record.jobId = "def";
             record.planId = "def";
             record.appId = 0;
@@ -71,7 +71,7 @@ public class MultiQueueSuite {
         Assert.assertEquals("abc", records.get(0).jobId);
         Assert.assertEquals("http://www.sina.com.cn/index.html", records.get(0).url);
         Assert.assertEquals(Constants.PRIORITY_HIGH, records.get(0).priority.intValue());
-        Assert.assertEquals(Constants.CONTENT_CATEGORY_TEXT, records.get(0).category.intValue());
+        Assert.assertEquals(Constants.CONTENT_CATEGORY_LIST, records.get(0).category.intValue());
         Assert.assertEquals(Constants.CONCURRENT_LEVEL_HOST, records.get(0).concurrentLevel.intValue());
         multiQueue.removeFromJobRecordMap(records.get(0));
         Assert.assertFalse(multiQueue.isEmptyJobRecordMap(records.get(0).jobId));
@@ -79,7 +79,7 @@ public class MultiQueueSuite {
         Assert.assertEquals("abc", records.get(1).jobId);
         Assert.assertEquals("http://www.sina.com.cn", records.get(1).url);
         Assert.assertEquals(Constants.PRIORITY_LOW, records.get(1).priority.intValue());
-        Assert.assertEquals(Constants.CONTENT_CATEGORY_TEXT, records.get(1).category.intValue());
+        Assert.assertEquals(Constants.CONTENT_CATEGORY_LIST, records.get(1).category.intValue());
         Assert.assertEquals(Constants.CONCURRENT_LEVEL_HOST, records.get(1).concurrentLevel.intValue());
         multiQueue.removeFromJobRecordMap(records.get(1));
         Assert.assertTrue(multiQueue.isEmptyJobRecordMap(records.get(1).jobId));
@@ -90,7 +90,7 @@ public class MultiQueueSuite {
         Assert.assertEquals("def", records.get(0).jobId);
         Assert.assertEquals("http://www.sohu.com/index.html", records.get(0).url);
         Assert.assertEquals(Constants.PRIORITY_HIGH, records.get(0).priority.intValue());
-        Assert.assertEquals(Constants.CONTENT_CATEGORY_TEXT, records.get(0).category.intValue());
+        Assert.assertEquals(Constants.CONTENT_CATEGORY_LIST, records.get(0).category.intValue());
         Assert.assertEquals(Constants.CONCURRENT_LEVEL_DOMAIN, records.get(0).concurrentLevel.intValue());
         multiQueue.removeFromJobRecordMap(records.get(0));
         Assert.assertTrue(multiQueue.isEmptyJobRecordMap(records.get(0).jobId));

@@ -34,23 +34,15 @@ public class RuleUpdateRequest extends RuleRequest {
             logger.error("rule id is null");
             throw new BadRequestException("规则ID为空");
         }
-        if (ruleGroup == null && category == null && scriptType == null &&
+        if (ruleGroup == null && scriptType == null &&
                 StringUtils.isEmpty(script) && StringUtils.isEmpty(regex) &&
                 StringUtils.isEmpty(domain) && StringUtils.isEmpty(name)) {
             logger.error("rule update info is empty");
             throw new BadRequestException("规则更新信息为空");
         }
-        if (category != null && !Constants.SUPPORT_RULE_CATEGORIES.containsKey(category)) {
-            logger.error("not support rule category[{}]", category);
-            throw new BadRequestException(String.format("不支持的规则类型[%d]", category));
-        }
         if (scriptType != null && !Constants.SUPPORT_SCRIPT_TYPES.containsKey(scriptType)) {
             logger.error("not support script type[{}]", scriptType);
             throw new BadRequestException(String.format("不支持的脚本类型[%d]", scriptType));
-        }
-        if (linkScope != null && !Constants.SUPPORT_LINK_SCOPES.containsKey(linkScope)) {
-            logger.error("unsupported link follow scope[{}]", linkScope);
-            throw new BadRequestException(String.format("不支持的全局抽链类型[%d]", linkScope));
         }
     }
 }

@@ -106,6 +106,18 @@ public class URLRecord extends FetchRecord {
     public Integer depth = 0;
 
     /**
+     * 全局抽链范围：其他表示不做全局抽链
+     * 所有all：1
+     * 域domain：2
+     * 站点host：3
+     */
+    @TableField(value = "scope")
+    @Column(name = "scope")
+    @JSONField(name = "scope")
+    @JsonProperty("scope")
+    public Integer scope = 0;
+
+    /**
      * 抓取并发级别
      */
     @TableField(value = "concurrent_level")
@@ -146,6 +158,7 @@ public class URLRecord extends FetchRecord {
         outQueueTime = record.outQueueTime;
         category = record.category;
         depth = record.depth;
+        scope = record.scope;
         headers = record.headers == null ? new HashMap<>() : new HashMap<>(record.headers);
     }
 
@@ -163,6 +176,7 @@ public class URLRecord extends FetchRecord {
             logger.error("app id is null");
             return false;
         }
+        if (category == null) category = Constants.CONTENT_CATEGORY_CONTENT;
         if (!Constants.SUPPORT_CONTENT_CATEGORIES.containsKey(category)) {
             logger.error("not support content category[{}]", category);
             return false;
@@ -179,5 +193,14 @@ public class URLRecord extends FetchRecord {
         }
         if (priority == null) priority = Constants.PRIORITY_NORMAL;
         return true;
+    }
+
+    /**
+     * 是否全局抽链
+     *
+     * @return 全局抽链返回true，否则返回false
+     */
+    public boolean isExtractLinkGlobally() {
+        return scope != null && Constants.SUPPORT_LINK_SCOPES.containsKey(scope);
     }
 }

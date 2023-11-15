@@ -37,7 +37,7 @@ public class SpiderFactory {
             logger.error("url record is null");
             throw new RuntimeException("URL记录为空");
         }
-        if (record.category == null || record.category == Constants.CONTENT_CATEGORY_TEXT ||
+        if (record.category == null || record.category == Constants.CONTENT_CATEGORY_CONTENT ||
             record.category == Constants.CONTENT_CATEGORY_LIST) {
             return htmlSpider;
         } else if (record.category == Constants.CONTENT_CATEGORY_RESOURCE) {

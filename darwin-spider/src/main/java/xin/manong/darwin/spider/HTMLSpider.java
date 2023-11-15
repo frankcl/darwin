@@ -62,8 +62,9 @@ public class HTMLSpider extends Spider {
 
     @Override
     protected void handle(URLRecord record, Context context) throws Exception {
-        Rule rule = getMatchRule(record, context);
-        if (rule == null) return;
+        boolean extractAll = record.isExtractLinkGlobally();
+        Rule rule = extractAll ? null : getMatchRule(record, context);
+        if (!extractAll && rule == null) return;
         String html = fetchAndGetHTML(record, context);
         if (html == null) return;
         if (!writeHTML(html, record, context)) return;
@@ -83,9 +84,11 @@ public class HTMLSpider extends Spider {
     private boolean parseHTML(String html, URLRecord record, Rule rule, Context context) {
         Long startTime = System.currentTimeMillis();
         try {
-            HTMLScriptRequest request = new HTMLScriptRequestBuilder().html(html).
-                    url(record.url).redirectURL(record.redirectURL).userDefinedMap(record.userDefinedMap).
-                    scriptType(rule.scriptType).scriptCode(rule.script).build();
+            HTMLScriptRequestBuilder builder = new HTMLScriptRequestBuilder().html(html).
+                    url(record.url).redirectURL(record.redirectURL).userDefinedMap(record.userDefinedMap);
+            if (record.isExtractLinkGlobally()) builder.scope(record.scope);
+            else builder.scriptType(rule.scriptType).scriptCode(rule.script);
+            HTMLScriptRequest request = builder.build();
             ParseResponse response = parseService.parse(request);
             if (!response.status) {
                 record.status = Constants.URL_STATUS_FAIL;

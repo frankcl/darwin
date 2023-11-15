@@ -39,7 +39,6 @@ public class GroovyParser extends HTMLParser {
         Element e = elements.get(0);
         if (!e.hasAttr("href")) return null;
         URLRecord followURL = new URLRecord(e.absUrl("href"));
-        followURL.category = 0;
         String title = e.text().trim();
         if (!StringUtils.isEmpty(title)) followURL.userDefinedMap.put("title", title);
         return followURL;

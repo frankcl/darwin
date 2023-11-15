@@ -17,7 +17,7 @@ import javax.annotation.Resource;
  */
 @ActiveProfiles(value = { "dev", "service", "service-dev", "parse", "parse-dev", "queue", "queue-dev", "log", "log-dev" })
 @RunWith(SpringRunner.class)
-@SpringBootTest(classes = ApplicationTest.class)
+@SpringBootTest(classes = { ApplicationTest.class })
 public class SpiderFactorySuite {
 
     @Resource
@@ -27,7 +27,7 @@ public class SpiderFactorySuite {
     public void testBuild() {
         {
             URLRecord record = new URLRecord();
-            record.category = Constants.CONTENT_CATEGORY_TEXT;
+            record.category = Constants.CONTENT_CATEGORY_CONTENT;
             Spider spider = spiderFactory.build(record);
             Assert.assertTrue(spider != null && spider instanceof HTMLSpider);
         }

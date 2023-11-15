@@ -32,7 +32,7 @@ public class AppServiceImplSuite {
     @Rollback
     public void testAppOperations() {
         App app = new App();
-        app.name = "测试应用";
+        app.name = "测试应用1";
         Assert.assertTrue(appService.add(app));
         Assert.assertTrue(app.id != null && app.id > 0L);
 
@@ -45,7 +45,7 @@ public class AppServiceImplSuite {
         Assert.assertTrue(getApp != null);
         Assert.assertEquals("测试应用plus", getApp.name);
 
-        Pager<App> pager = appService.search("测试", 1, 10);
+        Pager<App> pager = appService.search("测试应用plus", 1, 10);
         Assert.assertEquals(1, pager.total.intValue());
         Assert.assertEquals(1, pager.records.size());
         Assert.assertEquals(app.id, pager.records.get(0).id);

@@ -17,6 +17,7 @@ import xin.manong.darwin.common.model.URLRecord;
 import xin.manong.darwin.service.ApplicationTest;
 import xin.manong.darwin.service.iface.PlanService;
 import xin.manong.darwin.service.iface.URLService;
+import xin.manong.darwin.service.request.PlanSearchRequest;
 import xin.manong.darwin.service.request.URLSearchRequest;
 import xin.manong.weapon.base.util.RandomID;
 
@@ -97,7 +98,9 @@ public class PlanServiceImplSuite {
         Assert.assertEquals("http://www.sohu.com/", planInDB.seedURLs.get(0).url);
         Assert.assertEquals("http://www.163.net/", planInDB.seedURLs.get(1).url);
 
-        Pager<Plan> pager = planService.search(null);
+        PlanSearchRequest searchRequest = new PlanSearchRequest();
+        searchRequest.name = "测试计划";
+        Pager<Plan> pager = planService.search(searchRequest);
         Assert.assertEquals(1L, pager.current.longValue());
         Assert.assertEquals(1L, pager.total.longValue());
         Assert.assertEquals(1, pager.records.size());
@@ -128,7 +131,7 @@ public class PlanServiceImplSuite {
         }
         {
             URLRecord seedURL = new URLRecord("http://www.sina.com.cn/123.html");
-            seedURL.category = Constants.CONTENT_CATEGORY_TEXT;
+            seedURL.category = Constants.CONTENT_CATEGORY_LIST;
             plan.seedURLs.add(seedURL);
         }
         Assert.assertTrue(planService.add(plan));

@@ -160,7 +160,7 @@ public class Plan extends BasicModel {
             seedRecord.jobId = job.jobId;
             seedRecord.planId = job.planId;
             seedRecord.status = Constants.URL_STATUS_CREATED;
-            if (seedRecord.category == null) seedRecord.category = Constants.CONTENT_CATEGORY_LIST;
+            if (seedRecord.category == null) seedRecord.category = Constants.CONTENT_CATEGORY_CONTENT;
             if (seedRecord.concurrentLevel == null) seedRecord.concurrentLevel = Constants.CONCURRENT_LEVEL_DOMAIN;
             if (seedRecord.priority == null) {
                 seedRecord.priority = job.priority == null ? Constants.PRIORITY_NORMAL : job.priority;

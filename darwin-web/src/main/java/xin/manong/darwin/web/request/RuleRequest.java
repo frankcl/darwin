@@ -62,24 +62,6 @@ public class RuleRequest implements Serializable {
     public Integer scriptType;
 
     /**
-     * 规则分类
-     * 1：抽链规则
-     * 2：结构化规则
-     * 3：通用抽链规则
-     */
-    @JsonProperty("category")
-    public Integer category;
-
-    /**
-     * 全局抽链范围
-     * 全局抽链：0
-     * 域内抽链：1
-     * 站点内抽链：2
-     */
-    @JsonProperty("link_scope")
-    public Integer linkScope;
-
-    /**
      * 检测有效性，无效抛出异常
      */
     public void check() {
@@ -95,26 +77,13 @@ public class RuleRequest implements Serializable {
             logger.error("rule regex is empty");
             throw new BadRequestException("规则正则表达式为空");
         }
-        if (!Constants.SUPPORT_RULE_CATEGORIES.containsKey(category)) {
-            logger.error("not support rule category[{}]", category);
-            throw new BadRequestException(String.format("不支持的规则类型[%d]", category));
+        if (!Constants.SUPPORT_SCRIPT_TYPES.containsKey(scriptType)) {
+            logger.error("not support script type[{}]", scriptType);
+            throw new BadRequestException(String.format("不支持的脚本类型[%d]", scriptType));
         }
-        if (category != Constants.RULE_CATEGORY_GLOBAL_LINK) {
-            if (!Constants.SUPPORT_SCRIPT_TYPES.containsKey(scriptType)) {
-                logger.error("not support script type[{}]", scriptType);
-                throw new BadRequestException(String.format("不支持的脚本类型[%d]", scriptType));
-            }
-            if (StringUtils.isEmpty(script)) {
-                logger.error("script content is empty");
-                throw new BadRequestException("脚本为空");
-            }
-        }
-        if (category == Constants.RULE_CATEGORY_GLOBAL_LINK) {
-            if (linkScope == null) linkScope = Constants.LINK_SCOPE_ALL;
-            if (!Constants.SUPPORT_LINK_SCOPES.containsKey(linkScope)) {
-                logger.error("unsupported link follow scope[{}]", linkScope);
-                throw new BadRequestException(String.format("不支持的全局抽链类型[%d]", linkScope));
-            }
+        if (StringUtils.isEmpty(script)) {
+            logger.error("script content is empty");
+            throw new BadRequestException("脚本为空");
         }
         if (StringUtils.isEmpty(domain)) {
             try {
