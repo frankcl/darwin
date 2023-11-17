@@ -3,17 +3,17 @@ package xin.manong.darwin.parser.service.request;
 import java.util.Map;
 
 /**
- * HTML及脚本请求构建器
+ * HTML解析请求构建器
  *
  * @author frankcl
  * @date 2023-08-25 15:08:17
  */
-public class HTMLScriptRequestBuilder {
+public class HTMLParseRequestBuilder {
 
-    private HTMLScriptRequest delegate;
+    private HTMLParseRequest delegate;
 
-    public HTMLScriptRequestBuilder() {
-        delegate = new HTMLScriptRequest();
+    public HTMLParseRequestBuilder() {
+        delegate = new HTMLParseRequest();
     }
 
     /**
@@ -22,7 +22,7 @@ public class HTMLScriptRequestBuilder {
      * @param url URL
      * @return 构建器
      */
-    public HTMLScriptRequestBuilder url(String url) {
+    public HTMLParseRequestBuilder url(String url) {
         delegate.url = url;
         return this;
     }
@@ -33,7 +33,7 @@ public class HTMLScriptRequestBuilder {
      * @param redirectURL 重定向URL
      * @return 构建器
      */
-    public HTMLScriptRequestBuilder redirectURL(String redirectURL) {
+    public HTMLParseRequestBuilder redirectURL(String redirectURL) {
         delegate.redirectURL = redirectURL;
         return this;
     }
@@ -44,7 +44,7 @@ public class HTMLScriptRequestBuilder {
      * @param html 待解析HTML
      * @return 构建器
      */
-    public HTMLScriptRequestBuilder html(String html) {
+    public HTMLParseRequestBuilder html(String html) {
         delegate.html = html;
         return this;
     }
@@ -55,7 +55,7 @@ public class HTMLScriptRequestBuilder {
      * @param scriptType 脚本类型
      * @return 构建器
      */
-    public HTMLScriptRequestBuilder scriptType(int scriptType) {
+    public HTMLParseRequestBuilder scriptType(int scriptType) {
         delegate.scriptType = scriptType;
         return this;
     }
@@ -66,7 +66,7 @@ public class HTMLScriptRequestBuilder {
      * @param scriptCode 脚本代码
      * @return 构建器
      */
-    public HTMLScriptRequestBuilder scriptCode(String scriptCode) {
+    public HTMLParseRequestBuilder scriptCode(String scriptCode) {
         delegate.scriptCode = scriptCode;
         return this;
     }
@@ -77,8 +77,19 @@ public class HTMLScriptRequestBuilder {
      * @param scope 全局抽链范围
      * @return 构建器
      */
-    public HTMLScriptRequestBuilder scope(int scope) {
+    public HTMLParseRequestBuilder scope(int scope) {
         delegate.scope = scope;
+        return this;
+    }
+
+    /**
+     * 设置页面类型
+     *
+     * @param category 页面类型
+     * @return 构建器
+     */
+    public HTMLParseRequestBuilder category(int category) {
+        delegate.category = category;
         return this;
     }
 
@@ -88,7 +99,7 @@ public class HTMLScriptRequestBuilder {
      * @param userDefinedMap 用户自定义数据
      * @return 构建器
      */
-    public HTMLScriptRequestBuilder userDefinedMap(Map<String, Object> userDefinedMap) {
+    public HTMLParseRequestBuilder userDefinedMap(Map<String, Object> userDefinedMap) {
         delegate.userDefinedMap = userDefinedMap;
         return this;
     }
@@ -98,10 +109,12 @@ public class HTMLScriptRequestBuilder {
      *
      * @return 请求对象
      */
-    public HTMLScriptRequest build() {
-        HTMLScriptRequest request = new HTMLScriptRequest();
+    public HTMLParseRequest build() {
+        HTMLParseRequest request = new HTMLParseRequest();
         request.html = delegate.html;
         request.url = delegate.url;
+        request.scope = delegate.scope;
+        request.category = delegate.category;
         request.redirectURL = delegate.redirectURL;
         request.userDefinedMap = delegate.userDefinedMap;
         request.scriptType = delegate.scriptType;

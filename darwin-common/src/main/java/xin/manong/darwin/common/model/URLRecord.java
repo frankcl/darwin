@@ -201,6 +201,7 @@ public class URLRecord extends FetchRecord {
      * @return 全局抽链返回true，否则返回false
      */
     public boolean isExtractLinkGlobally() {
-        return scope != null && Constants.SUPPORT_LINK_SCOPES.containsKey(scope);
+        return category == Constants.CONTENT_CATEGORY_LIST &&
+                scope != null && Constants.SUPPORT_LINK_SCOPES.containsKey(scope);
     }
 }

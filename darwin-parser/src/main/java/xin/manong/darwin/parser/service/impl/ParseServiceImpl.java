@@ -10,7 +10,7 @@ import xin.manong.darwin.parser.script.*;
 import xin.manong.darwin.parser.sdk.ParseResponse;
 import xin.manong.darwin.parser.service.LinkFollowService;
 import xin.manong.darwin.parser.service.ParseService;
-import xin.manong.darwin.parser.service.request.HTMLScriptRequest;
+import xin.manong.darwin.parser.service.request.HTMLParseRequest;
 import xin.manong.darwin.parser.service.response.CompileResponse;
 
 import javax.annotation.Resource;
@@ -54,14 +54,12 @@ public class ParseServiceImpl implements ParseService {
     }
 
     @Override
-    public ParseResponse parse(HTMLScriptRequest request) {
+    public ParseResponse parse(HTMLParseRequest request) {
         if (request == null || !request.check()) {
             logger.error("parse request is invalid");
             return ParseResponse.buildError("解析请求非法");
         }
-        if (Constants.SUPPORT_LINK_SCOPES.containsKey(request.scope)) {
-            return linkFollowService.parse(request);
-        }
+        if (request.isExtractLinkGlobally()) return linkFollowService.parse(request);
         String key = DigestUtils.md5Hex(request.scriptCode);
         for (int i = 0; i < RETRY_COUNT; i++) {
             Script script = buildScript(key, request);
@@ -89,7 +87,7 @@ public class ParseServiceImpl implements ParseService {
      * @param request HTML脚本请求
      * @return 成功返回脚本对象，否则返回null
      */
-    private Script buildScript(String key, HTMLScriptRequest request) {
+    private Script buildScript(String key, HTMLParseRequest request) {
         Script script = scriptCache.get(key);
         if (script != null) return script;
         try {

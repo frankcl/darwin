@@ -1,7 +1,7 @@
 package xin.manong.darwin.parser.service;
 
 import xin.manong.darwin.parser.sdk.ParseResponse;
-import xin.manong.darwin.parser.service.request.HTMLScriptRequest;
+import xin.manong.darwin.parser.service.request.HTMLParseRequest;
 import xin.manong.darwin.parser.service.response.CompileResponse;
 
 /**
@@ -18,7 +18,7 @@ public interface ParseService {
      * @param request HTML解析请求
      * @return 解析响应
      */
-    ParseResponse parse(HTMLScriptRequest request);
+    ParseResponse parse(HTMLParseRequest request);
 
     /**
      * 编译脚本

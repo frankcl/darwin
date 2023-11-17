@@ -9,8 +9,8 @@ import org.springframework.test.context.junit4.SpringRunner;
 import xin.manong.darwin.common.Constants;
 import xin.manong.darwin.parser.ApplicationTest;
 import xin.manong.darwin.parser.sdk.ParseResponse;
-import xin.manong.darwin.parser.service.request.HTMLScriptRequest;
-import xin.manong.darwin.parser.service.request.HTMLScriptRequestBuilder;
+import xin.manong.darwin.parser.service.request.HTMLParseRequest;
+import xin.manong.darwin.parser.service.request.HTMLParseRequestBuilder;
 import xin.manong.darwin.parser.service.response.CompileResponse;
 
 import javax.annotation.Resource;
@@ -37,7 +37,7 @@ public class ParseServiceImplSuite {
     @Test
     public void testParse() throws Exception {
         String scriptCode = ApplicationTest.readScript("/script/groovy_script");
-        HTMLScriptRequest request = new HTMLScriptRequestBuilder().url("http://www.sina.com.cn/").
+        HTMLParseRequest request = new HTMLParseRequestBuilder().url("http://www.sina.com.cn/").
                 html("<p>Hello world</p>").scriptType(Constants.SCRIPT_TYPE_GROOVY).scriptCode(scriptCode).build();
         ParseResponse response = parseService.parse(request);
         Assert.assertTrue(response != null && response.status);

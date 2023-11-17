@@ -16,8 +16,8 @@ import xin.manong.darwin.common.model.URLRecord;
 import xin.manong.darwin.common.util.DarwinUtil;
 import xin.manong.darwin.parser.sdk.ParseResponse;
 import xin.manong.darwin.parser.service.ParseService;
-import xin.manong.darwin.parser.service.request.HTMLScriptRequest;
-import xin.manong.darwin.parser.service.request.HTMLScriptRequestBuilder;
+import xin.manong.darwin.parser.service.request.HTMLParseRequest;
+import xin.manong.darwin.parser.service.request.HTMLParseRequestBuilder;
 import xin.manong.darwin.queue.multi.MultiQueue;
 import xin.manong.darwin.queue.multi.MultiQueueStatus;
 import xin.manong.darwin.service.iface.RuleService;
@@ -62,9 +62,9 @@ public class HTMLSpider extends Spider {
 
     @Override
     protected void handle(URLRecord record, Context context) throws Exception {
-        boolean extractAll = record.isExtractLinkGlobally();
-        Rule rule = extractAll ? null : getMatchRule(record, context);
-        if (!extractAll && rule == null) return;
+        boolean extractGlobally = record.isExtractLinkGlobally();
+        Rule rule = extractGlobally ? null : getMatchRule(record, context);
+        if (!extractGlobally && rule == null) return;
         String html = fetchAndGetHTML(record, context);
         if (html == null) return;
         if (!writeHTML(html, record, context)) return;
@@ -84,11 +84,11 @@ public class HTMLSpider extends Spider {
     private boolean parseHTML(String html, URLRecord record, Rule rule, Context context) {
         Long startTime = System.currentTimeMillis();
         try {
-            HTMLScriptRequestBuilder builder = new HTMLScriptRequestBuilder().html(html).
+            HTMLParseRequestBuilder builder = new HTMLParseRequestBuilder().html(html).
                     url(record.url).redirectURL(record.redirectURL).userDefinedMap(record.userDefinedMap);
-            if (record.isExtractLinkGlobally()) builder.scope(record.scope);
+            if (record.isExtractLinkGlobally()) builder.scope(record.scope).category(record.category);
             else builder.scriptType(rule.scriptType).scriptCode(rule.script);
-            HTMLScriptRequest request = builder.build();
+            HTMLParseRequest request = builder.build();
             ParseResponse response = parseService.parse(request);
             if (!response.status) {
                 record.status = Constants.URL_STATUS_FAIL;
