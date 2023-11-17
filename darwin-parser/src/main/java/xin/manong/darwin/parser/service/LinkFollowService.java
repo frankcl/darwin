@@ -1,7 +1,7 @@
 package xin.manong.darwin.parser.service;
 
-import xin.manong.darwin.parser.sdk.ParseRequest;
 import xin.manong.darwin.parser.sdk.ParseResponse;
+import xin.manong.darwin.parser.service.request.HTMLParseRequest;
 
 /**
  * 全局抽链服务
@@ -17,5 +17,5 @@ public interface LinkFollowService {
      * @param request 解析请求
      * @return 解析响应
      */
-    ParseResponse parse(ParseRequest request);
+    ParseResponse parse(HTMLParseRequest request);
 }

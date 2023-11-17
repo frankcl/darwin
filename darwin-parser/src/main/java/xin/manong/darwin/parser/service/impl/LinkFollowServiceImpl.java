@@ -10,9 +10,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import xin.manong.darwin.common.Constants;
 import xin.manong.darwin.common.model.URLRecord;
-import xin.manong.darwin.parser.sdk.ParseRequest;
 import xin.manong.darwin.parser.sdk.ParseResponse;
 import xin.manong.darwin.parser.service.LinkFollowService;
+import xin.manong.darwin.parser.service.request.HTMLParseRequest;
 import xin.manong.weapon.base.util.CommonUtil;
 import xin.manong.weapon.base.util.DomainUtil;
 
@@ -36,15 +36,7 @@ public class LinkFollowServiceImpl implements LinkFollowService {
     private static final String ATTR_NAME_STYLE = "style";
 
     @Override
-    public ParseResponse parse(ParseRequest request) {
-        if (request == null || !request.check()) {
-            logger.error("parse request is invalid");
-            return ParseResponse.buildError("解析请求非法");
-        }
-        if (!Constants.SUPPORT_LINK_SCOPES.containsKey(request.scope)) {
-            logger.error("link scope[{}] is not supported", request.scope);
-            return ParseResponse.buildError(String.format("不支持全局抽链范围[%d]", request.scope));
-        }
+    public ParseResponse parse(HTMLParseRequest request) {
         String parentURL = StringUtils.isEmpty(request.redirectURL) ? request.url : request.redirectURL;
         Document document = Jsoup.parse(request.html, parentURL);
         Element body = document.body();

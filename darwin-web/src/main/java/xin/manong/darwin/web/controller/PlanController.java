@@ -133,7 +133,7 @@ public class PlanController {
             throw new BadRequestException("计划请求信息为空");
         }
         request.check();
-//        appPermissionService.checkAppPermission(request.appId);
+        appPermissionService.checkAppPermission(request.appId);
         Plan plan = Converter.convert(request);
         fillAppName(plan);
         checkSeeds(plan.seedURLs, plan.ruleIds);
@@ -194,7 +194,7 @@ public class PlanController {
             logger.error("plan[{}] is not found", id);
             throw new NotFoundException(String.format("计划[%s]不存在", id));
         }
-//        appPermissionService.checkAppPermission(plan.appId);
+        appPermissionService.checkAppPermission(plan.appId);
         if (plan.status != Constants.PLAN_STATUS_RUNNING) {
             logger.error("plan is not running for status[{}]", Constants.SUPPORT_PLAN_STATUSES.get(plan.status));
             throw new RuntimeException(String.format("计划[%s]非运行状态",
