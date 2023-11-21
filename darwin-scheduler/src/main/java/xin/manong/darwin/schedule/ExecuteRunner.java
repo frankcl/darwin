@@ -21,7 +21,7 @@ public abstract class ExecuteRunner implements Runnable {
 
     private static final Logger logger = LoggerFactory.getLogger(ExecuteRunner.class);
 
-    protected boolean running;
+    protected volatile boolean running;
     protected Long executeIntervalMs;
     protected String name;
     protected Thread workThread;

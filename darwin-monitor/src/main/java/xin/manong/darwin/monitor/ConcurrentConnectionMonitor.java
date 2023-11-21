@@ -20,7 +20,7 @@ public class ConcurrentConnectionMonitor implements Runnable {
 
     private static final Logger logger = LoggerFactory.getLogger(MultiQueueMonitor.class);
 
-    private boolean running;
+    private volatile boolean running;
     private long checkTimeIntervalMs;
     private long expiredTimeIntervalMs;
     private Thread thread;
