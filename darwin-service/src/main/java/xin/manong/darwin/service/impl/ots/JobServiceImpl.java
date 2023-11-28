@@ -7,10 +7,12 @@ import com.alicloud.openservices.tablestore.model.search.query.TermQuery;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import xin.manong.darwin.common.Constants;
 import xin.manong.darwin.common.model.Job;
 import xin.manong.darwin.common.model.Pager;
 import xin.manong.darwin.common.model.URLRecord;
+import xin.manong.darwin.service.config.CacheConfig;
 import xin.manong.darwin.service.config.ServiceConfig;
 import xin.manong.darwin.service.convert.Converter;
 import xin.manong.darwin.service.iface.JobService;
@@ -48,6 +50,11 @@ public class JobServiceImpl extends JobService {
     protected OTSClient otsClient;
     @Resource
     protected URLService urlService;
+
+    @Autowired
+    public JobServiceImpl(CacheConfig cacheConfig) {
+        super(cacheConfig);
+    }
 
     @Override
     public Job get(String jobId) {

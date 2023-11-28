@@ -9,8 +9,8 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 import xin.manong.darwin.common.Constants;
 import xin.manong.darwin.parser.ApplicationTest;
-import xin.manong.darwin.parser.sdk.ParseRequest;
 import xin.manong.darwin.parser.sdk.ParseResponse;
+import xin.manong.darwin.parser.service.request.HTMLParseRequest;
 import xin.manong.weapon.base.http.HttpClient;
 import xin.manong.weapon.base.http.HttpRequest;
 
@@ -45,7 +45,7 @@ public class LinkFollowServiceImplSuite {
     @Test
     public void testLinkFollow() throws Exception {
         String url = "http://www.sina.com.cn";
-        ParseRequest request = new ParseRequest();
+        HTMLParseRequest request = new HTMLParseRequest();
         request.url = url;
         request.html = fetch(url);
         request.scope = Constants.LINK_SCOPE_HOST;

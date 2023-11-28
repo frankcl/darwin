@@ -257,7 +257,7 @@ public abstract class Spider {
             logger.error("fetch record error for url[{}]", record.url);
             logger.error(t.getMessage(), t);
         } finally {
-            if (!urlService.updateResult(record)) logger.warn("update fetch content failed for url[{}]", record.url);
+            if (!urlService.updateContent(record)) logger.warn("update content failed for url[{}]", record.url);
             multiQueue.removeFromJobRecordMap(record);
             String concurrentUnit = ConcurrentUnitComputer.compute(record);
             concurrentManager.removeConnectionRecord(concurrentUnit, record.key);

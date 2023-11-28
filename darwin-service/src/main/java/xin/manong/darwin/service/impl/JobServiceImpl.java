@@ -6,11 +6,13 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import xin.manong.darwin.common.Constants;
 import xin.manong.darwin.common.model.Job;
 import xin.manong.darwin.common.model.Pager;
 import xin.manong.darwin.common.model.URLRecord;
+import xin.manong.darwin.service.config.CacheConfig;
 import xin.manong.darwin.service.convert.Converter;
 import xin.manong.darwin.service.dao.mapper.JobMapper;
 import xin.manong.darwin.service.iface.JobService;
@@ -35,6 +37,11 @@ public class JobServiceImpl extends JobService {
     protected JobMapper jobMapper;
     @Resource
     protected URLService urlService;
+
+    @Autowired
+    public JobServiceImpl(CacheConfig cacheConfig) {
+        super(cacheConfig);
+    }
 
     @Override
     public Job get(String jobId) {

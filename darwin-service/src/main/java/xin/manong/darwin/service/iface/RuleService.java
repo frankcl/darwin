@@ -8,6 +8,7 @@ import org.slf4j.LoggerFactory;
 import xin.manong.darwin.common.model.Pager;
 import xin.manong.darwin.common.model.Rule;
 import xin.manong.darwin.common.model.URLRecord;
+import xin.manong.darwin.service.config.CacheConfig;
 import xin.manong.darwin.service.request.RuleSearchRequest;
 
 import java.util.List;
@@ -25,14 +26,16 @@ public abstract class RuleService {
 
     private static final Logger logger = LoggerFactory.getLogger(JobService.class);
 
+    protected CacheConfig cacheConfig;
     protected Cache<Integer, Optional<Rule>> ruleCache;
 
-    public RuleService() {
+    public RuleService(CacheConfig cacheConfig) {
+        this.cacheConfig = cacheConfig;
         CacheBuilder<Integer, Optional<Rule>> builder = CacheBuilder.newBuilder()
                 .recordStats()
                 .concurrencyLevel(1)
-                .maximumSize(100)
-                .expireAfterWrite(5, TimeUnit.MINUTES)
+                .maximumSize(cacheConfig.ruleCacheNum)
+                .expireAfterWrite(cacheConfig.ruleExpiredMinutes, TimeUnit.MINUTES)
                 .removalListener(n -> onRemoval(n));
         ruleCache = builder.build();
     }

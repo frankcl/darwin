@@ -7,10 +7,10 @@ import org.apache.commons.codec.digest.DigestUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import xin.manong.darwin.common.Constants;
-import xin.manong.darwin.common.model.FetchRecord;
 import xin.manong.darwin.common.model.Pager;
 import xin.manong.darwin.common.model.RangeValue;
 import xin.manong.darwin.common.model.URLRecord;
+import xin.manong.darwin.service.config.CacheConfig;
 import xin.manong.darwin.service.request.URLSearchRequest;
 
 import java.util.Optional;
@@ -27,14 +27,16 @@ public abstract class URLService {
 
     private static final Logger logger = LoggerFactory.getLogger(URLService.class);
 
+    protected CacheConfig cacheConfig;
     protected Cache<String, Optional<URLRecord>> recordCache;
 
-    public URLService() {
+    public URLService(CacheConfig cacheConfig) {
+        this.cacheConfig = cacheConfig;
         CacheBuilder<String, Optional<URLRecord>> builder = CacheBuilder.newBuilder()
                 .recordStats()
                 .concurrencyLevel(1)
-                .maximumSize(100)
-                .expireAfterWrite(60, TimeUnit.MINUTES)
+                .maximumSize(cacheConfig.urlCacheNum)
+                .expireAfterWrite(cacheConfig.urlExpiredMinutes, TimeUnit.MINUTES)
                 .removalListener(n -> onRemoval(n));
         recordCache = builder.build();
     }
@@ -90,10 +92,10 @@ public abstract class URLService {
     /**
      * 更新抓取结果
      *
-     * @param fetchRecord 抓取结果
+     * @param record 抓取结果
      * @return 更新成功返回true，否则返回false
      */
-    public abstract Boolean updateResult(FetchRecord fetchRecord);
+    public abstract Boolean updateContent(URLRecord record);
 
     /**
      * 更新入队出队时间

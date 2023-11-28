@@ -9,11 +9,12 @@ import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import xin.manong.darwin.common.Constants;
-import xin.manong.darwin.common.model.FetchRecord;
 import xin.manong.darwin.common.model.Pager;
 import xin.manong.darwin.common.model.URLRecord;
+import xin.manong.darwin.service.config.CacheConfig;
 import xin.manong.darwin.service.convert.Converter;
 import xin.manong.darwin.service.dao.mapper.URLMapper;
 import xin.manong.darwin.service.iface.URLService;
@@ -35,6 +36,11 @@ public class URLServiceImpl extends URLService {
     @Resource
     protected URLMapper urlMapper;
 
+    @Autowired
+    public URLServiceImpl(CacheConfig cacheConfig) {
+        super(cacheConfig);
+    }
+
     @Override
     public Boolean add(URLRecord record) {
         LambdaQueryWrapper<URLRecord> query = new LambdaQueryWrapper<>();
@@ -47,28 +53,35 @@ public class URLServiceImpl extends URLService {
     }
 
     @Override
-    public Boolean updateResult(FetchRecord fetchRecord) {
-        if (fetchRecord == null || StringUtils.isEmpty(fetchRecord.key)) {
-            logger.error("fetch record is null or key is missing");
+    public Boolean updateContent(URLRecord contentRecord) {
+        if (contentRecord == null || StringUtils.isEmpty(contentRecord.key)) {
+            logger.error("content record is null or key is missing");
             throw new RuntimeException("抓取结果为空或key缺失");
         }
-        URLRecord record = get(fetchRecord.key);
+        URLRecord record = get(contentRecord.key);
         if (record == null) {
-            logger.error("record is not found for key[{}]", fetchRecord.key);
+            logger.error("record is not found for key[{}]", contentRecord.key);
             return false;
         }
         LambdaUpdateWrapper<URLRecord> wrapper = new LambdaUpdateWrapper<>();
-        wrapper.eq(URLRecord::getKey, fetchRecord.key);
+        wrapper.eq(URLRecord::getKey, contentRecord.key);
         wrapper.set(URLRecord::getUpdateTime, System.currentTimeMillis());
-        if (fetchRecord.fetchTime != null) wrapper.set(URLRecord::getFetchTime, fetchRecord.fetchTime);
-        if (fetchRecord.status != null) wrapper.set(URLRecord::getStatus, fetchRecord.status);
-        if (!StringUtils.isEmpty(fetchRecord.mimeType)) wrapper.set(URLRecord::getMimeType, fetchRecord.mimeType);
-        if (!StringUtils.isEmpty(fetchRecord.subMimeType)) wrapper.set(URLRecord::getSubMimeType, fetchRecord.subMimeType);
-        if (!StringUtils.isEmpty(fetchRecord.fetchContentURL)) {
-            wrapper.set(URLRecord::getFetchContentURL, fetchRecord.fetchContentURL);
+        if (contentRecord.fetchTime != null) wrapper.set(URLRecord::getFetchTime, contentRecord.fetchTime);
+        if (contentRecord.status != null) wrapper.set(URLRecord::getStatus, contentRecord.status);
+        if (!StringUtils.isEmpty(contentRecord.mimeType)) {
+            wrapper.set(URLRecord::getMimeType, contentRecord.mimeType);
         }
-        if (fetchRecord.fieldMap != null && !fetchRecord.fieldMap.isEmpty()) {
-            wrapper.set(URLRecord::getFieldMap, JSON.toJSONString(fetchRecord.fieldMap));
+        if (!StringUtils.isEmpty(contentRecord.subMimeType)) {
+            wrapper.set(URLRecord::getSubMimeType, contentRecord.subMimeType);
+        }
+        if (!StringUtils.isEmpty(contentRecord.fetchContentURL)) {
+            wrapper.set(URLRecord::getFetchContentURL, contentRecord.fetchContentURL);
+        }
+        if (contentRecord.fieldMap != null && !contentRecord.fieldMap.isEmpty()) {
+            wrapper.set(URLRecord::getFieldMap, JSON.toJSONString(contentRecord.fieldMap));
+        }
+        if (contentRecord.userDefinedMap != null && !contentRecord.userDefinedMap.isEmpty()) {
+            wrapper.set(URLRecord::getUserDefinedMap, JSON.toJSONString(contentRecord.userDefinedMap));
         }
         int n = urlMapper.update(null, wrapper);
         if (n > 0 && !StringUtils.isEmpty(record.url)) recordCache.invalidate(record.url);

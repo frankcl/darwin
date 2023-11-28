@@ -9,7 +9,6 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.transaction.annotation.Transactional;
 import xin.manong.darwin.common.Constants;
-import xin.manong.darwin.common.model.FetchRecord;
 import xin.manong.darwin.common.model.URLRecord;
 import xin.manong.darwin.queue.multi.MultiQueue;
 import xin.manong.darwin.service.ApplicationTest;
@@ -91,13 +90,13 @@ public class URLServiceImplSuite {
         updateRecord.key = record.key;
         Assert.assertTrue(urlService.updateQueueTime(updateRecord));
 
-        FetchRecord fetchRecord = new FetchRecord();
+        URLRecord fetchRecord = new URLRecord();
         fetchRecord.key = record.key;
         fetchRecord.status = null;
         fetchRecord.parentURL = "http://www.sohu.com";
         fetchRecord.fetchContentURL = "http://www.sohu.com/123.html";
         fetchRecord.fieldMap.put("AAA", 123);
-        Assert.assertTrue(urlService.updateResult(fetchRecord));
+        Assert.assertTrue(urlService.updateContent(fetchRecord));
 
         recordInDB = urlService.getCache("http://www.sina.com.cn/");
         Assert.assertTrue(recordInDB != null);

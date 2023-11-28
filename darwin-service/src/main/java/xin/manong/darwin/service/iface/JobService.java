@@ -7,6 +7,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import xin.manong.darwin.common.model.Job;
 import xin.manong.darwin.common.model.Pager;
+import xin.manong.darwin.service.config.CacheConfig;
 import xin.manong.darwin.service.request.JobSearchRequest;
 
 import java.util.Optional;
@@ -23,14 +24,16 @@ public abstract class JobService {
 
     private static final Logger logger = LoggerFactory.getLogger(JobService.class);
 
+    protected CacheConfig cacheConfig;
     protected Cache<String, Optional<Job>> jobCache;
 
-    public JobService() {
+    public JobService(CacheConfig cacheConfig) {
+        this.cacheConfig = cacheConfig;
         CacheBuilder<String, Optional<Job>> builder = CacheBuilder.newBuilder()
                 .recordStats()
                 .concurrencyLevel(1)
-                .maximumSize(100)
-                .expireAfterWrite(5, TimeUnit.MINUTES)
+                .maximumSize(cacheConfig.jobCacheNum)
+                .expireAfterWrite(cacheConfig.jobExpiredMinutes, TimeUnit.MINUTES)
                 .removalListener(n -> onRemoval(n));
         jobCache = builder.build();
     }

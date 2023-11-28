@@ -6,10 +6,11 @@ import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import xin.manong.darwin.common.Constants;
-import xin.manong.darwin.common.model.FetchRecord;
 import xin.manong.darwin.common.model.Pager;
 import xin.manong.darwin.common.model.URLRecord;
+import xin.manong.darwin.service.config.CacheConfig;
 import xin.manong.darwin.service.config.ServiceConfig;
 import xin.manong.darwin.service.convert.Converter;
 import xin.manong.darwin.service.iface.URLService;
@@ -47,6 +48,11 @@ public class URLServiceImpl extends URLService {
     @Resource
     protected OTSClient otsClient;
 
+    @Autowired
+    public URLServiceImpl(CacheConfig cacheConfig) {
+        super(cacheConfig);
+    }
+
     @Override
     public Boolean add(URLRecord record) {
         Map<String, Object> keyMap = new HashMap<>();
@@ -61,26 +67,34 @@ public class URLServiceImpl extends URLService {
     }
 
     @Override
-    public Boolean updateResult(FetchRecord fetchRecord) {
+    public Boolean updateContent(URLRecord contentRecord) {
         Map<String, Object> keyMap = new HashMap<>();
-        keyMap.put(KEY_KEY, fetchRecord.key);
+        keyMap.put(KEY_KEY, contentRecord.key);
         KVRecord kvRecord = otsClient.get(serviceConfig.urlTable, keyMap);
         if (kvRecord == null) {
-            logger.error("url record[{}] is not found", fetchRecord.key);
+            logger.error("record[{}] is not found", contentRecord.key);
             return false;
         }
         URLRecord updateRecord = new URLRecord();
-        updateRecord.createTime = null;
-        updateRecord.userDefinedMap = null;
+        initRecord(updateRecord);
         updateRecord.updateTime = System.currentTimeMillis();
-        updateRecord.key = fetchRecord.key;
-        updateRecord.status = fetchRecord.status;
-        updateRecord.fetchTime = fetchRecord.fetchTime;
-        updateRecord.fetchContentURL = fetchRecord.fetchContentURL;
-        updateRecord.fieldMap = fetchRecord.fieldMap;
+        updateRecord.key = contentRecord.key;
+        updateRecord.status = contentRecord.status;
+        updateRecord.mimeType = contentRecord.mimeType;
+        updateRecord.subMimeType = contentRecord.subMimeType;
+        updateRecord.fetchTime = contentRecord.fetchTime;
+        updateRecord.fetchContentURL = contentRecord.fetchContentURL;
+        if (contentRecord.fieldMap != null && !contentRecord.fieldMap.isEmpty()) {
+            updateRecord.fieldMap = contentRecord.fieldMap;
+        }
+        if (contentRecord.userDefinedMap != null && !contentRecord.userDefinedMap.isEmpty()) {
+            updateRecord.userDefinedMap = contentRecord.userDefinedMap;
+        }
         kvRecord = OTSConverter.convertJavaObjectToKVRecord(updateRecord);
         OTSStatus status = otsClient.update(serviceConfig.urlTable, kvRecord, null);
-        if (status == OTSStatus.SUCCESS && !StringUtils.isEmpty(fetchRecord.url)) recordCache.invalidate(fetchRecord.url);
+        if (status == OTSStatus.SUCCESS && !StringUtils.isEmpty(contentRecord.url)) {
+            recordCache.invalidate(contentRecord.url);
+        }
         return status == OTSStatus.SUCCESS;
     }
 
@@ -94,8 +108,7 @@ public class URLServiceImpl extends URLService {
             return false;
         }
         URLRecord updateRecord = new URLRecord();
-        updateRecord.createTime = null;
-        updateRecord.userDefinedMap = null;
+        initRecord(updateRecord);
         updateRecord.updateTime = System.currentTimeMillis();
         updateRecord.key = record.key;
         updateRecord.inQueueTime = record.inQueueTime;
@@ -117,8 +130,7 @@ public class URLServiceImpl extends URLService {
             return false;
         }
         URLRecord updateRecord = new URLRecord();
-        updateRecord.createTime = null;
-        updateRecord.userDefinedMap = null;
+        initRecord(updateRecord);
         updateRecord.updateTime = System.currentTimeMillis();
         updateRecord.key = key;
         updateRecord.status = status;
@@ -190,5 +202,19 @@ public class URLServiceImpl extends URLService {
             throw new RuntimeException("搜索URL记录失败");
         }
         return Converter.convert(response, URLRecord.class, searchRequest.current, searchRequest.size);
+    }
+
+    /**
+     * 初始化更新URL记录
+     * 设置不需要更新字段为null
+     *
+     * @param record 更新URL记录
+     */
+    private void initRecord(URLRecord record) {
+        record.createTime = null;
+        record.userDefinedMap = null;
+        record.fieldMap = null;
+        record.headers = null;
+        record.depth = null;
     }
 }

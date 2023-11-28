@@ -2,18 +2,23 @@ package xin.manong.darwin.common.model;
 
 import com.alibaba.fastjson.annotation.JSONField;
 import com.baomidou.mybatisplus.annotation.TableField;
+import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
+import org.apache.commons.codec.digest.DigestUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import xin.manong.darwin.common.Constants;
 import xin.manong.darwin.common.model.handler.JSONMapObjectTypeHandler;
 import xin.manong.darwin.common.model.json.MapDeserializer;
 import xin.manong.weapon.aliyun.ots.annotation.Column;
+import xin.manong.weapon.aliyun.ots.annotation.PrimaryKey;
+import xin.manong.weapon.base.util.RandomID;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -29,18 +34,72 @@ import java.util.Map;
 @Accessors(chain = true)
 @TableName(value = "url", autoResultMap = true)
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class URLRecord extends FetchRecord {
+public class URLRecord extends BasicModel {
 
     private static final Logger logger = LoggerFactory.getLogger(URLRecord.class);
 
     /**
-     * 超时时间（毫秒）
+     * 唯一key
      */
-    @TableField(value = "timeout")
-    @Column(name = "timeout")
-    @JSONField(name = "timeout")
-    @JsonProperty("timeout")
-    public Integer timeout;
+    @TableId(value = "`key`")
+    @PrimaryKey(name = "key")
+    @JSONField(name = "key")
+    @JsonProperty("key")
+    public String key;
+
+    /**
+     * URL hash
+     */
+    @TableField(value = "hash")
+    @Column(name = "hash")
+    @JSONField(name = "hash")
+    @JsonProperty("hash")
+    public String hash;
+
+    /**
+     * 抓取URL
+     */
+    @TableField(value = "url")
+    @Column(name = "url")
+    @JSONField(name = "url")
+    @JsonProperty("url")
+    public String url;
+
+    /**
+     * 重定向URL
+     */
+    @TableField(value = "redirect_url")
+    @Column(name = "redirect_url")
+    @JSONField(name = "redirect_url")
+    @JsonProperty("redirect_url")
+    public String redirectURL;
+
+    /**
+     * 父URL
+     */
+    @TableField(value = "parent_url")
+    @Column(name = "parent_url")
+    @JSONField(name = "parent_url")
+    @JsonProperty("parent_url")
+    public String parentURL;
+
+    /**
+     * 任务ID
+     */
+    @TableField(value = "job_id")
+    @Column(name = "job_id")
+    @JSONField(name = "job_id")
+    @JsonProperty("job_id")
+    public String jobId;
+
+    /**
+     * 计划ID
+     */
+    @TableField(value = "plan_id")
+    @Column(name = "plan_id")
+    @JSONField(name = "plan_id")
+    @JsonProperty("plan_id")
+    public String planId;
 
     /**
      * 应用ID
@@ -50,6 +109,60 @@ public class URLRecord extends FetchRecord {
     @JSONField(name = "app_id")
     @JsonProperty("app_id")
     public Integer appId;
+
+    /**
+     * 抓取时间
+     */
+    @TableField(value = "fetch_time")
+    @Column(name = "fetch_time")
+    @JSONField(name = "fetch_time")
+    @JsonProperty("fetch_time")
+    public Long fetchTime;
+
+    /**
+     * 抓取内容OSS地址
+     */
+    @TableField(value = "fetch_content_url")
+    @Column(name = "fetch_content_url")
+    @JSONField(name = "fetch_content_url")
+    @JsonProperty("fetch_content_url")
+    public String fetchContentURL;
+
+    /**
+     * mimeType
+     */
+    @TableField(value = "mime_type")
+    @Column(name = "mime_type")
+    @JSONField(name = "mime_type")
+    @JsonProperty("mime_type")
+    public String mimeType;
+
+    /**
+     * 子mimeType
+     */
+    @TableField(value = "sub_mime_type")
+    @Column(name = "sub_mime_type")
+    @JSONField(name = "sub_mime_type")
+    @JsonProperty("sub_mime_type")
+    public String subMimeType;
+
+    /**
+     * URL状态
+     */
+    @TableField(value = "status")
+    @Column(name = "status")
+    @JSONField(name = "status")
+    @JsonProperty("status")
+    public Integer status;
+
+    /**
+     * 超时时间（毫秒）
+     */
+    @TableField(value = "timeout")
+    @Column(name = "timeout")
+    @JSONField(name = "timeout")
+    @JsonProperty("timeout")
+    public Integer timeout;
 
     /**
      * 优先级
@@ -70,7 +183,7 @@ public class URLRecord extends FetchRecord {
     public Integer fetchMethod;
 
     /**
-     * 出对时间
+     * 出队时间
      */
     @TableField(value = "out_queue_time")
     @Column(name = "out_queue_time")
@@ -79,7 +192,7 @@ public class URLRecord extends FetchRecord {
     public Long outQueueTime;
 
     /**
-     * 进入多级队列时间
+     * 入队时间
      */
     @TableField(value = "in_queue_time")
     @Column(name = "in_queue_time")
@@ -115,7 +228,7 @@ public class URLRecord extends FetchRecord {
     @Column(name = "scope")
     @JSONField(name = "scope")
     @JsonProperty("scope")
-    public Integer scope = 0;
+    public Integer scope;
 
     /**
      * 抓取并发级别
@@ -127,6 +240,24 @@ public class URLRecord extends FetchRecord {
     public Integer concurrentLevel;
 
     /**
+     * 用户定义字段，透传到抓取结果
+     */
+    @TableField(value = "user_defined_map", typeHandler = JSONMapObjectTypeHandler.class)
+    @Column(name = "user_defined_map")
+    @JSONField(name = "user_defined_map")
+    @JsonProperty("user_defined_map")
+    public Map<String, Object> userDefinedMap = new HashMap<>();
+
+    /**
+     * 结构化字段
+     */
+    @TableField(value = "field_map", typeHandler = JSONMapObjectTypeHandler.class)
+    @Column(name = "field_map")
+    @JSONField(name = "field_map", deserializeUsing = MapDeserializer.class)
+    @JsonProperty("field_map")
+    public Map<String, Object> fieldMap = new HashMap<>();
+
+    /**
      * HTTP header信息
      */
     @TableField(value = "headers", typeHandler = JSONMapObjectTypeHandler.class)
@@ -136,42 +267,73 @@ public class URLRecord extends FetchRecord {
     public Map<String, String> headers = new HashMap<>();
 
     public URLRecord() {
-        super();
+        key = RandomID.build();
+        status = Constants.URL_STATUS_CREATED;
         createTime = System.currentTimeMillis();
     }
 
     public URLRecord(String url) {
-        super(url);
-        createTime = System.currentTimeMillis();
+        this();
+        this.url = url;
+        this.hash = DigestUtils.md5Hex(url);
     }
 
     public URLRecord(URLRecord record) {
-        super(record);
-        concurrentLevel = record.concurrentLevel;
-        timeout = record.timeout;
+        key = record.key;
+        hash = record.hash;
+        url = record.url;
         appId = record.appId;
-        fetchMethod = record.fetchMethod;
-        priority = record.priority;
+        jobId = record.jobId;
+        planId = record.planId;
+        fetchTime = record.fetchTime;
         createTime = record.createTime;
         updateTime = record.updateTime;
         inQueueTime = record.inQueueTime;
         outQueueTime = record.outQueueTime;
+        parentURL = record.parentURL;
+        redirectURL = record.redirectURL;
+        fetchContentURL = record.fetchContentURL;
+        mimeType = record.mimeType;
+        subMimeType = record.subMimeType;
+        status = record.status;
+        concurrentLevel = record.concurrentLevel;
+        timeout = record.timeout;
+        fetchMethod = record.fetchMethod;
+        priority = record.priority;
         category = record.category;
         depth = record.depth;
         scope = record.scope;
+        userDefinedMap = record.userDefinedMap == null ? new HashMap<>() : new HashMap<>(record.userDefinedMap);
+        fieldMap = record.fieldMap == null ? new HashMap<>() : new HashMap<>(record.fieldMap);
         headers = record.headers == null ? new HashMap<>() : new HashMap<>(record.headers);
     }
 
     /**
-     * 检测有效性，满足FetchRecord合法性同时满足以下条件
-     * 1. category合法
-     * 2. fetchMethod合法
-     * 2. concurrentLevel合法
+     * 检测有效性
      *
      * @return 有效返回true，否则返回false
      */
     public boolean check() {
-        if (!super.check()) return false;
+        if (StringUtils.isEmpty(key)) {
+            logger.error("key is empty");
+            return false;
+        }
+        if (StringUtils.isEmpty(url)) {
+            logger.error("url is empty");
+            return false;
+        }
+        if (StringUtils.isEmpty(hash)) {
+            logger.error("hash is empty");
+            return false;
+        }
+        if (StringUtils.isEmpty(jobId)) {
+            logger.error("job id is empty");
+            return false;
+        }
+        if (StringUtils.isEmpty(planId)) {
+            logger.error("plan id is empty");
+            return false;
+        }
         if (appId == null) {
             logger.error("app id is null");
             return false;
@@ -179,6 +341,11 @@ public class URLRecord extends FetchRecord {
         if (category == null) category = Constants.CONTENT_CATEGORY_CONTENT;
         if (!Constants.SUPPORT_CONTENT_CATEGORIES.containsKey(category)) {
             logger.error("not support content category[{}]", category);
+            return false;
+        }
+        if (status == null) status = Constants.URL_STATUS_CREATED;
+        if (!Constants.SUPPORT_URL_STATUSES.containsKey(status)) {
+            logger.error("not support url status[{}]", status);
             return false;
         }
         if (fetchMethod != null && !Constants.SUPPORT_FETCH_METHODS.containsKey(fetchMethod)) {
@@ -201,7 +368,38 @@ public class URLRecord extends FetchRecord {
      * @return 全局抽链返回true，否则返回false
      */
     public boolean isExtractLinkGlobally() {
-        return category == Constants.CONTENT_CATEGORY_LIST &&
+        return category != null && category == Constants.CONTENT_CATEGORY_LIST &&
                 scope != null && Constants.SUPPORT_LINK_SCOPES.containsKey(scope);
+    }
+
+    /**
+     * 重新构建key
+     */
+    public void rebuildKey() {
+        key = RandomID.build();
+    }
+
+    /**
+     * 设置URL，设置hash
+     *
+     * @param url
+     */
+    public void setUrl(String url) {
+        this.url = url;
+        this.hash = DigestUtils.md5Hex(url);
+    }
+
+    @Override
+    public boolean equals(Object object) {
+        if (object == null || !(object instanceof URLRecord)) return false;
+        URLRecord other = (URLRecord) object;
+        if (other == this || key == other.key) return true;
+        if (key == null || other.key == null) return false;
+        return key.equals(other.key);
+    }
+
+    @Override
+    public int hashCode() {
+        return key == null ? 0 : key.hashCode();
     }
 }
