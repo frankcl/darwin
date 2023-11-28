@@ -10,6 +10,7 @@ import lombok.Setter;
 import lombok.experimental.Accessors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import xin.manong.weapon.aliyun.ots.annotation.Column;
 
 /**
  * 基础模型
@@ -31,6 +32,7 @@ public class BasicModel extends Model {
     @TableField(value = "create_time", fill = FieldFill.INSERT)
     @JSONField(name = "create_time")
     @JsonProperty("create_time")
+    @Column(name = "create_time")
     public Long createTime;
     /**
      * 更新时间
@@ -38,5 +40,6 @@ public class BasicModel extends Model {
     @TableField(value = "update_time", fill = FieldFill.INSERT_UPDATE)
     @JSONField(name = "update_time")
     @JsonProperty("update_time")
+    @Column(name = "update_time")
     public Long updateTime;
 }

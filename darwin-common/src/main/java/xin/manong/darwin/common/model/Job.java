@@ -37,6 +37,7 @@ public class Job extends BasicModel {
      * 避免重复抓取
      */
     @TableField(value = "avoid_repeated_fetch")
+    @Column(name = "avoid_repeated_fetch")
     @JSONField(name = "avoid_repeated_fetch")
     @JsonProperty("avoid_repeated_fetch")
     public Boolean avoidRepeatedFetch = true;
@@ -45,6 +46,7 @@ public class Job extends BasicModel {
      * 应用ID
      */
     @TableField(value = "app_id")
+    @Column(name = "app_id")
     @JSONField(name = "app_id")
     @JsonProperty("app_id")
     public Integer appId;
