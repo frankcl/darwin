@@ -35,6 +35,7 @@ public class DarwinUtil {
         if (!StringUtils.isEmpty(record.subMimeType)) context.put(Constants.SUB_MIME_TYPE, record.subMimeType);
         if (record.appId != null) context.put(Constants.APP_ID, record.appId);
         if (record.status != null) context.put(Constants.STATUS, Constants.SUPPORT_URL_STATUSES.get(record.status));
+        if (record.httpCode != null) context.put(Constants.HTTP_CODE, record.httpCode);
         if (record.fetchTime != null) context.put(Constants.FETCH_TIME, record.fetchTime);
         if (record.inQueueTime != null) context.put(Constants.IN_QUEUE_TIME, record.inQueueTime);
         if (record.outQueueTime != null) context.put(Constants.OUT_QUEUE_TIME, record.outQueueTime);
