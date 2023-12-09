@@ -30,6 +30,7 @@ public class StreamSpider extends Spider {
 
     private static final Logger logger = LoggerFactory.getLogger(StreamSpider.class);
 
+    private static final String CATEGORY = "stream";
     private static final String LIVE_STREAM_FINISH_TAG = "#EXT-X-ENDLIST";
 
     private String ffmpeg;
@@ -37,9 +38,9 @@ public class StreamSpider extends Spider {
     protected SpiderConfig config;
 
     public StreamSpider() {
-        super("stream");
+        super(CATEGORY);
         ffmpeg = Loader.load(org.bytedeco.ffmpeg.ffmpeg.class);
-        if (StringUtils.isEmpty(ffmpeg)) throw new RuntimeException("ffmpeg command is not found");
+        if (StringUtils.isEmpty(ffmpeg)) throw new UnsupportedOperationException("ffmpeg is not found");
     }
 
     @Override

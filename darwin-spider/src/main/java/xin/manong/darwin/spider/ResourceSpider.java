@@ -16,8 +16,10 @@ import xin.manong.weapon.base.common.Context;
 @Component
 public class ResourceSpider extends Spider {
 
+    private static final String CATEGORY = "resource";
+
     public ResourceSpider() {
-        super("resource");
+        super(CATEGORY);
     }
 
     @Override

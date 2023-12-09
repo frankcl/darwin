@@ -49,6 +49,7 @@ public class HTMLSpider extends Spider {
 
     private static final int BUFFER_SIZE = 4096;
     private static final String CHARSET_UTF8 = "UTF-8";
+    private static final String CATEGORY = "html";
 
     @Resource
     protected RuleService ruleService;
@@ -58,7 +59,7 @@ public class HTMLSpider extends Spider {
     protected MultiQueue multiQueue;
 
     public HTMLSpider() {
-        super("html");
+        super(CATEGORY);
     }
 
     @Override
