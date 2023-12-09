@@ -1,7 +1,6 @@
 package xin.manong.darwin.spider;
 
 import org.springframework.stereotype.Component;
-import xin.manong.darwin.common.Constants;
 import xin.manong.darwin.common.model.URLRecord;
 import xin.manong.weapon.base.common.Context;
 
@@ -25,13 +24,11 @@ public class ResourceSpider extends Spider {
     protected void handle(URLRecord record, Context context) throws Exception {
         SpiderResource resource = null;
         try {
-            resource = getPreviousResource(record, context);
-            if (resource == null) resource = fetchCurrentResource(record, context);
+            resource = getSpiderResource(record, context);
+            if (resource == null) resource = fetch(record, context);
+            if (resource != null) resource.copyTo(record);
             if (resource == null || resource.inputStream == null) return;
-            record.fetchTime = System.currentTimeMillis();
-            copy(resource, record);
-            if (!writeStream(record, resource.inputStream, context)) return;
-            record.status = Constants.URL_STATUS_SUCCESS;
+            writeStream(record, resource.inputStream, context);
         } finally {
             if (resource != null) resource.close();
         }

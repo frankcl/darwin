@@ -29,24 +29,30 @@ public class Constants {
     /**
      * URL状态
      */
-    public static final int URL_STATUS_SUCCESS = 0;                 //抓取成功
-    public static final int URL_STATUS_FAIL = -1;                   //抓取失败
+    public static final int URL_STATUS_SUCCESS = 0;                 //成功
     public static final int URL_STATUS_CREATED = 1;                 //创建
     public static final int URL_STATUS_QUEUING_REFUSED = 2;         //排队拒绝
     public static final int URL_STATUS_QUEUING = 3;                 //排队中
     public static final int URL_STATUS_FETCHING = 4;                //抓取中
     public static final int URL_STATUS_INVALID = 5;                 //URL非法
     public static final int URL_STATUS_TIMEOUT = 6;                 //超时
-    public static final int URL_STATUS_OVERFLOW = 7;                //溢出
+    public static final int URL_STATUS_IO_ERROR = 7;                //I/O错误
+    public static final int URL_STATUS_FETCH_FAIL = 8;              //抓取失败
+    public static final int URL_STATUS_PARSE_ERROR = 9;             //解析错误
+    public static final int URL_STATUS_UNKNOWN_ERROR = 10;          //未知错误
+    public static final int URL_STATUS_OVERFLOW = 11;               //溢出
     public static final Map<Integer, String> SUPPORT_URL_STATUSES = new HashMap<Integer, String>() {{
         put(URL_STATUS_SUCCESS, "成功");
-        put(URL_STATUS_FAIL, "失败");
         put(URL_STATUS_CREATED, "创建");
         put(URL_STATUS_QUEUING_REFUSED, "排队拒绝");
         put(URL_STATUS_QUEUING, "排队中");
         put(URL_STATUS_FETCHING, "抓取中");
         put(URL_STATUS_INVALID, "非法状态");
         put(URL_STATUS_TIMEOUT, "超时");
+        put(URL_STATUS_IO_ERROR, "I/O错误");
+        put(URL_STATUS_FETCH_FAIL, "抓取失败");
+        put(URL_STATUS_PARSE_ERROR, "解析错误");
+        put(URL_STATUS_UNKNOWN_ERROR, "未知错误");
         put(URL_STATUS_OVERFLOW, "溢出");
     }};
 

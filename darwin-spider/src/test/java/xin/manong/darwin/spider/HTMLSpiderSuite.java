@@ -176,7 +176,7 @@ public class HTMLSpiderSuite {
             record.appId = 1;
             Context context = new Context();
             spider.process(record, context);
-            Assert.assertEquals(Constants.URL_STATUS_FAIL, record.status.intValue());
+            Assert.assertEquals(Constants.URL_STATUS_FETCH_FAIL, record.status.intValue());
             Assert.assertTrue(record.fetchTime != null && record.fetchTime > 0L);
             Assert.assertTrue(StringUtils.isEmpty(record.fetchContentURL));
         } finally {

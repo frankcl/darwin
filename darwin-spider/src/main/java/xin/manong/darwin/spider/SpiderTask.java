@@ -34,7 +34,7 @@ public class SpiderTask implements Runnable {
             logger.error(t.getMessage(), t);
             spiderRecord.context.put(Constants.DARWIN_DEBUG_MESSAGE, t.getMessage());
             spiderRecord.context.put(Constants.DARWIN_STRACE_TRACE, ExceptionUtils.getStackTrace(t));
-            spiderRecord.record.status = Constants.URL_STATUS_FAIL;
+            spiderRecord.record.status = Constants.URL_STATUS_UNKNOWN_ERROR;
         }
     }
 

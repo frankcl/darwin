@@ -47,6 +47,7 @@ public class HTMLSpider extends Spider {
 
     private static final Logger logger = LoggerFactory.getLogger(HTMLSpider.class);
 
+    private static final int BUFFER_SIZE = 4096;
     private static final String CHARSET_UTF8 = "UTF-8";
 
     @Resource
@@ -68,8 +69,7 @@ public class HTMLSpider extends Spider {
         String html = fetchAndGetHTML(record, context);
         if (html == null) return;
         if (!writeHTML(html, record, context)) return;
-        if (!parseHTML(html, record, rule, context)) return;
-        record.status = Constants.URL_STATUS_SUCCESS;
+        parseHTML(html, record, rule, context);
     }
 
     /**
@@ -91,7 +91,7 @@ public class HTMLSpider extends Spider {
             HTMLParseRequest request = builder.build();
             ParseResponse response = parseService.parse(request);
             if (!response.status) {
-                record.status = Constants.URL_STATUS_FAIL;
+                record.status = Constants.URL_STATUS_PARSE_ERROR;
                 context.put(Constants.DARWIN_DEBUG_MESSAGE, response.message);
                 logger.error("parse HTML failed for url[{}], cause[{}]", record.url, response.message);
                 return false;
@@ -126,7 +126,7 @@ public class HTMLSpider extends Spider {
             String key = String.format("%s/%s/%s", config.contentDirectory, category, record.key);
             if (!StringUtils.isEmpty(suffix)) key = String.format("%s.%s", key, suffix);
             if (!ossClient.putObject(config.contentBucket, key, bytes)) {
-                record.status = Constants.URL_STATUS_FAIL;
+                record.status = Constants.URL_STATUS_IO_ERROR;
                 context.put(Constants.DARWIN_DEBUG_MESSAGE, "HTML写入OSS失败");
                 return false;
             }
@@ -151,21 +151,20 @@ public class HTMLSpider extends Spider {
     private String fetchAndGetHTML(URLRecord record, Context context) throws Exception {
         Long startTime = System.currentTimeMillis();
         ByteArrayOutputStream outputStream = null;
-        SpiderResource resource = getPreviousResource(record, context);
+        SpiderResource resource = getSpiderResource(record, context);
+        if (resource == null) resource = fetch(record, context);
+        if (resource != null) resource.copyTo(record);
         try {
-            if (resource == null) resource = fetchCurrentResource(record, context);
-            if (resource == null || resource.inputStream == null) return null;
-            copy(resource, record);
-            int size = 4096, n;
-            byte[] buffer = new byte[size];
+            if (resource.inputStream == null) return null;
+            int n;
+            byte[] buffer = new byte[BUFFER_SIZE];
             outputStream = new ByteArrayOutputStream();
-            while ((n = resource.inputStream.read(buffer, 0, size)) != -1) outputStream.write(buffer, 0, n);
+            while ((n = resource.inputStream.read(buffer, 0, BUFFER_SIZE)) != -1) outputStream.write(buffer, 0, n);
             byte[] body = outputStream.toByteArray();
             String charset = resource.guessCharset ? parseCharset(body, resource.charset) : CHARSET_UTF8;
             context.put(Constants.CHARSET, charset);
             return new String(body, Charset.forName(charset));
         } catch (Exception e) {
-            record.status = Constants.URL_STATUS_FAIL;
             context.put(Constants.DARWIN_DEBUG_MESSAGE, "获取HTML资源异常");
             context.put(Constants.DARWIN_STRACE_TRACE, ExceptionUtils.getStackTrace(e));
             logger.error("get html resource failed");
@@ -192,7 +191,7 @@ public class HTMLSpider extends Spider {
     private Rule getMatchRule(URLRecord record, Context context) {
         Job job = jobService.getCache(record.jobId);
         if (job == null) {
-            record.status = Constants.URL_STATUS_FAIL;
+            record.status = Constants.URL_STATUS_UNKNOWN_ERROR;
             context.put(Constants.DARWIN_DEBUG_MESSAGE, "爬虫任务不存在");
             logger.error("job[{}] is not found for url[{}]", record.jobId, record.url);
             return null;
@@ -204,7 +203,7 @@ public class HTMLSpider extends Spider {
             rules.add(rule);
         }
         if (rules.size() != 1) {
-            record.status = Constants.URL_STATUS_FAIL;
+            record.status = Constants.URL_STATUS_UNKNOWN_ERROR;
             context.put(Constants.DARWIN_DEBUG_MESSAGE, String.format("匹配规则数量[%d]不符合预期", rules.size()));
             logger.error("match rule num[{}] is unexpected", rules.size());
             return null;
@@ -236,7 +235,7 @@ public class HTMLSpider extends Spider {
      */
     private String parseCharsetFromHTML(byte[] body) {
         try {
-            Document document = Jsoup.parse(new String(body, Charset.forName("UTF-8")));
+            Document document = Jsoup.parse(new String(body, Charset.forName(CHARSET_UTF8)));
             Element head = document.head();
             if (head == null) return null;
             Elements elements = head.select("meta[http-equiv=content-type]");
