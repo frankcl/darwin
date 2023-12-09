@@ -183,6 +183,15 @@ public class URLRecord extends BasicModel {
     public Integer fetchMethod;
 
     /**
+     * http状态码
+     */
+    @TableField(value = "http_code")
+    @Column(name = "http_code")
+    @JSONField(name = "http_code")
+    @JsonProperty("http_code")
+    public Integer httpCode;
+
+    /**
      * 出队时间
      */
     @TableField(value = "out_queue_time")

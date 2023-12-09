@@ -1,8 +1,6 @@
 package xin.manong.darwin.spider;
 
-import okhttp3.MediaType;
 import okhttp3.Response;
-import okhttp3.ResponseBody;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
@@ -41,6 +39,9 @@ import java.io.InputStream;
 public abstract class Spider {
 
     private static final Logger logger = LoggerFactory.getLogger(Spider.class);
+
+    protected static final int HTTP_CODE_OK = 200;
+    protected static final int HTTP_CODE_NOT_ACCEPTABLE = 406;
 
     protected static final String MIME_TYPE_TEXT = "text";
     protected static final String MIME_TYPE_VIDEO = "video";
@@ -145,8 +146,9 @@ public abstract class Spider {
         if (ossMeta == null || !ossClient.exist(ossMeta.bucket, ossMeta.key)) return null;
         InputStream inputStream = ossClient.getObjectStream(ossMeta.bucket, ossMeta.key);
         if (inputStream == null) return null;
-        SpiderResource spiderResource = new SpiderResource();
+        SpiderResource spiderResource = new SpiderResource(false);
         spiderResource.inputStream = inputStream;
+        spiderResource.httpCode = prevRecord.httpCode;
         spiderResource.mimeType = prevRecord.mimeType;
         spiderResource.subMimeType = prevRecord.subMimeType;
         return spiderResource;
@@ -163,8 +165,8 @@ public abstract class Spider {
         Response httpResponse = fetch(record, context);
         record.fetchTime = System.currentTimeMillis();
         if (httpResponse == null) return null;
-        SpiderResource spiderResource = new SpiderResource(httpResponse);
-        fillMimeTypeAndCharset(spiderResource, httpResponse);
+        SpiderResource spiderResource = new SpiderResource(true);
+        spiderResource.parseHTTPResponse(httpResponse);
         return spiderResource;
     }
 
@@ -186,19 +188,15 @@ public abstract class Spider {
     }
 
     /**
-     * 根据HTTP响应填充MimeType和字符编码
+     * 复制抓取资源信息
      *
-     * @param spiderResource 抓取结果资源
-     * @param response HTTP响应
+     * @param resource 抓取资源
+     * @param record 抓取记录
      */
-    private void fillMimeTypeAndCharset(SpiderResource spiderResource, Response response) {
-        if (response == null || !response.isSuccessful()) return;
-        ResponseBody responseBody = response.body();
-        MediaType mediaType = responseBody.contentType();
-        if (mediaType == null) return;
-        spiderResource.mimeType = mediaType.type();
-        spiderResource.subMimeType = mediaType.subtype();
-        spiderResource.charset = mediaType.charset();
+    protected void copy(SpiderResource resource, URLRecord record) {
+        record.httpCode = resource.httpCode;
+        record.mimeType = resource.mimeType;
+        record.subMimeType = resource.subMimeType;
     }
 
     /**

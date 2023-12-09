@@ -53,18 +53,19 @@ public class StreamSpider extends Spider {
                 String m3u8Body = fetchM3U8Meta(record, context);
                 if (m3u8Body.indexOf(LIVE_STREAM_FINISH_TAG) == -1) {
                     record.status = Constants.URL_STATUS_FAIL;
+                    record.httpCode = HTTP_CODE_NOT_ACCEPTABLE;
                     context.put(Constants.DARWIN_DEBUG_MESSAGE, "不支持直播流抓取");
                     logger.error("unsupported live stream fetching for url[{}]", record.url);
                     return;
                 }
                 createTempDirectory();
                 if (!fetchM3U8Resource(record, context, tempFile)) return;
-                resource = new SpiderResource();
+                resource = new SpiderResource(true);
                 resource.inputStream = new FileInputStream(tempFile);
                 resource.mimeType = MIME_TYPE_VIDEO;
                 resource.subMimeType = SUB_MIME_TYPE_MP4;
-                record.mimeType = MIME_TYPE_VIDEO;
-                record.subMimeType = SUB_MIME_TYPE_MP4;
+                resource.httpCode = HTTP_CODE_OK;
+                copy(resource, record);
             }
             Long startTime = System.currentTimeMillis();
             try {

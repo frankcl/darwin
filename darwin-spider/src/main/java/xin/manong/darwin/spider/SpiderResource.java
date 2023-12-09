@@ -1,6 +1,8 @@
 package xin.manong.darwin.spider;
 
+import okhttp3.MediaType;
 import okhttp3.Response;
+import okhttp3.ResponseBody;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -22,7 +24,11 @@ public class SpiderResource implements Closeable {
     /**
      * 是否需要猜测编码
      */
-    public Boolean guessCharset;
+    public boolean guessCharset;
+    /**
+     * http状态码
+     */
+    public Integer httpCode;
     /**
      * 资源MIME类型
      */
@@ -44,14 +50,27 @@ public class SpiderResource implements Closeable {
      */
     private Response httpResponse;
 
-    public SpiderResource() {
-        this.guessCharset = false;
+    public SpiderResource(boolean guessCharset) {
+        this.guessCharset = guessCharset;
     }
 
-    public SpiderResource(Response httpResponse) {
+    /**
+     * 解析HTTP响应
+     *
+     * @param httpResponse HTTP响应
+     */
+    public void parseHTTPResponse(Response httpResponse) {
+        if (httpResponse == null) return;
         this.httpResponse = httpResponse;
-        this.inputStream = httpResponse.body().byteStream();
-        this.guessCharset = true;
+        this.httpCode = httpResponse.code();
+        if (!httpResponse.isSuccessful()) return;
+        ResponseBody responseBody = httpResponse.body();
+        this.inputStream = responseBody.byteStream();
+        MediaType mediaType = responseBody.contentType();
+        if (mediaType == null) return;
+        this.mimeType = mediaType.type();
+        this.subMimeType = mediaType.subtype();
+        this.charset = mediaType.charset();
     }
 
     /**

@@ -155,8 +155,7 @@ public class HTMLSpider extends Spider {
         try {
             if (resource == null) resource = fetchCurrentResource(record, context);
             if (resource == null || resource.inputStream == null) return null;
-            record.mimeType = resource.mimeType;
-            record.subMimeType = resource.subMimeType;
+            copy(resource, record);
             int size = 4096, n;
             byte[] buffer = new byte[size];
             outputStream = new ByteArrayOutputStream();

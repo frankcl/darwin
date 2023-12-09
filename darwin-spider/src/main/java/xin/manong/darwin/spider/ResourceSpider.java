@@ -28,9 +28,8 @@ public class ResourceSpider extends Spider {
             resource = getPreviousResource(record, context);
             if (resource == null) resource = fetchCurrentResource(record, context);
             if (resource == null || resource.inputStream == null) return;
-            record.mimeType = resource.mimeType;
-            record.subMimeType = resource.subMimeType;
             record.fetchTime = System.currentTimeMillis();
+            copy(resource, record);
             if (!writeStream(record, resource.inputStream, context)) return;
             record.status = Constants.URL_STATUS_SUCCESS;
         } finally {
