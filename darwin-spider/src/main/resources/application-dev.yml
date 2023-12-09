@@ -33,5 +33,4 @@ app:
     content-region: cn-hangzhou
     content-bucket: default-crawler-file
     content-directory: darwin
-    record-topic: TEST_DARWIN_DISPATCH_RECORD
     temp-directory: ./spider/temp/

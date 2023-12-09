@@ -20,4 +20,5 @@ public class ServiceConfig {
     public String urlTable;
     public String urlIndexName;
     public String jobTopic;
+    public String recordTopic;
 }

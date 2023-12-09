@@ -9,10 +9,13 @@ import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import xin.manong.darwin.common.Constants;
+import xin.manong.darwin.common.model.Job;
 import xin.manong.darwin.common.model.URLRecord;
 import xin.manong.darwin.queue.concurrent.ConcurrentManager;
 import xin.manong.darwin.queue.multi.MultiQueue;
 import xin.manong.darwin.service.iface.URLService;
+import xin.manong.darwin.service.notify.JobCompleteNotifier;
+import xin.manong.darwin.service.notify.URLCompleteNotifier;
 import xin.manong.weapon.aliyun.ons.ONSProducer;
 import xin.manong.weapon.base.common.Context;
 
@@ -33,11 +36,17 @@ public class URLQueueScheduler extends ExecuteRunner {
 
     private String topic;
     @Resource
+    protected ScheduleConfig config;
+    @Resource
     protected URLService urlService;
     @Resource
     protected MultiQueue multiQueue;
     @Resource
     protected ConcurrentManager concurrentManager;
+    @Resource
+    protected URLCompleteNotifier urlCompleteNotifier;
+    @Resource
+    protected JobCompleteNotifier jobCompleteNotifier;
     @Resource
     protected ONSProducer producer;
 
@@ -68,7 +77,7 @@ public class URLQueueScheduler extends ExecuteRunner {
      * @param concurrentUnit 并发单元
      */
     private void handleConcurrentUnit(String concurrentUnit) {
-        int appliedConnections = 0, acquiredConnections = 0;
+        int appliedConnections = 0, acquiredConnections = 0, overflowConnections = 0;
         Context concurrentContext = new Context();
         try {
             appliedConnections = concurrentManager.getAvailableConnectionCount(concurrentUnit);
@@ -79,10 +88,23 @@ public class URLQueueScheduler extends ExecuteRunner {
                 return;
             }
             concurrentContext.put(Constants.SCHEDULE_STATUS, Constants.SCHEDULE_STATUS_SUCCESS);
-            List<URLRecord> records = multiQueue.pop(concurrentUnit, appliedConnections);
-            acquiredConnections = records.size();
-            for (URLRecord record : records) handleURLRecord(record, concurrentUnit);
-            logger.info("handle records[{}] for concurrent unit[{}]", records.size(), concurrentUnit);
+            int popConnections = appliedConnections;
+            while (popConnections > 0) {
+                List<URLRecord> records = multiQueue.pop(concurrentUnit, popConnections);
+                for (URLRecord record : records) {
+                    if (isOverflowRecord(record)) {
+                        handleOverflowRecord(record);
+                        overflowConnections++;
+                    } else {
+                        handleURLRecord(record, concurrentUnit);
+                        acquiredConnections++;
+                    }
+                }
+                if (records.size() < popConnections) break;
+                popConnections = appliedConnections - acquiredConnections;
+            }
+            logger.info("handle records[{}] for concurrent unit[{}], normal[{}], overflow[{}]",
+                    acquiredConnections + overflowConnections, concurrentUnit, acquiredConnections, overflowConnections);
         } catch (Exception e) {
             concurrentContext.put(Constants.SCHEDULE_STATUS, Constants.SCHEDULE_STATUS_FAIL);
             concurrentContext.put(Constants.DARWIN_DEBUG_MESSAGE, e.getMessage());
@@ -90,8 +112,24 @@ public class URLQueueScheduler extends ExecuteRunner {
             logger.error("process concurrent unit[{}] failed while scheduling", concurrentUnit);
             logger.error(e.getMessage(), e);
         } finally {
-            commitAspectLog(concurrentContext, concurrentUnit, appliedConnections, acquiredConnections);
+            commitAspectLog(concurrentContext, concurrentUnit, appliedConnections,
+                    acquiredConnections, overflowConnections);
         }
+    }
+
+    /**
+     * 处理溢出数据
+     *
+     * @param record 溢出数据
+     */
+    private void handleOverflowRecord(URLRecord record) {
+        Context context = new Context();
+        urlCompleteNotifier.onComplete(buildOverflowRecord(record), context);
+        if (multiQueue.isEmptyJobRecordMap(record.jobId)) {
+            multiQueue.deleteJobRecordMap(record.jobId);
+            jobCompleteNotifier.onComplete(new Job(record.jobId, record.appId), new Context());
+        }
+        commitAspectLog(context, record);
     }
 
     /**
@@ -121,13 +159,41 @@ public class URLQueueScheduler extends ExecuteRunner {
             context.put(Constants.DARWIN_MESSAGE_ID, sendResult.getMessageId());
             context.put(Constants.DARWIN_MESSAGE_KEY, record.key);
             concurrentManager.putConnectionRecord(concurrentUnit, record.key);
-        } catch (Exception ex) {
-            context.put(Constants.DARWIN_DEBUG_MESSAGE, ex.getMessage());
-            context.put(Constants.DARWIN_STRACE_TRACE, ExceptionUtils.getStackTrace(ex));
+        } catch (Exception e) {
+            context.put(Constants.DARWIN_DEBUG_MESSAGE, e.getMessage());
+            context.put(Constants.DARWIN_STRACE_TRACE, ExceptionUtils.getStackTrace(e));
             logger.error("process record failed for key[{}]", record.key);
-            logger.error(ex.getMessage(), ex);
+            logger.error(e.getMessage(), e);
         } finally {
             commitAspectLog(context, record);
         }
+    }
+
+    /**
+     * 判断是否为溢出数据
+     *
+     * @param record 数据
+     * @return 溢出返回true，否则返回false
+     */
+    private boolean isOverflowRecord(URLRecord record) {
+        return record.inQueueTime == null || System.currentTimeMillis() -
+                record.inQueueTime > config.maxOverflowTimeMs;
+    }
+
+    /**
+     * 构建溢出记录
+     *
+     * @param record URL记录
+     * @return 溢出记录
+     */
+    private URLRecord buildOverflowRecord(URLRecord record) {
+        URLRecord overflow = new URLRecord();
+        overflow.key = record.key;
+        overflow.status = Constants.URL_STATUS_OVERFLOW;
+        overflow.depth = null;
+        overflow.fieldMap = null;
+        overflow.userDefinedMap = null;
+        overflow.headers = null;
+        return overflow;
     }
 }

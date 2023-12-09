@@ -7,7 +7,8 @@ import xin.manong.darwin.common.model.Job;
 import xin.manong.darwin.common.model.URLRecord;
 import xin.manong.darwin.queue.multi.MultiQueue;
 import xin.manong.darwin.service.iface.URLService;
-import xin.manong.darwin.service.listener.JobListener;
+import xin.manong.darwin.service.notify.JobCompleteNotifier;
+import xin.manong.weapon.base.common.Context;
 
 import javax.annotation.Resource;
 import java.util.HashSet;
@@ -34,7 +35,7 @@ public class MultiQueueMonitor implements Runnable {
     @Resource
     protected MultiQueue multiQueue;
     @Resource
-    protected JobListener jobListener;
+    protected JobCompleteNotifier jobCompleteNotifier;
 
     public MultiQueueMonitor(long checkTimeIntervalMs, long expiredTimeIntervalMs) {
         this.running = false;
@@ -118,7 +119,8 @@ public class MultiQueueMonitor implements Runnable {
                 multiQueue.deleteJobRecordMap(jobId);
                 if (!sweepRecords.isEmpty()) {
                     sweepJobCount++;
-                    jobListener.onFinish(new Job(jobId, sweepRecords.get(0).appId));
+                    Job finishJob = new Job(jobId, sweepRecords.get(0).appId);
+                    jobCompleteNotifier.onComplete(finishJob, new Context());
                 }
             }
         }

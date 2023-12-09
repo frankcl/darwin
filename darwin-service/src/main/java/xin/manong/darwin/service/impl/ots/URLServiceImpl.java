@@ -84,6 +84,7 @@ public class URLServiceImpl extends URLService {
         updateRecord.subMimeType = contentRecord.subMimeType;
         updateRecord.fetchTime = contentRecord.fetchTime;
         updateRecord.fetchContentURL = contentRecord.fetchContentURL;
+        updateRecord.httpCode = contentRecord.httpCode;
         if (contentRecord.fieldMap != null && !contentRecord.fieldMap.isEmpty()) {
             updateRecord.fieldMap = contentRecord.fieldMap;
         }

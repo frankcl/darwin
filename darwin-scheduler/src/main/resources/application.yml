@@ -7,5 +7,6 @@ spring:
 
 app:
   schedule:
+    maxOverflowTimeMs: 7200000
     planExecuteIntervalMs: 60000
     queueScheduleIntervalMs: 10000

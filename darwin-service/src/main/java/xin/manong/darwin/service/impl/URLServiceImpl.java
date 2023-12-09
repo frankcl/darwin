@@ -68,6 +68,7 @@ public class URLServiceImpl extends URLService {
         wrapper.set(URLRecord::getUpdateTime, System.currentTimeMillis());
         if (contentRecord.fetchTime != null) wrapper.set(URLRecord::getFetchTime, contentRecord.fetchTime);
         if (contentRecord.status != null) wrapper.set(URLRecord::getStatus, contentRecord.status);
+        if (contentRecord.httpCode != null) wrapper.set(URLRecord::getHttpCode, contentRecord.httpCode);
         if (!StringUtils.isEmpty(contentRecord.mimeType)) {
             wrapper.set(URLRecord::getMimeType, contentRecord.mimeType);
         }

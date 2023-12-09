@@ -91,14 +91,16 @@ public abstract class ExecuteRunner implements Runnable {
      * @param concurrentUnit 并发单元
      * @param appliedConnections 申请连接数
      * @param acquiredConnections 获取连接数
+     * @param overflowConnections 溢出连接数
      */
     protected void commitAspectLog(Context context, String concurrentUnit,
-                                   int appliedConnections, int acquiredConnections) {
+                                   int appliedConnections, int acquiredConnections, int overflowConnections) {
         if (context == null || concurrentAspectLogger == null) return;
         context.put(Constants.DARWIN_RECORD_TYPE, Constants.RECORD_TYPE_CONCURRENT_UNIT);
         context.put(Constants.CONCURRENT_UNIT, concurrentUnit);
         context.put(Constants.APPLIED_CONNECTION_NUM, appliedConnections);
         context.put(Constants.ACQUIRED_CONNECTION_NUM, acquiredConnections);
+        context.put(Constants.OVERFLOW_CONNECTION_NUM, overflowConnections);
         concurrentAspectLogger.commit(context.getFeatureMap());
     }
 

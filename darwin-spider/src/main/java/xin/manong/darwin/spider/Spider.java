@@ -6,16 +6,15 @@ import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import xin.manong.darwin.common.Constants;
-import xin.manong.darwin.common.computer.ConcurrentUnitComputer;
 import xin.manong.darwin.common.model.Job;
 import xin.manong.darwin.common.model.Pager;
 import xin.manong.darwin.common.model.RangeValue;
 import xin.manong.darwin.common.model.URLRecord;
-import xin.manong.darwin.queue.concurrent.ConcurrentManager;
 import xin.manong.darwin.queue.multi.MultiQueue;
 import xin.manong.darwin.service.iface.JobService;
 import xin.manong.darwin.service.iface.URLService;
-import xin.manong.darwin.service.listener.JobListener;
+import xin.manong.darwin.service.notify.JobCompleteNotifier;
+import xin.manong.darwin.service.notify.URLCompleteNotifier;
 import xin.manong.darwin.service.request.URLSearchRequest;
 import xin.manong.weapon.aliyun.oss.OSSClient;
 import xin.manong.weapon.aliyun.oss.OSSMeta;
@@ -69,11 +68,9 @@ public abstract class Spider {
     @Resource
     protected MultiQueue multiQueue;
     @Resource
-    protected ConcurrentManager concurrentManager;
+    protected URLCompleteNotifier urlCompleteNotifier;
     @Resource
-    protected URLDispatcher dispatcher;
-    @Resource
-    protected JobListener jobListener;
+    protected JobCompleteNotifier jobCompleteNotifier;
     protected HttpClient httpClient;
 
     public Spider(String category) {
@@ -209,8 +206,9 @@ public abstract class Spider {
      */
     public void process(URLRecord record, Context context) {
         Long startTime = System.currentTimeMillis();
+        Job job = null;
         try {
-            Job job = jobService.getCache(record.jobId);
+            job = jobService.getCache(record.jobId);
             if (job != null && job.avoidRepeatedFetch) context.put(Constants.AVOID_REPEATED_FETCH, true);
             handle(record, context);
         } catch (Throwable t) {
@@ -219,12 +217,11 @@ public abstract class Spider {
             logger.error("fetch record error for url[{}]", record.url);
             logger.error(t.getMessage(), t);
         } finally {
-            if (!urlService.updateContent(record)) logger.warn("update content failed for url[{}]", record.url);
-            multiQueue.removeFromJobRecordMap(record);
-            String concurrentUnit = ConcurrentUnitComputer.compute(record);
-            concurrentManager.removeConnectionRecord(concurrentUnit, record.key);
-            dispatcher.dispatch(record, context);
-            if (multiQueue.isEmptyJobRecordMap(record.jobId)) jobListener.onFinish(new Job(record.jobId, record.appId));
+            urlCompleteNotifier.onComplete(record, context);
+            if (multiQueue.isEmptyJobRecordMap(record.jobId)) {
+                multiQueue.deleteJobRecordMap(record.jobId);
+                jobCompleteNotifier.onComplete(job, new Context());
+            }
             context.put(Constants.DARWIN_PROCESS_TIME, System.currentTimeMillis() - startTime);
         }
     }

@@ -211,6 +211,7 @@ public class Constants {
     public static final String SCHEDULE_STATUS_FAIL = "FAIL";
     public static final String APPLIED_CONNECTION_NUM = "applied_connection_num";
     public static final String ACQUIRED_CONNECTION_NUM = "acquired_connection_num";
+    public static final String OVERFLOW_CONNECTION_NUM = "overflow_connection_num";
 
     /**
      * 切面日志字段定义
