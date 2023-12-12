@@ -182,6 +182,7 @@ public class Constants {
     public static final String REDIRECT_URL = "redirect_url";
     public static final String FETCH_CONTENT_URL = "fetch_content_url";
     public static final String FETCH_TIME = "fetch_time";
+    public static final String FETCH_METHOD = "fetch_method";
     public static final String IN_QUEUE_TIME = "in_queue_time";
     public static final String OUT_QUEUE_TIME = "out_queue_time";
     public static final String CATEGORY = "category";
