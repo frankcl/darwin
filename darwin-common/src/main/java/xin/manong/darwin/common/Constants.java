@@ -57,6 +57,16 @@ public class Constants {
     }};
 
     /**
+     * 代理类型
+     */
+    public static final int PROXY_CATEGORY_LONG = 1;                //长效代理
+    public static final int PROXY_CATEGORY_SHORT = 2;               //短效代理
+    public static final Map<Integer, String> SUPPORT_PROXY_CATEGORIES = new HashMap<Integer, String>() {{
+       put(PROXY_CATEGORY_LONG, "长效代理");
+       put(PROXY_CATEGORY_SHORT, "短效代理");
+    }};
+
+    /**
      * 抓取方式
      */
     public static final int FETCH_METHOD_COMMON = 0;                //普通抓取

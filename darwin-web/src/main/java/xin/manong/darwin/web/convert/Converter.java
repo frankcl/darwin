@@ -181,4 +181,41 @@ public class Converter {
         ruleGroup.name = request.name;
         return ruleGroup;
     }
+
+    /**
+     * 转化代理添加请求为代理对象
+     *
+     * @param request 代理添加请求
+     * @return 代理对象
+     */
+    public static Proxy convert(ProxyRequest request) {
+        if (request == null) return null;
+        Proxy proxy = new Proxy();
+        proxy.address = request.address;
+        proxy.port = request.port;
+        proxy.category = request.category;
+        proxy.username = request.username;
+        proxy.password = request.password;
+        proxy.expiredTime = request.expiredTime;
+        return proxy;
+    }
+
+    /**
+     * 转化代理更新请求为代理对象
+     *
+     * @param request 代理更新请求
+     * @return 代理对象
+     */
+    public static Proxy convert(ProxyUpdateRequest request) {
+        if (request == null) return null;
+        Proxy proxy = new Proxy();
+        proxy.id = request.id;
+        proxy.address = request.address;
+        proxy.port = request.port;
+        proxy.category = request.category;
+        proxy.username = request.username;
+        proxy.password = request.password;
+        proxy.expiredTime = request.expiredTime;
+        return proxy;
+    }
 }

@@ -8,6 +8,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Component;
 import xin.manong.darwin.common.Constants;
 import xin.manong.darwin.common.computer.ConcurrentUnitComputer;
 import xin.manong.darwin.common.model.URLRecord;
@@ -27,6 +28,7 @@ import java.nio.charset.Charset;
  * @author frankcl
  * @date 2023-12-09 16:23:17
  */
+@Component
 public class URLCompleteNotifier implements CompleteNotifier<URLRecord> {
 
     private static final Logger logger = LoggerFactory.getLogger(URLCompleteNotifier.class);
