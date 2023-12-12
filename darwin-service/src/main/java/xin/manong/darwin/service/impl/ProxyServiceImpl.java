@@ -87,6 +87,7 @@ public class ProxyServiceImpl implements ProxyService {
         if (proxyCache == null) return false;
         LambdaQueryWrapper<Proxy> query = new LambdaQueryWrapper<>();
         query.eq(Proxy::getCategory, category);
+        query.and(c -> c.isNull(Proxy::getExpiredTime).or().gt(Proxy::getExpiredTime, System.currentTimeMillis()));
         List<Proxy> proxies = proxyMapper.selectList(query);
         proxyCache.rebuild(proxies);
         return true;
@@ -96,6 +97,7 @@ public class ProxyServiceImpl implements ProxyService {
     public Proxy randomGet(int category) {
         ProxyCache proxyCache = proxyCacheMap.get(category);
         if (proxyCache == null) return null;
+        if (proxyCache.size() == 0) refresh(category);
         Proxy proxy = proxyCache.randomGet();
         while (proxy != null && proxy.isExpired()) {
             proxyCache.remove(proxy.id);
@@ -119,9 +121,11 @@ public class ProxyServiceImpl implements ProxyService {
         if (searchRequest.category != null) query.eq(Proxy::getCategory, searchRequest.category);
         if (searchRequest.expired != null) {
             long currentTime = System.currentTimeMillis();
-            if (!searchRequest.expired) query.gt(Proxy::getExpiredTime, currentTime);
+            if (!searchRequest.expired) {
+                query.and(c -> c.isNull(Proxy::getExpiredTime).or().gt(Proxy::getExpiredTime, currentTime));
+            }
             else {
-                query.lt(Proxy::getExpiredTime, currentTime).or().eq(Proxy::getExpiredTime, currentTime);
+                query.and(c -> c.lt(Proxy::getExpiredTime, currentTime).or().eq(Proxy::getExpiredTime, currentTime));
             }
         }
         IPage<Proxy> page = proxyMapper.selectPage(new Page<>(searchRequest.current, searchRequest.size), query);

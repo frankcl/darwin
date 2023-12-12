@@ -2,7 +2,10 @@ package xin.manong.darwin.spider;
 
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import xin.manong.darwin.common.Constants;
+import xin.manong.darwin.service.iface.ProxyService;
 
 /**
  * 爬虫配置信息
@@ -36,4 +39,26 @@ public class SpiderConfig {
     public String contentBucket;
     public String contentDirectory;
     public String tempDirectory;
+
+    /**
+     * 构建长效代理选择器
+     *
+     * @param proxyService 代理服务
+     * @return 长效代理选择器
+     */
+    @Bean(name = "spiderLongProxySelector")
+    public SpiderProxySelector buildSpiderLongProxySelector(ProxyService proxyService) {
+        return new SpiderProxySelector(Constants.PROXY_CATEGORY_LONG, proxyService);
+    }
+
+    /**
+     * 构建短效代理选择器
+     *
+     * @param proxyService 代理服务
+     * @return 短效代理选择器
+     */
+    @Bean(name = "spiderShortProxySelector")
+    public SpiderProxySelector buildSpiderShortProxySelector(ProxyService proxyService) {
+        return new SpiderProxySelector(Constants.PROXY_CATEGORY_SHORT, proxyService);
+    }
 }

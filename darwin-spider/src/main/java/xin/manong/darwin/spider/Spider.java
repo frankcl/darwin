@@ -71,7 +71,13 @@ public abstract class Spider {
     protected URLCompleteNotifier urlCompleteNotifier;
     @Resource
     protected JobCompleteNotifier jobCompleteNotifier;
-    protected HttpClient httpClient;
+    @Resource(name = "spiderLongProxySelector")
+    protected SpiderProxySelector spiderLongProxySelector;
+    @Resource(name = "spiderShortProxySelector")
+    protected SpiderProxySelector spiderShortProxySelector;
+    private HttpClient httpClient;
+    private HttpClient proxyLongHttpClient;
+    private HttpClient proxyShortHttpClient;
 
     public Spider(String category) {
         this.category = category;
@@ -109,17 +115,43 @@ public abstract class Spider {
     }
 
     /**
-     * 构建HTTPClient
+     * 获取HTTPClient
+     *
+     * @param fetchMethod 抓取方式
+     * @return HttpClient
      */
-    protected void buildHttpClient() {
-        if (httpClient != null) return;
+    protected HttpClient getHttpClient(Integer fetchMethod) {
+        if ((fetchMethod == null || (fetchMethod != Constants.FETCH_METHOD_LONG_PROXY &&
+                fetchMethod != Constants.FETCH_METHOD_SHORT_PROXY)) && httpClient != null) return httpClient;
+        if (fetchMethod != null && fetchMethod == Constants.FETCH_METHOD_LONG_PROXY &&
+                proxyLongHttpClient != null) return proxyLongHttpClient;
+        if (fetchMethod != null && fetchMethod == Constants.FETCH_METHOD_SHORT_PROXY &&
+                proxyShortHttpClient != null) return proxyShortHttpClient;
         HttpClientConfig httpClientConfig = new HttpClientConfig();
         httpClientConfig.connectTimeoutSeconds = config.connectTimeoutSeconds;
         httpClientConfig.readTimeoutSeconds = config.readTimeoutSeconds;
         httpClientConfig.keepAliveMinutes = config.keepAliveMinutes;
         httpClientConfig.maxIdleConnections = config.maxIdleConnections;
         httpClientConfig.retryCnt = config.retryCnt;
-        httpClient = new HttpClient(httpClientConfig);
+        synchronized (this) {
+            if (fetchMethod == null || (fetchMethod != Constants.FETCH_METHOD_LONG_PROXY &&
+                    fetchMethod != Constants.FETCH_METHOD_SHORT_PROXY)) {
+                if (httpClient != null) return httpClient;
+                httpClient = new HttpClient(httpClientConfig);
+                return httpClient;
+            }
+            if (fetchMethod != null && fetchMethod == Constants.FETCH_METHOD_LONG_PROXY) {
+                if (proxyLongHttpClient != null) return proxyLongHttpClient;
+                proxyLongHttpClient = new HttpClient(httpClientConfig, spiderLongProxySelector);
+                return proxyLongHttpClient;
+            }
+            if (fetchMethod != null && fetchMethod == Constants.FETCH_METHOD_SHORT_PROXY) {
+                if (proxyShortHttpClient != null) return proxyShortHttpClient;
+                proxyShortHttpClient = new HttpClient(httpClientConfig, spiderShortProxySelector);
+                return proxyShortHttpClient;
+            }
+            return null;
+        }
     }
 
     /**
@@ -176,7 +208,7 @@ public abstract class Spider {
      */
     protected SpiderResource fetch(URLRecord record, Context context) {
         try {
-            buildHttpClient();
+            HttpClient httpClient = getHttpClient(record.fetchMethod);
             HttpRequest httpRequest = new HttpRequest.Builder().requestURL(record.url).method(RequestMethod.GET).build();
             if (!StringUtils.isEmpty(config.userAgent)) httpRequest.headers.put(HEADER_USER_AGENT, config.userAgent);
             if (!StringUtils.isEmpty(record.parentURL)) httpRequest.headers.put(HEADER_REFERER, record.parentURL);

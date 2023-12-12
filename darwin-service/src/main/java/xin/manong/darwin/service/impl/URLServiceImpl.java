@@ -158,6 +158,7 @@ public class URLServiceImpl extends URLService {
         if (searchRequest.category != null) query.eq(URLRecord::getCategory, searchRequest.category);
         if (searchRequest.status != null) query.eq(URLRecord::getStatus, searchRequest.status);
         if (searchRequest.priority != null) query.eq(URLRecord::getPriority, searchRequest.priority);
+        if (searchRequest.fetchMethod != null) query.eq(URLRecord::getFetchMethod, searchRequest.fetchMethod);
         if (!StringUtils.isEmpty(searchRequest.jobId)) query.eq(URLRecord::getJobId, searchRequest.jobId);
         if (!StringUtils.isEmpty(searchRequest.planId)) query.eq(URLRecord::getPlanId, searchRequest.planId);
         if (!StringUtils.isEmpty(searchRequest.url)) query.eq(URLRecord::getHash, DigestUtils.md5Hex(searchRequest.url));

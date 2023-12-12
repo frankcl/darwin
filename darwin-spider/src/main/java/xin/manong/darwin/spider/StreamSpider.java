@@ -10,6 +10,7 @@ import org.springframework.stereotype.Component;
 import xin.manong.darwin.common.Constants;
 import xin.manong.darwin.common.model.URLRecord;
 import xin.manong.weapon.base.common.Context;
+import xin.manong.weapon.base.http.HttpClient;
 import xin.manong.weapon.base.http.HttpRequest;
 import xin.manong.weapon.base.http.RequestMethod;
 
@@ -118,7 +119,7 @@ public class StreamSpider extends Spider {
      * @return 成功返回M3U8元数据，否则返回null
      */
     private String fetchM3U8Meta(URLRecord record, Context context) {
-        buildHttpClient();
+        HttpClient httpClient = getHttpClient(record.fetchMethod);
         HttpRequest httpRequest = new HttpRequest.Builder().requestURL(record.url).
                 method(RequestMethod.GET).build();
         Response httpResponse = httpClient.execute(httpRequest);

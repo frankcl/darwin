@@ -122,6 +122,14 @@ public class Plan extends BasicModel {
     public Integer category;
 
     /**
+     * 抓取方式
+     */
+    @TableField(value = "fetch_method")
+    @JSONField(name = "fetch_method")
+    @JsonProperty("fetch_method")
+    public Integer fetchMethod;
+
+    /**
      * 规则ID列表
      */
     @TableField(value = "rule_ids", typeHandler = JSONListIntegerTypeHandler.class)
@@ -150,6 +158,7 @@ public class Plan extends BasicModel {
         job.avoidRepeatedFetch = avoidRepeatedFetch == null ? true : avoidRepeatedFetch;
         job.priority = priority == null ? Constants.PRIORITY_NORMAL : priority;
         job.status = Constants.JOB_STATUS_RUNNING;
+        job.fetchMethod = fetchMethod;
         job.jobId = RandomID.build();
         job.name = String.format("%s_%s", name, CommonUtil.timeToString(System.currentTimeMillis(), DATE_TIME_FORMAT));
         job.ruleIds = ruleIds;
@@ -160,6 +169,7 @@ public class Plan extends BasicModel {
             seedRecord.jobId = job.jobId;
             seedRecord.planId = job.planId;
             seedRecord.status = Constants.URL_STATUS_CREATED;
+            if (seedRecord.fetchMethod == null) seedRecord.fetchMethod = job.fetchMethod;
             if (seedRecord.category == null) seedRecord.category = Constants.CONTENT_CATEGORY_CONTENT;
             if (seedRecord.concurrentLevel == null) seedRecord.concurrentLevel = Constants.CONCURRENT_LEVEL_DOMAIN;
             if (seedRecord.priority == null) {
@@ -201,11 +211,15 @@ public class Plan extends BasicModel {
             return false;
         }
         if (!Constants.SUPPORT_PLAN_CATEGORIES.containsKey(category)) {
-            logger.error("not support plan category[{}]", category);
+            logger.error("not supported plan category[{}]", category);
             return false;
         }
         if (!Constants.SUPPORT_PLAN_STATUSES.containsKey(status)) {
-            logger.error("not support plan status[{}]", status);
+            logger.error("not supported plan status[{}]", status);
+            return false;
+        }
+        if (fetchMethod != null && !Constants.SUPPORT_FETCH_METHODS.containsKey(fetchMethod)) {
+            logger.error("not supported fetch method[{}]", fetchMethod);
             return false;
         }
         if (category == Constants.PLAN_CATEGORY_PERIOD && (StringUtils.isEmpty(crontabExpression) ||

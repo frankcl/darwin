@@ -48,9 +48,9 @@
         <oss.version>3.15.0</oss.version>
         <ons-client.version>1.8.0.Final</ons-client.version>
         <tablestore.version>5.13.10</tablestore.version>
-        <shaman-configmap.version>1.0.9</shaman-configmap.version>
-        <shaman-dynamic-secret-listener.version>1.0.0-SNAPSHOT</shaman-dynamic-secret-listener.version>
-        <weapon.version>0.1.8</weapon.version>
+        <shaman-configmap.version>1.1.1</shaman-configmap.version>
+        <shaman-dynamic-secret-listener.version>1.0.1-SNAPSHOT</shaman-dynamic-secret-listener.version>
+        <weapon.version>0.1.9</weapon.version>
         <security-keeper.version>0.0.1</security-keeper.version>
         <darwin.version>0.0.1</darwin.version>
     </properties>

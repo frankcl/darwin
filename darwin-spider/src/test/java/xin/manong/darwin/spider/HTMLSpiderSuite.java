@@ -106,6 +106,7 @@ public class HTMLSpiderSuite {
             String url = "http://politics.people.com.cn/n1/2023/0406/c1001-32658085.html";
             URLRecord record = new URLRecord(url);
             record.category = Constants.CONTENT_CATEGORY_CONTENT;
+            record.fetchMethod = Constants.FETCH_METHOD_LONG_PROXY;
             record.jobId = "aaa";
             record.planId = "xxx";
             record.appId = 1;

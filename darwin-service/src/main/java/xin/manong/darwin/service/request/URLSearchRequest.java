@@ -29,6 +29,11 @@ public class URLSearchRequest extends SearchRequest {
     @JsonProperty("category")
     public Integer category;
     /**
+     * 抓取方式：正常抓取0，长效代理1，短效代理2，渲染3
+     */
+    @JsonProperty("fetch_method")
+    public Integer fetchMethod;
+    /**
      * URL地址
      */
     @JsonProperty("url")

@@ -61,6 +61,15 @@ public class Job extends BasicModel {
     public Integer status;
 
     /**
+     * 抓取方式
+     */
+    @TableField(value = "fetch_method")
+    @Column(name = "fetch_method")
+    @JSONField(name = "fetch_method")
+    @JsonProperty("fetch_method")
+    public Integer fetchMethod;
+
+    /**
      * 任务优先级
      */
     @TableField(value = "priority")
@@ -150,6 +159,10 @@ public class Job extends BasicModel {
         }
         if (seedURLs == null || seedURLs.isEmpty()) {
             logger.error("seed url list are empty");
+            return false;
+        }
+        if (fetchMethod != null && !Constants.SUPPORT_FETCH_METHODS.containsKey(fetchMethod)) {
+            logger.error("not supported fetch method[{}]", fetchMethod);
             return false;
         }
         if (status == null) status = Constants.JOB_STATUS_RUNNING;

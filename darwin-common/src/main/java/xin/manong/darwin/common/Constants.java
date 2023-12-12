@@ -70,12 +70,14 @@ public class Constants {
      * 抓取方式
      */
     public static final int FETCH_METHOD_COMMON = 0;                //普通抓取
-    public static final int FETCH_METHOD_PROXY = 1;                 //代理抓取
-    public static final int FETCH_METHOD_HEADLESS_RENDER = 2;       //无头渲染
+    public static final int FETCH_METHOD_LONG_PROXY = 1;            //长效代理抓取
+    public static final int FETCH_METHOD_SHORT_PROXY = 2;           //短效代理抓取
+    public static final int FETCH_METHOD_RENDER = 3;                //渲染
     public static final Map<Integer, String> SUPPORT_FETCH_METHODS = new HashMap<Integer, String>() {{
        put(FETCH_METHOD_COMMON, "普通抓取");
-       put(FETCH_METHOD_PROXY, "代理抓取");
-       put(FETCH_METHOD_HEADLESS_RENDER, "无头渲染");
+       put(FETCH_METHOD_LONG_PROXY, "长效代理抓取");
+       put(FETCH_METHOD_SHORT_PROXY, "短效代理抓取");
+       put(FETCH_METHOD_RENDER, "渲染");
     }};
 
     /**
