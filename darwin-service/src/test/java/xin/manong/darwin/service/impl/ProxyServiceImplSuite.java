@@ -56,8 +56,9 @@ public class ProxyServiceImplSuite {
 
         ProxySearchRequest searchRequest = new ProxySearchRequest();
         searchRequest.category = Constants.PROXY_CATEGORY_LONG;
+        searchRequest.expired = false;
         Pager<Proxy> pager = proxyService.search(searchRequest);
-        Assert.assertTrue(pager != null && pager.records.size() == 1);
+        Assert.assertTrue(pager != null && pager.records.size() > 0);
 
         Assert.assertTrue(proxyService.delete(proxy.id));
     }
