@@ -94,6 +94,13 @@ public class ProxyServiceImpl implements ProxyService {
     }
 
     @Override
+    public int deleteExpired() {
+        LambdaQueryWrapper<Proxy> query = new LambdaQueryWrapper<>();
+        query.lt(Proxy::getExpiredTime, System.currentTimeMillis());
+        return proxyMapper.delete(query);
+    }
+
+    @Override
     public Proxy randomGet(int category) {
         ProxyCache proxyCache = proxyCacheMap.get(category);
         if (proxyCache == null) return null;
@@ -114,6 +121,13 @@ public class ProxyServiceImpl implements ProxyService {
             if (proxyCache != null && !proxyCache.contains(proxy.id)) proxyCache.add(proxy);
         }
         return proxy;
+    }
+
+    @Override
+    public Proxy get(String address, int port) {
+        LambdaQueryWrapper<Proxy> query = new LambdaQueryWrapper<>();
+        query.eq(Proxy::getAddress, address).eq(Proxy::getPort, port);
+        return proxyMapper.selectOne(query);
     }
 
     @Override

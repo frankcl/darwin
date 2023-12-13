@@ -1,6 +1,8 @@
 package xin.manong.darwin.service.impl;
 
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import xin.manong.darwin.common.model.Proxy;
 
 import java.util.*;
@@ -13,6 +15,8 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
  * @date 2023-12-11 17:27:10
  */
 public class ProxyCache {
+
+    private static final Logger logger = LoggerFactory.getLogger(ProxyCache.class);
 
     private Random random;
     private ReentrantReadWriteLock readWriteLock;
@@ -136,6 +140,8 @@ public class ProxyCache {
         List<Proxy> newProxies = new ArrayList<>(proxies);
         Map<Integer, Proxy> newProxyMap = new HashMap<>();
         for (Proxy proxy : proxies) newProxyMap.put(proxy.id, proxy);
+        logger.info("rebuild proxy cache success, proxy count[{}], previous count[{}]",
+                newProxies.size(), this.proxies.size());
         this.proxies = newProxies;
         this.proxyMap = newProxyMap;
     }

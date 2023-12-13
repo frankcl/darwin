@@ -21,14 +21,11 @@ import java.util.Set;
  * @author frankcl
  * @date 2023-03-07 17:57:48
  */
-public class MultiQueueMonitor implements Runnable {
+public class MultiQueueMonitor extends ExecuteMonitor {
 
     private static final Logger logger = LoggerFactory.getLogger(MultiQueueMonitor.class);
 
-    private volatile boolean running;
-    private long checkTimeIntervalMs;
     private long expiredTimeIntervalMs;
-    private Thread thread;
     private Set<Integer> updateStatusList;
     @Resource
     protected URLService urlService;
@@ -38,57 +35,17 @@ public class MultiQueueMonitor implements Runnable {
     protected JobCompleteNotifier jobCompleteNotifier;
 
     public MultiQueueMonitor(long checkTimeIntervalMs, long expiredTimeIntervalMs) {
-        this.running = false;
-        this.checkTimeIntervalMs = checkTimeIntervalMs;
+        super(checkTimeIntervalMs);
         this.expiredTimeIntervalMs = expiredTimeIntervalMs;
         this.updateStatusList = new HashSet<>();
         this.updateStatusList.add(Constants.URL_STATUS_FETCHING);
         this.updateStatusList.add(Constants.URL_STATUS_QUEUING);
     }
 
-    /**
-     * 启动监控
-     *
-     * @return 成功返回true，否则返回false
-     */
-    public boolean start() {
-        logger.info("{} monitor is starting ...", this.getClass().getSimpleName());
-        running = true;
-        thread = new Thread(this, this.getClass().getSimpleName());
-        thread.start();
-        logger.info("{} monitor has been started", this.getClass().getSimpleName());
-        return true;
-    }
-
-    /**
-     * 停止监控
-     */
-    public void stop() {
-        logger.info("{} is stopping", this.getClass().getSimpleName());
-        running = false;
-        if (thread.isAlive()) {
-            thread.interrupt();
-            try {
-                thread.join();
-            } catch (InterruptedException e) {
-                logger.error(e.getMessage(), e);
-            }
-        }
-        logger.info("{} has been stopped", this.getClass().getSimpleName());
-    }
-
     @Override
-    public void run() {
-        while (running) {
-            try {
-                sweepExpiredJobs();
-                sweepExpiredConcurrentUnits();
-                logger.info("finish sweeping, sleep {} seconds", checkTimeIntervalMs / 1000);
-                Thread.sleep(checkTimeIntervalMs);
-            } catch (Exception e) {
-                logger.error(e.getMessage(), e);
-            }
-        }
+    public void execute() throws Exception {
+        sweepExpiredJobs();
+        sweepExpiredConcurrentUnits();
     }
 
     /**

@@ -46,6 +46,13 @@ public interface ProxyService {
     Boolean refreshCache(int category);
 
     /**
+     * 删除过期代理
+     *
+     * @return 删除代理数量
+     */
+    int deleteExpired();
+
+    /**
      * 随机获取代理
      * 代理分类：长效代理1；短效代理2
      *
@@ -54,7 +61,22 @@ public interface ProxyService {
      */
     Proxy randomGet(int category);
 
+    /**
+     * 根据ID获取代理
+     *
+     * @param id 代理ID
+     * @return 成功返回代理，否则返回null
+     */
     Proxy get(int id);
+
+    /**
+     * 根据地址和端口获取代理
+     *
+     * @param address 地址
+     * @param port 端口
+     * @return 成功返回代理，否则返回null
+     */
+    Proxy get(String address, int port);
 
     /**
      * 搜素代理

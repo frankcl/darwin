@@ -24,6 +24,7 @@ weapon:
 
 app:
   service:
+    refreshProxyTimeIntervalMs: 300000
     cache:
       ruleCacheNum: 100
       ruleExpiredMinutes: 5
