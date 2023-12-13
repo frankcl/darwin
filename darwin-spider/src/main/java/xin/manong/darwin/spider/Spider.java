@@ -211,6 +211,10 @@ public abstract class Spider {
             String host = CommonUtil.getHost(record.url);
             if (!StringUtils.isEmpty(host) && !CommonUtil.isIP(host)) httpRequest.headers.put(HEADER_HOST, host);
             if (record.headers != null && !record.headers.isEmpty()) httpRequest.headers.putAll(record.headers);
+            if (record.timeout != null && record.timeout > 0) {
+                httpRequest.connectTimeoutMs = record.timeout;
+                httpRequest.readTimeoutMs = record.timeout;
+            }
             Response httpResponse = httpClient.execute(httpRequest);
             if (httpResponse == null || !httpResponse.isSuccessful()) {
                 context.put(Constants.DARWIN_DEBUG_MESSAGE, "执行HTTP请求失败");

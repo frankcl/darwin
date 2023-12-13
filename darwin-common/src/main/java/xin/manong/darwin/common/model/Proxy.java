@@ -96,6 +96,16 @@ public class Proxy extends BasicModel {
         return currentTime >= expiredTime;
     }
 
+    @Override
+    public String toString() {
+        StringBuffer buffer = new StringBuffer("http://");
+        if (!StringUtils.isEmpty(username) && !StringUtils.isEmpty(password)) {
+            buffer.append(username).append(":").append(password).append("@");
+        }
+        buffer.append(address).append(":").append(port);
+        return buffer.toString();
+    }
+
     /**
      * 检测有效性
      *

@@ -318,6 +318,16 @@ public class URLRecord extends BasicModel {
     }
 
     /**
+     * 是否使用代理抓取
+     *
+     * @return 使用代理返回true，否则返回false
+     */
+    public boolean useProxy() {
+        return fetchMethod != null && (fetchMethod == Constants.FETCH_METHOD_LONG_PROXY ||
+                fetchMethod == Constants.FETCH_METHOD_SHORT_PROXY);
+    }
+
+    /**
      * 检测有效性
      *
      * @return 有效返回true，否则返回false

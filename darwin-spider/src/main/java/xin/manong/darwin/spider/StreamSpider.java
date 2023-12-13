@@ -8,7 +8,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import xin.manong.darwin.common.Constants;
+import xin.manong.darwin.common.model.Proxy;
 import xin.manong.darwin.common.model.URLRecord;
+import xin.manong.darwin.service.iface.ProxyService;
 import xin.manong.weapon.base.common.Context;
 import xin.manong.weapon.base.http.HttpClient;
 import xin.manong.weapon.base.http.HttpRequest;
@@ -37,6 +39,8 @@ public class StreamSpider extends Spider {
     private String ffmpeg;
     @Resource
     protected SpiderConfig config;
+    @Resource
+    protected ProxyService proxyService;
 
     public StreamSpider() {
         super(CATEGORY);
@@ -92,11 +96,15 @@ public class StreamSpider extends Spider {
         Process process = null;
         try {
             createTempDirectory();
-            List<String> commands = buildFFMPEGCommands(record.url, tempFile);
+            List<String> commands = buildFFMPEGCommands(record, tempFile);
             ProcessBuilder processBuilder = new ProcessBuilder();
             process = processBuilder.inheritIO().command(commands).start();
             int returnCode = process.waitFor();
-            if (returnCode == 0) return true;
+            if (returnCode == 0) {
+                logger.error("execute ffmpeg command[{}] success",
+                        String.join(" ", commands.toArray(new String[0])));
+                return true;
+            }
             context.put(Constants.DARWIN_DEBUG_MESSAGE, String.format("ffmpeg抓取直播流失败，返回码[%d]", returnCode));
             logger.error("execute ffmpeg command[{}] failed for code[{}]",
                     String.join(" ", commands.toArray(new String[0])), returnCode);
@@ -122,6 +130,10 @@ public class StreamSpider extends Spider {
         HttpClient httpClient = getHttpClient(record.fetchMethod);
         HttpRequest httpRequest = new HttpRequest.Builder().requestURL(record.url).
                 method(RequestMethod.GET).build();
+        if (record.timeout != null && record.timeout > 0) {
+            httpRequest.connectTimeoutMs = record.timeout;
+            httpRequest.readTimeoutMs = record.timeout;
+        }
         Response httpResponse = httpClient.execute(httpRequest);
         try {
             if (httpResponse == null || !httpResponse.isSuccessful()) {
@@ -147,19 +159,34 @@ public class StreamSpider extends Spider {
     /**
      * 构建FFMPEG命令
      *
-     * @param m3u8URL m3u8地址
+     * @param record URL记录
      * @param tempFilePath 本地临时文件地址
      * @return 命令
      */
-    private List<String> buildFFMPEGCommands(String m3u8URL, String tempFilePath) {
+    private List<String> buildFFMPEGCommands(URLRecord record, String tempFilePath) {
         List<String> commands = new ArrayList<>();
         commands.add(ffmpeg);
         commands.add("-user_agent");
         commands.add(config.userAgent);
+        addProxyOptions(commands, record);
         commands.add("-i");
-        commands.add(m3u8URL);
+        commands.add(record.url);
         commands.add(tempFilePath);
         return commands;
+    }
+
+    /**
+     * 添加代理选项
+     *
+     * @param commands FFMPEG命令
+     * @param record URL记录
+     */
+    private void addProxyOptions(List<String> commands, URLRecord record) {
+        if (!record.useProxy()) return;
+        Proxy proxy = proxyService.randomGet(record.fetchMethod);
+        if (proxy == null) return;
+        commands.add("-http_proxy");
+        commands.add(proxy.toString());
     }
 
     /**
