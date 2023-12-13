@@ -41,9 +41,10 @@ public class ProxyMonitor extends ExecuteMonitor {
                 Proxy proxy = proxyService.get(newProxy.address, newProxy.port);
                 if (proxy != null) proxyService.delete(proxy.id);
                 proxyService.add(newProxy);
+                logger.info("add new short proxy[{}] success", newProxy);
                 addCount++;
             } catch (Exception e) {
-                logger.error("add new short proxy failed");
+                logger.error("add new short proxy[{}] failed", newProxy);
                 logger.error(e.getMessage(), e);
             }
         }
