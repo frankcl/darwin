@@ -19,15 +19,14 @@ import xin.manong.darwin.service.request.URLSearchRequest;
 import xin.manong.weapon.aliyun.oss.OSSClient;
 import xin.manong.weapon.aliyun.oss.OSSMeta;
 import xin.manong.weapon.base.common.Context;
-import xin.manong.weapon.base.http.HttpClient;
-import xin.manong.weapon.base.http.HttpClientConfig;
-import xin.manong.weapon.base.http.HttpRequest;
-import xin.manong.weapon.base.http.RequestMethod;
+import xin.manong.weapon.base.http.*;
 import xin.manong.weapon.base.log.JSONLogger;
 import xin.manong.weapon.base.util.CommonUtil;
 
 import javax.annotation.Resource;
 import java.io.InputStream;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * 爬虫抽象实现
@@ -75,12 +74,13 @@ public abstract class Spider {
     protected SpiderProxySelector spiderLongProxySelector;
     @Resource(name = "spiderShortProxySelector")
     protected SpiderProxySelector spiderShortProxySelector;
-    private HttpClient httpClient;
-    private HttpClient proxyLongHttpClient;
-    private HttpClient proxyShortHttpClient;
+    private HttpProxyAuthenticator authenticator;
+    private Map<Integer, HttpClient> httpClientMap;
 
     public Spider(String category) {
         this.category = category;
+        this.authenticator = new HttpProxyAuthenticator();
+        this.httpClientMap = new ConcurrentHashMap<>();
     }
 
     /**
@@ -115,42 +115,38 @@ public abstract class Spider {
     }
 
     /**
-     * 获取HTTPClient
+     * 根据抓取方式获取HTTPClient
+     * 1. 长效代理HttpClient
+     * 2. 短效代理HttpClient
+     * 3. 本地IP HttpClient
      *
      * @param fetchMethod 抓取方式
      * @return HttpClient
      */
     protected HttpClient getHttpClient(Integer fetchMethod) {
-        if ((fetchMethod == null || (fetchMethod != Constants.FETCH_METHOD_LONG_PROXY &&
-                fetchMethod != Constants.FETCH_METHOD_SHORT_PROXY)) && httpClient != null) return httpClient;
-        if (fetchMethod != null && fetchMethod == Constants.FETCH_METHOD_LONG_PROXY &&
-                proxyLongHttpClient != null) return proxyLongHttpClient;
-        if (fetchMethod != null && fetchMethod == Constants.FETCH_METHOD_SHORT_PROXY &&
-                proxyShortHttpClient != null) return proxyShortHttpClient;
-        HttpClientConfig httpClientConfig = new HttpClientConfig();
-        httpClientConfig.connectTimeoutSeconds = config.connectTimeoutSeconds;
-        httpClientConfig.readTimeoutSeconds = config.readTimeoutSeconds;
-        httpClientConfig.keepAliveMinutes = config.keepAliveMinutes;
-        httpClientConfig.maxIdleConnections = config.maxIdleConnections;
-        httpClientConfig.retryCnt = config.retryCnt;
+        int category = fetchMethod == null ? Constants.FETCH_METHOD_COMMON : fetchMethod;
+        if (category != Constants.FETCH_METHOD_LONG_PROXY && category != Constants.FETCH_METHOD_SHORT_PROXY) {
+            category = Constants.FETCH_METHOD_COMMON;
+        }
+        if (httpClientMap.containsKey(category)) return httpClientMap.get(category);
         synchronized (this) {
-            if (fetchMethod == null || (fetchMethod != Constants.FETCH_METHOD_LONG_PROXY &&
-                    fetchMethod != Constants.FETCH_METHOD_SHORT_PROXY)) {
-                if (httpClient != null) return httpClient;
+            if (httpClientMap.containsKey(category)) return httpClientMap.get(category);
+            HttpClientConfig httpClientConfig = new HttpClientConfig();
+            httpClientConfig.connectTimeoutSeconds = config.connectTimeoutSeconds;
+            httpClientConfig.readTimeoutSeconds = config.readTimeoutSeconds;
+            httpClientConfig.keepAliveMinutes = config.keepAliveMinutes;
+            httpClientConfig.maxIdleConnections = config.maxIdleConnections;
+            httpClientConfig.retryCnt = config.retryCnt;
+            HttpClient httpClient;
+            if (category == Constants.FETCH_METHOD_LONG_PROXY) {
+                httpClient = new HttpClient(httpClientConfig, spiderLongProxySelector, authenticator);
+            } else if (category == Constants.FETCH_METHOD_SHORT_PROXY) {
+                httpClient = new HttpClient(httpClientConfig, spiderShortProxySelector, authenticator);
+            } else {
                 httpClient = new HttpClient(httpClientConfig);
-                return httpClient;
             }
-            if (fetchMethod != null && fetchMethod == Constants.FETCH_METHOD_LONG_PROXY) {
-                if (proxyLongHttpClient != null) return proxyLongHttpClient;
-                proxyLongHttpClient = new HttpClient(httpClientConfig, spiderLongProxySelector);
-                return proxyLongHttpClient;
-            }
-            if (fetchMethod != null && fetchMethod == Constants.FETCH_METHOD_SHORT_PROXY) {
-                if (proxyShortHttpClient != null) return proxyShortHttpClient;
-                proxyShortHttpClient = new HttpClient(httpClientConfig, spiderShortProxySelector);
-                return proxyShortHttpClient;
-            }
-            return null;
+            httpClientMap.put(category, httpClient);
+            return httpClient;
         }
     }
 

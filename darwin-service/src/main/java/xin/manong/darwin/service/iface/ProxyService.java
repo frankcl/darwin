@@ -43,7 +43,7 @@ public interface ProxyService {
      * @param category 代理分类
      * @return 成功返回true，否则返回false
      */
-    Boolean refresh(int category);
+    Boolean refreshCache(int category);
 
     /**
      * 随机获取代理

@@ -36,6 +36,16 @@ public class ProxyCache {
     }
 
     /**
+     * 是否包含代理
+     *
+     * @param id 代理ID
+     * @return 包含返回true，否则返回false
+     */
+    public boolean contains(int id) {
+        return proxyMap.containsKey(id);
+    }
+
+    /**
      * 随机获取代理
      *
      * @return 代理
