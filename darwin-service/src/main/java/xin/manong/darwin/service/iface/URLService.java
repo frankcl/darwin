@@ -1,5 +1,6 @@
 package xin.manong.darwin.service.iface;
 
+import com.alibaba.fastjson.JSON;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.RemovalNotification;
@@ -10,10 +11,12 @@ import xin.manong.darwin.common.Constants;
 import xin.manong.darwin.common.model.Pager;
 import xin.manong.darwin.common.model.RangeValue;
 import xin.manong.darwin.common.model.URLRecord;
+import xin.manong.darwin.service.component.ExcelWriter;
 import xin.manong.darwin.service.config.CacheConfig;
 import xin.manong.darwin.service.request.URLSearchRequest;
 
-import java.util.Optional;
+import java.io.IOException;
+import java.util.*;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
@@ -29,6 +32,19 @@ public abstract class URLService {
 
     protected CacheConfig cacheConfig;
     protected Cache<String, Optional<URLRecord>> recordCache;
+    protected static List<String> EXPORT_COLUMNS = new ArrayList<String>() {{
+        add("key");
+        add("url");
+        add("redirect_url");
+        add("parent_url");
+        add("job_id");
+        add("plan_id");
+        add("fetch_time");
+        add("status");
+        add("http_code");
+        add("user_defined_map");
+        add("field_map");
+    }};
 
     public URLService(CacheConfig cacheConfig) {
         this.cacheConfig = cacheConfig;
@@ -137,4 +153,34 @@ public abstract class URLService {
      * @return 搜索列表
      */
     public abstract Pager<URLRecord> search(URLSearchRequest searchRequest);
+
+    /**
+     * 导出URL
+     * 最多导出10000条记录
+     *
+     * @param searchRequest 搜索请求
+     * @return 成功返回ExcelWriter，否则返回null
+     * @throws IOException
+     */
+    public ExcelWriter export(URLSearchRequest searchRequest) throws IOException {
+        int current = 1, size = 100;
+        if (searchRequest == null) searchRequest = new URLSearchRequest();
+        searchRequest.current = current;
+        searchRequest.size = size;
+        ExcelWriter writer = new ExcelWriter();
+        String sheetName = "URL";
+        writer.createSheet(sheetName, EXPORT_COLUMNS);
+        int exportCount = 0;
+        while (true) {
+            Pager<URLRecord> pager = search(searchRequest);
+            for (URLRecord record : pager.records) {
+                Map<String, Object> data = JSON.parseObject(JSON.toJSONString(record));
+                writer.write(sheetName, data);
+                if (++exportCount >= 10000) break;
+            }
+            if (pager.records.size() < size) break;
+            searchRequest.current++;
+        }
+        return writer;
+    }
 }

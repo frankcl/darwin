@@ -11,12 +11,16 @@ import org.springframework.web.bind.annotation.RestController;
 import xin.manong.darwin.common.Constants;
 import xin.manong.darwin.common.model.Pager;
 import xin.manong.darwin.common.model.URLRecord;
+import xin.manong.darwin.service.component.ExcelWriter;
 import xin.manong.darwin.service.iface.URLService;
 import xin.manong.darwin.service.request.URLSearchRequest;
 
 import javax.annotation.Resource;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.StreamingOutput;
+import java.io.IOException;
 
 /**
  * URL链接控制器
@@ -31,6 +35,12 @@ import javax.ws.rs.core.MediaType;
 public class URLController {
 
     private static final Logger logger = LoggerFactory.getLogger(URLController.class);
+
+    private static final String HEADER_CONTENT_DISPOSITION = "Content-disposition";
+    private static final String HEADER_CACHE_CONTROL = "Cache-Control";
+
+    private static final String CACHE_CONTROL_VALUE_NO_CACHE = "no-cache";
+    private static final String CONTENT_DISPOSITION_VALUE = "attachment;filename=export.xlsx";
 
     @Resource
     protected URLService urlService;
@@ -69,5 +79,30 @@ public class URLController {
         if (request.current == null || request.current < 1) request.current = Constants.DEFAULT_CURRENT;
         if (request.size == null || request.size <= 0) request.size = Constants.DEFAULT_PAGE_SIZE;
         return urlService.search(request);
+    }
+
+    /**
+     * 导出URL
+     *
+     * @param request 搜索请求
+     * @return 响应
+     * @throws IOException
+     */
+    @POST
+    @Path("export")
+    @PostMapping("export")
+    @Produces(MediaType.APPLICATION_OCTET_STREAM)
+    @Consumes(MediaType.APPLICATION_JSON)
+    public Response export(URLSearchRequest request) throws IOException {
+        if (request == null) request = new URLSearchRequest();
+        ExcelWriter writer = urlService.export(request);
+        if (writer == null) throw new RuntimeException("导出数据失败");
+        StreamingOutput output = outputStream -> {
+            writer.export(outputStream);
+            outputStream.flush();
+        };
+        return Response.ok(output).
+                header(HEADER_CACHE_CONTROL, CACHE_CONTROL_VALUE_NO_CACHE).
+                header(HEADER_CONTENT_DISPOSITION, CONTENT_DISPOSITION_VALUE).build();
     }
 }
