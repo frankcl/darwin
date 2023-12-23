@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.RestController;
 import xin.manong.darwin.common.Constants;
 import xin.manong.darwin.common.model.Pager;
 import xin.manong.darwin.common.model.URLRecord;
-import xin.manong.darwin.service.component.ExcelWriter;
+import xin.manong.darwin.service.component.ExcelBuilder;
 import xin.manong.darwin.service.iface.URLService;
 import xin.manong.darwin.service.request.URLSearchRequest;
 import xin.manong.weapon.spring.web.ws.aspect.EnableWebLogAspect;
@@ -98,10 +98,10 @@ public class URLController {
     @Consumes(MediaType.APPLICATION_JSON)
     public Response export(URLSearchRequest request) throws IOException {
         if (request == null) request = new URLSearchRequest();
-        ExcelWriter writer = urlService.export(request);
-        if (writer == null) throw new RuntimeException("导出数据失败");
+        ExcelBuilder builder = urlService.export(request);
+        if (builder == null) throw new RuntimeException("导出数据失败");
         StreamingOutput output = outputStream -> {
-            writer.export(outputStream);
+            builder.export(outputStream);
             outputStream.flush();
         };
         return Response.ok(output).

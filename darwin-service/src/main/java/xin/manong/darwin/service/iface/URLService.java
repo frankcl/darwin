@@ -11,7 +11,7 @@ import xin.manong.darwin.common.Constants;
 import xin.manong.darwin.common.model.Pager;
 import xin.manong.darwin.common.model.RangeValue;
 import xin.manong.darwin.common.model.URLRecord;
-import xin.manong.darwin.service.component.ExcelWriter;
+import xin.manong.darwin.service.component.ExcelBuilder;
 import xin.manong.darwin.service.config.CacheConfig;
 import xin.manong.darwin.service.request.URLSearchRequest;
 
@@ -159,28 +159,28 @@ public abstract class URLService {
      * 最多导出10000条记录
      *
      * @param searchRequest 搜索请求
-     * @return 成功返回ExcelWriter，否则返回null
+     * @return 成功返回ExcelBuilder，否则返回null
      * @throws IOException
      */
-    public ExcelWriter export(URLSearchRequest searchRequest) throws IOException {
+    public ExcelBuilder export(URLSearchRequest searchRequest) throws IOException {
         int current = 1, size = 100;
         if (searchRequest == null) searchRequest = new URLSearchRequest();
         searchRequest.current = current;
         searchRequest.size = size;
-        ExcelWriter writer = new ExcelWriter();
+        ExcelBuilder builder = new ExcelBuilder();
         String sheetName = "URL";
-        writer.createSheet(sheetName, EXPORT_COLUMNS);
+        builder.createSheet(sheetName, EXPORT_COLUMNS);
         int exportCount = 0;
         while (true) {
             Pager<URLRecord> pager = search(searchRequest);
             for (URLRecord record : pager.records) {
                 Map<String, Object> data = JSON.parseObject(JSON.toJSONString(record));
-                writer.write(sheetName, data);
+                builder.add(sheetName, data);
                 if (++exportCount >= 10000) break;
             }
             if (pager.records.size() < size) break;
             searchRequest.current++;
         }
-        return writer;
+        return builder;
     }
 }
