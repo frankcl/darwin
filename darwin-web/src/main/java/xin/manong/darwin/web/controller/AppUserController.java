@@ -11,6 +11,7 @@ import xin.manong.darwin.service.iface.AppUserService;
 import xin.manong.darwin.service.request.AppUserSearchRequest;
 import xin.manong.darwin.web.convert.Converter;
 import xin.manong.darwin.web.request.AppUserRequest;
+import xin.manong.weapon.spring.web.ws.aspect.EnableWebLogAspect;
 
 import javax.annotation.Resource;
 import javax.ws.rs.*;
@@ -45,6 +46,7 @@ public class AppUserController {
     @Produces(MediaType.APPLICATION_JSON)
     @Path("getAppUsers")
     @GetMapping("getAppUsers")
+    @EnableWebLogAspect
     public Pager<AppUser> getAppUsers(@QueryParam("app_id") Integer appId,
                                       @QueryParam("current") Integer current,
                                       @QueryParam("size") Integer size) {
@@ -73,6 +75,7 @@ public class AppUserController {
     @Produces(MediaType.APPLICATION_JSON)
     @Path("add")
     @PutMapping("add")
+    @EnableWebLogAspect
     public Boolean add(AppUserRequest request) {
         if (request == null) {
             logger.error("app user relation is null");
@@ -93,6 +96,7 @@ public class AppUserController {
     @Produces(MediaType.APPLICATION_JSON)
     @Path("delete")
     @DeleteMapping("delete")
+    @EnableWebLogAspect
     public Boolean delete(@QueryParam("id") Integer id) {
         if (id == null) {
             logger.error("missing param[id]");

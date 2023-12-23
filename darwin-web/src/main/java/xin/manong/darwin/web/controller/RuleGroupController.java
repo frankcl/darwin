@@ -12,6 +12,7 @@ import xin.manong.darwin.service.iface.RuleGroupService;
 import xin.manong.darwin.web.convert.Converter;
 import xin.manong.darwin.web.request.RuleGroupRequest;
 import xin.manong.darwin.web.request.RuleGroupUpdateRequest;
+import xin.manong.weapon.spring.web.ws.aspect.EnableWebLogAspect;
 
 import javax.annotation.Resource;
 import javax.ws.rs.*;
@@ -46,6 +47,7 @@ public class RuleGroupController {
     @Produces(MediaType.APPLICATION_JSON)
     @Path("search")
     @GetMapping("search")
+    @EnableWebLogAspect
     public Pager<RuleGroup> search(@QueryParam("name") String name,
                                    @QueryParam("current") Integer current,
                                    @QueryParam("size") Integer size) {
@@ -69,6 +71,7 @@ public class RuleGroupController {
     @Produces(MediaType.APPLICATION_JSON)
     @Path("list")
     @GetMapping("list")
+    @EnableWebLogAspect
     public Pager<RuleGroup> list(@QueryParam("current") Integer current,
                                  @QueryParam("size") Integer size) {
         if (current == null || current < 1) current = Constants.DEFAULT_CURRENT;
@@ -86,6 +89,7 @@ public class RuleGroupController {
     @Produces(MediaType.APPLICATION_JSON)
     @Path("get")
     @GetMapping("get")
+    @EnableWebLogAspect
     public RuleGroup get(@QueryParam("id") Integer id) {
         if (id == null) {
             logger.error("missing param[id]");
@@ -105,6 +109,7 @@ public class RuleGroupController {
     @Produces(MediaType.APPLICATION_JSON)
     @Path("add")
     @PutMapping("add")
+    @EnableWebLogAspect
     public Boolean add(RuleGroupRequest request) {
         if (request == null) {
             logger.error("rule group is null");
@@ -126,6 +131,7 @@ public class RuleGroupController {
     @Produces(MediaType.APPLICATION_JSON)
     @Path("update")
     @PostMapping("update")
+    @EnableWebLogAspect
     public Boolean update(RuleGroupUpdateRequest request) {
         if (request == null) {
             logger.error("rule group is null");
@@ -150,6 +156,7 @@ public class RuleGroupController {
     @Produces(MediaType.APPLICATION_JSON)
     @Path("delete")
     @DeleteMapping("delete")
+    @EnableWebLogAspect
     public Boolean delete(@QueryParam("id") Integer id) {
         if (id == null) {
             logger.error("missing param[id]");

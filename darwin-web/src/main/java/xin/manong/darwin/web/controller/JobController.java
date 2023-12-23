@@ -13,6 +13,7 @@ import xin.manong.darwin.common.model.Job;
 import xin.manong.darwin.common.model.Pager;
 import xin.manong.darwin.service.iface.JobService;
 import xin.manong.darwin.service.request.JobSearchRequest;
+import xin.manong.weapon.spring.web.ws.aspect.EnableWebLogAspect;
 
 import javax.annotation.Resource;
 import javax.ws.rs.*;
@@ -45,6 +46,7 @@ public class JobController {
     @Produces(MediaType.APPLICATION_JSON)
     @Path("get")
     @GetMapping("get")
+    @EnableWebLogAspect
     public Job get(@QueryParam("id") String id) {
         if (StringUtils.isEmpty(id)) {
             logger.error("job id is empty");
@@ -64,6 +66,7 @@ public class JobController {
     @Consumes(MediaType.APPLICATION_JSON)
     @Path("search")
     @PostMapping("search")
+    @EnableWebLogAspect
     public Pager<Job> search(JobSearchRequest request) {
         if (request == null) request = new JobSearchRequest();
         if (request.current == null || request.current < 1) request.current = Constants.DEFAULT_CURRENT;

@@ -13,6 +13,7 @@ import xin.manong.darwin.web.convert.Converter;
 import xin.manong.darwin.web.request.AppRequest;
 import xin.manong.darwin.web.request.AppUpdateRequest;
 import xin.manong.darwin.web.service.AppPermissionService;
+import xin.manong.weapon.spring.web.ws.aspect.EnableWebLogAspect;
 
 import javax.annotation.Resource;
 import javax.ws.rs.*;
@@ -49,6 +50,7 @@ public class AppController {
     @Produces(MediaType.APPLICATION_JSON)
     @Path("search")
     @GetMapping("search")
+    @EnableWebLogAspect
     public Pager<App> search(@QueryParam("name") String name,
                              @QueryParam("current") Integer current,
                              @QueryParam("size") Integer size) {
@@ -72,6 +74,7 @@ public class AppController {
     @Produces(MediaType.APPLICATION_JSON)
     @Path("list")
     @GetMapping("list")
+    @EnableWebLogAspect
     public Pager<App> list(@QueryParam("current") Integer current,
                            @QueryParam("size") Integer size) {
         if (current == null || current < 1) current = Constants.DEFAULT_CURRENT;
@@ -89,6 +92,7 @@ public class AppController {
     @Produces(MediaType.APPLICATION_JSON)
     @Path("get")
     @GetMapping("get")
+    @EnableWebLogAspect
     public App get(@QueryParam("id") Integer id) {
         if (id == null) {
             logger.error("missing param[id]");
@@ -108,6 +112,7 @@ public class AppController {
     @Produces(MediaType.APPLICATION_JSON)
     @Path("add")
     @PutMapping("add")
+    @EnableWebLogAspect
     public Boolean add(AppRequest request) {
         if (request == null) {
             logger.error("app request is null");
@@ -129,6 +134,7 @@ public class AppController {
     @Produces(MediaType.APPLICATION_JSON)
     @Path("update")
     @PostMapping("update")
+    @EnableWebLogAspect
     public Boolean update(AppUpdateRequest request) {
         if (request == null) {
             logger.error("update app info is null");
@@ -154,6 +160,7 @@ public class AppController {
     @Produces(MediaType.APPLICATION_JSON)
     @Path("delete")
     @DeleteMapping("delete")
+    @EnableWebLogAspect
     public Boolean delete(@QueryParam("id") Integer id) {
         if (id == null) {
             logger.error("missing param[id]");

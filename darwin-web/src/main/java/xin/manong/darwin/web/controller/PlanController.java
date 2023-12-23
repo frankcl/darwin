@@ -14,6 +14,7 @@ import xin.manong.darwin.web.request.PlanRequest;
 import xin.manong.darwin.web.request.PlanUpdateRequest;
 import xin.manong.darwin.web.service.AppPermissionService;
 import xin.manong.weapon.base.util.RandomID;
+import xin.manong.weapon.spring.web.ws.aspect.EnableWebLogAspect;
 
 import javax.annotation.Resource;
 import javax.ws.rs.*;
@@ -54,6 +55,7 @@ public class PlanController {
     @Produces(MediaType.APPLICATION_JSON)
     @Path("start")
     @GetMapping("start")
+    @EnableWebLogAspect
     public Boolean start(@QueryParam("plan_id") String planId) {
         checkPeriodPlan(planId, Constants.PLAN_STATUS_STOPPED);
         Plan updatePlan = new Plan();
@@ -72,6 +74,7 @@ public class PlanController {
     @Produces(MediaType.APPLICATION_JSON)
     @Path("stop")
     @GetMapping("stop")
+    @EnableWebLogAspect
     public Boolean stop(@QueryParam("plan_id") String planId) {
         checkPeriodPlan(planId, Constants.PLAN_STATUS_RUNNING);
         Plan updatePlan = new Plan();
@@ -90,6 +93,7 @@ public class PlanController {
     @Produces(MediaType.APPLICATION_JSON)
     @Path("get")
     @GetMapping("get")
+    @EnableWebLogAspect
     public Plan get(@QueryParam("id") String id) {
         if (StringUtils.isEmpty(id)) {
             logger.error("plan id is empty");
@@ -109,6 +113,7 @@ public class PlanController {
     @Consumes(MediaType.APPLICATION_JSON)
     @Path("search")
     @PostMapping("search")
+    @EnableWebLogAspect
     public Pager<Plan> search(PlanSearchRequest request) {
         if (request == null) request = new PlanSearchRequest();
         if (request.current == null || request.current < 1) request.current = Constants.DEFAULT_CURRENT;
@@ -127,6 +132,7 @@ public class PlanController {
     @Consumes(MediaType.APPLICATION_JSON)
     @Path("add")
     @PutMapping("add")
+    @EnableWebLogAspect
     public Boolean add(PlanRequest request) {
         if (request == null) {
             logger.error("plan is null");
@@ -156,6 +162,7 @@ public class PlanController {
     @Consumes(MediaType.APPLICATION_JSON)
     @Path("update")
     @PostMapping("update")
+    @EnableWebLogAspect
     public Boolean update(PlanUpdateRequest request) {
         if (request == null) {
             logger.error("plan is null");
@@ -184,6 +191,7 @@ public class PlanController {
     @Produces(MediaType.APPLICATION_JSON)
     @Path("execute")
     @GetMapping("execute")
+    @EnableWebLogAspect
     public Boolean execute(@QueryParam("id") String id) {
         if (StringUtils.isEmpty(id)) {
             logger.error("plan id is empty");
@@ -217,6 +225,7 @@ public class PlanController {
     @Produces(MediaType.APPLICATION_JSON)
     @Path("delete")
     @DeleteMapping("delete")
+    @EnableWebLogAspect
     public Boolean delete(@QueryParam("id") String id) {
         if (StringUtils.isEmpty(id)) {
             logger.error("plan id is empty");

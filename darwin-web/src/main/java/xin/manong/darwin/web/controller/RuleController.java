@@ -13,6 +13,7 @@ import xin.manong.darwin.service.request.RuleSearchRequest;
 import xin.manong.darwin.web.convert.Converter;
 import xin.manong.darwin.web.request.RuleRequest;
 import xin.manong.darwin.web.request.RuleUpdateRequest;
+import xin.manong.weapon.spring.web.ws.aspect.EnableWebLogAspect;
 
 import javax.annotation.Resource;
 import javax.ws.rs.*;
@@ -47,6 +48,7 @@ public class RuleController {
     @Produces(MediaType.APPLICATION_JSON)
     @Path("get")
     @GetMapping("get")
+    @EnableWebLogAspect
     public Rule get(@QueryParam("id") Integer id) {
         if (id == null) {
             logger.error("missing param[id]");
@@ -66,6 +68,7 @@ public class RuleController {
     @Consumes(MediaType.APPLICATION_JSON)
     @Path("search")
     @PostMapping("search")
+    @EnableWebLogAspect
     public Pager<Rule> search(RuleSearchRequest request) {
         if (request == null) request = new RuleSearchRequest();
         if (request.current == null || request.current < 1) request.current = Constants.DEFAULT_CURRENT;
@@ -84,6 +87,7 @@ public class RuleController {
     @Consumes(MediaType.APPLICATION_JSON)
     @Path("add")
     @PutMapping("add")
+    @EnableWebLogAspect
     public Boolean add(RuleRequest request) {
         if (request == null) {
             logger.error("rule request is null");
@@ -109,6 +113,7 @@ public class RuleController {
     @Consumes(MediaType.APPLICATION_JSON)
     @Path("update")
     @PostMapping("update")
+    @EnableWebLogAspect
     public Boolean update(RuleUpdateRequest request) {
         if (request == null) {
             logger.error("rule update info is null");
@@ -133,6 +138,7 @@ public class RuleController {
     @Produces(MediaType.APPLICATION_JSON)
     @Path("delete")
     @DeleteMapping("delete")
+    @EnableWebLogAspect
     public Boolean delete(@QueryParam("id") Integer id) {
         if (id == null) {
             logger.error("rule id is null");

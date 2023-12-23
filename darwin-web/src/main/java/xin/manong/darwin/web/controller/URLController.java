@@ -14,6 +14,7 @@ import xin.manong.darwin.common.model.URLRecord;
 import xin.manong.darwin.service.component.ExcelWriter;
 import xin.manong.darwin.service.iface.URLService;
 import xin.manong.darwin.service.request.URLSearchRequest;
+import xin.manong.weapon.spring.web.ws.aspect.EnableWebLogAspect;
 
 import javax.annotation.Resource;
 import javax.ws.rs.*;
@@ -55,6 +56,7 @@ public class URLController {
     @Produces(MediaType.APPLICATION_JSON)
     @Path("get")
     @GetMapping("get")
+    @EnableWebLogAspect
     public URLRecord get(@QueryParam("key") String key) {
         if (StringUtils.isEmpty(key)) {
             logger.error("key is empty");
@@ -74,6 +76,7 @@ public class URLController {
     @Consumes(MediaType.APPLICATION_JSON)
     @Path("search")
     @PostMapping("search")
+    @EnableWebLogAspect
     public Pager<URLRecord> search(URLSearchRequest request) {
         if (request == null) request = new URLSearchRequest();
         if (request.current == null || request.current < 1) request.current = Constants.DEFAULT_CURRENT;

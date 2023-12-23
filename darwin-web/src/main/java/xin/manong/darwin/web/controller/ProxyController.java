@@ -12,6 +12,7 @@ import xin.manong.darwin.service.request.ProxySearchRequest;
 import xin.manong.darwin.web.convert.Converter;
 import xin.manong.darwin.web.request.ProxyRequest;
 import xin.manong.darwin.web.request.ProxyUpdateRequest;
+import xin.manong.weapon.spring.web.ws.aspect.EnableWebLogAspect;
 
 import javax.annotation.Resource;
 import javax.ws.rs.*;
@@ -44,6 +45,7 @@ public class ProxyController {
     @Produces(MediaType.APPLICATION_JSON)
     @Path("get")
     @GetMapping("get")
+    @EnableWebLogAspect
     public Proxy get(@QueryParam("id") Integer id) {
         if (id == null) {
             logger.error("missing param[id]");
@@ -63,6 +65,7 @@ public class ProxyController {
     @Consumes(MediaType.APPLICATION_JSON)
     @Path("search")
     @PostMapping("search")
+    @EnableWebLogAspect
     public Pager<Proxy> search(ProxySearchRequest request) {
         if (request == null) request = new ProxySearchRequest();
         if (request.current == null || request.current < 1) request.current = Constants.DEFAULT_CURRENT;
@@ -81,6 +84,7 @@ public class ProxyController {
     @Consumes(MediaType.APPLICATION_JSON)
     @Path("add")
     @PutMapping("add")
+    @EnableWebLogAspect
     public Boolean add(ProxyRequest request) {
         if (request == null) {
             logger.error("proxy request is null");
@@ -102,6 +106,7 @@ public class ProxyController {
     @Consumes(MediaType.APPLICATION_JSON)
     @Path("update")
     @PostMapping("update")
+    @EnableWebLogAspect
     public Boolean update(ProxyUpdateRequest request) {
         if (request == null) {
             logger.error("proxy update info is null");
@@ -126,6 +131,7 @@ public class ProxyController {
     @Produces(MediaType.APPLICATION_JSON)
     @Path("delete")
     @DeleteMapping("delete")
+    @EnableWebLogAspect
     public Boolean delete(@QueryParam("id") Integer id) {
         if (id == null) {
             logger.error("proxy id is null");

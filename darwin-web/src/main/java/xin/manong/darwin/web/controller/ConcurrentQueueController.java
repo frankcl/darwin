@@ -13,6 +13,7 @@ import xin.manong.darwin.web.config.WebConfig;
 import xin.manong.darwin.web.response.ConcurrentUnitInfo;
 import xin.manong.darwin.web.response.MultiQueueInfo;
 import xin.manong.weapon.base.redis.RedisMemory;
+import xin.manong.weapon.spring.web.ws.aspect.EnableWebLogAspect;
 
 import javax.annotation.Resource;
 import javax.ws.rs.*;
@@ -52,6 +53,7 @@ public class ConcurrentQueueController {
     @Produces(MediaType.APPLICATION_JSON)
     @Path("getConcurrentUnits")
     @GetMapping("getConcurrentUnits")
+    @EnableWebLogAspect
     public List<String> getConcurrentUnits() {
         return new ArrayList<>(multiQueue.copyCurrentConcurrentUnits());
     }
@@ -66,6 +68,7 @@ public class ConcurrentQueueController {
     @Produces(MediaType.APPLICATION_JSON)
     @Path("getConcurrentUnitInfo")
     @GetMapping("getConcurrentUnitInfo")
+    @EnableWebLogAspect
     public ConcurrentUnitInfo getConcurrentUnitInfo(@QueryParam("concurrent_unit") String concurrentUnit) {
         if (StringUtils.isEmpty(concurrentUnit)) {
             logger.error("concurrent unit is empty");
@@ -96,6 +99,7 @@ public class ConcurrentQueueController {
     @Produces(MediaType.APPLICATION_JSON)
     @Path("getMultiQueueInfo")
     @GetMapping("getMultiQueueInfo")
+    @EnableWebLogAspect
     public MultiQueueInfo getMultiQueueInfo() {
         MultiQueueInfo multiQueueInfo = new MultiQueueInfo();
         multiQueueInfo.memoryLevel = multiQueue.getCurrentMemoryLevel();
@@ -128,6 +132,7 @@ public class ConcurrentQueueController {
     @Produces(MediaType.APPLICATION_JSON)
     @Path("getMultiQueueMemory")
     @GetMapping("getMultiQueueMemory")
+    @EnableWebLogAspect
     public RedisMemory getMultiQueueMemory() {
         return multiQueue.getMemoryInfo();
     }
