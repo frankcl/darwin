@@ -99,7 +99,7 @@ public class URLController {
     public Response export(URLSearchRequest request) throws IOException {
         if (request == null) request = new URLSearchRequest();
         ExcelBuilder builder = urlService.export(request);
-        if (builder == null) throw new RuntimeException("导出数据失败");
+        if (builder == null) throw new InternalServerErrorException("导出数据失败");
         StreamingOutput output = outputStream -> {
             builder.export(outputStream);
             outputStream.flush();

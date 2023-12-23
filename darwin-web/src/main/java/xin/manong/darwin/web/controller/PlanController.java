@@ -205,12 +205,12 @@ public class PlanController {
         appPermissionService.checkAppPermission(plan.appId);
         if (plan.status != Constants.PLAN_STATUS_RUNNING) {
             logger.error("plan is not running for status[{}]", Constants.SUPPORT_PLAN_STATUSES.get(plan.status));
-            throw new RuntimeException(String.format("计划[%s]非运行状态",
+            throw new InternalServerErrorException(String.format("计划[%s]非运行状态",
                     Constants.SUPPORT_PLAN_STATUSES.get(plan.status)));
         }
         if (planService.execute(plan) == null) {
             logger.error("execute plan[{}] failed", plan.planId);
-            throw new RuntimeException(String.format("执行计划[%s]失败", plan.planId));
+            throw new InternalServerErrorException(String.format("执行计划[%s]失败", plan.planId));
         }
         return true;
     }
@@ -262,7 +262,7 @@ public class PlanController {
         }
         if (seedURLs.size() != passCount) {
             logger.error("seed urls not match rules");
-            throw new RuntimeException("种子URL不匹配规则");
+            throw new InternalServerErrorException("种子URL不匹配规则");
         }
     }
 
@@ -284,11 +284,11 @@ public class PlanController {
         }
         if (plan.category != Constants.PLAN_CATEGORY_PERIOD) {
             logger.error("plan is not period plan");
-            throw new RuntimeException("计划不是周期性计划");
+            throw new InternalServerErrorException("计划不是周期性计划");
         }
         if (plan.status != status) {
             logger.error("plan is not in expected status[{}]", status);
-            throw new RuntimeException(String.format("计划不处于%s状态",
+            throw new InternalServerErrorException(String.format("计划不处于%s状态",
                     Constants.SUPPORT_PLAN_STATUSES.get(status)));
         }
         appPermissionService.checkAppPermission(plan.appId);
