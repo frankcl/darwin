@@ -1,7 +1,7 @@
 weapon:
   common:
     redis:
-      client:
+      client-map:
         default:
           mode: SINGLE
           connection-pool-size: 200

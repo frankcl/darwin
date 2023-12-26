@@ -51,7 +51,7 @@
         <tablestore.version>5.13.10</tablestore.version>
         <shaman-configmap.version>1.1.1</shaman-configmap.version>
         <shaman-dynamic-secret-listener.version>1.0.1-SNAPSHOT</shaman-dynamic-secret-listener.version>
-        <weapon.version>0.1.9</weapon.version>
+        <weapon.version>0.2.0</weapon.version>
         <security-keeper.version>0.0.1</security-keeper.version>
         <darwin.version>0.0.1</darwin.version>
     </properties>

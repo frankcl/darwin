@@ -13,11 +13,11 @@ mybatis-plus:
 weapon:
   aliyun:
     ons:
-      producer:
+      producer-map:
         default:
           serverURL: http://onsaddr.mq-internet-access.mq-internet.aliyuncs.com:80
     oss:
-      client:
+      client-map:
         default:
           endpoint: http://oss-cn-hangzhou.aliyuncs.com
           socket-timeout-ms: 3000

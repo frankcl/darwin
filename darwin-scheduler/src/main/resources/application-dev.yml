@@ -5,6 +5,6 @@ app:
 weapon:
   aliyun:
     ons:
-      producer:
+      producer-map:
         default:
           serverURL: http://onsaddr.mq-internet-access.mq-internet.aliyuncs.com:80

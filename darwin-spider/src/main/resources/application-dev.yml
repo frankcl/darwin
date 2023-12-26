@@ -1,17 +1,17 @@
 weapon:
   aliyun:
     oss:
-      client:
+      client-map:
         default:
           endpoint: https://oss-cn-hangzhou.aliyuncs.com
           socket-timeout-ms: 3000
           connection-timeout-ms: 3000
           retry-cnt: 3
     ons:
-      producer:
+      producer-map:
         default:
           serverURL: http://onsaddr.mq-internet-access.mq-internet.aliyuncs.com:80
-      consumer:
+      consumer-map:
         html:
           serverURL: http://onsaddr.mq-internet-access.mq-internet.aliyuncs.com:80
           consumeId: GID_TEST_DARWIN_FETCH_HTML

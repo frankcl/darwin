@@ -15,7 +15,7 @@ spring:
 weapon:
   aliyun:
     oss:
-      client:
+      client-map:
         default:
           endpoint: http://oss-cn-hangzhou.aliyuncs.com
           socket-timeout-ms: 3000
