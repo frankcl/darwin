@@ -1,10 +1,19 @@
 spring:
   application:
     name: darwin-web
-  profiles:
-    active: @profileActive@
-    include: service,service-@profileActive@,queue,queue-@profileActive@,log,log-@profileActive@
-  server: 8080
+  config:
+    activate:
+      on-profile: @profileActive@
+    import:
+      - classpath:application-service.yml
+      - classpath:application-service-@profileActive@.yml
+      - classpath:application-queue.yml
+      - classpath:application-queue-@profileActive@.yml
+      - classpath:application-log.yml
+      - classpath:application-log-@profileActive@.yml
+
+server:
+  port: 8080
 
 app:
   web:

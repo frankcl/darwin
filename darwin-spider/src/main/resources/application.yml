@@ -1,9 +1,16 @@
 spring:
   application:
     name: darwin-spider
-  profiles:
-    active: @profileActive@
-    include: service,service-@profileActive@,queue,queue-@profileActive@,log,log-@profileActive@
+  config:
+    activate:
+      on-profile: @profileActive@
+    import:
+      - classpath:application-service.yml
+      - classpath:application-service-@profileActive@.yml
+      - classpath:application-queue.yml
+      - classpath:application-queue-@profileActive@.yml
+      - classpath:application-log.yml
+      - classpath:application-log-@profileActive@.yml
 
 app:
   spider:
