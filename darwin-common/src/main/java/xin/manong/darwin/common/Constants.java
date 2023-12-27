@@ -167,7 +167,7 @@ public class Constants {
      * 数据记录类型
      */
     public static final String RECORD_TYPE_URL = "URL";
-    public static final String RECORD_TYPE_FOLLOW_URL = "FOLLOW_URL";
+    public static final String RECORD_TYPE_CHILD_URL = "CHILD_URL";
     public static final String RECORD_TYPE_JOB = "JOB";
     public static final String RECORD_TYPE_PLAN = "PLAN";
     public static final String RECORD_TYPE_CONCURRENT_UNIT = "CONCURRENT_UNIT";
@@ -190,8 +190,8 @@ public class Constants {
     public static final String CONCURRENT_LEVEL = "concurrent_level";
     public static final String TIMEOUT = "timeout";
     public static final String HTTP_CODE = "http_code";
-    public static final String FOLLOW_URL_COUNT = "follow_url_count";
-    public static final String FAILED_FOLLOW_URL_COUNT = "failed_follow_url_count";
+    public static final String CHILD_URL_COUNT = "child_url_count";
+    public static final String FAILED_CHILD_URL_COUNT = "failed_child_url_count";
     public static final String MIME_TYPE = "mime_type";
     public static final String SUB_MIME_TYPE = "sub_mime_type";
     public static final String CHARSET = "charset";

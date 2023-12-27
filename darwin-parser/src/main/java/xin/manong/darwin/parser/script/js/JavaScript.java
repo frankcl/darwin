@@ -37,7 +37,6 @@ public class JavaScript extends Script {
 
     private static final String JAVASCRIPT_UTILS_FILE = "/js/parse_utils.js";
     private static final String JAVASCRIPT_ENGINE_NAME = "JavaScript";
-    private static final String METHOD_PARSE = "parse";
     private static ScriptEngineManager scriptEngineManager = new ScriptEngineManager();
     private static final String JAVASCRIPT_UTILS = loadJavaScriptUtils();
 
@@ -93,8 +92,9 @@ public class JavaScript extends Script {
             scriptEngine.eval(String.format("%s\n%s", JAVASCRIPT_UTILS, scriptCode));
             function = (Invocable) scriptEngine;
         } catch (Exception e) {
-            logger.error("build parse function failed for JavaScript[{}]", key);
-            throw new ScriptCompileException(String.format("JavaScript脚本[%s]构建解析方法失败", key));
+            logger.error("build JavaScript parse script failed for key[{}]", key);
+            logger.error(e.getMessage(), e);
+            throw new ScriptCompileException(String.format("创建JavaScript脚本失败[%s]", e.getMessage()));
         }
     }
 
@@ -105,9 +105,9 @@ public class JavaScript extends Script {
         Map<String, Object> map = (Map<String, Object>) convertScriptObjectMirror(scriptObjectMirror);
         if (map == null) return ParseResponse.buildError("解析响应为空");
         ParseResponse response = JSON.toJavaObject(new JSONObject(map), ParseResponse.class);
-        if (response.status && response.followURLs != null) {
-            for (URLRecord followURL : response.followURLs) {
-                if (followURL.url != null) followURL.hash = DigestUtils.md5Hex(followURL.url);
+        if (response.status && response.childURLs != null) {
+            for (URLRecord childURL : response.childURLs) {
+                if (childURL.url != null) childURL.hash = DigestUtils.md5Hex(childURL.url);
             }
         }
         return response;

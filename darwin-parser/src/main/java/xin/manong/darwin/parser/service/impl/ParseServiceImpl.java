@@ -8,7 +8,7 @@ import org.springframework.stereotype.Service;
 import xin.manong.darwin.common.Constants;
 import xin.manong.darwin.parser.script.*;
 import xin.manong.darwin.parser.sdk.ParseResponse;
-import xin.manong.darwin.parser.service.LinkFollowService;
+import xin.manong.darwin.parser.service.ScopeExtractService;
 import xin.manong.darwin.parser.service.ParseService;
 import xin.manong.darwin.parser.service.request.HTMLParseRequest;
 import xin.manong.darwin.parser.service.response.CompileResponse;
@@ -31,7 +31,7 @@ public class ParseServiceImpl implements ParseService {
     @Resource
     protected ScriptCache scriptCache;
     @Resource
-    protected LinkFollowService linkFollowService;
+    protected ScopeExtractService scopeExtractService;
 
     @Override
     public CompileResponse compile(int scriptType, String scriptCode) {
@@ -44,12 +44,14 @@ public class ParseServiceImpl implements ParseService {
             return CompileResponse.buildError("脚本代码为空");
         }
         try {
-            ScriptFactory.make(scriptType, scriptCode);
+            Script script = ScriptFactory.make(scriptType, scriptCode);
+            if (script == null) return CompileResponse.buildError("编译脚本失败");
+            script.close();
             return CompileResponse.buildOK();
         } catch (ScriptCompileException e) {
             logger.error("{} compile failed", Constants.SUPPORT_SCRIPT_TYPES.get(scriptType));
             logger.error(e.getMessage(), e);
-            return CompileResponse.buildError(String.format("脚本编译失败[%s]", e.getMessage()));
+            return CompileResponse.buildError(String.format("编译脚本失败[%s]", e.getMessage()));
         }
     }
 
@@ -59,7 +61,7 @@ public class ParseServiceImpl implements ParseService {
             logger.error("parse request is invalid");
             return ParseResponse.buildError("解析请求非法");
         }
-        if (request.isExtractLinkGlobally()) return linkFollowService.parse(request);
+        if (request.isScopeExtract()) return scopeExtractService.parse(request);
         String key = DigestUtils.md5Hex(request.scriptCode);
         for (int i = 0; i < RETRY_COUNT; i++) {
             Script script = buildScript(key, request);
@@ -72,7 +74,7 @@ public class ParseServiceImpl implements ParseService {
             } catch (ScriptConcurrentException e) {
                 logger.warn("script concurrent exception occurred");
             } finally {
-                if (script.currentReferenceCount() == 0 && scriptCache.get(key) == null) script.close();
+                if (script.currentReferenceCount() <= 0 && scriptCache.get(key) == null) script.close();
             }
         }
         return ParseResponse.buildError("解析失败");

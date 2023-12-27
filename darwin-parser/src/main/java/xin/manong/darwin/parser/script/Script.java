@@ -19,6 +19,8 @@ public abstract class Script {
 
     private static final Logger logger = LoggerFactory.getLogger(Script.class);
 
+    protected static final String METHOD_PARSE = "parse";
+
     protected String key;
     /**
      * 引用计数

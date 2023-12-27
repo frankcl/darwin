@@ -4,12 +4,12 @@ import xin.manong.darwin.parser.sdk.ParseResponse;
 import xin.manong.darwin.parser.service.request.HTMLParseRequest;
 
 /**
- * 全局抽链服务
+ * 范围抽链服务
  *
  * @author frankcl
  * @date 2023-11-15 14:36:30
  */
-public interface LinkFollowService {
+public interface ScopeExtractService {
 
     /**
      * 范围抽链

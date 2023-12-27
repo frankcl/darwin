@@ -11,7 +11,7 @@ import org.springframework.stereotype.Service;
 import xin.manong.darwin.common.Constants;
 import xin.manong.darwin.common.model.URLRecord;
 import xin.manong.darwin.parser.sdk.ParseResponse;
-import xin.manong.darwin.parser.service.LinkFollowService;
+import xin.manong.darwin.parser.service.ScopeExtractService;
 import xin.manong.darwin.parser.service.request.HTMLParseRequest;
 import xin.manong.weapon.base.util.CommonUtil;
 import xin.manong.weapon.base.util.DomainUtil;
@@ -21,15 +21,15 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * 全局抽链服务实现
+ * 范围抽链服务实现
  *
  * @author frankcl
  * @date 2023-11-15 14:49:36
  */
 @Service
-public class LinkFollowServiceImpl implements LinkFollowService {
+public class ScopeExtractServiceImpl implements ScopeExtractService {
 
-    private static final Logger logger = LoggerFactory.getLogger(LinkFollowServiceImpl.class);
+    private static final Logger logger = LoggerFactory.getLogger(ScopeExtractServiceImpl.class);
 
     private static final String TAG_NAME_A = "a";
     private static final String ATTR_NAME_HREF = "href";
@@ -44,48 +44,49 @@ public class LinkFollowServiceImpl implements LinkFollowService {
             logger.error("body is not found");
             return ParseResponse.buildError("HTML body不存在");
         }
-        List<URLRecord> followURLs = new ArrayList<>();
-        extractLinks(body, parentURL, request.scope, followURLs);
-        return ParseResponse.buildOK(null, followURLs, null);
+        List<URLRecord> childURLs = new ArrayList<>();
+        scopeExtract(body, parentURL, request.scope, childURLs);
+        return ParseResponse.buildOK(null, childURLs, null);
     }
 
     /**
-     * 抽取元素链接
+     * 抽取链接
      *
      * @param element 元素
      * @param parentURL 父URL
      * @param scope 抽链范围
-     * @param followURLs 抽链结果
+     * @param childURLs 抽链结果
      */
-    private void extractLinks(Element element, String parentURL, int scope,
-                              List<URLRecord> followURLs) {
+    private void scopeExtract(Element element, String parentURL, int scope,
+                              List<URLRecord> childURLs) {
         if (!isVisible(element)) return;
         if (element.tagName().equals(TAG_NAME_A)) {
             if (!element.hasAttr(ATTR_NAME_HREF)) return;
-            String href = element.absUrl(ATTR_NAME_HREF);
-            if (StringUtils.isEmpty(href) || !isExtract(href, scope, parentURL)) return;
+            String childURL = element.absUrl(ATTR_NAME_HREF);
+            if (!supportExtract(childURL, scope, parentURL)) return;
             try {
-                new URL(href);
-                followURLs.add(new URLRecord(href));
+                new URL(childURL);
+                childURLs.add(new URLRecord(childURL));
             } catch (Exception e) {
             }
             return;
         }
         Elements children = element.children();
-        for (Element child : children) extractLinks(child, parentURL, scope, followURLs);
+        for (Element child : children) scopeExtract(child, parentURL, scope, childURLs);
     }
 
     /**
-     * 是否抽取链接
+     * 是否支持抽取
      *
-     * @param url 抽取URL
+     * @param childURL 抽取URL
      * @param scope 抽链范围
      * @param parentURL 父URL
-     * @return 需要抽取返回true，否则返回false
+     * @return 支持抽取返回true，否则返回false
      */
-    private boolean isExtract(String url, int scope, String parentURL) {
+    private boolean supportExtract(String childURL, int scope, String parentURL) {
+        if (StringUtils.isEmpty(childURL)) return false;
         if (scope == Constants.LINK_SCOPE_ALL) return true;
-        String host = CommonUtil.getHost(url);
+        String host = CommonUtil.getHost(childURL);
         String parentHost = CommonUtil.getHost(parentURL);
         if (StringUtils.isEmpty(host) || StringUtils.isEmpty(parentHost)) return false;
         if (scope == Constants.LINK_SCOPE_DOMAIN) {

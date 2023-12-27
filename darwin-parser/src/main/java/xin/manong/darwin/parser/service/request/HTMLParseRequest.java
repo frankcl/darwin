@@ -47,7 +47,7 @@ public class HTMLParseRequest extends ParseRequest {
      */
     public boolean check() {
         if (!super.check()) return false;
-        if (isExtractLinkGlobally()) return true;
+        if (isScopeExtract()) return true;
         if (StringUtils.isEmpty(scriptCode)) {
             logger.error("script code is empty");
             return false;
@@ -60,11 +60,13 @@ public class HTMLParseRequest extends ParseRequest {
     }
 
     /**
-     * 是否进行全局抽链
+     * 是否进行范围抽链，满足以下条件为范围抽链
+     * 1. 列表页
+     * 2. 抽链范围scope合法
      *
-     * @return 全局抽链返回true，否则返回false
+     * @return 范围抽链返回true，否则返回false
      */
-    public boolean isExtractLinkGlobally() {
+    public boolean isScopeExtract() {
         return category == Constants.CONTENT_CATEGORY_LIST &&
                 Constants.SUPPORT_LINK_SCOPES.containsKey(scope);
     }

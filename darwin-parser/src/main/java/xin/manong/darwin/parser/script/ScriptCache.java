@@ -37,7 +37,7 @@ public class ScriptCache {
      */
     private void onRemoval(RemovalNotification<String, Script> notification) {
         Script script = notification.getValue();
-        if (script != null && script.currentReferenceCount() == 0) script.close();
+        if (script != null && script.currentReferenceCount() <= 0) script.close();
         RemovalCause cause = notification.getCause();
         logger.info("{}[{}] is removed, cause[{}]", script.getClass().getSimpleName(),
                 notification.getKey(), cause.name());

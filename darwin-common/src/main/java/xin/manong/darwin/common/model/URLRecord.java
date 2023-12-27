@@ -382,11 +382,13 @@ public class URLRecord extends BasicModel {
     }
 
     /**
-     * 是否全局抽链
+     * 是否全局抽链，满足以下条件为全局抽链
+     * 1. 列表页
+     * 2. 抽链范围scope合法
      *
      * @return 全局抽链返回true，否则返回false
      */
-    public boolean isExtractLinkGlobally() {
+    public boolean isScopeExtract() {
         return category != null && category == Constants.CONTENT_CATEGORY_LIST &&
                 scope != null && Constants.SUPPORT_LINK_SCOPES.containsKey(scope);
     }

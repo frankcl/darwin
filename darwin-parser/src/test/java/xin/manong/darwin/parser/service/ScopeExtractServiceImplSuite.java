@@ -24,10 +24,10 @@ import java.io.IOException;
 @RunWith(SpringRunner.class)
 @ActiveProfiles(value = { "parse", "parse-dev" })
 @SpringBootTest(classes = ApplicationTest.class)
-public class LinkFollowServiceImplSuite {
+public class ScopeExtractServiceImplSuite {
 
     @Resource
-    private LinkFollowService linkFollowService;
+    private ScopeExtractService scopeExtractService;
     private HttpClient httpClient = new HttpClient();
 
     private String fetch(String url) throws IOException {
@@ -43,13 +43,13 @@ public class LinkFollowServiceImplSuite {
     }
 
     @Test
-    public void testLinkFollow() throws Exception {
+    public void testScopeExtract() throws Exception {
         String url = "http://www.sina.com.cn";
         HTMLParseRequest request = new HTMLParseRequest();
         request.url = url;
         request.html = fetch(url);
         request.scope = Constants.LINK_SCOPE_HOST;
-        ParseResponse response = linkFollowService.parse(request);
+        ParseResponse response = scopeExtractService.parse(request);
         Assert.assertTrue(response != null && response.status);
     }
 

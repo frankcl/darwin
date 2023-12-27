@@ -24,8 +24,6 @@ public class GroovyScript extends Script {
 
     private static final Logger logger = LoggerFactory.getLogger(GroovyScript.class);
 
-    private static final String METHOD_PARSE = "parse";
-
     /**
      * groovy脚本对象类加载器
      */
@@ -57,7 +55,7 @@ public class GroovyScript extends Script {
             if (!HTMLParser.class.isAssignableFrom(groovyClass)) {
                 logger.error("parser[{}] is not subclass of class[{}]",
                         groovyClass.getName(), HTMLParser.class.getName());
-                throw new ScriptCompileException(String.format("解析器[%s]不是%s的子类",
+                throw new ScriptCompileException(String.format("%s不是%s的子类",
                         groovyClass.getName(), HTMLParser.class.getName()));
             }
             groovyClass.getMethod(METHOD_PARSE, ParseRequest.class);
@@ -68,9 +66,9 @@ public class GroovyScript extends Script {
             logger.error(e.getMessage(), e);
             throw new ScriptCompileException(String.format("未找到解析方法[%s]", METHOD_PARSE));
         } catch (Exception e) {
-            logger.error("create groovy script object failed for id[{}]", key);
+            logger.error("build Groovy script failed for id[{}]", key);
             logger.error(e.getMessage(), e);
-            throw new ScriptCompileException(String.format("创建groovy脚本对象[%s]失败", key));
+            throw new ScriptCompileException(String.format("构建Groovy脚本失败[%s]", e.getMessage()));
         }
     }
 

@@ -33,7 +33,7 @@ public class ParseResponse {
     /**
      * 抽链列表
      */
-    public List<URLRecord> followURLs;
+    public List<URLRecord> childURLs;
 
     /**
      * 构建错误解析响应
@@ -52,17 +52,17 @@ public class ParseResponse {
      * 构建成功解析响应
      *
      * @param fieldMap 结构化数据
-     * @param followURLs 抽链列表
+     * @param childURLs 抽链列表
      * @param userDefinedMap 用户自定义数据
      * @return 成功解析响应
      */
     public static ParseResponse buildOK(Map<String, Object> fieldMap,
-                                        List<URLRecord> followURLs,
+                                        List<URLRecord> childURLs,
                                         Map<String, Object> userDefinedMap) {
         ParseResponse response = new ParseResponse();
         response.status = true;
         response.fieldMap = fieldMap;
-        response.followURLs = followURLs;
+        response.childURLs = childURLs;
         response.userDefinedMap = userDefinedMap;
         return response;
     }

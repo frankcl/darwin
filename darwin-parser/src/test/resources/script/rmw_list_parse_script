@@ -18,13 +18,13 @@ public class GroovyParser extends HTMLParser {
         Document document = Jsoup.parse(request.html, StringUtils.isEmpty(request.redirectURL) ?
                 request.url : request.redirectURL);
         Elements elements = document.selectXpath("//div[@class=\"ej_list_box clear\"]/ul/li");
-        List<URLRecord> followURLs = new ArrayList<>();
+        List<URLRecord> childURLs = new ArrayList<>();
         for (Element element : elements) {
-            URLRecord followURL = parseFollowURL(element);
-            if (followURL == null) continue;
-            followURLs.add(followURL);
+            URLRecord childURL = parseChildURL(element);
+            if (childURL == null) continue;
+            childURLs.add(childURL);
         }
-        return ParseResponse.buildOK(null, followURLs, request.userDefinedMap);
+        return ParseResponse.buildOK(null, childURLs, request.userDefinedMap);
     }
 
     /**
@@ -33,14 +33,14 @@ public class GroovyParser extends HTMLParser {
      * @param element 链接元素
      * @return 抽链结果
      */
-    private URLRecord parseFollowURL(Element element) {
+    private URLRecord parseChildURL(Element element) {
         Elements elements = element.select("a");
         if (elements.isEmpty()) return null;
         Element e = elements.get(0);
         if (!e.hasAttr("href")) return null;
-        URLRecord followURL = new URLRecord(e.absUrl("href"));
+        URLRecord childURL = new URLRecord(e.absUrl("href"));
         String title = e.text().trim();
-        if (!StringUtils.isEmpty(title)) followURL.userDefinedMap.put("title", title);
-        return followURL;
+        if (!StringUtils.isEmpty(title)) childURL.userDefinedMap.put("title", title);
+        return childURL;
     }
 }

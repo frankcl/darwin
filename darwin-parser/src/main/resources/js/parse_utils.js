@@ -7,16 +7,16 @@
  * @param userDefinedMap 用户自定义数据
  * @return 成功返回抽链URL，否则抛出异常
  */
-function createFollowURL(url, category, headers, userDefinedMap) {
+function createChildURL(url, category, headers, userDefinedMap) {
     if (category === undefined || category === null || category < 0 || category > 3) {
         throw '链接类型不符合预期[' + category + ']';
     }
-    var followURL = {};
-    followURL.url = url;
-    followURL.category = category;
-    if (typeof headers != 'undefined' && headers !== null) followURL.headers = headers;
-    if (typeof userDefinedMap != 'undefined' && userDefinedMap !== null) followURL.userDefinedMap = userDefinedMap;
-    return followURL;
+    var childURL = {};
+    childURL.url = url;
+    childURL.category = category;
+    if (typeof headers != 'undefined' && headers !== null) childURL.headers = headers;
+    if (typeof userDefinedMap != 'undefined' && userDefinedMap !== null) childURL.userDefinedMap = userDefinedMap;
+    return childURL;
 }
 
 /**
@@ -36,15 +36,15 @@ function buildError(message) {
  * 构建成功解析响应
  *
  * @param fieldMap 结构化数据
- * @param followURLs 抽链列表
+ * @param childURLs 抽链列表
  * @param userDefinedMap 用户自定义数据
  * @return 成功解析响应
  */
-function buildOK(fieldMap, followURLs, userDefinedMap) {
+function buildOK(fieldMap, childURLs, userDefinedMap) {
     var response = {};
     response.status = true;
     response.fieldMap = fieldMap;
     response.userDefinedMap = userDefinedMap;
-    response.followURLs = followURLs;
+    response.childURLs = childURLs;
     return response;
 }
