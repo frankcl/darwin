@@ -18,8 +18,7 @@ import java.util.concurrent.TimeUnit;
 
 /**
  * 多级队列：用于爬虫URL调度
- * 1. 以并发单元(Host/Domain)维度进行调度，保证每次每个并发单元调度一定数量URL抓取
- * 2. 维护爬虫任务，感知爬虫任务URL抓取状态
+ * 以并发单元(Host/Domain)维度进行调度，保证每次每个并发单元调度一定数量URL抓取
  *
  * @author frankcl
  * @date 2023-03-07 11:41:14
@@ -29,7 +28,6 @@ public class MultiQueue {
     private static final Logger logger = LoggerFactory.getLogger(MultiQueue.class);
 
     private MultiQueueConfig config;
-    private RSet<String> jobs;
     private RSetCache<String> concurrentUnits;
 
     /**
@@ -126,15 +124,15 @@ public class MultiQueue {
     }
 
     /**
-     * 获取当前并发单元拷贝集合
+     * 获取当前并发单元集合快照
      *
-     * @return 当前并发单元拷贝集合
+     * @return 当前并发单元集合快照
      */
-    public Set<String> copyCurrentConcurrentUnits() {
+    public Set<String> concurrentUnitsSnapshots() {
         RSetCache<String> concurrentUnits = currentConcurrentUnits();
-        Set<String> currentConcurrentUnits = new HashSet<>();
-        for (String concurrentUnit : concurrentUnits) currentConcurrentUnits.add(concurrentUnit);
-        return currentConcurrentUnits;
+        Set<String> snapshots = new HashSet<>();
+        for (String concurrentUnit : concurrentUnits) snapshots.add(concurrentUnit);
+        return snapshots;
     }
 
     /**
@@ -176,121 +174,21 @@ public class MultiQueue {
     }
 
     /**
-     * 获取当前任务集合
+     * 获取并发单元排队URL数量
      *
-     * @return 任务集合
+     * @param concurrentUnit 并发单元
+     * @return 排队URL数量
      */
-    private RSet<String> currentJobs() {
-        if (jobs != null) return jobs;
-        jobs = redisClient.getRedissonClient().getSet(MultiQueueConstants.MULTI_QUEUE_JOBS);
-        return jobs;
-    }
-
-    /**
-     * 移除任务ID
-     *
-     * @param jobId 任务ID
-     */
-    public void removeJob(String jobId){
-        RSet<String> jobs = currentJobs();
-        if (jobs != null) jobs.remove(jobId);
-    }
-
-    /**
-     * 获取当前任务拷贝集合
-     *
-     * @return 当前任务拷贝集合
-     */
-    public Set<String> copyCurrentJobs() {
-        RSet<String> jobs = currentJobs();
-        Set<String> currentJobs = new HashSet<>();
-        for (String job : jobs) currentJobs.add(job);
-        return currentJobs;
-    }
-
-    /**
-     * 清理任务过期URL记录
-     *
-     * @param jobId 任务ID
-     * @param maxTimeIntervalMs 最大时间间隔（毫秒）
-     * @return 清理数据列表
-     */
-    public List<URLRecord> sweepExpiredJobRecords(String jobId, long maxTimeIntervalMs) {
-        List<URLRecord> sweepRecords = new ArrayList<>();
-        if (StringUtils.isEmpty(jobId)) {
-            logger.warn("job id is empty");
-            return sweepRecords;
+    public int getRecordSize(String concurrentUnit) {
+        int size = 0;
+        if (StringUtils.isEmpty(concurrentUnit)) return size;
+        List<String> concurrentUnitQueueKeys = buildConcurrentUnitQueueKeys(concurrentUnit);
+        for (String concurrentQueueQueueKey : concurrentUnitQueueKeys) {
+            RBlockingQueue<URLRecord> urlQueue = redisClient.getRedissonClient().
+                    getBlockingQueue(concurrentQueueQueueKey, codec);
+            size += urlQueue.size();
         }
-        String jobRecordMapKey = String.format("%s%s", MultiQueueConstants.MULTI_QUEUE_JOB_RECORD, jobId);
-        RMap<String, URLRecord> jobRecordMap = redisClient.getRedissonClient().getMap(jobRecordMapKey, codec);
-        Iterator<Map.Entry<String, URLRecord>> iterator = jobRecordMap.entrySet().iterator();
-        while (iterator.hasNext()) {
-            Map.Entry<String, URLRecord> entry = iterator.next();
-            URLRecord record = entry.getValue();
-            long timeIntervalMs = System.currentTimeMillis() - record.inQueueTime;
-            if (timeIntervalMs <= maxTimeIntervalMs) continue;
-            iterator.remove();
-            String concurrentUnitQueueKey = buildConcurrentUnitQueueKey(record);
-            RBlockingQueue<URLRecord> queue = redisClient.getRedissonClient().
-                    getBlockingQueue(concurrentUnitQueueKey, codec);
-            if (queue != null) queue.remove(record);
-            sweepRecords.add(record);
-            logger.info("record[{}] is expired for url[{}] of job[{}]", record.key, record.url, record.jobId);
-        }
-        return sweepRecords;
-    }
-
-    /**
-     * 判断任务数据是否为空
-     * 如果任务对应的抓取记录为空返回true，反之返回false
-     *
-     * @param jobId 任务ID
-     * @return 为空返回true，否则返回false
-     */
-    public boolean isEmptyJobRecordMap(String jobId) {
-        if (StringUtils.isEmpty(jobId)) {
-            logger.warn("job id is empty");
-            return false;
-        }
-        String jobRecordMapKey = String.format("%s%s", MultiQueueConstants.MULTI_QUEUE_JOB_RECORD, jobId);
-        RMap<String, URLRecord> jobRecordMap = redisClient.getRedissonClient().getMap(jobRecordMapKey, codec);
-        return jobRecordMap == null || jobRecordMap.isEmpty();
-    }
-
-    /**
-     * 删除任务记录映射
-     *
-     * @param jobId 任务ID
-     */
-    public void deleteJobRecordMap(String jobId) {
-        if (StringUtils.isEmpty(jobId)) {
-            logger.warn("job id is empty");
-            return;
-        }
-        String jobRecordMapKey = String.format("%s%s", MultiQueueConstants.MULTI_QUEUE_JOB_RECORD, jobId);
-        RSet<String> jobs = currentJobs();
-        if (jobs.contains(jobId)) jobs.remove(jobId);
-        RMap<String, URLRecord> jobRecordMap = redisClient.getRedissonClient().getMap(jobRecordMapKey, codec);
-        if (jobRecordMap != null) jobRecordMap.delete();
-        logger.info("delete job record map[{}] success", jobRecordMapKey);
-    }
-
-    /**
-     * 从任务记录映射中移除URL数据
-     *
-     * @param record URL数据
-     */
-    public void removeFromJobRecordMap(URLRecord record) {
-        if (record == null) return;
-        if (StringUtils.isEmpty(record.jobId)) {
-            logger.warn("job id is empty");
-            return;
-        }
-        String jobRecordMapKey = String.format("%s%s", MultiQueueConstants.MULTI_QUEUE_JOB_RECORD, record.jobId);
-        RMap<String, URLRecord> jobRecordMap = redisClient.getRedissonClient().getMap(jobRecordMapKey, codec);
-        if (!jobRecordMap.containsKey(record.key)) return;
-        jobRecordMap.remove(record.key);
-        logger.info("delete record[{}] success from job record map[{}]", record.key, record.jobId);
+        return size;
     }
 
     /**
@@ -298,29 +196,11 @@ public class MultiQueue {
      *
      * @param record URL数据
      */
-    public void removeFromConcurrentUnitQueue(URLRecord record) {
+    public void remove(URLRecord record) {
         String concurrentUnitQueueKey = buildConcurrentUnitQueueKey(record);
         RBlockingQueue<URLRecord> recordQueue = redisClient.getRedissonClient().
                 getBlockingQueue(concurrentUnitQueueKey, codec);
         if (recordQueue != null) recordQueue.remove(record);
-    }
-
-    /**
-     * 获取并发单元排队URL数量
-     *
-     * @param concurrentUnit 并发单元
-     * @return 排队URL数量
-     */
-    public int getConcurrentUnitQueuingSize(String concurrentUnit) {
-        int queuingSize = 0;
-        if (StringUtils.isEmpty(concurrentUnit)) return queuingSize;
-        List<String> concurrentUnitQueueKeys = buildConcurrentUnitQueueKeys(concurrentUnit);
-        for (String concurrentQueueQueueKey : concurrentUnitQueueKeys) {
-            RBlockingQueue<URLRecord> urlQueue = redisClient.getRedissonClient().
-                    getBlockingQueue(concurrentQueueQueueKey, codec);
-            queuingSize += urlQueue.size();
-        }
-        return queuingSize;
     }
 
     /**
@@ -401,7 +281,6 @@ public class MultiQueue {
             return MultiQueueStatus.ERROR;
         }
         record.inQueueTime = System.currentTimeMillis();
-        String jobRecordMapKey = String.format("%s%s", MultiQueueConstants.MULTI_QUEUE_JOB_RECORD, record.jobId);
         String concurrentUnitQueueKey = buildConcurrentUnitQueueKey(record);
         RBlockingQueue<URLRecord> queue = redisClient.getRedissonClient().
                 getBlockingQueue(concurrentUnitQueueKey, codec);
@@ -419,13 +298,11 @@ public class MultiQueue {
         try {
             record.status = Constants.URL_STATUS_QUEUING;
             batch.getBlockingQueue(concurrentUnitQueueKey, codec).offerAsync(record);
-            batch.getMap(jobRecordMapKey, codec).putAsync(record.key, record);
             batch.getSetCache(MultiQueueConstants.MULTI_QUEUE_CONCURRENT_UNITS).addAsync(
                     concurrentUnit, 0, TimeUnit.SECONDS);
-            batch.getSet(MultiQueueConstants.MULTI_QUEUE_JOBS).addAsync(record.jobId);
             BatchResult result = batch.execute();
             List responses = result.getResponses();
-            if (responses.size() != 4 || !((Boolean) responses.get(0))) {
+            if (responses.size() != 2 || !((Boolean) responses.get(0))) {
                 throw new MultiQueueException("push record failed");
             }
             return MultiQueueStatus.OK;
@@ -436,7 +313,6 @@ public class MultiQueue {
                     responseTimeout(3, TimeUnit.SECONDS).
                     retryInterval(2, TimeUnit.SECONDS).retryAttempts(3);
             RBatch rollbackBatch = redisClient.getRedissonClient().createBatch(rollbackOptions);
-            rollbackBatch.getMap(jobRecordMapKey, codec).removeAsync(record.key);
             rollbackBatch.getBlockingQueue(concurrentUnitQueueKey, codec).removeAsync(record);
             rollbackBatch.execute();
             record.inQueueTime = null;

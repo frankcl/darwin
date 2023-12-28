@@ -133,7 +133,7 @@ public class PlanServiceImpl implements PlanService {
                 if (status == MultiQueueStatus.OK) pushQueueRecords.add(seedURL);
                 logger.info("push record[{}] into queue, status[{}]", seedURL.url,
                         Constants.SUPPORT_URL_STATUSES.get(seedURL.status));
-                if (urlService.add(seedURL)) addRecords.add(seedURL);
+                if (urlService.add(new URLRecord(seedURL))) addRecords.add(seedURL);
                 else throw new RuntimeException("添加任务种子失败");
             }
             if (plan.category != Constants.PLAN_CATEGORY_PERIOD) return job;
@@ -173,10 +173,7 @@ public class PlanServiceImpl implements PlanService {
      * @param jobId 任务ID
      */
     private void rollback(List<URLRecord> pushQueueRecords, List<URLRecord> addRecords, String jobId) {
-        for (URLRecord pushQueueRecord : pushQueueRecords) {
-            multiQueue.removeFromJobRecordMap(pushQueueRecord);
-            multiQueue.removeFromConcurrentUnitQueue(pushQueueRecord);
-        }
+        for (URLRecord pushQueueRecord : pushQueueRecords) multiQueue.remove(pushQueueRecord);
         if (urlService instanceof URLServiceImpl) for (URLRecord record : addRecords) urlService.delete(record.key);
         if (jobService instanceof JobServiceImpl) jobService.delete(jobId);
     }

@@ -4,7 +4,11 @@ import com.alicloud.openservices.tablestore.model.ColumnValue;
 import com.alicloud.openservices.tablestore.model.search.query.MatchPhraseQuery;
 import com.alicloud.openservices.tablestore.model.search.query.RangeQuery;
 import com.alicloud.openservices.tablestore.model.search.query.TermQuery;
+import com.alicloud.openservices.tablestore.model.search.query.TermsQuery;
 import xin.manong.darwin.common.model.RangeValue;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * OTS搜索query构建器
@@ -32,6 +36,30 @@ public class SearchQueryBuilder {
         else if (termValue instanceof Float) termQuery.setTerm(ColumnValue.fromDouble((Float) termValue));
         else throw new RuntimeException(String.format("unsupported term type[%s]", termValue.getClass().getName()));
         return termQuery;
+    }
+
+    /**
+     * 构建terms查询条件
+     *
+     * @param field 字段名
+     * @param termsValue 字段值列表
+     * @return terms查询条件
+     */
+    public static <T> TermsQuery buildTermsQuery(String field, List<T> termsValue) {
+        TermsQuery termsQuery = new TermsQuery();
+        termsQuery.setFieldName(field);
+        List<ColumnValue> columnValues = new ArrayList<>();
+        for (Object termValue : termsValue) {
+            if (termValue instanceof Long) columnValues.add(ColumnValue.fromLong((Long) termValue));
+            else if (termValue instanceof Integer) columnValues.add(ColumnValue.fromLong((Integer) termValue));
+            else if (termValue instanceof String) columnValues.add(ColumnValue.fromString((String) termValue));
+            else if (termValue instanceof Boolean) columnValues.add(ColumnValue.fromBoolean((Boolean) termValue));
+            else if (termValue instanceof Double) columnValues.add(ColumnValue.fromDouble((Double) termValue));
+            else if (termValue instanceof Float) columnValues.add(ColumnValue.fromDouble((Float) termValue));
+            else throw new RuntimeException(String.format("unsupported term type[%s]", termValue.getClass().getName()));
+        }
+        termsQuery.setTerms(columnValues);
+        return termsQuery;
     }
 
     /**

@@ -140,7 +140,8 @@ public class PlanServiceImplSuite {
         Assert.assertTrue(job != null);
 
         URLSearchRequest request = new URLSearchRequest();
-        request.status = Constants.URL_STATUS_QUEUING;
+        request.statusList = new ArrayList<>();
+        request.statusList.add(Constants.URL_STATUS_QUEUING);
         request.jobId = job.jobId;
         request.current = 1;
         request.size = 10;

@@ -34,7 +34,7 @@ public class ConcurrentConnectionMonitor extends ExecuteMonitor {
     @Override
     public void execute() {
         int releaseConnectionNum = 0, scanConcurrentUnitNum = 0;
-        Set<String> concurrentUnits = multiQueue.copyCurrentConcurrentUnits();
+        Set<String> concurrentUnits = multiQueue.concurrentUnitsSnapshots();
         for (String concurrentUnit : concurrentUnits) {
             scanConcurrentUnitNum++;
             Map<String, Long> connectionRecordMap = concurrentManager.getConnectionRecordMap(concurrentUnit);

@@ -55,7 +55,7 @@ public class ConcurrentQueueController {
     @GetMapping("getConcurrentUnits")
     @EnableWebLogAspect
     public List<String> getConcurrentUnits() {
-        return new ArrayList<>(multiQueue.copyCurrentConcurrentUnits());
+        return new ArrayList<>(multiQueue.concurrentUnitsSnapshots());
     }
 
     /**
@@ -77,7 +77,7 @@ public class ConcurrentQueueController {
         Long currentTime = System.currentTimeMillis();
         ConcurrentUnitInfo concurrentUnitInfo = new ConcurrentUnitInfo();
         concurrentUnitInfo.fetchCapacity = concurrentManager.getMaxConcurrentConnectionNum(concurrentUnit);
-        concurrentUnitInfo.queuingSize = multiQueue.getConcurrentUnitQueuingSize(concurrentUnit);
+        concurrentUnitInfo.queuingSize = multiQueue.getRecordSize(concurrentUnit);
         concurrentUnitInfo.fetchingSize = 0;
         concurrentUnitInfo.fetchingExpiredSize = 0;
         Map<String, Long> connectionRecordMap = concurrentManager.getConnectionRecordMap(concurrentUnit);
@@ -103,14 +103,14 @@ public class ConcurrentQueueController {
     public MultiQueueInfo getMultiQueueInfo() {
         MultiQueueInfo multiQueueInfo = new MultiQueueInfo();
         multiQueueInfo.memoryLevel = multiQueue.getCurrentMemoryLevel();
-        Set<String> concurrentUnits = multiQueue.copyCurrentConcurrentUnits();
+        Set<String> concurrentUnits = multiQueue.concurrentUnitsSnapshots();
         multiQueueInfo.concurrentUnitNum = concurrentUnits.size();
         multiQueueInfo.fetchingRecordNum = 0;
         multiQueueInfo.queuingRecordNum = 0;
         multiQueueInfo.fetchingExpiredRecordNum = 0;
         Long currentTime = System.currentTimeMillis();
         for (String concurrentUnit : concurrentUnits) {
-            multiQueueInfo.queuingRecordNum += multiQueue.getConcurrentUnitQueuingSize(concurrentUnit);
+            multiQueueInfo.queuingRecordNum += multiQueue.getRecordSize(concurrentUnit);
             Map<String, Long> connectionRecordMap = concurrentManager.getConnectionRecordMap(concurrentUnit);
             for (Map.Entry<String, Long> entry : connectionRecordMap.entrySet()) {
                 Long expiredTime = entry.getValue();

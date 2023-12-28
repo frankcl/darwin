@@ -312,6 +312,7 @@ public class URLRecord extends BasicModel {
         category = record.category;
         depth = record.depth;
         scope = record.scope;
+        httpCode = record.httpCode;
         userDefinedMap = record.userDefinedMap == null ? new HashMap<>() : new HashMap<>(record.userDefinedMap);
         fieldMap = record.fieldMap == null ? new HashMap<>() : new HashMap<>(record.fieldMap);
         headers = record.headers == null ? new HashMap<>() : new HashMap<>(record.headers);

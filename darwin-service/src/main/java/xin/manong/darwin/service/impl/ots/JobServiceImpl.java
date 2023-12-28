@@ -16,7 +16,6 @@ import xin.manong.darwin.service.config.CacheConfig;
 import xin.manong.darwin.service.config.ServiceConfig;
 import xin.manong.darwin.service.convert.Converter;
 import xin.manong.darwin.service.iface.JobService;
-import xin.manong.darwin.service.iface.URLService;
 import xin.manong.darwin.service.request.JobSearchRequest;
 import xin.manong.darwin.service.request.URLSearchRequest;
 import xin.manong.weapon.aliyun.ots.*;
@@ -43,13 +42,12 @@ public class JobServiceImpl extends JobService {
     private static final String KEY_NAME = "name";
     private static final String KEY_STATUS = "status";
     private static final String KEY_PRIORITY = "priority";
+    private static final String KEY_CREATE_TIME = "create_time";
 
     @Resource
     protected ServiceConfig serviceConfig;
     @Resource
     protected OTSClient otsClient;
-    @Resource
-    protected URLService urlService;
 
     @Autowired
     public JobServiceImpl(CacheConfig cacheConfig) {
@@ -141,6 +139,7 @@ public class JobServiceImpl extends JobService {
         if (searchRequest.priority != null) queryList.add(SearchQueryBuilder.buildTermQuery(KEY_PRIORITY, searchRequest.priority));
         if (!StringUtils.isEmpty(searchRequest.planId)) queryList.add(SearchQueryBuilder.buildTermQuery(KEY_PLAN_ID, searchRequest.planId));
         if (!StringUtils.isEmpty(searchRequest.name)) queryList.add(SearchQueryBuilder.buildMatchPhraseQuery(KEY_NAME, searchRequest.name));
+        if (searchRequest.createTime != null) queryList.add(SearchQueryBuilder.buildRangeQuery(KEY_CREATE_TIME, searchRequest.createTime));
         if (!queryList.isEmpty()) boolQuery.setFilterQueries(queryList);
         OTSSearchRequest request = new OTSSearchRequest.Builder().offset(offset).limit(searchRequest.size).
                 tableName(serviceConfig.jobTable).indexName(serviceConfig.jobIndexName).query(boolQuery).build();

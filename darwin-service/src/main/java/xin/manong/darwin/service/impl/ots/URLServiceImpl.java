@@ -42,6 +42,7 @@ public class URLServiceImpl extends URLService {
     private static final String KEY_PRIORITY = "priority";
     private static final String KEY_CATEGORY = "category";
     private static final String KEY_FETCH_TIME = "fetch_time";
+    private static final String KEY_CREATE_TIME = "create_time";
 
     @Resource
     protected ServiceConfig serviceConfig;
@@ -172,8 +173,8 @@ public class URLServiceImpl extends URLService {
         int offset = (searchRequest.current - 1) * searchRequest.size;
         BoolQuery boolQuery = new BoolQuery();
         List<Query> queryList = new ArrayList<>();
-        if (searchRequest.status != null) {
-            queryList.add(SearchQueryBuilder.buildTermQuery(KEY_STATUS, searchRequest.status));
+        if (searchRequest.statusList != null && !searchRequest.statusList.isEmpty()) {
+            queryList.add(SearchQueryBuilder.buildTermsQuery(KEY_STATUS, searchRequest.statusList));
         }
         if (searchRequest.priority != null) {
             queryList.add(SearchQueryBuilder.buildTermQuery(KEY_PRIORITY, searchRequest.priority));
@@ -192,6 +193,9 @@ public class URLServiceImpl extends URLService {
         }
         if (searchRequest.fetchTime != null) {
             queryList.add(SearchQueryBuilder.buildRangeQuery(KEY_FETCH_TIME, searchRequest.fetchTime));
+        }
+        if (searchRequest.createTime != null) {
+            queryList.add(SearchQueryBuilder.buildRangeQuery(KEY_CREATE_TIME, searchRequest.createTime));
         }
         if (!queryList.isEmpty()) boolQuery.setFilterQueries(queryList);
         OTSSearchRequest request = new OTSSearchRequest.Builder().offset(offset).limit(searchRequest.size).

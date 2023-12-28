@@ -22,7 +22,5 @@ public class MultiQueueConstants {
     public static final String MULTI_QUEUE_HIGH_CONCURRENT_UNIT_QUEUE = String.format("%s_H_QUEUE_", MULTI_QUEUE_PREFIX);
     public static final String MULTI_QUEUE_NORMAL_CONCURRENT_UNIT_QUEUE = String.format("%s_N_QUEUE_", MULTI_QUEUE_PREFIX);
     public static final String MULTI_QUEUE_LOW_CONCURRENT_UNIT_QUEUE = String.format("%s_L_QUEUE_", MULTI_QUEUE_PREFIX);
-    public static final String MULTI_QUEUE_JOB_RECORD = String.format("%s_JOB_RECORD_", MULTI_QUEUE_PREFIX);
     public static final String MULTI_QUEUE_CONCURRENT_UNITS = String.format("%s_CONCURRENT_UNITS", MULTI_QUEUE_PREFIX);
-    public static final String MULTI_QUEUE_JOBS = String.format("%s_JOBS", MULTI_QUEUE_PREFIX);
 }

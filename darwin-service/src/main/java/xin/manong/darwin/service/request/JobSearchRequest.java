@@ -2,6 +2,7 @@ package xin.manong.darwin.service.request;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import xin.manong.darwin.common.model.RangeValue;
 
 /**
  * 任务搜索请求
@@ -32,4 +33,9 @@ public class JobSearchRequest extends SearchRequest {
      */
     @JsonProperty("status")
     public Integer status;
+    /**
+     * 创建时间范围
+     */
+    @JsonProperty("create_time")
+    public RangeValue<Long> createTime;
 }

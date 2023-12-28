@@ -3,6 +3,7 @@ app:
     queue:
       checkTimeIntervalMs: 600000
       expiredTimeIntervalMs: 600000
+      jobCreateTimeIntervalMs: 10800000
     concurrent:
       checkTimeIntervalMs: 60000
       expiredTimeIntervalMs: 300000

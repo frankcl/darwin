@@ -13,7 +13,6 @@ import xin.manong.darwin.common.Constants;
 import xin.manong.darwin.common.computer.ConcurrentUnitComputer;
 import xin.manong.darwin.common.model.URLRecord;
 import xin.manong.darwin.queue.concurrent.ConcurrentManager;
-import xin.manong.darwin.queue.multi.MultiQueue;
 import xin.manong.darwin.service.config.ServiceConfig;
 import xin.manong.darwin.service.iface.URLService;
 import xin.manong.weapon.aliyun.ons.ONSProducer;
@@ -38,8 +37,6 @@ public class URLCompleteNotifier implements CompleteNotifier<URLRecord> {
     @Resource
     protected URLService urlService;
     @Resource
-    protected MultiQueue multiQueue;
-    @Resource
     protected ConcurrentManager concurrentManager;
     @Resource
     protected ONSProducer producer;
@@ -49,7 +46,6 @@ public class URLCompleteNotifier implements CompleteNotifier<URLRecord> {
         try {
             if (!urlService.updateContent(record)) logger.warn("update content failed for url[{}]", record.url);
             pushMessage(record, context);
-            multiQueue.removeFromJobRecordMap(record);
             if (record.status == Constants.URL_STATUS_OVERFLOW) return;
             String concurrentUnit = ConcurrentUnitComputer.compute(record);
             concurrentManager.removeConnectionRecord(concurrentUnit, record.key);

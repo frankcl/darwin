@@ -5,11 +5,18 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.RemovalNotification;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import xin.manong.darwin.common.Constants;
 import xin.manong.darwin.common.model.Job;
 import xin.manong.darwin.common.model.Pager;
+import xin.manong.darwin.common.model.RangeValue;
+import xin.manong.darwin.common.model.URLRecord;
 import xin.manong.darwin.service.config.CacheConfig;
 import xin.manong.darwin.service.request.JobSearchRequest;
+import xin.manong.darwin.service.request.URLSearchRequest;
 
+import javax.annotation.Resource;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -26,6 +33,8 @@ public abstract class JobService {
 
     protected CacheConfig cacheConfig;
     protected Cache<String, Optional<Job>> jobCache;
+    @Resource
+    protected URLService urlService;
 
     public JobService(CacheConfig cacheConfig) {
         this.cacheConfig = cacheConfig;
@@ -109,4 +118,50 @@ public abstract class JobService {
      * @return 分页列表
      */
     public abstract Pager<Job> search(JobSearchRequest searchRequest);
+
+    /**
+     * 判断任务是否结束
+     * 任务存在且任务URL不存在以下状态则任务结束
+     * 1. URL_STATUS_CREATED：1
+     * 2. URL_STATUS_QUEUING：3
+     * 3. URL_STATUS_FETCHING：4
+     *
+     * @param jobId 任务ID
+     * @return 结束返回true，否则返回false
+     */
+    public boolean finish(String jobId) {
+        Job job = get(jobId);
+        if (job == null) {
+            logger.warn("job[{}] is not found", jobId);
+            return false;
+        }
+        if (job.status != null && job.status == Constants.JOB_STATUS_FINISHED) return true;
+        URLSearchRequest searchRequest = new URLSearchRequest();
+        searchRequest.statusList = new ArrayList<>();
+        searchRequest.statusList.add(Constants.URL_STATUS_CREATED);
+        searchRequest.statusList.add(Constants.URL_STATUS_QUEUING);
+        searchRequest.statusList.add(Constants.URL_STATUS_FETCHING);
+        searchRequest.jobId = jobId;
+        Pager<URLRecord> pager = urlService.search(searchRequest);
+        return pager.total == 0;
+    }
+
+    /**
+     * 获取创建时间在before之前的运行任务
+     *
+     * @param before 创建时间
+     * @param size 任务数量
+     * @return 任务列表
+     */
+    public List<Job> getRunningJobs(Long before, int size) {
+        JobSearchRequest searchRequest = new JobSearchRequest();
+        searchRequest.current = 1;
+        searchRequest.size = size <= 0 ? Constants.DEFAULT_PAGE_SIZE : size;
+        searchRequest.createTime = new RangeValue<>();
+        searchRequest.createTime.end = before;
+        searchRequest.createTime.includeUpper = true;
+        searchRequest.status = Constants.JOB_STATUS_RUNNING;
+        Pager<Job> pager = search(searchRequest);
+        return pager == null || pager.records == null ? new ArrayList<>() : pager.records;
+    }
 }

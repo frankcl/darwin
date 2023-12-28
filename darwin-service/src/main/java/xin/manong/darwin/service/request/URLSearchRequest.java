@@ -4,6 +4,8 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import xin.manong.darwin.common.model.RangeValue;
 
+import java.util.List;
+
 /**
  * URL搜索请求
  *
@@ -14,10 +16,23 @@ import xin.manong.darwin.common.model.RangeValue;
 public class URLSearchRequest extends SearchRequest {
 
     /**
-     * URL状态：抓取成功0，抓取失败-1，创建1，排队拒绝2，排队中3，抓取中4，非法5
+     * URL状态
+     *
+     * 抓取成功:0
+     * 创建:1
+     * 排队拒绝:2
+     * 排队中:3
+     * 抓取中:4
+     * URL非法:5
+     * 超时:6
+     * I/O错误:7
+     * 抓取失败:8
+     * 解析失败:9
+     * 未知错误:10
+     * 溢出:11
      */
-    @JsonProperty("status")
-    public Integer status;
+    @JsonProperty("status_list")
+    public List<Integer> statusList;
     /**
      * 优先级：高0，正常1，低2
      */
@@ -53,4 +68,9 @@ public class URLSearchRequest extends SearchRequest {
      */
     @JsonProperty("fetch_time")
     public RangeValue<Long> fetchTime;
+    /**
+     * 创建时间范围
+     */
+    @JsonProperty("create_time")
+    public RangeValue<Long> createTime;
 }

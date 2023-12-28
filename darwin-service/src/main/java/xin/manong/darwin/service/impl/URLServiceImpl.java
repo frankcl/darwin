@@ -156,12 +156,14 @@ public class URLServiceImpl extends URLService {
         LambdaQueryWrapper<URLRecord> query = new LambdaQueryWrapper<>();
         query.orderByDesc(URLRecord::getCreateTime);
         if (searchRequest.category != null) query.eq(URLRecord::getCategory, searchRequest.category);
-        if (searchRequest.status != null) query.eq(URLRecord::getStatus, searchRequest.status);
         if (searchRequest.priority != null) query.eq(URLRecord::getPriority, searchRequest.priority);
         if (searchRequest.fetchMethod != null) query.eq(URLRecord::getFetchMethod, searchRequest.fetchMethod);
         if (!StringUtils.isEmpty(searchRequest.jobId)) query.eq(URLRecord::getJobId, searchRequest.jobId);
         if (!StringUtils.isEmpty(searchRequest.planId)) query.eq(URLRecord::getPlanId, searchRequest.planId);
         if (!StringUtils.isEmpty(searchRequest.url)) query.eq(URLRecord::getHash, DigestUtils.md5Hex(searchRequest.url));
+        if (searchRequest.statusList != null && !searchRequest.statusList.isEmpty()) {
+            query.in(URLRecord::getStatus, searchRequest.statusList);
+        }
         if (searchRequest.fetchTime != null && searchRequest.fetchTime.start != null) {
             if (searchRequest.fetchTime.includeLower) query.ge(URLRecord::getFetchTime, searchRequest.fetchTime.start);
             else query.gt(URLRecord::getFetchTime, searchRequest.fetchTime.start);
@@ -169,6 +171,14 @@ public class URLServiceImpl extends URLService {
         if (searchRequest.fetchTime != null && searchRequest.fetchTime.end != null) {
             if (searchRequest.fetchTime.includeUpper) query.le(URLRecord::getFetchTime, searchRequest.fetchTime.end);
             else query.lt(URLRecord::getFetchTime, searchRequest.fetchTime.end);
+        }
+        if (searchRequest.createTime != null && searchRequest.createTime.start != null) {
+            if (searchRequest.createTime.includeLower) query.ge(URLRecord::getCreateTime, searchRequest.createTime.start);
+            else query.gt(URLRecord::getCreateTime, searchRequest.createTime.start);
+        }
+        if (searchRequest.createTime != null && searchRequest.createTime.end != null) {
+            if (searchRequest.createTime.includeUpper) query.le(URLRecord::getCreateTime, searchRequest.createTime.end);
+            else query.lt(URLRecord::getCreateTime, searchRequest.createTime.end);
         }
         IPage<URLRecord> page = urlMapper.selectPage(new Page<>(searchRequest.current, searchRequest.size), query);
         return Converter.convert(page);

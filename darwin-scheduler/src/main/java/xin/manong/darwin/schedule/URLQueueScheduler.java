@@ -13,6 +13,7 @@ import xin.manong.darwin.common.model.Job;
 import xin.manong.darwin.common.model.URLRecord;
 import xin.manong.darwin.queue.concurrent.ConcurrentManager;
 import xin.manong.darwin.queue.multi.MultiQueue;
+import xin.manong.darwin.service.iface.JobService;
 import xin.manong.darwin.service.iface.URLService;
 import xin.manong.darwin.service.notify.JobCompleteNotifier;
 import xin.manong.darwin.service.notify.URLCompleteNotifier;
@@ -40,6 +41,8 @@ public class URLQueueScheduler extends ExecuteRunner {
     @Resource
     protected URLService urlService;
     @Resource
+    protected JobService jobService;
+    @Resource
     protected MultiQueue multiQueue;
     @Resource
     protected ConcurrentManager concurrentManager;
@@ -62,7 +65,7 @@ public class URLQueueScheduler extends ExecuteRunner {
             return;
         }
         try {
-            Set<String> concurrentUnits = multiQueue.copyCurrentConcurrentUnits();
+            Set<String> concurrentUnits = multiQueue.concurrentUnitsSnapshots();
             for (String concurrentUnit : concurrentUnits) handleConcurrentUnit(concurrentUnit);
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
@@ -125,8 +128,7 @@ public class URLQueueScheduler extends ExecuteRunner {
     private void handleOverflowRecord(URLRecord record) {
         Context context = new Context();
         urlCompleteNotifier.onComplete(buildOverflowRecord(record), context);
-        if (multiQueue.isEmptyJobRecordMap(record.jobId)) {
-            multiQueue.deleteJobRecordMap(record.jobId);
+        if (jobService.finish(record.jobId)) {
             jobCompleteNotifier.onComplete(new Job(record.jobId, record.appId), new Context());
         }
         commitAspectLog(context, record);

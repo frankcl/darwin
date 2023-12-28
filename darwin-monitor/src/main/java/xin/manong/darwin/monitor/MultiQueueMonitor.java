@@ -6,6 +6,7 @@ import xin.manong.darwin.common.Constants;
 import xin.manong.darwin.common.model.Job;
 import xin.manong.darwin.common.model.URLRecord;
 import xin.manong.darwin.queue.multi.MultiQueue;
+import xin.manong.darwin.service.iface.JobService;
 import xin.manong.darwin.service.iface.URLService;
 import xin.manong.darwin.service.notify.JobCompleteNotifier;
 import xin.manong.weapon.base.common.Context;
@@ -30,6 +31,8 @@ public class MultiQueueMonitor extends ExecuteMonitor {
     @Resource
     protected URLService urlService;
     @Resource
+    protected JobService jobService;
+    @Resource
     protected MultiQueue multiQueue;
     @Resource
     protected JobCompleteNotifier jobCompleteNotifier;
@@ -39,7 +42,7 @@ public class MultiQueueMonitor extends ExecuteMonitor {
         this.expiredTimeIntervalMs = expiredTimeIntervalMs;
         this.updateStatusList = new HashSet<>();
         this.updateStatusList.add(Constants.URL_STATUS_FETCHING);
-        this.updateStatusList.add(Constants.URL_STATUS_QUEUING);
+        this.updateStatusList.add(Constants.URL_STATUS_CREATED);
     }
 
     @Override
@@ -52,7 +55,7 @@ public class MultiQueueMonitor extends ExecuteMonitor {
      * 清理过期并发单元
      */
     private void sweepExpiredConcurrentUnits() {
-        Set<String> concurrentUnits = multiQueue.copyCurrentConcurrentUnits();
+        Set<String> concurrentUnits = multiQueue.concurrentUnitsSnapshots();
         int sweepConcurrentUnitCount = 0;
         for (String concurrentUnit : concurrentUnits) {
             if (multiQueue.expiredConcurrentUnit(concurrentUnit)) sweepConcurrentUnitCount++;
@@ -65,38 +68,23 @@ public class MultiQueueMonitor extends ExecuteMonitor {
      * 清理过期任务
      */
     private void sweepExpiredJobs() {
-        Set<String> jobIds = multiQueue.copyCurrentJobs();
+        Long before = System.currentTimeMillis() - expiredTimeIntervalMs;
+        List<Job> jobs = jobService.getRunningJobs(before, 100);
         int sweepRecordCount = 0, sweepJobCount = 0;
-        for (String jobId : jobIds) {
-            List<URLRecord> sweepRecords = multiQueue.sweepExpiredJobRecords(
-                    jobId, expiredTimeIntervalMs);
-            updateTimeoutStatus(sweepRecords);
-            sweepRecordCount += sweepRecords.size();
-            if (multiQueue.isEmptyJobRecordMap(jobId)) {
-                multiQueue.deleteJobRecordMap(jobId);
-                if (!sweepRecords.isEmpty()) {
-                    sweepJobCount++;
-                    Job finishJob = new Job(jobId, sweepRecords.get(0).appId);
-                    jobCompleteNotifier.onComplete(finishJob, new Context());
+        for (Job job : jobs) {
+            List<URLRecord> expiredRecords = urlService.getJobExpiredRecords(job.jobId, before, 100);
+            sweepRecordCount += expiredRecords.size();
+            for (URLRecord expiredRecord : expiredRecords) {
+                if (!urlService.updateStatus(expiredRecord.key, Constants.URL_STATUS_TIMEOUT)) {
+                    logger.warn("update timeout status failed for url[{}]", expiredRecord.key);
                 }
+            }
+            if (jobService.finish(job.jobId)) {
+                sweepJobCount++;
+                jobCompleteNotifier.onComplete(job, new Context());
             }
         }
         logger.info("scanning job num[{}], sweeping job num[{}], record num[{}]",
-                jobIds.size(), sweepJobCount, sweepRecordCount);
-    }
-
-    /**
-     * 更新URL超时状态
-     *
-     * @param sweepRecords 清理URL数据
-     */
-    private void updateTimeoutStatus(List<URLRecord> sweepRecords) {
-        for (URLRecord sweepRecord : sweepRecords) {
-            URLRecord record = urlService.get(sweepRecord.key);
-            if (!updateStatusList.contains(record.status)) continue;
-            if (!urlService.updateStatus(record.key, Constants.URL_STATUS_TIMEOUT)) {
-                logger.warn("update timeout status failed for url[{}]", record.key);
-            }
-        }
+                jobs.size(), sweepJobCount, sweepRecordCount);
     }
 }

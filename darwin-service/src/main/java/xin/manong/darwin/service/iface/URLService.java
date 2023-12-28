@@ -79,7 +79,8 @@ public abstract class URLService {
             Optional<URLRecord> optional = recordCache.get(hash, () -> {
                 URLSearchRequest searchRequest = new URLSearchRequest();
                 searchRequest.url = url;
-                searchRequest.status = Constants.URL_STATUS_SUCCESS;
+                searchRequest.statusList = new ArrayList<>();
+                searchRequest.statusList.add(Constants.URL_STATUS_SUCCESS);
                 searchRequest.fetchTime = new RangeValue<>();
                 searchRequest.fetchTime.start = System.currentTimeMillis() - 86400000L;
                 searchRequest.current = 1;
@@ -153,6 +154,29 @@ public abstract class URLService {
      * @return 搜索列表
      */
     public abstract Pager<URLRecord> search(URLSearchRequest searchRequest);
+
+    /**
+     * 获取指定任务URL创建时间小于等于before的URL记录
+     *
+     * @param jobId 任务ID
+     * @param before 最小创建时间
+     * @param size 数量
+     * @return URL列表
+     */
+    public List<URLRecord> getJobExpiredRecords(String jobId, Long before, int size) {
+        URLSearchRequest searchRequest = new URLSearchRequest();
+        searchRequest.current = 1;
+        searchRequest.size = size <= 0 ? Constants.DEFAULT_PAGE_SIZE : size;
+        searchRequest.statusList = new ArrayList<>();
+        searchRequest.statusList.add(Constants.URL_STATUS_CREATED);
+        searchRequest.statusList.add(Constants.URL_STATUS_FETCHING);
+        searchRequest.createTime = new RangeValue<>();
+        searchRequest.createTime.end = before;
+        searchRequest.createTime.includeUpper = true;
+        searchRequest.jobId = jobId;
+        Pager<URLRecord> pager = search(searchRequest);
+        return pager == null || pager.records == null ? new ArrayList<>() : pager.records;
+    }
 
     /**
      * 导出URL

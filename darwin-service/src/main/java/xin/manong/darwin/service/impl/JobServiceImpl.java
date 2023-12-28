@@ -16,7 +16,6 @@ import xin.manong.darwin.service.config.CacheConfig;
 import xin.manong.darwin.service.convert.Converter;
 import xin.manong.darwin.service.dao.mapper.JobMapper;
 import xin.manong.darwin.service.iface.JobService;
-import xin.manong.darwin.service.iface.URLService;
 import xin.manong.darwin.service.request.JobSearchRequest;
 import xin.manong.darwin.service.request.URLSearchRequest;
 
@@ -35,8 +34,6 @@ public class JobServiceImpl extends JobService {
 
     @Resource
     protected JobMapper jobMapper;
-    @Resource
-    protected URLService urlService;
 
     @Autowired
     public JobServiceImpl(CacheConfig cacheConfig) {
@@ -105,6 +102,14 @@ public class JobServiceImpl extends JobService {
         if (searchRequest.status != null) query.eq(Job::getStatus, searchRequest.status);
         if (searchRequest.planId != null) query.eq(Job::getPlanId, searchRequest.planId);
         if (!StringUtils.isEmpty(searchRequest.name)) query.like(Job::getName, searchRequest.name);
+        if (searchRequest.createTime != null && searchRequest.createTime.start != null) {
+            if (searchRequest.createTime.includeLower) query.ge(Job::getCreateTime, searchRequest.createTime.start);
+            else query.gt(Job::getCreateTime, searchRequest.createTime.start);
+        }
+        if (searchRequest.createTime != null && searchRequest.createTime.end != null) {
+            if (searchRequest.createTime.includeUpper) query.le(Job::getCreateTime, searchRequest.createTime.end);
+            else query.lt(Job::getCreateTime, searchRequest.createTime.end);
+        }
         IPage<Job> page = jobMapper.selectPage(new Page<>(searchRequest.current, searchRequest.size), query);
         return Converter.convert(page);
     }

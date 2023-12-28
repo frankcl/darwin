@@ -10,7 +10,6 @@ import xin.manong.darwin.common.model.Job;
 import xin.manong.darwin.common.model.Pager;
 import xin.manong.darwin.common.model.RangeValue;
 import xin.manong.darwin.common.model.URLRecord;
-import xin.manong.darwin.queue.multi.MultiQueue;
 import xin.manong.darwin.service.iface.JobService;
 import xin.manong.darwin.service.iface.URLService;
 import xin.manong.darwin.service.notify.JobCompleteNotifier;
@@ -25,6 +24,7 @@ import xin.manong.weapon.base.util.CommonUtil;
 
 import javax.annotation.Resource;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -64,8 +64,6 @@ public abstract class Spider {
     protected URLService urlService;
     @Resource
     protected JobService jobService;
-    @Resource
-    protected MultiQueue multiQueue;
     @Resource
     protected URLCompleteNotifier urlCompleteNotifier;
     @Resource
@@ -165,7 +163,8 @@ public abstract class Spider {
         if (context == null || !context.contains(Constants.AVOID_REPEATED_FETCH) ||
                 !((boolean) context.get(Constants.AVOID_REPEATED_FETCH))) return null;
         URLSearchRequest searchRequest = new URLSearchRequest();
-        searchRequest.status = Constants.URL_STATUS_SUCCESS;
+        searchRequest.statusList = new ArrayList<>();
+        searchRequest.statusList.add(Constants.URL_STATUS_SUCCESS);
         searchRequest.url = record.url;
         searchRequest.fetchTime = new RangeValue<>();
         searchRequest.fetchTime.start = System.currentTimeMillis() - config.reuseExpiredTimeMs;
@@ -250,10 +249,7 @@ public abstract class Spider {
             logger.error(t.getMessage(), t);
         } finally {
             urlCompleteNotifier.onComplete(record, context);
-            if (multiQueue.isEmptyJobRecordMap(record.jobId)) {
-                multiQueue.deleteJobRecordMap(record.jobId);
-                jobCompleteNotifier.onComplete(job, new Context());
-            }
+            if (jobService.finish(record.jobId)) jobCompleteNotifier.onComplete(job, new Context());
             context.put(Constants.DARWIN_PROCESS_TIME, System.currentTimeMillis() - startTime);
         }
     }
