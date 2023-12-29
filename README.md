@@ -94,12 +94,6 @@
   * 数据通知分发：负责数据完成通知
     * URLCompleteNotifier：链接抓取完成通知分发
     * JobCompleteNotifier：爬虫任务完成通知分发
-* 监控：一些后台线程，负责保障系统数据完备性和一致性
-  * MultiQueueMonitor
-    * 负责清理无效并发单元
-    * 负责清理长期未处理链接
-  * ConcurrentConnectionMonitor：负责清理并发单元超期未处理的抓取连接
-  * ProxyMonitor：负责定期刷新短效代理
 * 调度抓取层：负责链接的调度和抓取
   * 周期性任务调度：负责为周期性计划定期生成任务，并将种子URL加入MultiQueue
   * URL链接调度：负责周期性地从MultiQueue中弹出链接，发往下游爬虫进行抓取
@@ -109,6 +103,12 @@
     * 资源抓取：抓取图片、视频资源
     * 流抓取：抓取M3U8流媒体资源
 * Web接口层：提供RESTFul形式的web接口，支持应用、计划、任务、规则、规则分组及URL记录等粒度操作
+* 监控：一些后台线程，负责保障系统数据完备性和一致性
+  * MultiQueueMonitor
+    * 负责清理无效并发单元
+    * 负责清理长期未处理链接
+  * ConcurrentConnectionMonitor：负责清理并发单元超期未处理的抓取连接
+  * ProxyMonitor：负责定期刷新短效代理
 
 ### 并发控制模型
 
