@@ -10,7 +10,6 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.transaction.annotation.Transactional;
 import xin.manong.darwin.common.Constants;
-import xin.manong.darwin.common.model.Job;
 import xin.manong.darwin.common.model.Pager;
 import xin.manong.darwin.common.model.Plan;
 import xin.manong.darwin.common.model.URLRecord;
@@ -18,7 +17,6 @@ import xin.manong.darwin.service.ApplicationTest;
 import xin.manong.darwin.service.iface.PlanService;
 import xin.manong.darwin.service.iface.URLService;
 import xin.manong.darwin.service.request.PlanSearchRequest;
-import xin.manong.darwin.service.request.URLSearchRequest;
 import xin.manong.weapon.base.util.RandomID;
 
 import javax.annotation.Resource;
@@ -136,18 +134,7 @@ public class PlanServiceImplSuite {
         }
         Assert.assertTrue(planService.add(plan));
 
-        Job job = planService.execute(plan);
-        Assert.assertTrue(job != null);
-
-        URLSearchRequest request = new URLSearchRequest();
-        request.statusList = new ArrayList<>();
-        request.statusList.add(Constants.URL_STATUS_QUEUING);
-        request.jobId = job.jobId;
-        request.current = 1;
-        request.size = 10;
-        Pager<URLRecord> pager = urlService.search(request);
-        Assert.assertEquals(2, pager.total.intValue());
-        Assert.assertEquals(2, pager.records.size());
+        Assert.assertTrue(planService.execute(plan));
 
         Plan getPlan = planService.get(plan.planId);
         Assert.assertEquals(new CronExpression(plan.crontabExpression).getNextValidTimeAfter(new Date()).getTime(),

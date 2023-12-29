@@ -11,7 +11,7 @@
  Target Server Version : 80030 (8.0.30)
  File Encoding         : 65001
 
- Date: 15/11/2023 17:51:52
+ Date: 29/12/2023 17:06:02
 */
 
 SET NAMES utf8mb4;
@@ -30,7 +30,7 @@ CREATE TABLE `app` (
   KEY `INDEX_NAME` (`name`) USING BTREE,
   KEY `INDEX_CREATE_TIME` (`create_time`) USING BTREE,
   KEY `INDEX_UPDATE_TIME` (`update_time`) USING BTREE
-) ENGINE=InnoDB AUTO_INCREMENT=22 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=26 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- ----------------------------
 -- Table structure for app_user
@@ -49,7 +49,7 @@ CREATE TABLE `app_user` (
   KEY `INDEX_USER_REAL_NAME` (`user_real_name`) USING BTREE,
   KEY `INDEX_CREATE_TIME` (`create_time`) USING BTREE,
   KEY `INDEX_UPDATE_TIME` (`update_time`) USING BTREE
-) ENGINE=InnoDB AUTO_INCREMENT=27 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=35 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- ----------------------------
 -- Table structure for job
@@ -67,13 +67,15 @@ CREATE TABLE `job` (
   `status` int DEFAULT NULL,
   `avoid_repeated_fetch` tinyint DEFAULT NULL,
   `app_id` int NOT NULL,
+  `fetch_method` int DEFAULT NULL,
   PRIMARY KEY (`job_id`),
   KEY `INDEX_PLAN_ID` (`plan_id`) USING BTREE,
   KEY `INDEX_PRIORITY` (`priority`) USING BTREE,
   KEY `INDEX_NAME` (`name`) USING BTREE,
   KEY `INDEX_CREATE_TIME` (`create_time`) USING BTREE,
   KEY `INDEX_UPDATE_TIME` (`update_time`) USING BTREE,
-  KEY `INDEX_STATUS` (`status`) USING BTREE
+  KEY `INDEX_STATUS` (`status`) USING BTREE,
+  KEY `INDEX_FETCH_METHOD` (`fetch_method`) USING BTREE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- ----------------------------
@@ -95,6 +97,7 @@ CREATE TABLE `plan` (
   `status` int DEFAULT NULL,
   `next_time` bigint DEFAULT NULL,
   `avoid_repeated_fetch` tinyint DEFAULT NULL,
+  `fetch_method` int DEFAULT NULL,
   PRIMARY KEY (`plan_id`),
   KEY `INDEX_APP_ID` (`app_id`) USING BTREE,
   KEY `INDEX_PRIORITY` (`priority`) USING BTREE,
@@ -102,8 +105,32 @@ CREATE TABLE `plan` (
   KEY `INDEX_UPDATE_TIME` (`update_time`) USING BTREE,
   KEY `INDEX_CATEGORY` (`category`) USING BTREE,
   KEY `INDEX_NAME` (`name`) USING BTREE,
-  KEY `INDEX_STATUS` (`status`) USING BTREE
+  KEY `INDEX_STATUS` (`status`) USING BTREE,
+  KEY `INDEX_FETCH_METHOD` (`fetch_method`) USING BTREE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- ----------------------------
+-- Table structure for proxy
+-- ----------------------------
+DROP TABLE IF EXISTS `proxy`;
+CREATE TABLE `proxy` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `address` varchar(50) COLLATE utf8mb4_general_ci NOT NULL,
+  `port` int NOT NULL,
+  `create_time` bigint NOT NULL,
+  `update_time` bigint NOT NULL,
+  `category` int NOT NULL,
+  `username` varchar(50) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `password` varchar(50) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `expired_time` bigint DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `INDEX_ADDRESS` (`address`) USING BTREE,
+  KEY `INDEX_PORT` (`port`) USING BTREE,
+  KEY `INDEX_CATEGORY` (`category`) USING BTREE,
+  KEY `INDEX_EXPIRED_TIME` (`expired_time`) USING BTREE,
+  KEY `INDEX_CREATE_TIME` (`create_time`) USING BTREE,
+  KEY `INDEX_UPDATE_TIME` (`update_time`) USING BTREE
+) ENGINE=InnoDB AUTO_INCREMENT=11 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- ----------------------------
 -- Table structure for rule
@@ -126,7 +153,7 @@ CREATE TABLE `rule` (
   KEY `INDEX_RULE_GROUP` (`rule_group`) USING BTREE,
   KEY `INDEX_CREATE_TIME` (`create_time`) USING BTREE,
   KEY `INDEX_UPDATE_TIME` (`update_time`) USING BTREE
-) ENGINE=InnoDB AUTO_INCREMENT=141 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=173 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- ----------------------------
 -- Table structure for rule_group
@@ -141,7 +168,7 @@ CREATE TABLE `rule_group` (
   KEY `INDEX_NAME` (`name`) USING BTREE,
   KEY `INDEX_CREATE_TIME` (`create_time`) USING BTREE,
   KEY `INDEX_UPDATE_TIME` (`update_time`) USING BTREE
-) ENGINE=InnoDB AUTO_INCREMENT=22 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=26 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- ----------------------------
 -- Table structure for url
@@ -175,6 +202,7 @@ CREATE TABLE `url` (
   `sub_mime_type` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT NULL,
   `plan_id` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL,
   `scope` int DEFAULT NULL,
+  `http_code` int DEFAULT NULL,
   PRIMARY KEY (`key`),
   KEY `INDEX_JOB_ID` (`job_id`) USING BTREE,
   KEY `INDEX_HASH` (`hash`),
@@ -183,7 +211,8 @@ CREATE TABLE `url` (
   KEY `INDEX_UPDATE_TIME` (`update_time`) USING BTREE,
   KEY `INDEX_CATEGORY` (`category`) USING BTREE,
   KEY `INDEX_STATUS` (`status`) USING BTREE,
-  KEY `INDEX_PLAN_ID` (`plan_id`) USING BTREE
+  KEY `INDEX_PLAN_ID` (`plan_id`) USING BTREE,
+  KEY `INDEX_HTTP_CODE` (`http_code`) USING BTREE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 SET FOREIGN_KEY_CHECKS = 1;
