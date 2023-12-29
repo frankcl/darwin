@@ -38,7 +38,9 @@ public class URLReceiver implements MessageListener {
     @Override
     public Action consume(Message message, ConsumeContext consumeContext) {
         Context context = new Context();
+        context.put(Constants.DARWIN_STAGE, Constants.STAGE_FETCH);
         URLRecord record = null;
+        Spider spider;
         try {
             if (!StringUtils.isEmpty(message.getMsgID())) context.put(Constants.DARWIN_MESSAGE_ID, message.getMsgID());
             if (!StringUtils.isEmpty(message.getKey())) context.put(Constants.DARWIN_MESSAGE_KEY, message.getKey());
@@ -57,18 +59,17 @@ public class URLReceiver implements MessageListener {
                 context.put(Constants.DARWIN_DEBUG_MESSAGE, "URL记录非法");
                 return Action.CommitMessage;
             }
-            Spider spider = spiderFactory.build(record);
-            spider.process(record, context);
-            return Action.CommitMessage;
+            spider = spiderFactory.build(record);
         } catch (Throwable t) {
             context.put(Constants.STATUS, Constants.SUPPORT_URL_STATUSES.get(Constants.URL_STATUS_INVALID));
             context.put(Constants.DARWIN_DEBUG_MESSAGE, t.getMessage());
-            context.put(Constants.DARWIN_STRACE_TRACE, ExceptionUtils.getStackTrace(t));
+            context.put(Constants.DARWIN_STACK_TRACE, ExceptionUtils.getStackTrace(t));
             logger.error(t.getMessage(), t);
-            return Action.ReconsumeLater;
-        } finally {
-            if (record != null) DarwinUtil.putContext(context, record);
+            DarwinUtil.putContext(context, record);
             if (aspectLogger != null) aspectLogger.commit(context.getFeatureMap());
+            return Action.ReconsumeLater;
         }
+        spider.process(record, context);
+        return Action.CommitMessage;
     }
 }

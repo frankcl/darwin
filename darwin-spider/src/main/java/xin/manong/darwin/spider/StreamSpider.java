@@ -111,7 +111,7 @@ public class StreamSpider extends Spider {
             return false;
         } catch (Exception e) {
             context.put(Constants.DARWIN_DEBUG_MESSAGE, "ffmpeg抓取直播流异常");
-            context.put(Constants.DARWIN_STRACE_TRACE, ExceptionUtils.getStackTrace(e));
+            context.put(Constants.DARWIN_STACK_TRACE, ExceptionUtils.getStackTrace(e));
             logger.error(e.getMessage(), e);
             return false;
         } finally {
@@ -148,7 +148,7 @@ public class StreamSpider extends Spider {
             record.status = Constants.URL_STATUS_FETCH_FAIL;
             if (httpResponse != null) record.httpCode = httpResponse.code();
             context.put(Constants.DARWIN_DEBUG_MESSAGE, "抓取M3U8元信息异常");
-            context.put(Constants.DARWIN_STRACE_TRACE, ExceptionUtils.getStackTrace(e));
+            context.put(Constants.DARWIN_STACK_TRACE, ExceptionUtils.getStackTrace(e));
             logger.error(e.getMessage(), e);
             return null;
         } finally {

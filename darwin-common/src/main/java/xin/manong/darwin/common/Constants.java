@@ -167,10 +167,18 @@ public class Constants {
      * 数据记录类型
      */
     public static final String RECORD_TYPE_URL = "URL";
-    public static final String RECORD_TYPE_CHILD_URL = "CHILD_URL";
     public static final String RECORD_TYPE_JOB = "JOB";
     public static final String RECORD_TYPE_PLAN = "PLAN";
     public static final String RECORD_TYPE_CONCURRENT_UNIT = "CONCURRENT_UNIT";
+
+    /**
+     * 数据处理阶段
+     */
+    public static final String STAGE_POP = "POP";
+    public static final String STAGE_PUSH = "PUSH";
+    public static final String STAGE_FETCH = "FETCH";
+    public static final String STAGE_EXTRACT = "EXTRACT";
+    public static final String STAGE_MONITOR = "MONITOR";
 
     /**
      * URL字段定义
@@ -230,7 +238,8 @@ public class Constants {
      * 切面日志字段定义
      */
     public static final String DARWIN_DEBUG_MESSAGE = "__DARWIN_DEBUG_MESSAGE__";
-    public static final String DARWIN_STRACE_TRACE = "__DARWIN_STRACE_TRACE__";
+    public static final String DARWIN_STACK_TRACE = "__DARWIN_STACK_TRACE__";
+    public static final String DARWIN_STAGE = "__DARWIN_STAGE__";
     public static final String DARWIN_RECORD_TYPE = "__DARWIN_RECORD_TYPE__";
     public static final String DARWIN_MESSAGE_ID = "__DARWIN_MESSAGE_ID__";
     public static final String DARWIN_MESSAGE_KEY = "__DARWIN_MESSAGE_KEY__";

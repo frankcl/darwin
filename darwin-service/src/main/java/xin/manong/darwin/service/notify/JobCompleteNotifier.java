@@ -28,7 +28,7 @@ import java.nio.charset.Charset;
  * @date 2023-12-09 16:12:08
  */
 @Component
-public class JobCompleteNotifier implements CompleteNotifier<Job> {
+public class JobCompleteNotifier implements CompleteNotifier<String> {
 
     private static final Logger logger = LoggerFactory.getLogger(JobCompleteNotifier.class);
 
@@ -42,23 +42,19 @@ public class JobCompleteNotifier implements CompleteNotifier<Job> {
     protected JSONLogger aspectLogger;
 
     @Override
-    public void onComplete(Job job, Context context) {
-        Job finishJob = null;
+    public void onComplete(String jobId, Context context) {
+        Job job = null;
         try {
-            if (job == null || StringUtils.isEmpty(job.jobId)) {
-                logger.warn("finished job is null");
-                context.put(Constants.DARWIN_DEBUG_MESSAGE, "任务信息异常");
-                return;
-            }
-            finishJob = finishGetJob(job.jobId);
-            pushMessage(finishJob, context);
+            finishJob(jobId);
+            job = buildPushJob(jobId);
+            pushMessage(job, context);
         } catch (Exception e) {
             context.put(Constants.DARWIN_DEBUG_MESSAGE, "完成任务处理异常");
-            context.put(Constants.DARWIN_STRACE_TRACE, ExceptionUtils.getStackTrace(e));
-            logger.error("exception occurred when finishing job[{}]", job.jobId);
+            context.put(Constants.DARWIN_STACK_TRACE, ExceptionUtils.getStackTrace(e));
+            logger.error("exception occurred when finishing job[{}]", jobId);
             logger.error(e.getMessage(), e);
         } finally {
-            DarwinUtil.putContext(context, finishJob);
+            DarwinUtil.putContext(context, job);
             if (aspectLogger != null) aspectLogger.commit(context.getFeatureMap());
         }
     }
@@ -84,23 +80,34 @@ public class JobCompleteNotifier implements CompleteNotifier<Job> {
     }
 
     /**
-     * 更新任务完成状态并获取分发任务信息
+     * 更新任务完成状态
      *
      * @param jobId 任务ID
-     * @return 分发任务
      */
-    private Job finishGetJob(String jobId) {
+    private void finishJob(String jobId) {
         Job job = new Job();
         job.avoidRepeatedFetch = null;
         job.jobId = jobId;
         job.status = Constants.JOB_STATUS_FINISHED;
         if (!jobService.update(job)) logger.warn("update finish status failed for job[{}]", job.jobId);
-        Job tempJob = jobService.getCache(job.jobId);
-        if (tempJob == null) return job;
-        job.planId = tempJob.planId;
-        job.appId = tempJob.appId;
-        job.name = tempJob.name;
-        job.priority = tempJob.priority;
-        return job;
+    }
+
+    /**
+     * 构建推送任务信息
+     *
+     * @param jobId 任务ID
+     * @return 推送任务信息
+     */
+    private Job buildPushJob(String jobId) {
+        Job pushJob = new Job();
+        pushJob.jobId = jobId;
+        pushJob.status = Constants.JOB_STATUS_FINISHED;
+        Job job = jobService.getCache(jobId);
+        if (job == null) return pushJob;
+        pushJob.planId = job.planId;
+        pushJob.appId = job.appId;
+        pushJob.name = job.name;
+        pushJob.priority = job.priority;
+        return pushJob;
     }
 }

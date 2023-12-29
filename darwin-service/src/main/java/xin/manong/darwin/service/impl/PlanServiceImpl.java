@@ -15,6 +15,7 @@ import xin.manong.darwin.common.model.Job;
 import xin.manong.darwin.common.model.Pager;
 import xin.manong.darwin.common.model.Plan;
 import xin.manong.darwin.common.model.URLRecord;
+import xin.manong.darwin.common.util.DarwinUtil;
 import xin.manong.darwin.queue.multi.MultiQueue;
 import xin.manong.darwin.queue.multi.MultiQueueStatus;
 import xin.manong.darwin.service.convert.Converter;
@@ -26,6 +27,8 @@ import xin.manong.darwin.service.impl.ots.JobServiceImpl;
 import xin.manong.darwin.service.impl.ots.URLServiceImpl;
 import xin.manong.darwin.service.request.JobSearchRequest;
 import xin.manong.darwin.service.request.PlanSearchRequest;
+import xin.manong.weapon.base.common.Context;
+import xin.manong.weapon.base.log.JSONLogger;
 
 import javax.annotation.Resource;
 import java.text.ParseException;
@@ -52,6 +55,8 @@ public class PlanServiceImpl implements PlanService {
     protected URLService urlService;
     @Resource
     protected MultiQueue multiQueue;
+    @Resource(name = "recordAspectLogger")
+    protected JSONLogger aspectLogger;
 
     @Override
     public Plan get(String planId) {
@@ -118,35 +123,47 @@ public class PlanServiceImpl implements PlanService {
 
     @Override
     @Transactional
-    public Job execute(Plan plan) {
-        if (plan == null) return null;
+    public boolean execute(Plan plan) {
+        if (plan == null) return false;
         if (plan.status != Constants.PLAN_STATUS_RUNNING) {
             logger.warn("plan[{}] is not running", plan.planId);
-            return null;
+            return false;
         }
         Job job = plan.buildJob();
-        List<URLRecord> addRecords = new ArrayList<>(), pushQueueRecords = new ArrayList<>();
+        List<URLRecord> pushDBRecords = new ArrayList<>();
+        List<URLRecord> pushQueueRecords = new ArrayList<>();
         try {
             if (!jobService.add(job)) throw new RuntimeException("添加任务失败");
             for (URLRecord seedURL : job.seedURLs) {
-                MultiQueueStatus status = multiQueue.push(seedURL, 3);
-                if (status == MultiQueueStatus.OK) pushQueueRecords.add(seedURL);
-                logger.info("push record[{}] into queue, status[{}]", seedURL.url,
-                        Constants.SUPPORT_URL_STATUSES.get(seedURL.status));
-                if (urlService.add(new URLRecord(seedURL))) addRecords.add(seedURL);
-                else throw new RuntimeException("添加任务种子失败");
+                pushJobRecord(seedURL, pushDBRecords, pushQueueRecords);
+                commitAspectLog(seedURL);
             }
-            if (plan.category != Constants.PLAN_CATEGORY_PERIOD) return job;
-            if (!updateNextTime(plan.planId, plan.crontabExpression)) {
-                logger.warn("update next time failed for plan[{}]", plan.planId);
-            }
-            return job;
+            if (plan.category != Constants.PLAN_CATEGORY_PERIOD) return true;
+            updateNextTime(plan.planId, plan.crontabExpression);
+            return true;
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
             TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
-            rollback(pushQueueRecords, addRecords, job.jobId);
-            return null;
+            rollBackJob(pushQueueRecords, pushDBRecords, job.jobId);
+            return false;
         }
+    }
+
+    /**
+     * 推送任务种子数据
+     *
+     * @param record 种子数据
+     * @param pushDBRecords 推送数据库成功数据列表
+     * @param pushQueueRecords 推送队列成功数据列表
+     */
+    private void pushJobRecord(URLRecord record, List<URLRecord> pushDBRecords,
+                               List<URLRecord> pushQueueRecords) {
+        MultiQueueStatus status = multiQueue.push(record, 3);
+        if (status == MultiQueueStatus.OK) pushQueueRecords.add(record);
+        logger.info("push record[{}] into queue, status[{}]", record.url,
+                Constants.SUPPORT_URL_STATUSES.get(record.status));
+        if (urlService.add(new URLRecord(record))) pushDBRecords.add(record);
+        else throw new RuntimeException("添加任务种子失败");
     }
 
     /**
@@ -154,27 +171,42 @@ public class PlanServiceImpl implements PlanService {
      *
      * @param planId 计划ID
      * @param crontabExpression crontab表达式
-     * @return 更新成功返回true，否则返回false
      */
-    private Boolean updateNextTime(String planId, String crontabExpression) throws ParseException {
+    private void updateNextTime(String planId, String crontabExpression) throws ParseException {
         Date date = new Date();
         Plan plan = new Plan();
         plan.planId = planId;
         plan.updateTime = date.getTime();
         plan.nextTime = new CronExpression(crontabExpression).getNextValidTimeAfter(date).getTime();
-        return update(plan);
+        if (!update(plan)) logger.warn("update next time failed for plan[{}]", planId);
     }
 
     /**
-     * 回滚数据
+     * 回滚任务
+     * 1. 回滚添加到MultiQueue数据
+     * 2. 回滚添加到数据库数据
+     * 3. 回滚添加任务
      *
-     * @param pushQueueRecords 进入MultiQueue数据
-     * @param addRecords 添加数据库成功数据
+     * @param pushQueueRecords 推送队列成功数据列表
+     * @param pushDBRecords 推送数据库成功数据列表
      * @param jobId 任务ID
      */
-    private void rollback(List<URLRecord> pushQueueRecords, List<URLRecord> addRecords, String jobId) {
+    private void rollBackJob(List<URLRecord> pushQueueRecords, List<URLRecord> pushDBRecords, String jobId) {
         for (URLRecord pushQueueRecord : pushQueueRecords) multiQueue.remove(pushQueueRecord);
-        if (urlService instanceof URLServiceImpl) for (URLRecord record : addRecords) urlService.delete(record.key);
+        if (urlService instanceof URLServiceImpl) for (URLRecord record : pushDBRecords) urlService.delete(record.key);
         if (jobService instanceof JobServiceImpl) jobService.delete(jobId);
+    }
+
+    /**
+     * 提交URL记录切面日志
+     *
+     * @param record URL记录
+     */
+    private void commitAspectLog(URLRecord record) {
+        if (record == null || aspectLogger == null) return;
+        Context context = new Context();
+        context.put(Constants.DARWIN_STAGE, Constants.STAGE_PUSH);
+        DarwinUtil.putContext(context, record);
+        aspectLogger.commit(context.getFeatureMap());
     }
 }

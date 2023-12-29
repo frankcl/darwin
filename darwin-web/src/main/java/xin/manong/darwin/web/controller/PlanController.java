@@ -208,7 +208,7 @@ public class PlanController {
             throw new InternalServerErrorException(String.format("计划[%s]非运行状态",
                     Constants.SUPPORT_PLAN_STATUSES.get(plan.status)));
         }
-        if (planService.execute(plan) == null) {
+        if (!planService.execute(plan)) {
             logger.error("execute plan[{}] failed", plan.planId);
             throw new InternalServerErrorException(String.format("执行计划[%s]失败", plan.planId));
         }

@@ -9,7 +9,6 @@ import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import xin.manong.darwin.common.Constants;
-import xin.manong.darwin.common.model.Job;
 import xin.manong.darwin.common.model.URLRecord;
 import xin.manong.darwin.queue.concurrent.ConcurrentManager;
 import xin.manong.darwin.queue.multi.MultiQueue;
@@ -111,7 +110,7 @@ public class URLQueueScheduler extends ExecuteRunner {
         } catch (Exception e) {
             concurrentContext.put(Constants.SCHEDULE_STATUS, Constants.SCHEDULE_STATUS_FAIL);
             concurrentContext.put(Constants.DARWIN_DEBUG_MESSAGE, e.getMessage());
-            concurrentContext.put(Constants.DARWIN_STRACE_TRACE, ExceptionUtils.getStackTrace(e));
+            concurrentContext.put(Constants.DARWIN_STACK_TRACE, ExceptionUtils.getStackTrace(e));
             logger.error("process concurrent unit[{}] failed while scheduling", concurrentUnit);
             logger.error(e.getMessage(), e);
         } finally {
@@ -127,11 +126,11 @@ public class URLQueueScheduler extends ExecuteRunner {
      */
     private void handleOverflowRecord(URLRecord record) {
         Context context = new Context();
+        context.put(Constants.DARWIN_STAGE, Constants.STAGE_POP);
         urlCompleteNotifier.onComplete(buildOverflowRecord(record), context);
         if (jobService.finish(record.jobId)) {
-            jobCompleteNotifier.onComplete(new Job(record.jobId, record.appId), new Context());
+            jobCompleteNotifier.onComplete(record.jobId, new Context());
         }
-        commitAspectLog(context, record);
     }
 
     /**
@@ -144,6 +143,7 @@ public class URLQueueScheduler extends ExecuteRunner {
      */
     private void handleURLRecord(URLRecord record, String concurrentUnit) {
         Context context = new Context();
+        context.put(Constants.DARWIN_STAGE, Constants.STAGE_POP);
         try {
             record.status = Constants.URL_STATUS_FETCHING;
             record.outQueueTime = System.currentTimeMillis();
@@ -163,7 +163,7 @@ public class URLQueueScheduler extends ExecuteRunner {
             concurrentManager.putConnectionRecord(concurrentUnit, record.key);
         } catch (Exception e) {
             context.put(Constants.DARWIN_DEBUG_MESSAGE, e.getMessage());
-            context.put(Constants.DARWIN_STRACE_TRACE, ExceptionUtils.getStackTrace(e));
+            context.put(Constants.DARWIN_STACK_TRACE, ExceptionUtils.getStackTrace(e));
             logger.error("process record failed for key[{}]", record.key);
             logger.error(e.getMessage(), e);
         } finally {

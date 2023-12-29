@@ -4,10 +4,8 @@ import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import xin.manong.darwin.common.Constants;
-import xin.manong.darwin.common.model.Job;
 import xin.manong.darwin.common.model.Pager;
 import xin.manong.darwin.common.model.Plan;
-import xin.manong.darwin.common.model.URLRecord;
 import xin.manong.darwin.queue.multi.MultiQueue;
 import xin.manong.darwin.queue.multi.MultiQueueConstants;
 import xin.manong.darwin.service.iface.PlanService;
@@ -99,29 +97,27 @@ public class PeriodPlanScheduler extends ExecuteRunner {
                 return false;
             }
         }
-        Context context = new Context();
+        Context planContext = new Context();
         try {
             logger.info("begin building period job for plan[{}]", plan.planId);
-            Job job = planService.execute(plan);
-            if (job == null) {
-                context.put(Constants.BUILD_STATUS, Constants.BUILD_STATUS_FAIL);
-                context.put(Constants.DARWIN_DEBUG_MESSAGE, "构建周期性任务失败");
+            if (!planService.execute(plan)) {
+                planContext.put(Constants.BUILD_STATUS, Constants.BUILD_STATUS_FAIL);
+                planContext.put(Constants.DARWIN_DEBUG_MESSAGE, "构建周期性任务失败");
                 logger.error("build period job failed for plan[{}]", plan.planId);
                 return false;
             }
-            if (job.seedURLs != null) for (URLRecord seedURL : job.seedURLs) commitAspectLog(new Context(), seedURL);
-            context.put(Constants.BUILD_STATUS, Constants.BUILD_STATUS_SUCCESS);
+            planContext.put(Constants.BUILD_STATUS, Constants.BUILD_STATUS_SUCCESS);
             logger.info("build period job success for plan[{}]", plan.planId);
             return true;
         } catch (Exception e) {
-            context.put(Constants.BUILD_STATUS, Constants.BUILD_STATUS_FAIL);
-            context.put(Constants.DARWIN_DEBUG_MESSAGE, "构建周期性任务异常");
-            context.put(Constants.DARWIN_STRACE_TRACE, ExceptionUtils.getStackTrace(e));
+            planContext.put(Constants.BUILD_STATUS, Constants.BUILD_STATUS_FAIL);
+            planContext.put(Constants.DARWIN_DEBUG_MESSAGE, "构建周期性任务异常");
+            planContext.put(Constants.DARWIN_STACK_TRACE, ExceptionUtils.getStackTrace(e));
             logger.error("build period job failed for plan[{}]", plan.planId);
             logger.error(e.getMessage(), e);
             return false;
         } finally {
-            commitAspectLog(context, plan);
+            commitAspectLog(planContext, plan);
         }
     }
 

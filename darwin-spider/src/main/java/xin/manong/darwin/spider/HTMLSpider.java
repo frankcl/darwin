@@ -167,7 +167,7 @@ public class HTMLSpider extends Spider {
             return new String(body, Charset.forName(charset));
         } catch (Exception e) {
             context.put(Constants.DARWIN_DEBUG_MESSAGE, "获取HTML资源异常");
-            context.put(Constants.DARWIN_STRACE_TRACE, ExceptionUtils.getStackTrace(e));
+            context.put(Constants.DARWIN_STACK_TRACE, ExceptionUtils.getStackTrace(e));
             logger.error("get html resource failed");
             logger.error(e.getMessage(), e);
             return null;
@@ -288,6 +288,7 @@ public class HTMLSpider extends Spider {
      */
     private boolean processChildURL(URLRecord childURL, URLRecord parentRecord) {
         Context context = new Context();
+        context.put(Constants.DARWIN_STAGE, Constants.STAGE_EXTRACT);
         try {
             childURL.appId = parentRecord.appId;
             childURL.jobId = parentRecord.jobId;
@@ -323,12 +324,11 @@ public class HTMLSpider extends Spider {
             return true;
         } catch (Exception e) {
             context.put(Constants.DARWIN_DEBUG_MESSAGE, "处理抽链结果异常");
-            context.put(Constants.DARWIN_STRACE_TRACE, ExceptionUtils.getStackTrace(e));
+            context.put(Constants.DARWIN_STACK_TRACE, ExceptionUtils.getStackTrace(e));
             logger.error(e.getMessage(), e);
             return false;
         } finally {
             DarwinUtil.putContext(context, childURL);
-            context.put(Constants.DARWIN_RECORD_TYPE, Constants.RECORD_TYPE_CHILD_URL);
             if (aspectLogger != null) aspectLogger.commit(context.getFeatureMap());
         }
     }

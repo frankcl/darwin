@@ -9,6 +9,7 @@ import xin.manong.darwin.queue.multi.MultiQueue;
 import xin.manong.darwin.service.iface.JobService;
 import xin.manong.darwin.service.iface.URLService;
 import xin.manong.darwin.service.notify.JobCompleteNotifier;
+import xin.manong.darwin.service.notify.URLCompleteNotifier;
 import xin.manong.weapon.base.common.Context;
 
 import javax.annotation.Resource;
@@ -34,6 +35,8 @@ public class MultiQueueMonitor extends ExecuteMonitor {
     protected JobService jobService;
     @Resource
     protected MultiQueue multiQueue;
+    @Resource
+    protected URLCompleteNotifier urlCompleteNotifier;
     @Resource
     protected JobCompleteNotifier jobCompleteNotifier;
 
@@ -75,13 +78,17 @@ public class MultiQueueMonitor extends ExecuteMonitor {
             List<URLRecord> expiredRecords = urlService.getJobExpiredRecords(job.jobId, before, 100);
             sweepRecordCount += expiredRecords.size();
             for (URLRecord expiredRecord : expiredRecords) {
-                if (!urlService.updateStatus(expiredRecord.key, Constants.URL_STATUS_TIMEOUT)) {
-                    logger.warn("update timeout status failed for url[{}]", expiredRecord.key);
-                }
+                URLRecord record = new URLRecord();
+                record.key = expiredRecord.key;
+                record.status = Constants.URL_STATUS_TIMEOUT;
+                record.createTime = null;
+                Context context = new Context();
+                context.put(Constants.DARWIN_STAGE, Constants.STAGE_MONITOR);
+                urlCompleteNotifier.onComplete(record, context);
             }
             if (jobService.finish(job.jobId)) {
                 sweepJobCount++;
-                jobCompleteNotifier.onComplete(job, new Context());
+                jobCompleteNotifier.onComplete(job.jobId, new Context());
             }
         }
         logger.info("scanning job num[{}], sweeping job num[{}], record num[{}]",

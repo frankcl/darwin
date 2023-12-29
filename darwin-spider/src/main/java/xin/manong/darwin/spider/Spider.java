@@ -222,7 +222,7 @@ public abstract class Spider {
             return SpiderResource.buildFrom(record.url, httpResponse);
         } catch (Exception e) {
             context.put(Constants.DARWIN_DEBUG_MESSAGE, "执行HTTP请求异常");
-            context.put(Constants.DARWIN_STRACE_TRACE, ExceptionUtils.getStackTrace(e));
+            context.put(Constants.DARWIN_STACK_TRACE, ExceptionUtils.getStackTrace(e));
             logger.error("exception occurred when fetching url[{}]", record.url);
             logger.error(e.getMessage(), e);
             return SpiderResource.buildFrom(record.url, null);
@@ -237,20 +237,19 @@ public abstract class Spider {
      */
     public void process(URLRecord record, Context context) {
         Long startTime = System.currentTimeMillis();
-        Job job = null;
         try {
-            job = jobService.getCache(record.jobId);
+            Job job = jobService.getCache(record.jobId);
             if (job != null && job.avoidRepeatedFetch) context.put(Constants.AVOID_REPEATED_FETCH, true);
             handle(record, context);
         } catch (Throwable t) {
             context.put(Constants.DARWIN_DEBUG_MESSAGE, "抓取数据异常");
-            context.put(Constants.DARWIN_STRACE_TRACE, ExceptionUtils.getStackTrace(t));
+            context.put(Constants.DARWIN_STACK_TRACE, ExceptionUtils.getStackTrace(t));
             logger.error("fetch record error for url[{}]", record.url);
             logger.error(t.getMessage(), t);
         } finally {
-            urlCompleteNotifier.onComplete(record, context);
-            if (jobService.finish(record.jobId)) jobCompleteNotifier.onComplete(job, new Context());
             context.put(Constants.DARWIN_PROCESS_TIME, System.currentTimeMillis() - startTime);
+            urlCompleteNotifier.onComplete(record, context);
+            if (jobService.finish(record.jobId)) jobCompleteNotifier.onComplete(record.jobId, new Context());
         }
     }
 
