@@ -4,6 +4,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 import xin.manong.darwin.service.iface.AppUserService;
 import xin.manong.darwin.web.config.WebConfig;
 import xin.manong.security.keeper.model.Role;
@@ -12,6 +14,7 @@ import xin.manong.security.keeper.sso.client.component.UserRolePermissionService
 import xin.manong.security.keeper.sso.client.core.ContextManager;
 
 import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.ForbiddenException;
 import java.util.List;
 
@@ -66,7 +69,10 @@ public class AppPermissionService {
      * @return 超级管理员返回true，否则返回false
      */
     private boolean isAdmin(User user) {
-        List<Role> roles = userRolePermissionService.getUserRoles(user);
+        HttpServletRequest httpRequest = ((ServletRequestAttributes) RequestContextHolder.
+                currentRequestAttributes()).getRequest();
+        List<Role> roles = httpRequest == null ? userRolePermissionService.getUserRoles(user) :
+                userRolePermissionService.getUserRoles(user, httpRequest);
         if (roles == null || roles.isEmpty()) return false;
         for (Role role : roles) {
             if (role.name.equals(SUPER_ADMIN)) return true;
