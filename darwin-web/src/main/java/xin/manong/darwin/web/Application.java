@@ -4,9 +4,11 @@ import com.shuwen.dynamic.secret.property.ShamanPropertySourceFactory;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.PropertySource;
+import xin.manong.security.keeper.sso.client.annotation.EnableSecurityFilter;
 import xin.manong.weapon.spring.boot.annotation.EnableONSProducer;
 import xin.manong.weapon.spring.boot.annotation.EnableOSSClient;
 import xin.manong.weapon.spring.boot.annotation.EnableRedisClient;
+import xin.manong.weapon.spring.web.ws.aspect.EnableWebLogAspect;
 
 /**
  * 应用程序入口
@@ -18,8 +20,9 @@ import xin.manong.weapon.spring.boot.annotation.EnableRedisClient;
 @EnableOSSClient
 @EnableRedisClient
 @EnableONSProducer
+@EnableWebLogAspect
 @PropertySource(name = "configmap", value = "xhzy-data#express-stream", factory = ShamanPropertySourceFactory.class)
-@SpringBootApplication(scanBasePackages = {"xin.manong.darwin", "xin.manong.weapon.spring.web.ws.aspect"})
+@SpringBootApplication(scanBasePackages = {"xin.manong.darwin"})
 public class Application {
 
     /**
