@@ -128,7 +128,7 @@ ConcurrentManager负责抓取连接TTL管理：以并发单元为单位，管理
 
 * 系统模块关系及流程
 
-![module_flow](https://github.com/frankcl/darwin/blob/main/images/darwin%E5%91%A8%E6%9C%9F%E5%9E%8B%E8%AE%A1%E5%88%92%E6%97%B6%E5%BA%8F%E5%9B%BE.png)
+![module_flow](https://github.com/frankcl/darwin/blob/main/images/darwin%E7%B3%BB%E7%BB%9F%E6%A8%A1%E5%9D%97%E4%BA%A4%E4%BA%92.png)
 
 1. 计划执行：通过计划生成任务和种子URL，种子URL加入MultiQueue
    1. 周期性计划：由周期性计划调度器定期调度执行，生成相关任务，每次调度完成后需要更新计划下次调度时间
