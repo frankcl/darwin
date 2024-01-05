@@ -9,6 +9,7 @@ import xin.manong.darwin.common.model.AppUser;
 import xin.manong.darwin.common.model.Pager;
 import xin.manong.darwin.service.iface.AppUserService;
 import xin.manong.darwin.service.request.AppUserSearchRequest;
+import xin.manong.darwin.web.component.PermissionSupport;
 import xin.manong.darwin.web.convert.Converter;
 import xin.manong.darwin.web.request.AppUserRequest;
 import xin.manong.weapon.spring.web.ws.aspect.EnableWebLogAspect;
@@ -33,6 +34,8 @@ public class AppUserController {
 
     @Resource
     protected AppUserService appUserService;
+    @Resource
+    protected PermissionSupport permissionSupport;
 
     /**
      * 获取应用用户列表
@@ -82,6 +85,7 @@ public class AppUserController {
             throw new BadRequestException("应用用户关系为空");
         }
         request.check();
+        permissionSupport.checkAppPermission(request.appId);
         AppUser appUser = Converter.convert(request);
         return appUserService.add(appUser);
     }
@@ -102,10 +106,12 @@ public class AppUserController {
             logger.error("missing param[id]");
             throw new BadRequestException("应用用户关系ID缺失");
         }
-        if (appUserService.get(id) == null) {
+        AppUser appUser = appUserService.get(id);
+        if (appUser == null) {
             logger.error("app user relation is not found for id[{}]", id);
             throw new NotFoundException(String.format("应用用户关系[%d]不存在", id));
         }
+        permissionSupport.checkAppPermission(appUser.appId);
         return appUserService.delete(id);
     }
 }

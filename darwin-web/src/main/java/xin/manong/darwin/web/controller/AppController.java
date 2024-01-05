@@ -12,7 +12,7 @@ import xin.manong.darwin.service.iface.AppService;
 import xin.manong.darwin.web.convert.Converter;
 import xin.manong.darwin.web.request.AppRequest;
 import xin.manong.darwin.web.request.AppUpdateRequest;
-import xin.manong.darwin.web.service.AppPermissionService;
+import xin.manong.darwin.web.component.PermissionSupport;
 import xin.manong.weapon.spring.web.ws.aspect.EnableWebLogAspect;
 
 import javax.annotation.Resource;
@@ -36,7 +36,7 @@ public class AppController {
     @Resource
     protected AppService appService;
     @Resource
-    protected AppPermissionService appPermissionService;
+    protected PermissionSupport permissionSupport;
 
     /**
      * 根据应用名搜索应用
@@ -145,7 +145,7 @@ public class AppController {
             logger.error("app is not found for id[{}]", request.id);
             throw new NotFoundException(String.format("应用[%d]不存在", request.id));
         }
-        appPermissionService.checkAppPermission(request.id);
+        permissionSupport.checkAppPermission(request.id);
         App app = Converter.convert(request);
         return appService.update(app);
     }
@@ -170,7 +170,7 @@ public class AppController {
             logger.error("app is not found for id[{}]", id);
             throw new NotFoundException(String.format("应用[%d]不存在", id));
         }
-        appPermissionService.checkAppPermission(id);
+        permissionSupport.checkAppPermission(id);
         return appService.delete(id);
     }
 }

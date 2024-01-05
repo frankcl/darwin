@@ -44,7 +44,7 @@ public class JobServiceImpl extends JobService {
     public Job get(String jobId) {
         if (StringUtils.isEmpty(jobId)) {
             logger.error("job id is empty");
-            throw new RuntimeException("任务ID为空");
+            throw new IllegalArgumentException("任务ID为空");
         }
         return jobMapper.selectById(jobId);
     }

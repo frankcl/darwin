@@ -9,6 +9,7 @@ import xin.manong.darwin.common.model.Pager;
 import xin.manong.darwin.common.model.Proxy;
 import xin.manong.darwin.service.iface.ProxyService;
 import xin.manong.darwin.service.request.ProxySearchRequest;
+import xin.manong.darwin.web.component.PermissionSupport;
 import xin.manong.darwin.web.convert.Converter;
 import xin.manong.darwin.web.request.ProxyRequest;
 import xin.manong.darwin.web.request.ProxyUpdateRequest;
@@ -34,6 +35,8 @@ public class ProxyController {
 
     @Resource
     protected ProxyService proxyService;
+    @Resource
+    protected PermissionSupport permissionSupport;
 
     /**
      * 根据ID获取代理
@@ -91,6 +94,7 @@ public class ProxyController {
             throw new BadRequestException("代理请求信息为空");
         }
         request.check();
+        permissionSupport.checkAdmin();
         Proxy proxy = Converter.convert(request);
         return proxyService.add(proxy);
     }
@@ -117,6 +121,7 @@ public class ProxyController {
             logger.error("proxy[{}] is not found", request.id);
             throw new NotFoundException(String.format("代理[%d]不存在", request.id));
         }
+        permissionSupport.checkAdmin();
         Proxy proxy = Converter.convert(request);
         return proxyService.update(proxy);
     }
@@ -141,6 +146,7 @@ public class ProxyController {
             logger.error("proxy[{}] is not found", id);
             throw new NotFoundException(String.format("代理[%d]不存在", id));
         }
+        permissionSupport.checkAdmin();
         return proxyService.delete(id);
     }
 }

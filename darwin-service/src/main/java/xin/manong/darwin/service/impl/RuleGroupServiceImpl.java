@@ -75,7 +75,7 @@ public class RuleGroupServiceImpl implements RuleGroupService {
     public RuleGroup get(Integer id) {
         if (id == null) {
             logger.error("rule group id is null");
-            throw new RuntimeException("规则分组ID为空");
+            throw new IllegalArgumentException("规则分组ID为空");
         }
         return ruleGroupMapper.selectById(id);
     }

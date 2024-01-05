@@ -59,6 +59,21 @@ public class Converter {
     }
 
     /**
+     * 转换规则用户关系请求为规则用户关系对象
+     *
+     * @param request 规则用户关系请求
+     * @return 规则用户关系对象
+     */
+    public static RuleUser convert(RuleUserRequest request) {
+        if (request == null) return null;
+        RuleUser ruleUser = new RuleUser();
+        ruleUser.ruleId = request.ruleId;
+        ruleUser.userId = request.userId;
+        ruleUser.userRealName = request.realName;
+        return ruleUser;
+    }
+
+    /**
      * 转换计划请求为计划对象
      *
      * @param request 计划请求

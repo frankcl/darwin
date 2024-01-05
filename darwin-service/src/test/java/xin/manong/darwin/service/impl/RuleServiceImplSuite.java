@@ -11,6 +11,7 @@ import org.springframework.transaction.annotation.Transactional;
 import xin.manong.darwin.common.Constants;
 import xin.manong.darwin.common.model.Pager;
 import xin.manong.darwin.common.model.Rule;
+import xin.manong.darwin.common.model.RuleHistory;
 import xin.manong.darwin.common.model.URLRecord;
 import xin.manong.darwin.service.ApplicationTest;
 import xin.manong.darwin.service.iface.RuleService;
@@ -33,7 +34,7 @@ public class RuleServiceImplSuite {
     @Test
     @Transactional
     @Rollback
-    public void testRuleGroupOperations() {
+    public void testRuleOperations() {
         Rule rule = new Rule();
         rule.name = "测试规则";
         rule.ruleGroup = 1;
@@ -44,6 +45,16 @@ public class RuleServiceImplSuite {
 
         Assert.assertTrue(ruleService.add(rule));
         Assert.assertTrue(rule.id != null && rule.id > 0L);
+
+        {
+            Pager<RuleHistory> pager = ruleService.listHistory(rule.id, 1, 10);
+            Assert.assertTrue(pager != null && pager.records.size() == 1);
+            RuleHistory ruleHistory = pager.records.get(0);
+            Assert.assertEquals(Constants.SCRIPT_TYPE_GROOVY, ruleHistory.scriptType.intValue());
+            Assert.assertEquals("function", ruleHistory.script);
+            Assert.assertEquals("http://www.sina.com.cn/\\d+.html", ruleHistory.regex);
+            Assert.assertEquals("sina.com.cn", ruleHistory.domain);
+        }
 
         Rule updateRule = new Rule();
         updateRule.id = rule.id;
@@ -60,6 +71,16 @@ public class RuleServiceImplSuite {
         Assert.assertEquals("http://www.sina.com.cn/\\d+.html", getRule.regex);
         Assert.assertEquals("sina.com.cn", getRule.domain);
 
+        {
+            Pager<RuleHistory> pager = ruleService.listHistory(rule.id, 1, 10);
+            Assert.assertTrue(pager != null && pager.records.size() == 2);
+            RuleHistory ruleHistory = pager.records.get(0);
+            Assert.assertEquals(Constants.SCRIPT_TYPE_GROOVY, ruleHistory.scriptType.intValue());
+            Assert.assertEquals("function() {}", ruleHistory.script);
+            Assert.assertEquals("http://www.sina.com.cn/\\d+.html", ruleHistory.regex);
+            Assert.assertEquals("sina.com.cn", ruleHistory.domain);
+        }
+
         RuleSearchRequest request = new RuleSearchRequest();
         request.scriptType = Constants.SCRIPT_TYPE_GROOVY;
         request.domain = "sina.com.cn";
@@ -74,5 +95,6 @@ public class RuleServiceImplSuite {
         Assert.assertTrue(ruleService.match(record, rule));
 
         Assert.assertTrue(ruleService.delete(rule.id));
+        Assert.assertTrue(ruleService.listHistory(rule.id, 1, 10).total == 0);
     }
 }

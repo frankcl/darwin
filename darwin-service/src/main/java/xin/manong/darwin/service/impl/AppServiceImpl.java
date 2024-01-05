@@ -76,7 +76,7 @@ public class AppServiceImpl implements AppService {
     public App get(Integer id) {
         if (id == null) {
             logger.error("app id is null");
-            throw new RuntimeException("应用ID为空");
+            throw new IllegalArgumentException("应用ID为空");
         }
         return appMapper.selectById(id);
     }

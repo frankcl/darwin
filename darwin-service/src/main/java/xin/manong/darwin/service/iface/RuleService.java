@@ -7,6 +7,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import xin.manong.darwin.common.model.Pager;
 import xin.manong.darwin.common.model.Rule;
+import xin.manong.darwin.common.model.RuleHistory;
 import xin.manong.darwin.common.model.URLRecord;
 import xin.manong.darwin.service.config.CacheConfig;
 import xin.manong.darwin.service.request.RuleSearchRequest;
@@ -119,6 +120,58 @@ public abstract class RuleService {
      * @return 搜索列表
      */
     public abstract Pager<Rule> search(RuleSearchRequest searchRequest);
+
+    /**
+     * 添加规则历史
+     *
+     * @param ruleHistory 规则历史
+     * @return 成功返回true，否则返回false
+     */
+    public abstract Boolean addHistory(RuleHistory ruleHistory);
+
+    /**
+     * 移除规则历史
+     *
+     * @param id 规则历史ID
+     * @return 成功返回true，否则返回false
+     */
+    public abstract Boolean removeHistory(Integer id);
+
+    /**
+     * 移除规则所有关联历史
+     *
+     * @param ruleId 规则ID
+     * @return 成功返回true，否则返回false
+     */
+    public abstract Boolean removeAllHistory(Integer ruleId);
+
+    /**
+     * 获取规则历史
+     *
+     * @param id 规则历史ID
+     * @return 成功返回规则历史信息，否则返回null
+     */
+    public abstract RuleHistory getRuleHistory(Integer id);
+
+    /**
+     * 列表规则历史
+     *
+     * @param ruleId 规则ID
+     * @param current 页码，从1开始
+     * @param size 分页数量
+     *
+     * @return 规则历史分页列表
+     */
+    public abstract Pager<RuleHistory> listHistory(Integer ruleId, int current, int size);
+
+    /**
+     * 使用规则历史回滚规则
+     *
+     * @param ruleId 规则ID
+     * @param ruleHistoryId 规则历史ID
+     * @return 成功返回true，否则返回false
+     */
+    public abstract Boolean rollBack(Integer ruleId, Integer ruleHistoryId);
 
     /**
      * 判断URL是否匹配规则

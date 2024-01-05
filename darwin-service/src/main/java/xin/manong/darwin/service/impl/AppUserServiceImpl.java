@@ -56,7 +56,7 @@ public class AppUserServiceImpl implements AppUserService {
     public AppUser get(Integer id) {
         if (id == null) {
             logger.error("app user id is null");
-            throw new RuntimeException("应用用户关系ID为空");
+            throw new IllegalArgumentException("应用用户关系ID为空");
         }
         return appUserMapper.selectById(id);
     }

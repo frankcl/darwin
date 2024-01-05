@@ -62,7 +62,7 @@ public class PlanServiceImpl implements PlanService {
     public Plan get(String planId) {
         if (StringUtils.isEmpty(planId)) {
             logger.error("plan id is empty");
-            throw new RuntimeException("计划ID为空");
+            throw new IllegalArgumentException("计划ID为空");
         }
         return planMapper.selectById(planId);
     }

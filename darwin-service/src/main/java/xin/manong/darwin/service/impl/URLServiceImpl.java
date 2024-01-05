@@ -131,7 +131,7 @@ public class URLServiceImpl extends URLService {
     public URLRecord get(String key) {
         if (StringUtils.isEmpty(key)) {
             logger.error("url record key is empty");
-            throw new RuntimeException("URL记录key为空");
+            throw new IllegalArgumentException("URL记录key为空");
         }
         return urlMapper.selectById(key);
     }

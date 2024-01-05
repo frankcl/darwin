@@ -12,7 +12,7 @@ import xin.manong.darwin.service.request.PlanSearchRequest;
 import xin.manong.darwin.web.convert.Converter;
 import xin.manong.darwin.web.request.PlanRequest;
 import xin.manong.darwin.web.request.PlanUpdateRequest;
-import xin.manong.darwin.web.service.AppPermissionService;
+import xin.manong.darwin.web.component.PermissionSupport;
 import xin.manong.weapon.base.util.RandomID;
 import xin.manong.weapon.spring.web.ws.aspect.EnableWebLogAspect;
 
@@ -43,7 +43,7 @@ public class PlanController {
     @Resource
     protected RuleService ruleService;
     @Resource
-    protected AppPermissionService appPermissionService;
+    protected PermissionSupport permissionSupport;
 
     /**
      * 启动计划
@@ -139,7 +139,7 @@ public class PlanController {
             throw new BadRequestException("计划请求信息为空");
         }
         request.check();
-        appPermissionService.checkAppPermission(request.appId);
+        permissionSupport.checkAppPermission(request.appId);
         Plan plan = Converter.convert(request);
         fillAppName(plan);
         checkSeeds(plan.seedURLs, plan.ruleIds);
@@ -174,7 +174,7 @@ public class PlanController {
             logger.error("plan[{}] is not found", request.planId);
             throw new NotFoundException(String.format("计划[%s]不存在", request.planId));
         }
-        appPermissionService.checkAppPermission(previous.appId);
+        permissionSupport.checkAppPermission(previous.appId);
         Plan plan = Converter.convert(request);
         if (plan.ruleIds == null || plan.ruleIds.isEmpty()) plan.ruleIds = previous.ruleIds;
         checkSeeds(plan.seedURLs, plan.ruleIds);
@@ -202,7 +202,7 @@ public class PlanController {
             logger.error("plan[{}] is not found", id);
             throw new NotFoundException(String.format("计划[%s]不存在", id));
         }
-        appPermissionService.checkAppPermission(plan.appId);
+        permissionSupport.checkAppPermission(plan.appId);
         if (plan.status != Constants.PLAN_STATUS_RUNNING) {
             logger.error("plan is not running for status[{}]", Constants.SUPPORT_PLAN_STATUSES.get(plan.status));
             throw new InternalServerErrorException(String.format("计划[%s]非运行状态",
@@ -236,7 +236,7 @@ public class PlanController {
             logger.error("plan[{}] is not found", id);
             throw new NotFoundException(String.format("计划[%s]不存在", id));
         }
-        appPermissionService.checkAppPermission(plan.appId);
+        permissionSupport.checkAppPermission(plan.appId);
         return planService.delete(id);
     }
 
@@ -291,7 +291,7 @@ public class PlanController {
             throw new InternalServerErrorException(String.format("计划不处于%s状态",
                     Constants.SUPPORT_PLAN_STATUSES.get(status)));
         }
-        appPermissionService.checkAppPermission(plan.appId);
+        permissionSupport.checkAppPermission(plan.appId);
     }
 
     /**
