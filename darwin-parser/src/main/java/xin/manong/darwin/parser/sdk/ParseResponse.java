@@ -23,6 +23,10 @@ public class ParseResponse {
      */
     public String message;
     /**
+     * 调试日志
+     */
+    public String debugLog;
+    /**
      * 结构化数据
      */
     public Map<String, Object> fieldMap;

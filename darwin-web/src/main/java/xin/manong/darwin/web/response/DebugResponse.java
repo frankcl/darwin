@@ -29,6 +29,11 @@ public class DebugResponse implements Serializable {
     @JsonProperty("message")
     public String message;
     /**
+     * 调试日志
+     */
+    @JsonProperty("debug_log")
+    public String debugLog;
+    /**
      * 异常堆栈
      */
     @JsonProperty("stack_trace")

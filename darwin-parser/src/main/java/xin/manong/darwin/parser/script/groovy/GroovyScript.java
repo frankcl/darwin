@@ -24,6 +24,8 @@ public class GroovyScript extends Script {
 
     private static final Logger logger = LoggerFactory.getLogger(GroovyScript.class);
 
+    private static final String METHOD_PARSE = "doParse";
+
     /**
      * groovy脚本对象类加载器
      */

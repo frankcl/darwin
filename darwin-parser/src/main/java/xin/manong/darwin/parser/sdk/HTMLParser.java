@@ -1,7 +1,11 @@
 package xin.manong.darwin.parser.sdk;
 
+import org.apache.log4j.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import xin.manong.darwin.parser.log.MemoryWriterAppender;
+
+import java.util.UUID;
 
 /**
  * HTML/JSON解析器
@@ -12,7 +16,35 @@ import org.slf4j.LoggerFactory;
  */
 public abstract class HTMLParser {
 
-    protected static final Logger logger = LoggerFactory.getLogger(HTMLParser.class);
+    private static final String LOG_LAYOUT_PATTERN = "%-d{yyyy-MM-dd HH:mm:ss,SSS}-%r [%p] [%t] [%l] - %m%n";
+
+    protected Logger logger;
+
+    /**
+     * 脚本解析
+     *
+     * @param request 解析请求
+     * @return 解析响应
+     */
+    public ParseResponse doParse(ParseRequest request) {
+        String name = String.format("%s$%s", HTMLParser.class.getName(), UUID.randomUUID());
+        logger = LoggerFactory.getLogger(name);
+        Layout layout = new PatternLayout(LOG_LAYOUT_PATTERN);
+        MemoryWriterAppender appender = new MemoryWriterAppender(layout);
+        org.apache.log4j.Logger innerLogger = LogManager.getLogger(logger.getName());
+        innerLogger.addAppender(appender);
+        innerLogger.setAdditivity(false);
+        innerLogger.setLevel(Level.INFO);
+        try {
+            ParseResponse response = parse(request);
+            String logContent = appender.getLogContent();
+            if (logContent != null) response.debugLog = logContent;
+            return response;
+        } finally {
+            if (appender != null) appender.close();
+            logger = null;
+        }
+    }
 
     /**
      * 脚本解析

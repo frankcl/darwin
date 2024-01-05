@@ -84,9 +84,15 @@ public class ScriptController {
             ParseResponse parseResponse = compiledScript.script.doExecute(builder.build());
             if (!parseResponse.status) {
                 logger.error("parse failed for url[{}]", request.url);
-                return DebugResponse.buildError(String.format("解析抓取内容失败[%s]", parseResponse.message), null);
+                DebugResponse response = DebugResponse.buildError(String.format("解析抓取内容失败[%s]",
+                        parseResponse.message), null);
+                response.debugLog = parseResponse.debugLog;
+                return response;
             }
-            return DebugResponse.buildOK(parseResponse.fieldMap, parseResponse.childURLs, parseResponse.userDefinedMap);
+            DebugResponse response = DebugResponse.buildOK(parseResponse.fieldMap,
+                    parseResponse.childURLs, parseResponse.userDefinedMap);
+            response.debugLog = parseResponse.debugLog;
+            return response;
         } catch (Exception e) {
             logger.error("exception occurred when parsing url[{}]", request.url);
             logger.error(e.getMessage(), e);
