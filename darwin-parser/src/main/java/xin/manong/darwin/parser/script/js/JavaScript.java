@@ -94,7 +94,7 @@ public class JavaScript extends Script {
         } catch (Exception e) {
             logger.error("build JavaScript parse script failed for key[{}]", key);
             logger.error(e.getMessage(), e);
-            throw new ScriptCompileException(String.format("创建JavaScript脚本失败[%s]", e.getMessage()));
+            throw new ScriptCompileException(String.format("创建JavaScript脚本失败[%s]", e.getMessage()), e);
         }
     }
 

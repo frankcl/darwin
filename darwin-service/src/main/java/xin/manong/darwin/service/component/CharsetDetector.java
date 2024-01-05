@@ -1,4 +1,4 @@
-package xin.manong.darwin.spider;
+package xin.manong.darwin.service.component;
 
 import org.apache.commons.lang3.StringUtils;
 import org.mozilla.universalchardet.UniversalDetector;

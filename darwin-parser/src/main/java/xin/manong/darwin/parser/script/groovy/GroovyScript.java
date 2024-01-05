@@ -53,10 +53,8 @@ public class GroovyScript extends Script {
         try {
             groovyClass = classLoader.parseClass(scriptCode, key);
             if (!HTMLParser.class.isAssignableFrom(groovyClass)) {
-                logger.error("parser[{}] is not subclass of class[{}]",
-                        groovyClass.getName(), HTMLParser.class.getName());
-                throw new ScriptCompileException(String.format("%s不是%s的子类",
-                        groovyClass.getName(), HTMLParser.class.getName()));
+                logger.error("parse groovy failed");
+                throw new ScriptCompileException("无效Groovy脚本");
             }
             groovyClass.getMethod(METHOD_PARSE, ParseRequest.class);
             this.groovyObject = (GroovyObject) groovyClass.newInstance();
@@ -64,11 +62,11 @@ public class GroovyScript extends Script {
             logger.error("parse method[{}] is not found for parser[{}]", METHOD_PARSE,
                     groovyClass != null ? groovyClass.getName() : "");
             logger.error(e.getMessage(), e);
-            throw new ScriptCompileException(String.format("未找到解析方法[%s]", METHOD_PARSE));
+            throw new ScriptCompileException(String.format("未找到解析方法[%s]", METHOD_PARSE), e);
         } catch (Exception e) {
             logger.error("build Groovy script failed for id[{}]", key);
             logger.error(e.getMessage(), e);
-            throw new ScriptCompileException(String.format("构建Groovy脚本失败[%s]", e.getMessage()));
+            throw new ScriptCompileException(String.format("构建Groovy脚本失败[%s]", e.getMessage()), e);
         }
     }
 

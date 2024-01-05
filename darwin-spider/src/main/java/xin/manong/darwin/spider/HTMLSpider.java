@@ -20,6 +20,7 @@ import xin.manong.darwin.parser.service.request.HTMLParseRequest;
 import xin.manong.darwin.parser.service.request.HTMLParseRequestBuilder;
 import xin.manong.darwin.queue.multi.MultiQueue;
 import xin.manong.darwin.queue.multi.MultiQueueStatus;
+import xin.manong.darwin.service.component.CharsetDetector;
 import xin.manong.darwin.service.iface.RuleService;
 import xin.manong.weapon.aliyun.oss.OSSClient;
 import xin.manong.weapon.aliyun.oss.OSSMeta;

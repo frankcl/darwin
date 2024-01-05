@@ -4,7 +4,6 @@ import com.shuwen.dynamic.secret.property.ShamanPropertySourceFactory;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.PropertySource;
-import xin.manong.security.keeper.sso.client.annotation.EnableSecurityFilter;
 import xin.manong.weapon.spring.boot.annotation.EnableONSProducer;
 import xin.manong.weapon.spring.boot.annotation.EnableOSSClient;
 import xin.manong.weapon.spring.boot.annotation.EnableRedisClient;

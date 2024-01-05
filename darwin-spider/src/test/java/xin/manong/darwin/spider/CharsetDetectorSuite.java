@@ -3,6 +3,7 @@ package xin.manong.darwin.spider;
 import okhttp3.Response;
 import org.junit.Assert;
 import org.junit.Test;
+import xin.manong.darwin.service.component.CharsetDetector;
 import xin.manong.weapon.base.http.HttpClient;
 import xin.manong.weapon.base.http.HttpRequest;
 import xin.manong.weapon.base.http.RequestMethod;
