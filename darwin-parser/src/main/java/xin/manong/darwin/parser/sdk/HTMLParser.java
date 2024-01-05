@@ -5,7 +5,7 @@ import org.apache.log4j.spi.LoggerRepository;
 import org.slf4j.ILoggerFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import xin.manong.darwin.parser.log.MemoryWriterAppender;
+import xin.manong.darwin.parser.appender.MemoryWriterAppender;
 import xin.manong.weapon.base.util.ReflectUtil;
 
 import java.util.Hashtable;

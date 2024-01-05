@@ -1,4 +1,4 @@
-package xin.manong.darwin.parser.log;
+package xin.manong.darwin.parser.appender;
 
 import org.apache.log4j.Layout;
 import org.apache.log4j.WriterAppender;
