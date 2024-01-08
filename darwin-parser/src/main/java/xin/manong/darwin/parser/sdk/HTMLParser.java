@@ -6,6 +6,7 @@ import org.slf4j.ILoggerFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import xin.manong.darwin.parser.appender.MemoryWriterAppender;
+import xin.manong.weapon.base.util.ReflectArgs;
 import xin.manong.weapon.base.util.ReflectUtil;
 
 import java.util.Hashtable;
@@ -24,7 +25,7 @@ public abstract class HTMLParser {
     private static final String LOG_LAYOUT_PATTERN = "%-d{yyyy-MM-dd HH:mm:ss,SSS}-%r [%p] [%t] [%l] - %m%n";
 
     private Logger selfLogger = LoggerFactory.getLogger(HTMLParser.class);
-    protected Logger logger;
+    private ThreadLocal<Logger> threadLogger = new ThreadLocal<>();
 
     /**
      * 脚本解析
@@ -34,23 +35,34 @@ public abstract class HTMLParser {
      */
     public ParseResponse doParse(ParseRequest request) {
         String name = String.format("%s$%s", HTMLParser.class.getName(), UUID.randomUUID());
-        logger = LoggerFactory.getLogger(name);
+        Logger logger = LoggerFactory.getLogger(name);
         Layout layout = new PatternLayout(LOG_LAYOUT_PATTERN);
         MemoryWriterAppender appender = new MemoryWriterAppender(layout);
         org.apache.log4j.Logger innerLogger = LogManager.getLogger(logger.getName());
         innerLogger.addAppender(appender);
         innerLogger.setAdditivity(false);
         innerLogger.setLevel(Level.INFO);
+        threadLogger.set(logger);
         try {
             ParseResponse response = parse(request);
             String logContent = appender.getLogContent();
             if (logContent != null) response.debugLog = logContent;
             return response;
         } finally {
-            if (appender != null) appender.close();
             sweepLoggerFactory(name);
             sweepLogManager(name);
+            if (appender != null) appender.close();
+            threadLogger.remove();
         }
+    }
+
+    /**
+     * 获取Logger对象
+     *
+     * @return Logger对象
+     */
+    public Logger getLogger() {
+        return threadLogger.get();
     }
 
     /**
@@ -88,7 +100,9 @@ public abstract class HTMLParser {
             Hashtable<String, org.apache.log4j.Logger> logTable = (Hashtable<String, org.apache.log4j.Logger>)
                     ReflectUtil.getFieldValue(loggerRepository, "ht");
             if (logTable == null) return;
-            logTable.remove(name);
+            ReflectArgs args = new ReflectArgs(new Class[] { String.class }, new Object[] { name });
+            Object key = ReflectUtil.newInstance("org.apache.log4j.CategoryKey", args);
+            logTable.remove(key);
         } catch (Exception e) {
             selfLogger.error(e.getMessage(), e);
         }
