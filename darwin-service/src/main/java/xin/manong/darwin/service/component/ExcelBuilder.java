@@ -62,7 +62,7 @@ public class ExcelBuilder {
             for (Map.Entry<String, Sheet> entry : sheetMap.entrySet()) {
                 String name = entry.getKey();
                 Sheet sheet = entry.getValue();
-                logger.info("export rows[{}] for sheet[{}]", sheet.getLastRowNum(), name);
+                logger.info("export rows[{}] for sheet[{}]", sheet.getPhysicalNumberOfRows(), name);
             }
             workbook.write(outputStream);
             logger.info("export excel success");
@@ -91,7 +91,7 @@ public class ExcelBuilder {
         }
         if (StringUtils.isEmpty(name)) name = "unknown";
         Sheet sheet = workbook.createSheet(name);
-        Row row = sheet.createRow(sheet.getLastRowNum() + 1);
+        Row row = sheet.createRow(sheet.getPhysicalNumberOfRows());
         for (int i = 0; i < columns.size(); i++) {
             Cell cell = row.createCell(i);
             cell.setCellValue(columns.get(i));
@@ -122,14 +122,14 @@ public class ExcelBuilder {
             logger.error("sheet[{}] is not found", sheetName);
             return false;
         }
-        Row row = sheet.createRow(sheet.getLastRowNum() + 1);
+        Row row = sheet.createRow(sheet.getPhysicalNumberOfRows());
         for (int i = 0; i < columns.size(); i++) {
             String column = columns.get(i);
             Cell cell = row.createCell(i);
             if (!data.containsKey(column)) continue;
             cell.setCellValue(data.get(column).toString());
         }
-        int writeRows = sheet.getLastRowNum();
+        int writeRows = sheet.getPhysicalNumberOfRows();
         if (writeRows > 0 && writeRows % 200 == 0) {
             ((SXSSFSheet) sheet).flushRows();
             logger.info("add rows[{}] for sheet[{}]", writeRows, sheetName);
