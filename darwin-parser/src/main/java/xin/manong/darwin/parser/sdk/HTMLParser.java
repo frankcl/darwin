@@ -22,6 +22,10 @@ import java.util.UUID;
  */
 public abstract class HTMLParser {
 
+    private static final String LOG4J_CATEGORY_KEY_CLASS = "org.apache.log4j.CategoryKey";
+    private static final String LOG4J_FIELD_LOGGER_HASH_TABLE = "ht";
+    private static final String SLF4J_FIELD_LOGGER_MAP = "loggerMap";
+
     private static final String LOG_LAYOUT_PATTERN = "%-d{yyyy-MM-dd HH:mm:ss,SSS}-%r [%p] [%t] [%l] - %m%n";
 
     private Logger selfLogger = LoggerFactory.getLogger(HTMLParser.class);
@@ -49,8 +53,8 @@ public abstract class HTMLParser {
             if (logContent != null) response.debugLog = logContent;
             return response;
         } finally {
-            sweepLoggerFactory(name);
-            sweepLogManager(name);
+            sweepSLF4JLogger(name);
+            sweepLog4JLogger(name);
             if (appender != null) appender.close();
             threadLogger.remove();
         }
@@ -78,10 +82,11 @@ public abstract class HTMLParser {
      *
      * @param name logger名称
      */
-    private void sweepLoggerFactory(String name) {
+    private void sweepSLF4JLogger(String name) {
         try {
             ILoggerFactory factory = LoggerFactory.getILoggerFactory();
-            Map<String, Logger> logMap = (Map<String, Logger>) ReflectUtil.getFieldValue(factory, "loggerMap");
+            Map<String, Logger> logMap = (Map<String, Logger>) ReflectUtil.getFieldValue(
+                    factory, SLF4J_FIELD_LOGGER_MAP);
             if (logMap == null) return;
             logMap.remove(name);
         } catch (Exception e) {
@@ -94,14 +99,14 @@ public abstract class HTMLParser {
      *
      * @param name logger名称
      */
-    private void sweepLogManager(String name) {
+    private void sweepLog4JLogger(String name) {
         try {
             LoggerRepository loggerRepository = LogManager.getLoggerRepository();
             Hashtable<String, org.apache.log4j.Logger> logTable = (Hashtable<String, org.apache.log4j.Logger>)
-                    ReflectUtil.getFieldValue(loggerRepository, "ht");
+                    ReflectUtil.getFieldValue(loggerRepository, LOG4J_FIELD_LOGGER_HASH_TABLE);
             if (logTable == null) return;
             ReflectArgs args = new ReflectArgs(new Class[] { String.class }, new Object[] { name });
-            Object key = ReflectUtil.newInstance("org.apache.log4j.CategoryKey", args);
+            Object key = ReflectUtil.newInstance(LOG4J_CATEGORY_KEY_CLASS, args);
             logTable.remove(key);
         } catch (Exception e) {
             selfLogger.error(e.getMessage(), e);
