@@ -37,7 +37,7 @@ public abstract class HTMLParser {
      * @param request 解析请求
      * @return 解析响应
      */
-    public ParseResponse doParse(ParseRequest request) {
+    public final ParseResponse doParse(ParseRequest request) {
         String name = String.format("%s$%s", HTMLParser.class.getName(), UUID.randomUUID());
         Logger logger = LoggerFactory.getLogger(name);
         Layout layout = new PatternLayout(LOG_LAYOUT_PATTERN);
@@ -65,7 +65,7 @@ public abstract class HTMLParser {
      *
      * @return Logger对象
      */
-    public Logger getLogger() {
+    protected final Logger getLogger() {
         return threadLogger.get();
     }
 
