@@ -49,8 +49,8 @@ public abstract class HTMLParser {
         threadLogger.set(logger);
         try {
             ParseResponse response = parse(request);
-            String logContent = appender.getLogContent();
-            if (logContent != null) response.debugLog = logContent;
+            String debugLog = appender.getLogContent();
+            if (debugLog != null) response.debugLog = debugLog;
             return response;
         } finally {
             sweepSLF4JLogger(name);
