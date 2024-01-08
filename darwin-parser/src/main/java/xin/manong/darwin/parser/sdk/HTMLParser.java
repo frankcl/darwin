@@ -87,8 +87,12 @@ public abstract class HTMLParser {
             ILoggerFactory factory = LoggerFactory.getILoggerFactory();
             Map<String, Logger> logMap = (Map<String, Logger>) ReflectUtil.getFieldValue(
                     factory, SLF4J_FIELD_LOGGER_MAP);
-            if (logMap == null) return;
-            logMap.remove(name);
+            if (logMap == null) {
+                selfLogger.warn("field[{}] is not found in SLF4J log factory", SLF4J_FIELD_LOGGER_MAP);
+                return;
+            }
+            if (logMap.containsKey(name)) logMap.remove(name);
+            else selfLogger.warn("logger[{}] is not found in SLF4J log map", name);
         } catch (Exception e) {
             selfLogger.error(e.getMessage(), e);
         }
@@ -104,10 +108,14 @@ public abstract class HTMLParser {
             LoggerRepository loggerRepository = LogManager.getLoggerRepository();
             Hashtable<String, org.apache.log4j.Logger> logTable = (Hashtable<String, org.apache.log4j.Logger>)
                     ReflectUtil.getFieldValue(loggerRepository, LOG4J_FIELD_LOGGER_HASH_TABLE);
-            if (logTable == null) return;
+            if (logTable == null) {
+                selfLogger.warn("field[{}] is not found in Log4J log manager", LOG4J_FIELD_LOGGER_HASH_TABLE);
+                return;
+            }
             ReflectArgs args = new ReflectArgs(new Class[] { String.class }, new Object[] { name });
             Object key = ReflectUtil.newInstance(LOG4J_CATEGORY_KEY_CLASS, args);
-            logTable.remove(key);
+            if (logTable.containsKey(key)) logTable.remove(key);
+            else selfLogger.warn("logger[{}] is not found in Log4J hash table", name);
         } catch (Exception e) {
             selfLogger.error(e.getMessage(), e);
         }
