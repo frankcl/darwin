@@ -1,4 +1,4 @@
-package xin.manong.darwin.parser.appender;
+package xin.manong.darwin.parser.sdk;
 
 import org.apache.log4j.Layout;
 import org.apache.log4j.MDC;
@@ -18,7 +18,7 @@ import java.nio.charset.Charset;
  * @author frankcl
  * @date 2024-01-05 17:29:32
  */
-public class GroovyWriterAppender extends WriterAppender {
+class GroovyLogAppender extends WriterAppender {
 
     private static final int MAX_BUFFER_SIZE = 1024 * 1024;
     private static final String MDC_KEY_GROOVY_FILE_NAME = "GF";
@@ -30,7 +30,7 @@ public class GroovyWriterAppender extends WriterAppender {
 
     private ByteArrayOutputStream output;
 
-    public GroovyWriterAppender(Layout layout) {
+    public GroovyLogAppender(Layout layout) {
         super();
         this.layout = layout;
         this.output = new ByteArrayOutputStream();

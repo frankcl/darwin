@@ -5,7 +5,6 @@ import org.apache.log4j.spi.LoggerRepository;
 import org.slf4j.ILoggerFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import xin.manong.darwin.parser.appender.GroovyWriterAppender;
 import xin.manong.weapon.base.util.ReflectArgs;
 import xin.manong.weapon.base.util.ReflectUtil;
 
@@ -41,7 +40,7 @@ public abstract class HTMLParser {
         String name = String.format("%s$%s", HTMLParser.class.getName(), UUID.randomUUID());
         Logger slf4jLogger = LoggerFactory.getLogger(name);
         Layout layout = new PatternLayout(LOG_LAYOUT_PATTERN);
-        GroovyWriterAppender appender = new GroovyWriterAppender(layout);
+        GroovyLogAppender appender = new GroovyLogAppender(layout);
         org.apache.log4j.Logger log4jLogger = LogManager.getLogger(slf4jLogger.getName());
         log4jLogger.addAppender(appender);
         log4jLogger.setAdditivity(false);
