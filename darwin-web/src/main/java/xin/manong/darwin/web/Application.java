@@ -20,7 +20,7 @@ import xin.manong.weapon.spring.web.ws.aspect.EnableWebLogAspect;
 @EnableRedisClient
 @EnableONSProducer
 @EnableWebLogAspect
-@PropertySource(name = "configmap", value = "xhzy-data#express-stream", factory = ShamanPropertySourceFactory.class)
+@PropertySource(name = "configmap", value = "xhzy-data#darwin-spider", factory = ShamanPropertySourceFactory.class)
 @SpringBootApplication(scanBasePackages = {"xin.manong.darwin"})
 public class Application {
 
