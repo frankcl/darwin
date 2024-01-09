@@ -28,8 +28,8 @@ public abstract class HTMLParser {
 
     private static final String LOG_LAYOUT_PATTERN = "%-d{yyyy-MM-dd HH:mm:ss,SSS}-%r [%p] [%t] [%X{GC}:%X{GL}] - %m%n";
 
-    private Logger selfLogger = LoggerFactory.getLogger(HTMLParser.class);
-    private ThreadLocal<Logger> threadLogger = new ThreadLocal<>();
+    private Logger logger = LoggerFactory.getLogger(HTMLParser.class);
+    private ThreadLocal<Logger> groovyLogger = new ThreadLocal<>();
 
     /**
      * 脚本解析
@@ -39,14 +39,14 @@ public abstract class HTMLParser {
      */
     public final ParseResponse doParse(ParseRequest request) {
         String name = String.format("%s$%s", HTMLParser.class.getName(), UUID.randomUUID());
-        Logger logger = LoggerFactory.getLogger(name);
+        Logger slf4jLogger = LoggerFactory.getLogger(name);
         Layout layout = new PatternLayout(LOG_LAYOUT_PATTERN);
         GroovyWriterAppender appender = new GroovyWriterAppender(layout);
-        org.apache.log4j.Logger innerLogger = LogManager.getLogger(logger.getName());
-        innerLogger.addAppender(appender);
-        innerLogger.setAdditivity(false);
-        innerLogger.setLevel(Level.INFO);
-        threadLogger.set(logger);
+        org.apache.log4j.Logger log4jLogger = LogManager.getLogger(slf4jLogger.getName());
+        log4jLogger.addAppender(appender);
+        log4jLogger.setAdditivity(false);
+        log4jLogger.setLevel(Level.INFO);
+        groovyLogger.set(slf4jLogger);
         try {
             ParseResponse response = parse(request);
             String debugLog = appender.getLogContent();
@@ -56,7 +56,7 @@ public abstract class HTMLParser {
             sweepSLF4JLogger(name);
             sweepLog4JLogger(name);
             if (appender != null) appender.close();
-            threadLogger.remove();
+            groovyLogger.remove();
         }
     }
 
@@ -66,7 +66,7 @@ public abstract class HTMLParser {
      * @return Logger对象
      */
     protected final Logger getLogger() {
-        return threadLogger.get();
+        return groovyLogger.get();
     }
 
     /**
@@ -88,13 +88,13 @@ public abstract class HTMLParser {
             Map<String, Logger> logMap = (Map<String, Logger>) ReflectUtil.getFieldValue(
                     factory, SLF4J_FIELD_LOGGER_MAP);
             if (logMap == null) {
-                selfLogger.warn("field[{}] is not found in SLF4J log factory", SLF4J_FIELD_LOGGER_MAP);
+                logger.warn("field[{}] is not found in SLF4J log factory", SLF4J_FIELD_LOGGER_MAP);
                 return;
             }
             if (logMap.containsKey(name)) logMap.remove(name);
-            else selfLogger.warn("logger[{}] is not found in SLF4J log map", name);
+            else logger.warn("logger[{}] is not found in SLF4J log map", name);
         } catch (Exception e) {
-            selfLogger.error(e.getMessage(), e);
+            logger.error(e.getMessage(), e);
         }
     }
 
@@ -109,15 +109,15 @@ public abstract class HTMLParser {
             Hashtable<String, org.apache.log4j.Logger> logTable = (Hashtable<String, org.apache.log4j.Logger>)
                     ReflectUtil.getFieldValue(loggerRepository, LOG4J_FIELD_LOGGER_HASH_TABLE);
             if (logTable == null) {
-                selfLogger.warn("field[{}] is not found in Log4J log manager", LOG4J_FIELD_LOGGER_HASH_TABLE);
+                logger.warn("field[{}] is not found in Log4J log manager", LOG4J_FIELD_LOGGER_HASH_TABLE);
                 return;
             }
             ReflectArgs args = new ReflectArgs(new Class[] { String.class }, new Object[] { name });
             Object key = ReflectUtil.newInstance(LOG4J_CATEGORY_KEY_CLASS, args);
             if (logTable.containsKey(key)) logTable.remove(key);
-            else selfLogger.warn("logger[{}] is not found in Log4J hash table", name);
+            else logger.warn("logger[{}] is not found in Log4J hash table", name);
         } catch (Exception e) {
-            selfLogger.error(e.getMessage(), e);
+            logger.error(e.getMessage(), e);
         }
     }
 }
