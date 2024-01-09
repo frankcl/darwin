@@ -1,6 +1,5 @@
 package xin.manong.darwin.parser.sdk;
 
-import groovy.transform.CompileStatic;
 import org.apache.log4j.*;
 import org.apache.log4j.spi.LoggerRepository;
 import org.slf4j.ILoggerFactory;
@@ -21,7 +20,6 @@ import java.util.UUID;
  * @author frankcl
  * @date 2023-03-16 15:07:13
  */
-@CompileStatic
 public abstract class HTMLParser {
 
     private static final String LOG4J_CATEGORY_KEY_CLASS = "org.apache.log4j.CategoryKey";
