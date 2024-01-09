@@ -57,7 +57,7 @@ public class GroovyWriterAppender extends WriterAppender {
     private void parseGroovyFileLine() {
         StackTraceElement[] stackTraceElements = Thread.currentThread().getStackTrace();
         StackTraceElement stackTraceElement = findGroovyStackTraceElement(stackTraceElements);
-        if (stackTraceElement == null) MDC.remove(LOG_KEY_GROOVY_FILE_LINE);
+        if (stackTraceElement == null) MDC.put(LOG_KEY_GROOVY_FILE_LINE, "?:?");
         else MDC.put(LOG_KEY_GROOVY_FILE_LINE, String.format("%s:%d", stackTraceElement.getFileName(), stackTraceElement.getLineNumber()));
     }
 
