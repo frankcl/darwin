@@ -5,7 +5,7 @@ import org.apache.log4j.spi.LoggerRepository;
 import org.slf4j.ILoggerFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import xin.manong.darwin.parser.appender.MemoryWriterAppender;
+import xin.manong.darwin.parser.appender.GroovyWriterAppender;
 import xin.manong.weapon.base.util.ReflectArgs;
 import xin.manong.weapon.base.util.ReflectUtil;
 
@@ -26,7 +26,7 @@ public abstract class HTMLParser {
     private static final String LOG4J_FIELD_LOGGER_HASH_TABLE = "ht";
     private static final String SLF4J_FIELD_LOGGER_MAP = "loggerMap";
 
-    private static final String LOG_LAYOUT_PATTERN = "%-d{yyyy-MM-dd HH:mm:ss,SSS}-%r [%p] [%t] [%l] - %m%n";
+    private static final String LOG_LAYOUT_PATTERN = "%-d{yyyy-MM-dd HH:mm:ss,SSS}-%r [%p] [%t] [%X{groovyFileLine}] - %m%n";
 
     private Logger selfLogger = LoggerFactory.getLogger(HTMLParser.class);
     private ThreadLocal<Logger> threadLogger = new ThreadLocal<>();
@@ -41,7 +41,7 @@ public abstract class HTMLParser {
         String name = String.format("%s$%s", HTMLParser.class.getName(), UUID.randomUUID());
         Logger logger = LoggerFactory.getLogger(name);
         Layout layout = new PatternLayout(LOG_LAYOUT_PATTERN);
-        MemoryWriterAppender appender = new MemoryWriterAppender(layout);
+        GroovyWriterAppender appender = new GroovyWriterAppender(layout);
         org.apache.log4j.Logger innerLogger = LogManager.getLogger(logger.getName());
         innerLogger.addAppender(appender);
         innerLogger.setAdditivity(false);
