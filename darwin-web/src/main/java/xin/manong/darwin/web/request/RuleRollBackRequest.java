@@ -2,10 +2,11 @@ package xin.manong.darwin.web.request;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import jakarta.ws.rs.BadRequestException;
+import jakarta.xml.bind.annotation.XmlAccessType;
+import jakarta.xml.bind.annotation.XmlAccessorType;
 
-import javax.ws.rs.BadRequestException;
+import java.io.Serial;
 import java.io.Serializable;
 
 /**
@@ -14,10 +15,12 @@ import java.io.Serializable;
  * @author frankcl
  * @date 2024-01-05 11:50:06
  */
+@XmlAccessorType(XmlAccessType.FIELD)
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class RuleRollBackRequest implements Serializable {
 
-    private static final Logger logger = LoggerFactory.getLogger(RuleRollBackRequest.class);
+    @Serial
+    private static final long serialVersionUID = -8255192848581819665L;
 
     /**
      * 规则ID
@@ -35,13 +38,7 @@ public class RuleRollBackRequest implements Serializable {
      * 检测有效性，无效抛出异常
      */
     public void check() {
-        if (ruleId == null) {
-            logger.error("rule id is null");
-            throw new BadRequestException("规则ID为空");
-        }
-        if (ruleHistoryId == null) {
-            logger.error("rule history id is null");
-            throw new BadRequestException("规则历史ID为空");
-        }
+        if (ruleId == null) throw new BadRequestException("规则ID为空");
+        if (ruleHistoryId == null) throw new BadRequestException("规则历史ID为空");
     }
 }

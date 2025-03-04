@@ -2,7 +2,10 @@ package xin.manong.darwin.web.response;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import jakarta.xml.bind.annotation.XmlAccessType;
+import jakarta.xml.bind.annotation.XmlAccessorType;
 
+import java.io.Serial;
 import java.io.Serializable;
 
 /**
@@ -11,9 +14,11 @@ import java.io.Serializable;
  * @author frankcl
  * @date 2023-08-28 10:41:01
  */
+@XmlAccessorType(XmlAccessType.FIELD)
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class ConcurrentUnitInfo implements Serializable {
 
+    @Serial
     private static final long serialVersionUID = 2085942654869013790L;
 
     /**

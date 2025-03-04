@@ -1,5 +1,6 @@
 package xin.manong.darwin.spider;
 
+import jakarta.annotation.Resource;
 import okhttp3.Response;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
@@ -16,7 +17,6 @@ import xin.manong.weapon.base.http.HttpClient;
 import xin.manong.weapon.base.http.HttpRequest;
 import xin.manong.weapon.base.http.RequestMethod;
 
-import javax.annotation.Resource;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
@@ -36,7 +36,7 @@ public class StreamSpider extends Spider {
     private static final String CATEGORY = "stream";
     private static final String LIVE_STREAM_FINISH_TAG = "#EXT-X-ENDLIST";
 
-    private String ffmpeg;
+    private final String ffmpeg;
     @Resource
     protected SpiderConfig config;
     @Resource
@@ -65,15 +65,15 @@ public class StreamSpider extends Spider {
             writeStream(record, resource.inputStream, context);
         } finally {
             if (resource != null) resource.close();
-            new File(tempFile).delete();
+            if (!new File(tempFile).delete()) logger.warn("delete temp file failed: {}", tempFile);
         }
     }
 
     private boolean fetchM3U8(URLRecord record, String tempFile, Context context) {
-        Long startTime = System.currentTimeMillis();
+        long startTime = System.currentTimeMillis();
         try {
             String m3U8Meta = fetchM3U8Meta(record, context);
-            if (m3U8Meta.indexOf(LIVE_STREAM_FINISH_TAG) == -1) {
+            if (m3U8Meta == null || !m3U8Meta.contains(LIVE_STREAM_FINISH_TAG)) {
                 record.httpCode = HTTP_CODE_NOT_ACCEPTABLE;
                 context.put(Constants.DARWIN_DEBUG_MESSAGE, "不支持直播流抓取");
                 logger.error("unsupported live stream fetching for url[{}]", record.url);
@@ -143,6 +143,7 @@ public class StreamSpider extends Spider {
                 logger.error("fetch M3U8 meta failed for url[{}]", record.url);
                 return null;
             }
+            assert httpResponse.body() != null;
             return httpResponse.body().string();
         } catch (Exception e) {
             record.status = Constants.URL_STATUS_FETCH_FAIL;
@@ -195,7 +196,6 @@ public class StreamSpider extends Spider {
     private void createTempDirectory() {
         File directory = new File(config.tempDirectory);
         if (directory.exists()) return;
-        directory.mkdirs();
-        logger.info("create temp directory[{}] success", config.tempDirectory);
+        if (directory.mkdirs()) logger.info("create temp directory[{}] success", config.tempDirectory);
     }
 }

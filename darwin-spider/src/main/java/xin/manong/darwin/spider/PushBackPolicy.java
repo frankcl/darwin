@@ -17,7 +17,7 @@ public class PushBackPolicy implements RejectedExecutionHandler {
 
     private static final Logger logger = LoggerFactory.getLogger(PushBackPolicy.class);
 
-    private BlockingQueue<SpiderRecord> recordQueue;
+    private final BlockingQueue<SpiderRecord> recordQueue;
 
     public PushBackPolicy(BlockingQueue<SpiderRecord> recordQueue) {
         this.recordQueue = recordQueue;
@@ -25,8 +25,7 @@ public class PushBackPolicy implements RejectedExecutionHandler {
 
     @Override
     public void rejectedExecution(Runnable r, ThreadPoolExecutor executor) {
-        if (!(r instanceof SpiderTask)) return;
-        SpiderTask spiderTask = (SpiderTask) r;
+        if (!(r instanceof SpiderTask spiderTask)) return;
         if (spiderTask.spiderRecord == null) return;
         try {
             recordQueue.put(spiderTask.spiderRecord);

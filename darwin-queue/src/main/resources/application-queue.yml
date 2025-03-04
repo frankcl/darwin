@@ -1,10 +1,9 @@
 weapon:
   common:
     redis:
-      client-map:
-        default:
-          mode: SINGLE
-          connection-pool-size: 200
+      client:
+        mode: SINGLE
+        connection-pool-size: 200
 
 app:
   queue:

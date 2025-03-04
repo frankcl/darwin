@@ -1,10 +1,10 @@
 package xin.manong.darwin.web.controller;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import jakarta.annotation.Resource;
+import jakarta.ws.rs.*;
+import jakarta.ws.rs.core.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
-import xin.manong.darwin.common.Constants;
 import xin.manong.darwin.common.model.Pager;
 import xin.manong.darwin.common.model.Proxy;
 import xin.manong.darwin.service.iface.ProxyService;
@@ -13,11 +13,7 @@ import xin.manong.darwin.web.component.PermissionSupport;
 import xin.manong.darwin.web.convert.Converter;
 import xin.manong.darwin.web.request.ProxyRequest;
 import xin.manong.darwin.web.request.ProxyUpdateRequest;
-import xin.manong.weapon.spring.web.ws.aspect.EnableWebLogAspect;
-
-import javax.annotation.Resource;
-import javax.ws.rs.*;
-import javax.ws.rs.core.MediaType;
+import xin.manong.weapon.spring.boot.aspect.EnableWebLogAspect;
 
 /**
  * 代理控制器
@@ -30,8 +26,6 @@ import javax.ws.rs.core.MediaType;
 @Path("/proxy")
 @RequestMapping("/proxy")
 public class ProxyController {
-
-    private static final Logger logger = LoggerFactory.getLogger(ProxyController.class);
 
     @Resource
     protected ProxyService proxyService;
@@ -50,10 +44,7 @@ public class ProxyController {
     @GetMapping("get")
     @EnableWebLogAspect
     public Proxy get(@QueryParam("id") Integer id) {
-        if (id == null) {
-            logger.error("missing param[id]");
-            throw new BadRequestException("代理ID缺失");
-        }
+        if (id == null) throw new BadRequestException("代理ID缺失");
         return proxyService.get(id);
     }
 
@@ -63,16 +54,13 @@ public class ProxyController {
      * @param request 代理搜索请求
      * @return 代理分页列表
      */
-    @POST
+    @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     @Path("search")
-    @PostMapping("search")
+    @GetMapping("search")
     @EnableWebLogAspect
-    public Pager<Proxy> search(ProxySearchRequest request) {
-        if (request == null) request = new ProxySearchRequest();
-        if (request.current == null || request.current < 1) request.current = Constants.DEFAULT_CURRENT;
-        if (request.size == null || request.size <= 0) request.size = Constants.DEFAULT_PAGE_SIZE;
+    public Pager<Proxy> search(@BeanParam ProxySearchRequest request) {
         return proxyService.search(request);
     }
 
@@ -88,11 +76,8 @@ public class ProxyController {
     @Path("add")
     @PutMapping("add")
     @EnableWebLogAspect
-    public Boolean add(ProxyRequest request) {
-        if (request == null) {
-            logger.error("proxy request is null");
-            throw new BadRequestException("代理请求信息为空");
-        }
+    public Boolean add(@RequestBody ProxyRequest request) {
+        if (request == null) throw new BadRequestException("代理请求信息为空");
         request.check();
         permissionSupport.checkAdmin();
         Proxy proxy = Converter.convert(request);
@@ -111,16 +96,9 @@ public class ProxyController {
     @Path("update")
     @PostMapping("update")
     @EnableWebLogAspect
-    public Boolean update(ProxyUpdateRequest request) {
-        if (request == null) {
-            logger.error("proxy update info is null");
-            throw new BadRequestException("代理更新信息为空");
-        }
+    public Boolean update(@RequestBody ProxyUpdateRequest request) {
+        if (request == null) throw new BadRequestException("代理更新信息为空");
         request.check();
-        if (proxyService.get(request.id) == null) {
-            logger.error("proxy[{}] is not found", request.id);
-            throw new NotFoundException(String.format("代理[%d]不存在", request.id));
-        }
         permissionSupport.checkAdmin();
         Proxy proxy = Converter.convert(request);
         return proxyService.update(proxy);
@@ -138,14 +116,7 @@ public class ProxyController {
     @DeleteMapping("delete")
     @EnableWebLogAspect
     public Boolean delete(@QueryParam("id") Integer id) {
-        if (id == null) {
-            logger.error("proxy id is null");
-            throw new BadRequestException("代理ID为空");
-        }
-        if (proxyService.get(id) == null) {
-            logger.error("proxy[{}] is not found", id);
-            throw new NotFoundException(String.format("代理[%d]不存在", id));
-        }
+        if (id == null) throw new BadRequestException("代理ID为空");
         permissionSupport.checkAdmin();
         return proxyService.delete(id);
     }

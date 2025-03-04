@@ -1,5 +1,7 @@
 package xin.manong.darwin.parser.script;
 
+import lombok.Getter;
+import lombok.Setter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import xin.manong.darwin.parser.sdk.ParseRequest;
@@ -21,6 +23,8 @@ public abstract class Script {
 
     protected static final String METHOD_PARSE = "parse";
 
+    @Setter
+    @Getter
     protected String key;
     /**
      * 引用计数
@@ -42,14 +46,14 @@ public abstract class Script {
      *
      * @param request 解析请求
      * @return 解析响应
-     * @throws Exception
+     * @throws Exception 异常
      */
     public abstract ParseResponse doExecute(ParseRequest request) throws Exception;
 
     /**
      * 关闭脚本，释放资源
      *
-     * @throws IOException
+     * @throws IOException I/O异常
      */
     public abstract void doClose() throws IOException;
 
@@ -58,7 +62,7 @@ public abstract class Script {
      *
      * @param request 解析请求
      * @return 解析响应
-     * @throws ScriptConcurrentException
+     * @throws ScriptConcurrentException 并发异常
      */
     public ParseResponse execute(ParseRequest request) throws ScriptConcurrentException {
         try {
@@ -117,21 +121,4 @@ public abstract class Script {
         return referenceCount.get();
     }
 
-    /**
-     * 获取key
-     *
-     * @return key
-     */
-    public String getKey() {
-        return key;
-    }
-
-    /**
-     * 设置key
-     *
-     * @param key
-     */
-    public void setKey(String key) {
-        this.key = key;
-    }
 }

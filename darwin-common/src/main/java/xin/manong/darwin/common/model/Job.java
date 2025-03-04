@@ -4,6 +4,8 @@ import com.alibaba.fastjson.annotation.JSONField;
 import com.baomidou.mybatisplus.annotation.*;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import jakarta.xml.bind.annotation.XmlAccessType;
+import jakarta.xml.bind.annotation.XmlAccessorType;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
@@ -16,6 +18,7 @@ import xin.manong.darwin.common.model.handler.JSONListURLRecordTypeHandler;
 import xin.manong.weapon.aliyun.ots.annotation.Column;
 import xin.manong.weapon.aliyun.ots.annotation.PrimaryKey;
 
+import java.io.Serial;
 import java.util.List;
 
 /**
@@ -27,11 +30,14 @@ import java.util.List;
 @Getter
 @Setter
 @Accessors(chain = true)
+@XmlAccessorType(XmlAccessType.FIELD)
 @TableName(value = "job", autoResultMap = true)
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class Job extends BasicModel {
+public class Job extends BaseModel {
 
     private static final Logger logger = LoggerFactory.getLogger(Job.class);
+    @Serial
+    private static final long serialVersionUID = 4580876044819518502L;
 
     /**
      * 避免重复抓取

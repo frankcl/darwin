@@ -2,8 +2,8 @@ package xin.manong.darwin.parser.script.js;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
-import jdk.nashorn.api.scripting.ScriptObjectMirror;
 import org.apache.commons.codec.digest.DigestUtils;
+import org.openjdk.nashorn.api.scripting.ScriptObjectMirror;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import xin.manong.darwin.common.model.URLRecord;
@@ -19,7 +19,7 @@ import javax.script.ScriptEngineManager;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -36,8 +36,8 @@ public class JavaScript extends Script {
     private static final Logger logger = LoggerFactory.getLogger(JavaScript.class);
 
     private static final String JAVASCRIPT_UTILS_FILE = "/js/parse_utils.js";
-    private static final String JAVASCRIPT_ENGINE_NAME = "JavaScript";
-    private static ScriptEngineManager scriptEngineManager = new ScriptEngineManager();
+    private static final String JAVASCRIPT_ENGINE_NAME = "nashorn";
+    private static final ScriptEngineManager scriptEngineManager = new ScriptEngineManager();
     private static final String JAVASCRIPT_UTILS = loadJavaScriptUtils();
 
     private Invocable function;
@@ -54,10 +54,11 @@ public class JavaScript extends Script {
         ByteArrayOutputStream outputStream = null;
         try {
             inputStream = JavaScript.class.getResourceAsStream(JAVASCRIPT_UTILS_FILE);
+            if (inputStream == null) throw new IllegalStateException("load javascript utils file failed");
             outputStream = new ByteArrayOutputStream(bufferSize);
             byte[] buffer = new byte[bufferSize];
             while ((n = inputStream.read(buffer)) != -1) outputStream.write(buffer, 0, n);
-            return new String(outputStream.toByteArray(), Charset.forName("UTF-8"));
+            return outputStream.toString(StandardCharsets.UTF_8);
         } catch (Exception e) {
             logger.error("load java script utils failed, cause[{}]", e.getMessage());
             throw new RuntimeException(e);
@@ -98,11 +99,12 @@ public class JavaScript extends Script {
         }
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public ParseResponse doExecute(ParseRequest request) throws Exception {
         if (function == null) throw new ScriptConcurrentException();
-        ScriptObjectMirror scriptObjectMirror = (ScriptObjectMirror) function.invokeFunction(METHOD_PARSE, request);
-        Map<String, Object> map = (Map<String, Object>) convertScriptObjectMirror(scriptObjectMirror);
+        ScriptObjectMirror scriptObject = (ScriptObjectMirror) function.invokeFunction(METHOD_PARSE, request);
+        Map<String, Object> map = (Map<String, Object>) convertScriptObjectMirror(scriptObject);
         if (map == null) return ParseResponse.buildError("解析响应为空");
         ParseResponse response = JSON.toJavaObject(new JSONObject(map), ParseResponse.class);
         if (response.status && response.childURLs != null) {
@@ -121,19 +123,20 @@ public class JavaScript extends Script {
     /**
      * 转化JavaScript对象，结果为Map或List
      *
-     * @param scriptObjectMirror JavaScript对象
+     * @param scriptObject JavaScript对象
      * @return Map或List对象
      */
-    private Object convertScriptObjectMirror(ScriptObjectMirror scriptObjectMirror) {
-        if (scriptObjectMirror == null) return null;
-        boolean isArray = scriptObjectMirror.isArray();
+    @SuppressWarnings("unchecked")
+    private Object convertScriptObjectMirror(ScriptObjectMirror scriptObject) {
+        if (scriptObject == null) return null;
+        boolean isArray = scriptObject.isArray();
         Object returnObject = isArray ? new ArrayList<>() : new HashMap<>();
-        for (Map.Entry<String, Object> entry : scriptObjectMirror.entrySet()) {
+        for (Map.Entry<String, Object> entry : scriptObject.entrySet()) {
             Object object = entry.getValue();
             object = object instanceof ScriptObjectMirror ?
                     convertScriptObjectMirror((ScriptObjectMirror) object) : object;
             if (isArray) ((List<Object>) returnObject).add(object);
-            else ((Map<String, Object>) returnObject).put(entry.getKey(), object);
+            else ((Map<Object, Object>) returnObject).put(entry.getKey(), object);
         }
         return returnObject;
     }

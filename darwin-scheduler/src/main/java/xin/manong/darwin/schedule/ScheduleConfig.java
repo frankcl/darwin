@@ -26,8 +26,8 @@ public class ScheduleConfig {
     public String topic;
 
     @Bean(initMethod = "start", destroyMethod = "stop")
-    public PeriodPlanScheduler buildPeriodPlanExecutor() {
-        return new PeriodPlanScheduler(planExecuteIntervalMs);
+    public PeriodicPlanScheduler buildPeriodicPlanExecutor() {
+        return new PeriodicPlanScheduler(planExecuteIntervalMs);
     }
 
     @Bean(initMethod = "start", destroyMethod = "stop")

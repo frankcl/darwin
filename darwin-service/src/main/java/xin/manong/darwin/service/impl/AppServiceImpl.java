@@ -1,12 +1,15 @@
 package xin.manong.darwin.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import jakarta.annotation.Resource;
+import jakarta.ws.rs.BadRequestException;
+import jakarta.ws.rs.NotFoundException;
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+import xin.manong.darwin.common.Constants;
 import xin.manong.darwin.common.model.App;
 import xin.manong.darwin.common.model.Pager;
 import xin.manong.darwin.common.model.Plan;
@@ -14,9 +17,9 @@ import xin.manong.darwin.service.convert.Converter;
 import xin.manong.darwin.service.dao.mapper.AppMapper;
 import xin.manong.darwin.service.iface.AppService;
 import xin.manong.darwin.service.iface.PlanService;
+import xin.manong.darwin.service.request.AppSearchRequest;
 import xin.manong.darwin.service.request.PlanSearchRequest;
-
-import javax.annotation.Resource;
+import xin.manong.darwin.service.util.ModelValidator;
 
 /**
  * MySQL应用服务实现
@@ -27,74 +30,53 @@ import javax.annotation.Resource;
 @Service
 public class AppServiceImpl implements AppService {
 
-    private static final Logger logger = LoggerFactory.getLogger(AppServiceImpl.class);
-
     @Resource
     protected AppMapper appMapper;
     @Resource
     protected PlanService planService;
 
     @Override
-    public Boolean add(App app) {
+    public boolean add(App app) {
         LambdaQueryWrapper<App> query = new LambdaQueryWrapper<>();
         query.eq(App::getName, app.name);
-        if (appMapper.selectCount(query) > 0) {
-            logger.error("app has existed for same name[{}]", app.name);
-            throw new RuntimeException(String.format("同名应用[%s]已存在", app.name));
-        }
+        if (appMapper.selectCount(query) > 0) throw new IllegalStateException("应用已存在");
         return appMapper.insert(app) > 0;
     }
 
     @Override
-    public Boolean update(App app) {
-        if (appMapper.selectById(app.id) == null) {
-            logger.error("app[{}] is not found", app.id);
-            return false;
-        }
+    public boolean update(App app) {
+        if (appMapper.selectById(app.id) == null) throw new NotFoundException("应用不存在");
         return appMapper.updateById(app) > 0;
     }
 
     @Override
-    public Boolean delete(Integer id) {
-        if (appMapper.selectById(id) == null) {
-            logger.error("app[{}] is not found", id);
-            return false;
-        }
+    public boolean delete(Integer id) {
+        if (appMapper.selectById(id) == null) throw new NotFoundException("应用不存在");
         PlanSearchRequest searchRequest = new PlanSearchRequest();
         searchRequest.current = 1;
         searchRequest.size = 1;
         searchRequest.appId = id;
         Pager<Plan> pager = planService.search(searchRequest);
-        if (pager.total > 0) {
-            logger.error("plans are not empty for app[{}]", id);
-            throw new RuntimeException(String.format("应用[%s]中计划不为空", id));
-        }
+        if (pager.total > 0) throw new IllegalStateException("应用存在计划列表");
         return appMapper.deleteById(id) > 0;
     }
 
     @Override
     public App get(Integer id) {
-        if (id == null) {
-            logger.error("app id is null");
-            throw new IllegalArgumentException("应用ID为空");
-        }
+        if (id == null) throw new BadRequestException("应用ID为空");
         return appMapper.selectById(id);
     }
 
     @Override
-    public Pager<App> getList(int current, int size) {
-        LambdaQueryWrapper<App> query = new LambdaQueryWrapper<>();
-        query.orderByDesc(App::getCreateTime).orderByAsc(App::getName);
-        IPage<App> page = appMapper.selectPage(new Page<>(current, size), query);
-        return Converter.convert(page);
-    }
-
-    @Override
-    public Pager<App> search(String name, int current, int size) {
-        LambdaQueryWrapper<App> query = new LambdaQueryWrapper<>();
-        query.orderByDesc(App::getCreateTime);
-        if (!StringUtils.isEmpty(name)) query.like(App::getName, name);
-        IPage<App> page = appMapper.selectPage(new Page<>(current, size), query);
+    public Pager<App> search(AppSearchRequest searchRequest) {
+        if (searchRequest == null) searchRequest = new AppSearchRequest();
+        if (searchRequest.current == null || searchRequest.current < 1) searchRequest.current = Constants.DEFAULT_CURRENT;
+        if (searchRequest.size == null || searchRequest.size <= 0) searchRequest.size = Constants.DEFAULT_PAGE_SIZE;
+        ModelValidator.validateOrderBy(App.class, searchRequest);
+        QueryWrapper<App> query = new QueryWrapper<>();
+        searchRequest.prepareOrderBy(query);
+        if (StringUtils.isNotEmpty(searchRequest.name)) query.like("name", searchRequest.name);
+        IPage<App> page = appMapper.selectPage(new Page<>(searchRequest.current, searchRequest.size), query);
         return Converter.convert(page);
     }
 }

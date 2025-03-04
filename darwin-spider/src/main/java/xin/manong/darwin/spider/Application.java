@@ -1,11 +1,9 @@
 package xin.manong.darwin.spider;
 
-import com.shuwen.dynamic.secret.property.ShamanPropertySourceFactory;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.context.annotation.PropertySource;
-import xin.manong.weapon.spring.boot.annotation.EnableONSConsumer;
-import xin.manong.weapon.spring.boot.annotation.EnableONSProducer;
+import xin.manong.weapon.spring.boot.annotation.EnableKafkaConsumer;
+import xin.manong.weapon.spring.boot.annotation.EnableKafkaProducer;
 import xin.manong.weapon.spring.boot.annotation.EnableOSSClient;
 import xin.manong.weapon.spring.boot.annotation.EnableRedisClient;
 
@@ -17,10 +15,9 @@ import xin.manong.weapon.spring.boot.annotation.EnableRedisClient;
  * @date 2022-08-24 12:58:39
  */
 @EnableOSSClient
-@EnableONSProducer
-@EnableONSConsumer
+@EnableKafkaProducer
+@EnableKafkaConsumer
 @EnableRedisClient
-@PropertySource(name = "configmap", value = "xhzy-data#express-stream", factory = ShamanPropertySourceFactory.class)
 @SpringBootApplication(scanBasePackages = {"xin.manong.darwin"})
 public class Application {
 

@@ -2,9 +2,13 @@ package xin.manong.darwin.service.impl;
 
 import com.alibaba.fastjson.JSON;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import jakarta.annotation.Resource;
+import jakarta.ws.rs.BadRequestException;
+import jakarta.ws.rs.NotFoundException;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -19,8 +23,7 @@ import xin.manong.darwin.service.convert.Converter;
 import xin.manong.darwin.service.dao.mapper.URLMapper;
 import xin.manong.darwin.service.iface.URLService;
 import xin.manong.darwin.service.request.URLSearchRequest;
-
-import javax.annotation.Resource;
+import xin.manong.darwin.service.util.ModelValidator;
 
 /**
  * MySQL URL服务实现
@@ -42,40 +45,33 @@ public class URLServiceImpl extends URLService {
     }
 
     @Override
-    public Boolean add(URLRecord record) {
+    public boolean add(URLRecord record) {
         LambdaQueryWrapper<URLRecord> query = new LambdaQueryWrapper<>();
         query.eq(URLRecord::getKey, record.key);
-        if (urlMapper.selectCount(query) > 0) {
-            logger.error("record key[{}] has existed for url[{}]", record.key, record.url);
-            throw new RuntimeException(String.format("URL记录key[%s]已存在", record.key));
-        }
+        if (urlMapper.selectCount(query) > 0) throw new IllegalStateException("URL记录已存在");
         return urlMapper.insert(record) > 0;
     }
 
     @Override
-    public Boolean updateContent(URLRecord contentRecord) {
+    public boolean updateContent(URLRecord contentRecord) {
         if (contentRecord == null || StringUtils.isEmpty(contentRecord.key)) {
-            logger.error("content record is null or key is missing");
-            throw new RuntimeException("抓取结果为空或key缺失");
+            throw new BadRequestException("抓取结果为空或key缺失");
         }
         URLRecord record = get(contentRecord.key);
-        if (record == null) {
-            logger.error("record is not found for key[{}]", contentRecord.key);
-            return false;
-        }
+        if (record == null) return false;
         LambdaUpdateWrapper<URLRecord> wrapper = new LambdaUpdateWrapper<>();
         wrapper.eq(URLRecord::getKey, contentRecord.key);
         wrapper.set(URLRecord::getUpdateTime, System.currentTimeMillis());
         if (contentRecord.fetchTime != null) wrapper.set(URLRecord::getFetchTime, contentRecord.fetchTime);
         if (contentRecord.status != null) wrapper.set(URLRecord::getStatus, contentRecord.status);
         if (contentRecord.httpCode != null) wrapper.set(URLRecord::getHttpCode, contentRecord.httpCode);
-        if (!StringUtils.isEmpty(contentRecord.mimeType)) {
+        if (StringUtils.isNotEmpty(contentRecord.mimeType)) {
             wrapper.set(URLRecord::getMimeType, contentRecord.mimeType);
         }
-        if (!StringUtils.isEmpty(contentRecord.subMimeType)) {
+        if (StringUtils.isNotEmpty(contentRecord.subMimeType)) {
             wrapper.set(URLRecord::getSubMimeType, contentRecord.subMimeType);
         }
-        if (!StringUtils.isEmpty(contentRecord.fetchContentURL)) {
+        if (StringUtils.isNotEmpty(contentRecord.fetchContentURL)) {
             wrapper.set(URLRecord::getFetchContentURL, contentRecord.fetchContentURL);
         }
         if (contentRecord.fieldMap != null && !contentRecord.fieldMap.isEmpty()) {
@@ -90,11 +86,8 @@ public class URLServiceImpl extends URLService {
     }
 
     @Override
-    public Boolean updateQueueTime(URLRecord record) {
-        if (record == null || StringUtils.isEmpty(record.key)) {
-            logger.error("url record is null or key is missing");
-            throw new RuntimeException("URL记录为空或key缺失");
-        }
+    public boolean updateQueueTime(URLRecord record) {
+        if (record == null || StringUtils.isEmpty(record.key)) throw new BadRequestException("抓取结果为空或key缺失");
         LambdaUpdateWrapper<URLRecord> wrapper = new LambdaUpdateWrapper<>();
         wrapper.eq(URLRecord::getKey, record.key);
         wrapper.set(URLRecord::getUpdateTime, System.currentTimeMillis());
@@ -107,16 +100,10 @@ public class URLServiceImpl extends URLService {
     }
 
     @Override
-    public Boolean updateStatus(String key, int status) {
-        if (!Constants.SUPPORT_URL_STATUSES.containsKey(status)) {
-            logger.error("not support URL status[{}]", status);
-            throw new RuntimeException(String.format("不支持URL状态[%d]", status));
-        }
+    public boolean updateStatus(String key, int status) {
+        if (!Constants.SUPPORT_URL_STATUSES.containsKey(status)) throw new BadRequestException("不支持URL状态");
         URLRecord record = get(key);
-        if (record == null) {
-            logger.error("record is not found for key[{}]", key);
-            return false;
-        }
+        if (record == null) return false;
         LambdaUpdateWrapper<URLRecord> wrapper = new LambdaUpdateWrapper<>();
         wrapper.eq(URLRecord::getKey, key).set(URLRecord::getStatus, status).
                 set(URLRecord::getUpdateTime, System.currentTimeMillis());
@@ -125,24 +112,18 @@ public class URLServiceImpl extends URLService {
         return n > 0;
     }
 
-
-
     @Override
     public URLRecord get(String key) {
-        if (StringUtils.isEmpty(key)) {
-            logger.error("url record key is empty");
-            throw new IllegalArgumentException("URL记录key为空");
-        }
-        return urlMapper.selectById(key);
+        if (StringUtils.isEmpty(key)) throw new BadRequestException("URL记录key为空");
+        URLRecord record = urlMapper.selectById(key);
+        if (record == null) logger.warn("url record is not found for key[{}]", key);
+        return record;
     }
 
     @Override
-    public Boolean delete(String key) {
+    public boolean delete(String key) {
         URLRecord record = urlMapper.selectById(key);
-        if (record == null) {
-            logger.error("url record[{}] is not found", key);
-            return false;
-        }
+        if (record == null) throw new NotFoundException("URL记录不存在");
         int n = urlMapper.deleteById(key);
         if (n > 0 && !StringUtils.isEmpty(record.url)) recordCache.invalidate(record.url);
         return n > 0;
@@ -150,35 +131,34 @@ public class URLServiceImpl extends URLService {
 
     @Override
     public Pager<URLRecord> search(URLSearchRequest searchRequest) {
-        if (searchRequest == null) searchRequest = new URLSearchRequest();
-        if (searchRequest.current == null || searchRequest.current < 1) searchRequest.current = Constants.DEFAULT_CURRENT;
-        if (searchRequest.size == null || searchRequest.size <= 0) searchRequest.size = Constants.DEFAULT_PAGE_SIZE;
-        LambdaQueryWrapper<URLRecord> query = new LambdaQueryWrapper<>();
-        query.orderByDesc(URLRecord::getCreateTime);
-        if (searchRequest.category != null) query.eq(URLRecord::getCategory, searchRequest.category);
-        if (searchRequest.priority != null) query.eq(URLRecord::getPriority, searchRequest.priority);
-        if (searchRequest.fetchMethod != null) query.eq(URLRecord::getFetchMethod, searchRequest.fetchMethod);
-        if (!StringUtils.isEmpty(searchRequest.jobId)) query.eq(URLRecord::getJobId, searchRequest.jobId);
-        if (!StringUtils.isEmpty(searchRequest.planId)) query.eq(URLRecord::getPlanId, searchRequest.planId);
-        if (!StringUtils.isEmpty(searchRequest.url)) query.eq(URLRecord::getHash, DigestUtils.md5Hex(searchRequest.url));
+        searchRequest = prepareSearchRequest(searchRequest);
+        ModelValidator.validateOrderBy(URLRecord.class, searchRequest);
+        QueryWrapper<URLRecord> query = new QueryWrapper<>();
+        searchRequest.prepareOrderBy(query);
+        if (searchRequest.category != null) query.eq("category", searchRequest.category);
+        if (searchRequest.priority != null) query.eq("priority", searchRequest.priority);
+        if (searchRequest.fetchMethod != null) query.eq("fetch_method", searchRequest.fetchMethod);
+        if (StringUtils.isNotEmpty(searchRequest.jobId)) query.eq("job_id", searchRequest.jobId);
+        if (StringUtils.isNotEmpty(searchRequest.planId)) query.eq("plan_id", searchRequest.planId);
+        if (StringUtils.isNotEmpty(searchRequest.url)) query.eq("hash", DigestUtils.md5Hex(searchRequest.url));
         if (searchRequest.statusList != null && !searchRequest.statusList.isEmpty()) {
-            query.in(URLRecord::getStatus, searchRequest.statusList);
+            query.in("status", searchRequest.statusList);
         }
-        if (searchRequest.fetchTime != null && searchRequest.fetchTime.start != null) {
-            if (searchRequest.fetchTime.includeLower) query.ge(URLRecord::getFetchTime, searchRequest.fetchTime.start);
-            else query.gt(URLRecord::getFetchTime, searchRequest.fetchTime.start);
+        if (searchRequest.fetchTimeRange != null && searchRequest.fetchTimeRange.start != null) {
+            if (searchRequest.fetchTimeRange.includeLower) query.ge("fetch_time", searchRequest.fetchTimeRange.start);
+            else query.gt("fetch_time", searchRequest.fetchTimeRange.start);
         }
-        if (searchRequest.fetchTime != null && searchRequest.fetchTime.end != null) {
-            if (searchRequest.fetchTime.includeUpper) query.le(URLRecord::getFetchTime, searchRequest.fetchTime.end);
-            else query.lt(URLRecord::getFetchTime, searchRequest.fetchTime.end);
+        if (searchRequest.fetchTimeRange != null && searchRequest.fetchTimeRange.end != null) {
+            if (searchRequest.fetchTimeRange.includeUpper) query.le("fetch_time", searchRequest.fetchTimeRange.end);
+            else query.lt("fetch_time", searchRequest.fetchTimeRange.end);
         }
-        if (searchRequest.createTime != null && searchRequest.createTime.start != null) {
-            if (searchRequest.createTime.includeLower) query.ge(URLRecord::getCreateTime, searchRequest.createTime.start);
-            else query.gt(URLRecord::getCreateTime, searchRequest.createTime.start);
+        if (searchRequest.createTimeRange != null && searchRequest.createTimeRange.start != null) {
+            if (searchRequest.createTimeRange.includeLower) query.ge("create_time", searchRequest.createTimeRange.start);
+            else query.gt("create_time", searchRequest.createTimeRange.start);
         }
-        if (searchRequest.createTime != null && searchRequest.createTime.end != null) {
-            if (searchRequest.createTime.includeUpper) query.le(URLRecord::getCreateTime, searchRequest.createTime.end);
-            else query.lt(URLRecord::getCreateTime, searchRequest.createTime.end);
+        if (searchRequest.createTimeRange != null && searchRequest.createTimeRange.end != null) {
+            if (searchRequest.createTimeRange.includeUpper) query.le("create_time", searchRequest.createTimeRange.end);
+            else query.lt("create_time", searchRequest.createTimeRange.end);
         }
         IPage<URLRecord> page = urlMapper.selectPage(new Page<>(searchRequest.current, searchRequest.size), query);
         return Converter.convert(page);

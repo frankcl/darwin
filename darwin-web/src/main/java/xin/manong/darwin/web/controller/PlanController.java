@@ -1,5 +1,8 @@
 package xin.manong.darwin.web.controller;
 
+import jakarta.annotation.Resource;
+import jakarta.ws.rs.*;
+import jakarta.ws.rs.core.MediaType;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -14,11 +17,8 @@ import xin.manong.darwin.web.request.PlanRequest;
 import xin.manong.darwin.web.request.PlanUpdateRequest;
 import xin.manong.darwin.web.component.PermissionSupport;
 import xin.manong.weapon.base.util.RandomID;
-import xin.manong.weapon.spring.web.ws.aspect.EnableWebLogAspect;
+import xin.manong.weapon.spring.boot.aspect.EnableWebLogAspect;
 
-import javax.annotation.Resource;
-import javax.ws.rs.*;
-import javax.ws.rs.core.MediaType;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -95,10 +95,7 @@ public class PlanController {
     @GetMapping("get")
     @EnableWebLogAspect
     public Plan get(@QueryParam("id") String id) {
-        if (StringUtils.isEmpty(id)) {
-            logger.error("plan id is empty");
-            throw new BadRequestException("计划ID缺失");
-        }
+        if (StringUtils.isEmpty(id)) throw new BadRequestException("计划ID缺失");
         return planService.get(id);
     }
 
@@ -108,16 +105,13 @@ public class PlanController {
      * @param request 搜索请求
      * @return 计划分页列表
      */
-    @POST
+    @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     @Path("search")
-    @PostMapping("search")
+    @GetMapping("search")
     @EnableWebLogAspect
-    public Pager<Plan> search(PlanSearchRequest request) {
-        if (request == null) request = new PlanSearchRequest();
-        if (request.current == null || request.current < 1) request.current = Constants.DEFAULT_CURRENT;
-        if (request.size == null || request.size <= 0) request.size = Constants.DEFAULT_PAGE_SIZE;
+    public Pager<Plan> search(@BeanParam PlanSearchRequest request) {
         return planService.search(request);
     }
 
@@ -133,21 +127,15 @@ public class PlanController {
     @Path("add")
     @PutMapping("add")
     @EnableWebLogAspect
-    public Boolean add(PlanRequest request) {
-        if (request == null) {
-            logger.error("plan is null");
-            throw new BadRequestException("计划请求信息为空");
-        }
+    public Boolean add(@RequestBody PlanRequest request) {
+        if (request == null) throw new BadRequestException("计划请求信息为空");
         request.check();
         permissionSupport.checkAppPermission(request.appId);
         Plan plan = Converter.convert(request);
         fillAppName(plan);
         checkSeeds(plan.seedURLs, plan.ruleIds);
         plan.planId = RandomID.build();
-        if (!plan.check()) {
-            logger.error("plan is not valid");
-            throw new BadRequestException("计划非法");
-        }
+        if (!plan.check()) throw new BadRequestException("计划非法");
         return planService.add(plan);
     }
 
@@ -163,17 +151,11 @@ public class PlanController {
     @Path("update")
     @PostMapping("update")
     @EnableWebLogAspect
-    public Boolean update(PlanUpdateRequest request) {
-        if (request == null) {
-            logger.error("plan is null");
-            throw new BadRequestException("更新计划信息为空");
-        }
+    public Boolean update(@RequestBody PlanUpdateRequest request) {
+        if (request == null) throw new BadRequestException("更新计划信息为空");
         request.check();
         Plan previous = planService.get(request.planId);
-        if (previous == null) {
-            logger.error("plan[{}] is not found", request.planId);
-            throw new NotFoundException(String.format("计划[%s]不存在", request.planId));
-        }
+        if (previous == null) throw new NotFoundException("计划不存在");
         permissionSupport.checkAppPermission(previous.appId);
         Plan plan = Converter.convert(request);
         if (plan.ruleIds == null || plan.ruleIds.isEmpty()) plan.ruleIds = previous.ruleIds;
@@ -193,25 +175,12 @@ public class PlanController {
     @GetMapping("execute")
     @EnableWebLogAspect
     public Boolean execute(@QueryParam("id") String id) {
-        if (StringUtils.isEmpty(id)) {
-            logger.error("plan id is empty");
-            throw new BadRequestException("计划ID为空");
-        }
+        if (StringUtils.isEmpty(id)) throw new BadRequestException("计划ID为空");
         Plan plan = planService.get(id);
-        if (plan == null) {
-            logger.error("plan[{}] is not found", id);
-            throw new NotFoundException(String.format("计划[%s]不存在", id));
-        }
+        if (plan == null) throw new NotFoundException("计划不存在");
         permissionSupport.checkAppPermission(plan.appId);
-        if (plan.status != Constants.PLAN_STATUS_RUNNING) {
-            logger.error("plan is not running for status[{}]", Constants.SUPPORT_PLAN_STATUSES.get(plan.status));
-            throw new InternalServerErrorException(String.format("计划[%s]非运行状态",
-                    Constants.SUPPORT_PLAN_STATUSES.get(plan.status)));
-        }
-        if (!planService.execute(plan)) {
-            logger.error("execute plan[{}] failed", plan.planId);
-            throw new InternalServerErrorException(String.format("执行计划[%s]失败", plan.planId));
-        }
+        if (plan.status != Constants.PLAN_STATUS_RUNNING) throw new IllegalStateException("计划处于非运行状态");
+        if (!planService.execute(plan)) throw new InternalServerErrorException("执行计划失败");
         return true;
     }
 
@@ -227,15 +196,9 @@ public class PlanController {
     @DeleteMapping("delete")
     @EnableWebLogAspect
     public Boolean delete(@QueryParam("id") String id) {
-        if (StringUtils.isEmpty(id)) {
-            logger.error("plan id is empty");
-            throw new BadRequestException("计划ID为空");
-        }
+        if (StringUtils.isEmpty(id)) throw new BadRequestException("计划ID为空");
         Plan plan = planService.get(id);
-        if (plan == null) {
-            logger.error("plan[{}] is not found", id);
-            throw new NotFoundException(String.format("计划[%s]不存在", id));
-        }
+        if (plan == null) throw new NotFoundException("计划不存在");
         permissionSupport.checkAppPermission(plan.appId);
         return planService.delete(id);
     }
@@ -260,10 +223,7 @@ public class PlanController {
             }
             logger.warn("matched rule is not found for seed url[{}]", seedURL.url);
         }
-        if (seedURLs.size() != passCount) {
-            logger.error("seed urls not match rules");
-            throw new InternalServerErrorException("种子URL不匹配规则");
-        }
+        if (seedURLs.size() != passCount) throw new BadRequestException("种子URL不匹配规则");
     }
 
     /**
@@ -273,22 +233,12 @@ public class PlanController {
      * @param status 当前状态
      */
     private void checkPeriodPlan(String planId, int status) {
-        if (StringUtils.isEmpty(planId)) {
-            logger.error("plan id is empty");
-            throw new BadRequestException("计划ID为空");
-        }
+        if (StringUtils.isEmpty(planId)) throw new BadRequestException("计划ID为空");
         Plan plan = planService.get(planId);
-        if (plan == null) {
-            logger.error("plan[{}] is not found", planId);
-            throw new NotFoundException(String.format("计划[%s]未找到", planId));
-        }
-        if (plan.category != Constants.PLAN_CATEGORY_PERIOD) {
-            logger.error("plan is not period plan");
-            throw new InternalServerErrorException("计划不是周期性计划");
-        }
+        if (plan == null) throw new NotFoundException("计划未找到");
+        if (plan.category != Constants.PLAN_CATEGORY_PERIOD) throw new IllegalStateException("非周期性计划");
         if (plan.status != status) {
-            logger.error("plan is not in expected status[{}]", status);
-            throw new InternalServerErrorException(String.format("计划不处于%s状态",
+            throw new IllegalStateException(String.format("不是期望的计划状态：%s",
                     Constants.SUPPORT_PLAN_STATUSES.get(status)));
         }
         permissionSupport.checkAppPermission(plan.appId);
@@ -302,10 +252,7 @@ public class PlanController {
     private void fillAppName(Plan plan) {
         if (!StringUtils.isEmpty(plan.appName)) return;
         App app = appService.get(plan.appId);
-        if (app == null) {
-            logger.error("app[{}] is not found", plan.appId);
-            throw new NotFoundException(String.format("所属应用[%d]不存在", plan.appId));
-        }
+        if (app == null) throw new NotFoundException("所属应用不存在");
         plan.appName = app.name;
     }
 }

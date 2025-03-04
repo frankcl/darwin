@@ -2,12 +2,13 @@ package xin.manong.darwin.web.request;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import jakarta.ws.rs.BadRequestException;
+import jakarta.xml.bind.annotation.XmlAccessType;
+import jakarta.xml.bind.annotation.XmlAccessorType;
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import xin.manong.darwin.common.Constants;
 
-import javax.ws.rs.BadRequestException;
+import java.io.Serial;
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
@@ -18,10 +19,12 @@ import java.util.Map;
  * @author frankcl
  * @date 2023-11-07 10:52:10
  */
+@XmlAccessorType(XmlAccessType.FIELD)
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class URLRequest implements Serializable {
 
-    private static final Logger logger = LoggerFactory.getLogger(URLRequest.class);
+    @Serial
+    private static final long serialVersionUID = 589201152717708705L;
 
     /**
      * 超时时间（毫秒）
@@ -98,28 +101,13 @@ public class URLRequest implements Serializable {
      * 无效抛出异常
      */
     public void check() {
-        if (StringUtils.isEmpty(url)) {
-            logger.error("url is empty");
-            throw new BadRequestException("URL为空");
-        }
-        if (!Constants.SUPPORT_CONTENT_CATEGORIES.containsKey(category)) {
-            logger.error("not support content category[{}]", category);
-            throw new BadRequestException(String.format("不支持的URL类型[%d]", category));
-        }
+        if (StringUtils.isEmpty(url)) throw new BadRequestException("URL为空");
+        if (!Constants.SUPPORT_CONTENT_CATEGORIES.containsKey(category)) throw new BadRequestException("不支持的URL类型");
         if (fetchMethod == null) fetchMethod = Constants.FETCH_METHOD_COMMON;
         if (priority == null) priority = Constants.PRIORITY_NORMAL;
         if (concurrentLevel == null) concurrentLevel = Constants.CONCURRENT_LEVEL_DOMAIN;
-        if (!Constants.SUPPORT_FETCH_METHODS.containsKey(fetchMethod)) {
-            logger.error("not support fetch method[{}]", fetchMethod);
-            throw new BadRequestException(String.format("不支持的抓取方式[%d]", fetchMethod));
-        }
-        if (!Constants.SUPPORT_CONCURRENT_LEVELS.containsKey(concurrentLevel)) {
-            logger.error("not support concurrent level[{}]", concurrentLevel);
-            throw new BadRequestException(String.format("不支持的并发级别[%d]", concurrentLevel));
-        }
-        if (priority > Constants.PRIORITY_LOW || priority < Constants.PRIORITY_HIGH) {
-            logger.error("not support priority[{}]", priority);
-            throw new BadRequestException(String.format("不支持的优先级[%d]", priority));
-        }
+        if (!Constants.SUPPORT_FETCH_METHODS.containsKey(fetchMethod)) throw new BadRequestException("不支持的抓取方式");
+        if (!Constants.SUPPORT_CONCURRENT_LEVELS.containsKey(concurrentLevel)) throw new BadRequestException("不支持的并发级别");
+        if (priority > Constants.PRIORITY_LOW || priority < Constants.PRIORITY_HIGH) throw new BadRequestException("不支持的优先级");
     }
 }

@@ -1,5 +1,6 @@
 package xin.manong.darwin.spider;
 
+import jakarta.annotation.Resource;
 import okhttp3.Response;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
@@ -22,7 +23,6 @@ import xin.manong.weapon.base.http.*;
 import xin.manong.weapon.base.log.JSONLogger;
 import xin.manong.weapon.base.util.CommonUtil;
 
-import javax.annotation.Resource;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Map;
@@ -72,8 +72,8 @@ public abstract class Spider {
     protected SpiderProxySelector spiderLongProxySelector;
     @Resource(name = "spiderShortProxySelector")
     protected SpiderProxySelector spiderShortProxySelector;
-    private HttpProxyAuthenticator authenticator;
-    private Map<Integer, HttpClient> httpClientMap;
+    private final HttpProxyAuthenticator authenticator;
+    private final Map<Integer, HttpClient> httpClientMap;
 
     public Spider(String category) {
         this.category = category;
@@ -90,7 +90,7 @@ public abstract class Spider {
      * @return 成功返回true，否则返回false
      */
     protected boolean writeStream(URLRecord record, InputStream inputStream, Context context) {
-        Long startTime = System.currentTimeMillis();
+        long startTime = System.currentTimeMillis();
         try {
             String key = String.format("%s/%s/%s", config.contentDirectory, category, record.key);
             String suffix = buildResourceFileSuffix(record);
@@ -166,9 +166,9 @@ public abstract class Spider {
         searchRequest.statusList = new ArrayList<>();
         searchRequest.statusList.add(Constants.URL_STATUS_SUCCESS);
         searchRequest.url = record.url;
-        searchRequest.fetchTime = new RangeValue<>();
-        searchRequest.fetchTime.start = System.currentTimeMillis() - config.reuseExpiredTimeMs;
-        searchRequest.fetchTime.includeLower = true;
+        searchRequest.fetchTimeRange = new RangeValue<>();
+        searchRequest.fetchTimeRange.start = System.currentTimeMillis() - config.reuseExpiredTimeMs;
+        searchRequest.fetchTimeRange.includeLower = true;
         searchRequest.current = 1;
         searchRequest.size = 1;
         Pager<URLRecord> pager = urlService.search(searchRequest);
@@ -236,7 +236,7 @@ public abstract class Spider {
      * @param context 上下文
      */
     public void process(URLRecord record, Context context) {
-        Long startTime = System.currentTimeMillis();
+        long startTime = System.currentTimeMillis();
         try {
             Job job = jobService.getCache(record.jobId);
             if (job != null && job.avoidRepeatedFetch) context.put(Constants.AVOID_REPEATED_FETCH, true);

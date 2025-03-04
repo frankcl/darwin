@@ -4,16 +4,15 @@ import com.alibaba.fastjson.annotation.JSONField;
 import com.baomidou.mybatisplus.annotation.*;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import jakarta.ws.rs.BadRequestException;
+import jakarta.xml.bind.annotation.XmlAccessType;
+import jakarta.xml.bind.annotation.XmlAccessorType;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import xin.manong.darwin.common.Constants;
-import xin.manong.weapon.base.util.DomainUtil;
 
-import java.net.URL;
+import java.io.Serial;
 
 /**
  * 规则
@@ -24,27 +23,13 @@ import java.net.URL;
 @Getter
 @Setter
 @Accessors(chain = true)
+@XmlAccessorType(XmlAccessType.FIELD)
 @TableName(value = "rule", autoResultMap = true)
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class Rule extends BasicModel {
+public class Rule extends RuleCommon {
 
-    private static final Logger logger = LoggerFactory.getLogger(Rule.class);
-
-    /**
-     * 规则ID
-     */
-    @TableId(value = "id", type = IdType.AUTO)
-    @JSONField(name = "id")
-    @JsonProperty("id")
-    public Integer id;
-
-    /**
-     * 规则分组ID
-     */
-    @TableField(value = "rule_group")
-    @JSONField(name = "rule_group")
-    @JsonProperty("rule_group")
-    public Integer ruleGroup;
+    @Serial
+    private static final long serialVersionUID = -5208851620714996259L;
 
     /**
      * 规则名称
@@ -55,76 +40,28 @@ public class Rule extends BasicModel {
     public String name;
 
     /**
-     * 规则domain
+     * 所属计划ID
      */
-    @TableField(value = "domain")
-    @JSONField(name = "domain")
-    @JsonProperty("domain")
-    public String domain;
+    @TableField(value = "plan_id")
+    @JSONField(name = "plan_id")
+    @JsonProperty("plan_id")
+    public String planId;
 
     /**
-     * 规则正则表达式
+     * 应用ID
      */
-    @TableField(value = "regex")
-    @JSONField(name = "regex")
-    @JsonProperty("regex")
-    public String regex;
-
-    /**
-     * 规则脚本
-     */
-    @TableField(value = "script")
-    @JSONField(name = "script")
-    @JsonProperty("script")
-    public String script;
-
-    /**
-     * 脚本类型
-     * 1：Groovy脚本
-     * 2：JavaScript脚本
-     */
-    @TableField(value = "script_type")
-    @JSONField(name = "script_type")
-    @JsonProperty("script_type")
-    public Integer scriptType;
+    @TableField(value = "app_id")
+    @JSONField(name = "app_id")
+    @JsonProperty("app_id")
+    public Integer appId;
 
     /**
      * 检测合法性
-     *
-     * @return 合法返回true，否则返回false
      */
-    public boolean check() {
-        if (ruleGroup == null) {
-            logger.error("rule group is null");
-            return false;
-        }
-        if (StringUtils.isEmpty(name)) {
-            logger.error("rule name is empty");
-            return false;
-        }
-        if (StringUtils.isEmpty(regex)) {
-            logger.error("rule regex is empty");
-            return false;
-        }
-        if (!Constants.SUPPORT_SCRIPT_TYPES.containsKey(scriptType)) {
-            logger.error("not support script type[{}]", scriptType);
-            return false;
-        }
-        if (StringUtils.isEmpty(script)) {
-            logger.error("script content is empty");
-            return false;
-        }
-        if (StringUtils.isEmpty(domain)) {
-            try {
-                String host = new URL(regex).getHost();
-                domain = DomainUtil.getDomain(host);
-            } catch (Exception e) {
-            }
-        }
-        if (StringUtils.isEmpty(domain)) {
-            logger.error("domain is empty, can not extract domain from regex[{}]", regex);
-            return false;
-        }
-        return true;
+    public void check() {
+        super.check();
+        if (StringUtils.isEmpty(name)) throw new BadRequestException("规则名为空");
+        if (StringUtils.isEmpty(planId)) throw new BadRequestException("所属计划ID为空");
+        if (appId == null) throw new BadRequestException("所属应用ID为空");
     }
 }

@@ -1,12 +1,13 @@
 package xin.manong.darwin.monitor;
 
+import jakarta.annotation.Resource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import xin.manong.darwin.common.Constants;
 import xin.manong.darwin.common.model.Proxy;
 import xin.manong.darwin.service.iface.ProxyService;
+import xin.manong.weapon.base.executor.ExecuteRunner;
 
-import javax.annotation.Resource;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -18,7 +19,7 @@ import java.util.List;
  * @author frankcl
  * @date 2023-12-13 11:46:59
  */
-public class ProxyMonitor extends ExecuteMonitor {
+public class ProxyMonitor extends ExecuteRunner {
 
     private static final Logger logger = LoggerFactory.getLogger(ProxyMonitor.class);
 
@@ -26,7 +27,7 @@ public class ProxyMonitor extends ExecuteMonitor {
     protected ProxyService proxyService;
 
     public ProxyMonitor(long checkTimeIntervalMs) {
-        super(checkTimeIntervalMs);
+        super("ProxyMonitor", checkTimeIntervalMs);
     }
 
     @Override

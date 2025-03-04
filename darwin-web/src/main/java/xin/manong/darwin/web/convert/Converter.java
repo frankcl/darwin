@@ -54,23 +54,8 @@ public class Converter {
         AppUser appUser = new AppUser();
         appUser.appId = request.appId;
         appUser.userId = request.userId;
-        appUser.userRealName = request.realName;
+        appUser.nickName = request.nickName;
         return appUser;
-    }
-
-    /**
-     * 转换规则用户关系请求为规则用户关系对象
-     *
-     * @param request 规则用户关系请求
-     * @return 规则用户关系对象
-     */
-    public static RuleUser convert(RuleUserRequest request) {
-        if (request == null) return null;
-        RuleUser ruleUser = new RuleUser();
-        ruleUser.ruleId = request.ruleId;
-        ruleUser.userId = request.userId;
-        ruleUser.userRealName = request.realName;
-        return ruleUser;
     }
 
     /**
@@ -85,7 +70,7 @@ public class Converter {
         plan.appId = request.appId;
         plan.appName = request.appName;
         plan.name = request.name;
-        plan.avoidRepeatedFetch = request.avoidRepeatedFetch == null ? true : request.avoidRepeatedFetch;
+        plan.avoidRepeatedFetch = request.avoidRepeatedFetch == null || request.avoidRepeatedFetch;
         plan.status = Constants.PLAN_STATUS_RUNNING;
         plan.priority = request.priority == null ? Constants.PRIORITY_NORMAL : request.priority;
         plan.category = request.category;
@@ -161,40 +146,32 @@ public class Converter {
     public static Rule convert(RuleRequest request) {
         if (request == null) return null;
         Rule rule = new Rule();
-        rule.ruleGroup = request.ruleGroup;
+        rule.name = request.name;
+        rule.domain = request.domain;
+        rule.regex = request.regex;
+        rule.script = request.script;
+        rule.scriptType = request.scriptType;
+        rule.planId = request.planId;
+        rule.appId = request.appId;
+        return rule;
+    }
+
+    /**
+     * 转换规则请求更新为规则对象
+     *
+     * @param request 规则请求
+     * @return 规则对象
+     */
+    public static Rule convert(RuleUpdateRequest request) {
+        if (request == null) return null;
+        Rule rule = new Rule();
+        rule.id = request.id;
         rule.name = request.name;
         rule.domain = request.domain;
         rule.regex = request.regex;
         rule.script = request.script;
         rule.scriptType = request.scriptType;
         return rule;
-    }
-
-    /**
-     * 转换规则分组请求为规则分组对象
-     *
-     * @param request 规则分组请求
-     * @return 规则分组对象
-     */
-    public static RuleGroup convert(RuleGroupRequest request) {
-        if (request == null) return null;
-        RuleGroup ruleGroup = new RuleGroup();
-        ruleGroup.name = request.name;
-        return ruleGroup;
-    }
-
-    /**
-     * 转换规则分组更新请求为规则分组对象
-     *
-     * @param request 规则分组更新请求
-     * @return 规则分组对象
-     */
-    public static RuleGroup convert(RuleGroupUpdateRequest request) {
-        if (request == null) return null;
-        RuleGroup ruleGroup = new RuleGroup();
-        ruleGroup.id = request.id;
-        ruleGroup.name = request.name;
-        return ruleGroup;
     }
 
     /**
@@ -223,14 +200,8 @@ public class Converter {
      */
     public static Proxy convert(ProxyUpdateRequest request) {
         if (request == null) return null;
-        Proxy proxy = new Proxy();
+        Proxy proxy = convert((ProxyRequest) request);
         proxy.id = request.id;
-        proxy.address = request.address;
-        proxy.port = request.port;
-        proxy.category = request.category;
-        proxy.username = request.username;
-        proxy.password = request.password;
-        proxy.expiredTime = request.expiredTime;
         return proxy;
     }
 }

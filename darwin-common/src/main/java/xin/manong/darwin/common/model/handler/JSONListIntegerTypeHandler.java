@@ -14,6 +14,6 @@ public class JSONListIntegerTypeHandler extends AbstractJSONListTypeHandler<Inte
 
     @Override
     protected TypeReference<List<Integer>> specificType() {
-        return new TypeReference<List<Integer>>() {};
+        return new TypeReference<>() {};
     }
 }

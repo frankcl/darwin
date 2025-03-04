@@ -2,10 +2,9 @@ package xin.manong.darwin.service.notify;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.serializer.SerializerFeature;
-import com.aliyun.openservices.ons.api.Message;
-import com.aliyun.openservices.ons.api.SendResult;
-import org.apache.commons.lang3.StringUtils;
+import jakarta.annotation.Resource;
 import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.apache.kafka.clients.producer.RecordMetadata;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
@@ -16,12 +15,11 @@ import xin.manong.darwin.common.util.DarwinUtil;
 import xin.manong.darwin.queue.concurrent.ConcurrentManager;
 import xin.manong.darwin.service.config.ServiceConfig;
 import xin.manong.darwin.service.iface.URLService;
-import xin.manong.weapon.aliyun.ons.ONSProducer;
 import xin.manong.weapon.base.common.Context;
+import xin.manong.weapon.base.kafka.KafkaProducer;
 import xin.manong.weapon.base.log.JSONLogger;
 
-import javax.annotation.Resource;
-import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -36,7 +34,7 @@ public class URLCompleteNotifier implements CompleteNotifier<URLRecord> {
 
     private static final Logger logger = LoggerFactory.getLogger(URLCompleteNotifier.class);
 
-    private Set<Integer> nonConcurrentStatusSet;
+    private final Set<Integer> nonConcurrentStatusSet;
     @Resource
     protected ServiceConfig config;
     @Resource
@@ -44,7 +42,7 @@ public class URLCompleteNotifier implements CompleteNotifier<URLRecord> {
     @Resource
     protected ConcurrentManager concurrentManager;
     @Resource
-    protected ONSProducer producer;
+    protected KafkaProducer producer;
     @Resource(name = "recordAspectLogger")
     protected JSONLogger aspectLogger;
 
@@ -83,15 +81,12 @@ public class URLCompleteNotifier implements CompleteNotifier<URLRecord> {
     private void pushMessage(URLRecord record, Context context) {
         if (record == null || record.category == Constants.CONTENT_CATEGORY_LIST) return;
         String recordString = JSON.toJSONString(record, SerializerFeature.DisableCircularReferenceDetect);
-        Message message = new Message(config.recordTopic, String.format("%d", record.appId), record.key,
-                recordString.getBytes(Charset.forName("UTF-8")));
-        SendResult sendResult = producer.send(message);
-        if (sendResult == null || StringUtils.isEmpty(sendResult.getMessageId())) {
+        RecordMetadata metadata = producer.send(record.key, recordString.getBytes(StandardCharsets.UTF_8), config.recordTopic);
+        if (metadata == null) {
             context.put(Constants.DARWIN_DEBUG_MESSAGE, "推送消息失败");
             logger.warn("push record finish message failed for key[{}]", record.key);
             return;
         }
-        context.put(Constants.DARWIN_MESSAGE_ID, sendResult.getMessageId());
         context.put(Constants.DARWIN_MESSAGE_KEY, record.key);
     }
 }

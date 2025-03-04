@@ -2,10 +2,10 @@ package xin.manong.darwin.schedule;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.serializer.SerializerFeature;
-import com.aliyun.openservices.ons.api.Message;
-import com.aliyun.openservices.ons.api.SendResult;
-import org.apache.commons.lang3.StringUtils;
+import jakarta.annotation.Resource;
 import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.apache.kafka.clients.producer.RecordMetadata;
+import org.apache.kafka.common.header.internals.RecordHeaders;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import xin.manong.darwin.common.Constants;
@@ -16,11 +16,10 @@ import xin.manong.darwin.service.iface.JobService;
 import xin.manong.darwin.service.iface.URLService;
 import xin.manong.darwin.service.notify.JobCompleteNotifier;
 import xin.manong.darwin.service.notify.URLCompleteNotifier;
-import xin.manong.weapon.aliyun.ons.ONSProducer;
 import xin.manong.weapon.base.common.Context;
+import xin.manong.weapon.base.kafka.KafkaProducer;
 
-import javax.annotation.Resource;
-import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Set;
 
@@ -30,11 +29,11 @@ import java.util.Set;
  * @author frankcl
  * @date 2023-03-22 17:33:16
  */
-public class URLQueueScheduler extends ExecuteRunner {
+public class URLQueueScheduler extends AbstractExecuteRunner {
 
     private static final Logger logger = LoggerFactory.getLogger(URLQueueScheduler.class);
 
-    private String topic;
+    private final String topic;
     @Resource
     protected ScheduleConfig config;
     @Resource
@@ -50,10 +49,10 @@ public class URLQueueScheduler extends ExecuteRunner {
     @Resource
     protected JobCompleteNotifier jobCompleteNotifier;
     @Resource
-    protected ONSProducer producer;
+    protected KafkaProducer producer;
 
     public URLQueueScheduler(String topic, Long executeIntervalMs) {
-        super(executeIntervalMs);
+        super("URLQueueScheduler", executeIntervalMs);
         this.topic = topic;
     }
 
@@ -149,16 +148,16 @@ public class URLQueueScheduler extends ExecuteRunner {
             record.outQueueTime = System.currentTimeMillis();
             if (!urlService.updateQueueTime(record)) logger.warn("update url record[{}] failed", record.key);
             byte[] bytes = JSON.toJSONString(record, SerializerFeature.DisableCircularReferenceDetect).
-                    getBytes(Charset.forName("UTF-8"));
-            String tags = String.format("%d", record.category == null ?
-                    Constants.CONTENT_CATEGORY_CONTENT : record.category);
-            Message message = new Message(topic, tags, record.key, bytes);
-            SendResult sendResult = producer.send(message);
-            if (sendResult == null || StringUtils.isEmpty(sendResult.getMessageId())) {
+                    getBytes(StandardCharsets.UTF_8);
+            byte[] category = String.format("%d", record.category == null ?
+                    Constants.CONTENT_CATEGORY_CONTENT : record.category).getBytes(StandardCharsets.UTF_8);
+            RecordHeaders headers = new RecordHeaders();
+            headers.add("category", category);
+            RecordMetadata metadata = producer.send(record.key, bytes, topic, headers);
+            if (metadata == null) {
                 logger.warn("send record[{}] failed", record.key);
                 return;
             }
-            context.put(Constants.DARWIN_MESSAGE_ID, sendResult.getMessageId());
             context.put(Constants.DARWIN_MESSAGE_KEY, record.key);
             concurrentManager.putConnectionRecord(concurrentUnit, record.key);
         } catch (Exception e) {

@@ -1,23 +1,18 @@
 package xin.manong.darwin.web.controller;
 
+import jakarta.annotation.Resource;
+import jakarta.ws.rs.*;
+import jakarta.ws.rs.core.MediaType;
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import xin.manong.darwin.common.Constants;
 import xin.manong.darwin.common.model.Job;
 import xin.manong.darwin.common.model.Pager;
 import xin.manong.darwin.service.iface.JobService;
 import xin.manong.darwin.service.request.JobSearchRequest;
-import xin.manong.weapon.spring.web.ws.aspect.EnableWebLogAspect;
-
-import javax.annotation.Resource;
-import javax.ws.rs.*;
-import javax.ws.rs.core.MediaType;
+import xin.manong.weapon.spring.boot.aspect.EnableWebLogAspect;
 
 /**
  * 任务控制器
@@ -30,8 +25,6 @@ import javax.ws.rs.core.MediaType;
 @Path("/job")
 @RequestMapping("/job")
 public class JobController {
-
-    private static final Logger logger = LoggerFactory.getLogger(JobController.class);
 
     @Resource
     protected JobService jobService;
@@ -48,10 +41,7 @@ public class JobController {
     @GetMapping("get")
     @EnableWebLogAspect
     public Job get(@QueryParam("id") String id) {
-        if (StringUtils.isEmpty(id)) {
-            logger.error("job id is empty");
-            throw new BadRequestException("任务ID缺失");
-        }
+        if (StringUtils.isEmpty(id)) throw new BadRequestException("任务ID缺失");
         return jobService.get(id);
     }
 
@@ -61,16 +51,13 @@ public class JobController {
      * @param request 搜索请求
      * @return 任务分页列表
      */
-    @POST
+    @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     @Path("search")
-    @PostMapping("search")
+    @GetMapping("search")
     @EnableWebLogAspect
-    public Pager<Job> search(JobSearchRequest request) {
-        if (request == null) request = new JobSearchRequest();
-        if (request.current == null || request.current < 1) request.current = Constants.DEFAULT_CURRENT;
-        if (request.size == null || request.size <= 0) request.size = Constants.DEFAULT_PAGE_SIZE;
+    public Pager<Job> search(@BeanParam JobSearchRequest request) {
         return jobService.search(request);
     }
 }

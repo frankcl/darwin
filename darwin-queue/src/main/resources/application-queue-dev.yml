@@ -1,10 +1,9 @@
 weapon:
   common:
     redis:
-      client-map:
-        default:
-          mode: SINGLE
-          connection-pool-size: 200
-          password: xxx
-          address: r-bp1fac3adaa6aa14.redis.rds.aliyuncs.com:6379
-          db: 16
+      client:
+        mode: SINGLE
+        connection-pool-size: 200
+        password: xmjjyhy28p
+        address: 127.0.0.1:6379
+        db: 1

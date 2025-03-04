@@ -6,10 +6,11 @@ import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import jakarta.xml.bind.annotation.XmlAccessType;
+import jakarta.xml.bind.annotation.XmlAccessorType;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
-import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.quartz.CronExpression;
 import org.slf4j.Logger;
@@ -20,6 +21,7 @@ import xin.manong.darwin.common.model.handler.JSONListURLRecordTypeHandler;
 import xin.manong.weapon.base.util.CommonUtil;
 import xin.manong.weapon.base.util.RandomID;
 
+import java.io.Serial;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -32,13 +34,16 @@ import java.util.stream.Collectors;
 @Getter
 @Setter
 @Accessors(chain = true)
+@XmlAccessorType(XmlAccessType.FIELD)
 @TableName(value = "plan", autoResultMap = true)
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class Plan extends BasicModel {
+public class Plan extends BaseModel {
 
     private static final Logger logger = LoggerFactory.getLogger(Plan.class);
 
     private static final String DATE_TIME_FORMAT = "yyyy_MM_dd_HH_mm_ss";
+    @Serial
+    private static final long serialVersionUID = -2706430539910683801L;
 
     /**
      * 避免重复抓取
@@ -155,7 +160,7 @@ public class Plan extends BasicModel {
         job.createTime = System.currentTimeMillis();
         job.planId = planId;
         job.appId = appId;
-        job.avoidRepeatedFetch = avoidRepeatedFetch == null ? true : avoidRepeatedFetch;
+        job.avoidRepeatedFetch = avoidRepeatedFetch == null || avoidRepeatedFetch;
         job.priority = priority == null ? Constants.PRIORITY_NORMAL : priority;
         job.status = Constants.JOB_STATUS_RUNNING;
         job.fetchMethod = fetchMethod;

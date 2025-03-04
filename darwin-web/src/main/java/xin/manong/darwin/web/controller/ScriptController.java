@@ -1,5 +1,7 @@
 package xin.manong.darwin.web.controller;
 
+import jakarta.ws.rs.*;
+import jakarta.ws.rs.core.MediaType;
 import okhttp3.Response;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
@@ -7,6 +9,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import xin.manong.darwin.parser.script.Script;
@@ -19,8 +22,6 @@ import xin.manong.darwin.web.response.DebugResponse;
 import xin.manong.weapon.base.http.HttpClient;
 import xin.manong.weapon.base.http.HttpRequest;
 
-import javax.ws.rs.*;
-import javax.ws.rs.core.MediaType;
 import java.nio.charset.Charset;
 
 /**
@@ -42,7 +43,7 @@ public class ScriptController {
     /**
      * 编译脚本
      */
-    private class CompiledScript {
+    private static class CompiledScript {
         public Script script;
         public Throwable throwable;
     }
@@ -50,7 +51,7 @@ public class ScriptController {
     /**
      * HTML抓取结果
      */
-    private class HTMLContent {
+    private static class HTMLContent {
         public String html;
         public String redirectURL;
         public Throwable throwable;
@@ -61,11 +62,8 @@ public class ScriptController {
     @Consumes(MediaType.APPLICATION_JSON)
     @Path("debug")
     @PostMapping("debug")
-    public DebugResponse debug(DebugRequest request) {
-        if (request == null) {
-            logger.error("debug request is null");
-            throw new BadRequestException("脚本调试请求为空");
-        }
+    public DebugResponse debug(@RequestBody DebugRequest request) {
+        if (request == null) throw new BadRequestException("脚本调试请求为空");
         request.check();
         CompiledScript compiledScript = compile(request.scriptType, request.script);
         if (compiledScript.throwable != null) {
@@ -74,8 +72,8 @@ public class ScriptController {
         }
         HTMLContent htmlContent = fetchHTML(request.url);
         if (htmlContent == null || htmlContent.throwable != null) {
-            return DebugResponse.buildError("抓取URL失败", htmlContent.throwable == null ? null :
-                    ExceptionUtils.getStackTrace(htmlContent.throwable));
+            return DebugResponse.buildError("抓取URL失败",
+                    htmlContent == null ? null : ExceptionUtils.getStackTrace(htmlContent.throwable));
         }
         ParseRequestBuilder builder = new ParseRequestBuilder();
         builder.url(request.url).html(htmlContent.html);
@@ -137,14 +135,13 @@ public class ScriptController {
      */
     private HTMLContent fetchHTML(String requestURL) {
         HttpRequest httpRequest = HttpRequest.buildGetRequest(requestURL, null);
-        Response httpResponse = null;
-        try {
-            httpResponse = httpClient.execute(httpRequest);
+        try (Response httpResponse = httpClient.execute(httpRequest)) {
             if (httpResponse == null || !httpResponse.isSuccessful()) {
                 logger.error("fetch failed for url[{}], http code[{}]",
                         requestURL, httpResponse == null ? -1 : httpResponse.code());
                 return null;
             }
+            assert httpResponse.body() != null;
             byte[] body = httpResponse.body().bytes();
             String charset = CharsetDetector.detect(body, body.length);
             String html = new String(body, Charset.forName(charset));
@@ -161,8 +158,6 @@ public class ScriptController {
             HTMLContent htmlContent = new HTMLContent();
             htmlContent.throwable = e;
             return htmlContent;
-        } finally {
-            if (httpResponse != null) httpResponse.close();
         }
     }
 }

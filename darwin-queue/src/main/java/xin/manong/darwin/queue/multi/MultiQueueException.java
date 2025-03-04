@@ -1,5 +1,7 @@
 package xin.manong.darwin.queue.multi;
 
+import java.io.Serial;
+
 /**
  * 多级队列操作异常
  *
@@ -7,6 +9,9 @@ package xin.manong.darwin.queue.multi;
  * @date 2023-03-07 17:06:35
  */
 public class MultiQueueException extends Exception {
+
+    @Serial
+    private static final long serialVersionUID = 807954019898367377L;
 
     public MultiQueueException(String message) {
         super(message);

@@ -1,8 +1,9 @@
 package xin.manong.darwin.web.controller;
 
+import jakarta.annotation.Resource;
+import jakarta.ws.rs.*;
+import jakarta.ws.rs.core.MediaType;
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -13,11 +14,8 @@ import xin.manong.darwin.web.config.WebConfig;
 import xin.manong.darwin.web.response.ConcurrentUnitInfo;
 import xin.manong.darwin.web.response.MultiQueueInfo;
 import xin.manong.weapon.base.redis.RedisMemory;
-import xin.manong.weapon.spring.web.ws.aspect.EnableWebLogAspect;
+import xin.manong.weapon.spring.boot.aspect.EnableWebLogAspect;
 
-import javax.annotation.Resource;
-import javax.ws.rs.*;
-import javax.ws.rs.core.MediaType;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -34,8 +32,6 @@ import java.util.Set;
 @Path("/concurrent_queue")
 @RequestMapping("/concurrent_queue")
 public class ConcurrentQueueController {
-
-    private static final Logger logger = LoggerFactory.getLogger(ConcurrentQueueController.class);
 
     @Resource
     protected WebConfig webConfig;
@@ -70,10 +66,7 @@ public class ConcurrentQueueController {
     @GetMapping("getConcurrentUnitInfo")
     @EnableWebLogAspect
     public ConcurrentUnitInfo getConcurrentUnitInfo(@QueryParam("concurrent_unit") String concurrentUnit) {
-        if (StringUtils.isEmpty(concurrentUnit)) {
-            logger.error("concurrent unit is empty");
-            throw new BadRequestException("并发单元为空");
-        }
+        if (StringUtils.isEmpty(concurrentUnit)) throw new BadRequestException("并发单元为空");
         Long currentTime = System.currentTimeMillis();
         ConcurrentUnitInfo concurrentUnitInfo = new ConcurrentUnitInfo();
         concurrentUnitInfo.fetchCapacity = concurrentManager.getMaxConcurrentConnectionNum(concurrentUnit);

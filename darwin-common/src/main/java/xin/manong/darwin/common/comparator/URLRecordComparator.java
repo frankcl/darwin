@@ -22,6 +22,6 @@ public class URLRecordComparator implements Comparator<URLRecord> {
         else if (leftPriority > rightPriority) return 1;
         long leftInQueueTime = left.inQueueTime == null ? System.currentTimeMillis() : left.inQueueTime;
         long rightInQueueTime = right.inQueueTime == null ? System.currentTimeMillis() : right.inQueueTime;
-        return leftInQueueTime < rightInQueueTime ? -1 : (leftInQueueTime > rightInQueueTime ? 1 : 0);
+        return Long.compare(leftInQueueTime, rightInQueueTime);
     }
 }

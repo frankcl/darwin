@@ -1,14 +1,13 @@
 package xin.manong.darwin.service.impl.ots;
 
-import com.alicloud.openservices.tablestore.model.ColumnValue;
 import com.alicloud.openservices.tablestore.model.search.query.BoolQuery;
 import com.alicloud.openservices.tablestore.model.search.query.Query;
-import com.alicloud.openservices.tablestore.model.search.query.TermQuery;
+import jakarta.annotation.Resource;
+import jakarta.ws.rs.BadRequestException;
+import jakarta.ws.rs.InternalServerErrorException;
+import jakarta.ws.rs.NotFoundException;
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import xin.manong.darwin.common.Constants;
 import xin.manong.darwin.common.model.Job;
 import xin.manong.darwin.common.model.Pager;
 import xin.manong.darwin.common.model.URLRecord;
@@ -21,7 +20,6 @@ import xin.manong.darwin.service.request.URLSearchRequest;
 import xin.manong.weapon.aliyun.ots.*;
 import xin.manong.weapon.base.record.KVRecord;
 
-import javax.annotation.Resource;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -34,8 +32,6 @@ import java.util.Map;
  * @date 2023-03-21 20:23:03
  */
 public class JobServiceImpl extends JobService {
-
-    private static final Logger logger = LoggerFactory.getLogger(JobServiceImpl.class);
 
     private static final String KEY_JOB_ID = "job_id";
     private static final String KEY_PLAN_ID = "plan_id";
@@ -56,10 +52,7 @@ public class JobServiceImpl extends JobService {
 
     @Override
     public Job get(String jobId) {
-        if (StringUtils.isEmpty(jobId)) {
-            logger.error("job id is empty");
-            throw new IllegalArgumentException("任务ID为空");
-        }
+        if (StringUtils.isEmpty(jobId)) throw new BadRequestException("任务ID为空");
         Map<String, Object> keyMap = new HashMap<>();
         keyMap.put(KEY_JOB_ID, jobId);
         KVRecord kvRecord = otsClient.get(serviceConfig.getJobTable(), keyMap);
@@ -68,36 +61,27 @@ public class JobServiceImpl extends JobService {
     }
 
     @Override
-    public Boolean add(Job job) {
-        TermQuery termQuery = new TermQuery();
-        termQuery.setFieldName(KEY_NAME);
-        termQuery.setTerm(ColumnValue.fromString(job.name));
+    public boolean add(Job job) {
+        BoolQuery boolQuery = new BoolQuery();
+        List<Query> queryList = new ArrayList<>();
+        queryList.add(SearchQueryBuilder.buildTermQuery(KEY_NAME, job.name));
+        queryList.add(SearchQueryBuilder.buildTermQuery(KEY_PLAN_ID, job.planId));
+        boolQuery.setFilterQueries(queryList);
         OTSSearchRequest request = new OTSSearchRequest.Builder().indexName(serviceConfig.jobTable).
-                tableName(serviceConfig.jobIndexName).query(termQuery).build();
+                tableName(serviceConfig.jobIndexName).query(boolQuery).build();
         OTSSearchResponse response = otsClient.search(request);
-        if (!response.status) {
-            logger.error("search failed for table[{}] and index[{}]",
-                    serviceConfig.jobTable, serviceConfig.jobIndexName);
-            throw new RuntimeException(String.format("搜索OTS表[%s]及索引[%s]失败",
-                    serviceConfig.jobTable, serviceConfig.jobIndexName));
-        }
-        if (response.records.getRecordCount() > 0) {
-            logger.error("job has existed for same name[%s]", job.name);
-            throw new RuntimeException(String.format("同名任务[%s]存在", job.name));
-        }
+        if (!response.status) throw new InternalServerErrorException("搜索OTS异常");
+        if (response.records.getRecordCount() > 0) throw new IllegalStateException("同名任务存在");
         KVRecord kvRecord = OTSConverter.convertJavaObjectToKVRecord(job);
         return otsClient.put(serviceConfig.jobTable, kvRecord, null) == OTSStatus.SUCCESS;
     }
 
     @Override
-    public Boolean update(Job job) {
+    public boolean update(Job job) {
         Map<String, Object> keyMap = new HashMap<>();
         keyMap.put(KEY_JOB_ID, job.jobId);
         KVRecord kvRecord = otsClient.get(serviceConfig.jobTable, keyMap);
-        if (kvRecord == null) {
-            logger.error("job[{}] is not found", job.jobId);
-            return false;
-        }
+        if (kvRecord == null) throw new NotFoundException("任务不存在");
         job.updateTime = System.currentTimeMillis();
         kvRecord = OTSConverter.convertJavaObjectToKVRecord(job);
         OTSStatus status = otsClient.update(serviceConfig.jobTable, kvRecord, null);
@@ -106,22 +90,15 @@ public class JobServiceImpl extends JobService {
     }
 
     @Override
-    public Boolean delete(String jobId) {
+    public boolean delete(String jobId) {
         Map<String, Object> keyMap = new HashMap<>();
         keyMap.put(KEY_JOB_ID, jobId);
         KVRecord kvRecord = otsClient.get(serviceConfig.jobTable, keyMap);
-        if (kvRecord == null) {
-            logger.error("job[{}] is not found", jobId);
-            return false;
-        }
+        if (kvRecord == null) throw new NotFoundException("任务不存在");
         URLSearchRequest searchRequest = new URLSearchRequest();
-        searchRequest.current = 1;
-        searchRequest.size = 1;
+        searchRequest.jobId = jobId;
         Pager<URLRecord> pager = urlService.search(searchRequest);
-        if (pager.total > 0) {
-            logger.error("urls are not empty for job[{}]", jobId);
-            throw new RuntimeException(String.format("任务[%s]中URL记录不为空", jobId));
-        }
+        if (pager.total > 0) throw new IllegalStateException("任务URL记录不为空");
         OTSStatus status = otsClient.delete(serviceConfig.jobTable, keyMap, null);
         if (status == OTSStatus.SUCCESS) jobCache.invalidate(jobId);
         return status == OTSStatus.SUCCESS;
@@ -129,9 +106,7 @@ public class JobServiceImpl extends JobService {
 
     @Override
     public Pager<Job> search(JobSearchRequest searchRequest) {
-        if (searchRequest == null) searchRequest = new JobSearchRequest();
-        if (searchRequest.current == null || searchRequest.current < 1) searchRequest.current = Constants.DEFAULT_CURRENT;
-        if (searchRequest.size == null || searchRequest.size <= 0) searchRequest.size = Constants.DEFAULT_PAGE_SIZE;
+        searchRequest = prepareSearchRequest(searchRequest);
         int offset = (searchRequest.current - 1) * searchRequest.size;
         BoolQuery boolQuery = new BoolQuery();
         List<Query> queryList = new ArrayList<>();
@@ -139,16 +114,12 @@ public class JobServiceImpl extends JobService {
         if (searchRequest.priority != null) queryList.add(SearchQueryBuilder.buildTermQuery(KEY_PRIORITY, searchRequest.priority));
         if (!StringUtils.isEmpty(searchRequest.planId)) queryList.add(SearchQueryBuilder.buildTermQuery(KEY_PLAN_ID, searchRequest.planId));
         if (!StringUtils.isEmpty(searchRequest.name)) queryList.add(SearchQueryBuilder.buildMatchPhraseQuery(KEY_NAME, searchRequest.name));
-        if (searchRequest.createTime != null) queryList.add(SearchQueryBuilder.buildRangeQuery(KEY_CREATE_TIME, searchRequest.createTime));
+        if (searchRequest.createTimeRange != null) queryList.add(SearchQueryBuilder.buildRangeQuery(KEY_CREATE_TIME, searchRequest.createTimeRange));
         if (!queryList.isEmpty()) boolQuery.setFilterQueries(queryList);
         OTSSearchRequest request = new OTSSearchRequest.Builder().offset(offset).limit(searchRequest.size).
                 tableName(serviceConfig.jobTable).indexName(serviceConfig.jobIndexName).query(boolQuery).build();
         OTSSearchResponse response = otsClient.search(request);
-        if (!response.status) {
-            logger.error("search job failed from table[{}] and index[{}]",
-                    serviceConfig.jobTable, serviceConfig.jobIndexName);
-            throw new RuntimeException("搜索任务失败");
-        }
+        if (!response.status) throw new InternalServerErrorException("搜索OTS失败");
         return Converter.convert(response, Job.class, searchRequest.current, searchRequest.size);
     }
 }

@@ -1,11 +1,12 @@
 package xin.manong.darwin.monitor;
 
+import jakarta.annotation.Resource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import xin.manong.darwin.queue.concurrent.ConcurrentManager;
 import xin.manong.darwin.queue.multi.MultiQueue;
+import xin.manong.weapon.base.executor.ExecuteRunner;
 
-import javax.annotation.Resource;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
@@ -16,18 +17,18 @@ import java.util.Set;
  * @author frankcl
  * @date 2023-03-10 10:35:26
  */
-public class ConcurrentConnectionMonitor extends ExecuteMonitor {
+public class ConcurrentConnectionMonitor extends ExecuteRunner {
 
-    private static final Logger logger = LoggerFactory.getLogger(MultiQueueMonitor.class);
+    private static final Logger logger = LoggerFactory.getLogger(ConcurrentConnectionMonitor.class);
 
-    private long expiredTimeIntervalMs;
+    private final long expiredTimeIntervalMs;
     @Resource
     protected MultiQueue multiQueue;
     @Resource
     protected ConcurrentManager concurrentManager;
 
     public ConcurrentConnectionMonitor(long checkTimeIntervalMs, long expiredTimeIntervalMs) {
-        super(checkTimeIntervalMs);
+        super("ConcurrentConnectionMonitor", checkTimeIntervalMs);
         this.expiredTimeIntervalMs = expiredTimeIntervalMs;
     }
 

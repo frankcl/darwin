@@ -1,6 +1,5 @@
 package xin.manong.darwin.service.iface;
 
-import xin.manong.darwin.common.model.Job;
 import xin.manong.darwin.common.model.Pager;
 import xin.manong.darwin.common.model.Plan;
 import xin.manong.darwin.service.request.PlanSearchRequest;
@@ -27,7 +26,7 @@ public interface PlanService {
      * @param plan 计划信息
      * @return 成功返回true，否则返回false
      */
-    Boolean add(Plan plan);
+    boolean add(Plan plan);
 
     /**
      * 更新计划
@@ -35,7 +34,7 @@ public interface PlanService {
      * @param plan 计划信息
      * @return 成功返回true，否则返回false
      */
-    Boolean update(Plan plan);
+    boolean update(Plan plan);
 
     /**
      * 删除计划
@@ -43,7 +42,25 @@ public interface PlanService {
      * @param planId 计划ID
      * @return 成功返回true，否则返回false
      */
-    Boolean delete(String planId);
+    boolean delete(String planId);
+
+    /**
+     * 增加计划规则
+     *
+     * @param planId 计划ID
+     * @param ruleId 规则ID
+     * @return 成功返回true，否则返回false
+     */
+    boolean addRule(String planId, Integer ruleId);
+
+    /**
+     * 移除计划规则
+     *
+     * @param planId 计划ID
+     * @param ruleId 规则ID
+     * @return 成功返回true，否则返回false
+     */
+    boolean removeRule(String planId, Integer ruleId);
 
     /**
      * 搜索计划列表

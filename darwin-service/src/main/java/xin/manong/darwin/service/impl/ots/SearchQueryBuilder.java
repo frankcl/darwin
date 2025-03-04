@@ -83,7 +83,7 @@ public class SearchQueryBuilder {
      * @param rangeValue 范围值
      * @return 范围查询
      */
-    public static RangeQuery buildRangeQuery(String field, RangeValue rangeValue) {
+    public static RangeQuery buildRangeQuery(String field, RangeValue<?> rangeValue) {
         RangeQuery rangeQuery = new RangeQuery();
         rangeQuery.setFieldName(field);
         if (rangeValue.start != null) {

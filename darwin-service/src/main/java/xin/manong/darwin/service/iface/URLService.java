@@ -14,8 +14,10 @@ import xin.manong.darwin.common.model.URLRecord;
 import xin.manong.darwin.service.component.ExcelBuilder;
 import xin.manong.darwin.service.config.CacheConfig;
 import xin.manong.darwin.service.request.URLSearchRequest;
+import xin.manong.darwin.service.util.ModelValidator;
 
 import java.io.IOException;
+import java.io.Serial;
 import java.util.*;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -32,7 +34,11 @@ public abstract class URLService {
 
     protected CacheConfig cacheConfig;
     protected Cache<String, Optional<URLRecord>> recordCache;
-    protected static List<String> EXPORT_COLUMNS = new ArrayList<String>() {{
+    protected static List<String> EXPORT_COLUMNS = new ArrayList<>() {
+        @Serial
+        private static final long serialVersionUID = 3442274479484811098L;
+
+        {
         add("key");
         add("url");
         add("redirect_url");
@@ -53,7 +59,7 @@ public abstract class URLService {
                 .concurrencyLevel(1)
                 .maximumSize(cacheConfig.urlCacheNum)
                 .expireAfterWrite(cacheConfig.urlExpiredMinutes, TimeUnit.MINUTES)
-                .removalListener(n -> onRemoval(n));
+                .removalListener(this::onRemoval);
         recordCache = builder.build();
     }
 
@@ -63,7 +69,8 @@ public abstract class URLService {
      * @param notification 移除通知
      */
     private void onRemoval(RemovalNotification<String, Optional<URLRecord>> notification) {
-        if (!notification.getValue().isPresent()) return;
+        assert notification.getValue() != null;
+        if (notification.getValue().isEmpty()) return;
         logger.info("url record[{}] is removed from cache", notification.getValue().get().url);
     }
 
@@ -81,14 +88,14 @@ public abstract class URLService {
                 searchRequest.url = url;
                 searchRequest.statusList = new ArrayList<>();
                 searchRequest.statusList.add(Constants.URL_STATUS_SUCCESS);
-                searchRequest.fetchTime = new RangeValue<>();
-                searchRequest.fetchTime.start = System.currentTimeMillis() - 86400000L;
+                searchRequest.fetchTimeRange = new RangeValue<>();
+                searchRequest.fetchTimeRange.start = System.currentTimeMillis() - 86400000L;
                 searchRequest.current = 1;
                 searchRequest.size = 1;
                 Pager<URLRecord> pager = search(searchRequest);
-                return Optional.ofNullable(pager.records.size() > 0 ? pager.records.get(0) : null);
+                return Optional.ofNullable(!pager.records.isEmpty() ? pager.records.get(0) : null);
             });
-            if (!optional.isPresent()) {
+            if (optional.isEmpty()) {
                 recordCache.invalidate(hash);
                 return null;
             }
@@ -104,7 +111,7 @@ public abstract class URLService {
      * @param record url记录
      * @return 添加成功返回true，否则返回false
      */
-    public abstract Boolean add(URLRecord record);
+    public abstract boolean add(URLRecord record);
 
     /**
      * 更新抓取结果
@@ -112,7 +119,7 @@ public abstract class URLService {
      * @param record 抓取结果
      * @return 更新成功返回true，否则返回false
      */
-    public abstract Boolean updateContent(URLRecord record);
+    public abstract boolean updateContent(URLRecord record);
 
     /**
      * 更新入队出队时间
@@ -120,7 +127,7 @@ public abstract class URLService {
      * @param record URL记录
      * @return 更新成功返回true，否则返回false
      */
-    public abstract Boolean updateQueueTime(URLRecord record);
+    public abstract boolean updateQueueTime(URLRecord record);
 
     /**
      * 更新URL状态
@@ -129,7 +136,7 @@ public abstract class URLService {
      * @param status 状态
      * @return 更新成功返回true，否则返回false
      */
-    public abstract Boolean updateStatus(String key, int status);
+    public abstract boolean updateStatus(String key, int status);
 
     /**
      * 根据key获取URL记录
@@ -145,7 +152,7 @@ public abstract class URLService {
      * @param key 唯一key
      * @return 成功返回true，否则返回false
      */
-    public abstract Boolean delete(String key);
+    public abstract boolean delete(String key);
 
     /**
      * 搜索URL列表
@@ -154,6 +161,25 @@ public abstract class URLService {
      * @return 搜索列表
      */
     public abstract Pager<URLRecord> search(URLSearchRequest searchRequest);
+
+    /**
+     * 准备搜索请求
+     *
+     * @param searchRequest 搜索请求
+     * @return 搜索请求
+     */
+    protected URLSearchRequest prepareSearchRequest(URLSearchRequest searchRequest) {
+        if (searchRequest == null) searchRequest = new URLSearchRequest();
+        if (searchRequest.current == null || searchRequest.current < 1) searchRequest.current = Constants.DEFAULT_CURRENT;
+        if (searchRequest.size == null || searchRequest.size <= 0) searchRequest.size = Constants.DEFAULT_PAGE_SIZE;
+        List<Integer> statusList = ModelValidator.validateListField(searchRequest.status, Integer.class);
+        if (statusList != null && !statusList.isEmpty()) searchRequest.statusList = statusList;
+        RangeValue<Long> rangeValue = ModelValidator.validateRangeValue(searchRequest.fetchTime, Long.class);
+        if (rangeValue != null) searchRequest.fetchTimeRange = rangeValue;
+        rangeValue = ModelValidator.validateRangeValue(searchRequest.createTime, Long.class);
+        if (rangeValue != null) searchRequest.createTimeRange = rangeValue;
+        return searchRequest;
+    }
 
     /**
      * 获取指定任务URL创建时间小于等于before的URL记录
@@ -170,9 +196,9 @@ public abstract class URLService {
         searchRequest.statusList = new ArrayList<>();
         searchRequest.statusList.add(Constants.URL_STATUS_CREATED);
         searchRequest.statusList.add(Constants.URL_STATUS_FETCHING);
-        searchRequest.createTime = new RangeValue<>();
-        searchRequest.createTime.end = before;
-        searchRequest.createTime.includeUpper = true;
+        searchRequest.createTimeRange = new RangeValue<>();
+        searchRequest.createTimeRange.end = before;
+        searchRequest.createTimeRange.includeUpper = true;
         searchRequest.jobId = jobId;
         Pager<URLRecord> pager = search(searchRequest);
         return pager == null || pager.records == null ? new ArrayList<>() : pager.records;
@@ -184,7 +210,7 @@ public abstract class URLService {
      *
      * @param searchRequest 搜索请求
      * @return 成功返回ExcelBuilder，否则返回null
-     * @throws IOException
+     * @throws IOException I/O异常
      */
     public ExcelBuilder export(URLSearchRequest searchRequest) throws IOException {
         int current = 1, size = 100;

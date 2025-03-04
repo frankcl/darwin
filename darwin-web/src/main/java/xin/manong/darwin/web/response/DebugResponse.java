@@ -2,9 +2,12 @@ package xin.manong.darwin.web.response;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import jakarta.xml.bind.annotation.XmlAccessType;
+import jakarta.xml.bind.annotation.XmlAccessorType;
 import org.apache.commons.lang3.StringUtils;
 import xin.manong.darwin.common.model.URLRecord;
 
+import java.io.Serial;
 import java.io.Serializable;
 import java.util.List;
 import java.util.Map;
@@ -15,9 +18,12 @@ import java.util.Map;
  * @author frankcl
  * @date 2024-01-05 14:40:04
  */
+@XmlAccessorType(XmlAccessType.FIELD)
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class DebugResponse implements Serializable {
 
+    @Serial
+    private static final long serialVersionUID = 4959750056092452358L;
     /**
      * 是否成功
      */

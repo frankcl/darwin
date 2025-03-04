@@ -2,12 +2,13 @@ package xin.manong.darwin.web.request;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import jakarta.ws.rs.BadRequestException;
+import jakarta.xml.bind.annotation.XmlAccessType;
+import jakarta.xml.bind.annotation.XmlAccessorType;
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import xin.manong.darwin.common.Constants;
 
-import javax.ws.rs.BadRequestException;
+import java.io.Serial;
 import java.io.Serializable;
 
 /**
@@ -16,10 +17,12 @@ import java.io.Serializable;
  * @author frankcl
  * @date 2023-10-20 13:56:23
  */
+@XmlAccessorType(XmlAccessType.FIELD)
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class ProxyRequest implements Serializable {
 
-    private static final Logger logger = LoggerFactory.getLogger(ProxyRequest.class);
+    @Serial
+    private static final long serialVersionUID = 8440988806676915104L;
 
     /**
      * 代理地址
@@ -64,17 +67,8 @@ public class ProxyRequest implements Serializable {
      * 无效抛出异常
      */
     public void check() {
-        if (StringUtils.isEmpty(address)) {
-            logger.error("proxy address is empty");
-            throw new BadRequestException("代理地址为空");
-        }
-        if (port == null || port <= 0) {
-            logger.error("proxy port[{}] is invalid", port);
-            throw new BadRequestException(String.format("代理端口[%d]非法", port == null ? -1 : port));
-        }
-        if (!Constants.SUPPORT_PROXY_CATEGORIES.containsKey(category)) {
-            logger.error("unsupported proxy category[{}]", category);
-            throw new BadRequestException(String.format("不支持代理类型[%d]", category == null ? -1 : category));
-        }
+        if (StringUtils.isEmpty(address)) throw new BadRequestException("代理地址为空");
+        if (port == null || port <= 0) throw new BadRequestException("代理端口非法");
+        if (!Constants.SUPPORT_PROXY_CATEGORIES.containsKey(category)) throw new BadRequestException("不支持代理类型");
     }
 }

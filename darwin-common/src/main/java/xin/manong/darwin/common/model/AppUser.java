@@ -4,12 +4,16 @@ import com.alibaba.fastjson.annotation.JSONField;
 import com.baomidou.mybatisplus.annotation.*;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import jakarta.xml.bind.annotation.XmlAccessType;
+import jakarta.xml.bind.annotation.XmlAccessorType;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.io.Serial;
 
 /**
  * 应用用户关系信息
@@ -20,11 +24,14 @@ import org.slf4j.LoggerFactory;
 @Getter
 @Setter
 @Accessors(chain = true)
+@XmlAccessorType(XmlAccessType.FIELD)
 @TableName(value = "app_user", autoResultMap = true)
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class AppUser extends BasicModel {
+public class AppUser extends BaseModel {
 
     private static final Logger logger = LoggerFactory.getLogger(AppUser.class);
+    @Serial
+    private static final long serialVersionUID = 3378312092564161584L;
 
     /**
      * 自增ID
@@ -53,10 +60,10 @@ public class AppUser extends BasicModel {
     /**
      * 用户真实姓名
      */
-    @TableField(value = "user_real_name")
-    @JSONField(name = "user_real_name")
-    @JsonProperty("user_real_name")
-    public String userRealName;
+    @TableField(value = "nick_name")
+    @JSONField(name = "nick_name")
+    @JsonProperty("nick_name")
+    public String nickName;
 
     /**
      * 检测有效性
@@ -68,8 +75,8 @@ public class AppUser extends BasicModel {
             logger.error("user id is empty");
             return false;
         }
-        if (StringUtils.isEmpty(userRealName)) {
-            logger.error("user real name is empty");
+        if (StringUtils.isEmpty(nickName)) {
+            logger.error("nick name is empty");
             return false;
         }
         if (appId == null) {

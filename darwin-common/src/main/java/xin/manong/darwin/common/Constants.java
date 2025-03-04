@@ -1,5 +1,6 @@
 package xin.manong.darwin.common;
 
+import java.io.Serial;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -19,7 +20,11 @@ public class Constants {
     /**
      * 支持MimeType
      */
-    public static final Set<String> SUPPORT_MIME_TYPES = new HashSet<String>() {{
+    public static final Set<String> SUPPORT_MIME_TYPES = new HashSet<>() {
+        @Serial
+        private static final long serialVersionUID = -4264962171854052054L;
+
+        {
         add("text");
         add("image");
         add("video");
@@ -41,7 +46,11 @@ public class Constants {
     public static final int URL_STATUS_PARSE_ERROR = 9;             //解析错误
     public static final int URL_STATUS_UNKNOWN_ERROR = 10;          //未知错误
     public static final int URL_STATUS_OVERFLOW = 11;               //溢出
-    public static final Map<Integer, String> SUPPORT_URL_STATUSES = new HashMap<Integer, String>() {{
+    public static final Map<Integer, String> SUPPORT_URL_STATUSES = new HashMap<>() {
+        @Serial
+        private static final long serialVersionUID = -897638930689419495L;
+
+        {
         put(URL_STATUS_SUCCESS, "成功");
         put(URL_STATUS_CREATED, "创建");
         put(URL_STATUS_QUEUING_REFUSED, "排队拒绝");
@@ -61,7 +70,11 @@ public class Constants {
      */
     public static final int PROXY_CATEGORY_LONG = 1;                //长效代理
     public static final int PROXY_CATEGORY_SHORT = 2;               //短效代理
-    public static final Map<Integer, String> SUPPORT_PROXY_CATEGORIES = new HashMap<Integer, String>() {{
+    public static final Map<Integer, String> SUPPORT_PROXY_CATEGORIES = new HashMap<>() {
+        @Serial
+        private static final long serialVersionUID = -7228170191562416106L;
+
+        {
        put(PROXY_CATEGORY_LONG, "长效代理");
        put(PROXY_CATEGORY_SHORT, "短效代理");
     }};
@@ -73,7 +86,11 @@ public class Constants {
     public static final int FETCH_METHOD_LONG_PROXY = 1;            //长效代理抓取
     public static final int FETCH_METHOD_SHORT_PROXY = 2;           //短效代理抓取
     public static final int FETCH_METHOD_RENDER = 3;                //渲染
-    public static final Map<Integer, String> SUPPORT_FETCH_METHODS = new HashMap<Integer, String>() {{
+    public static final Map<Integer, String> SUPPORT_FETCH_METHODS = new HashMap<>() {
+        @Serial
+        private static final long serialVersionUID = -2431279279613319588L;
+
+        {
        put(FETCH_METHOD_COMMON, "普通抓取");
        put(FETCH_METHOD_LONG_PROXY, "长效代理抓取");
        put(FETCH_METHOD_SHORT_PROXY, "短效代理抓取");
@@ -92,7 +109,11 @@ public class Constants {
      */
     public static final int CONCURRENT_LEVEL_DOMAIN = 0;
     public static final int CONCURRENT_LEVEL_HOST = 1;
-    public static final Map<Integer, String> SUPPORT_CONCURRENT_LEVELS = new HashMap<Integer, String>() {{
+    public static final Map<Integer, String> SUPPORT_CONCURRENT_LEVELS = new HashMap<>() {
+        @Serial
+        private static final long serialVersionUID = -9008342954794992607L;
+
+        {
        put(CONCURRENT_LEVEL_DOMAIN, "DOMAIN");
        put(CONCURRENT_LEVEL_HOST, "HOST");
     }};
@@ -104,7 +125,11 @@ public class Constants {
     public static final int CONTENT_CATEGORY_LIST = 2;              //列表页
     public static final int CONTENT_CATEGORY_RESOURCE = 3;          //资源：图片视频等
     public static final int CONTENT_CATEGORY_STREAM = 4;            //流：视频流等
-    public static final Map<Integer, String> SUPPORT_CONTENT_CATEGORIES = new HashMap<Integer, String>() {{
+    public static final Map<Integer, String> SUPPORT_CONTENT_CATEGORIES = new HashMap<>() {
+        @Serial
+        private static final long serialVersionUID = 3318891098314553137L;
+
+        {
         put(CONTENT_CATEGORY_CONTENT, "内容页");
         put(CONTENT_CATEGORY_LIST, "列表页");
         put(CONTENT_CATEGORY_RESOURCE, "资源");
@@ -116,7 +141,11 @@ public class Constants {
      */
     public static final int SCRIPT_TYPE_GROOVY = 1;                 //Groovy脚本
     public static final int SCRIPT_TYPE_JAVASCRIPT = 2;             //JavaScript脚本
-    public static final Map<Integer, String> SUPPORT_SCRIPT_TYPES = new HashMap<Integer, String>() {{
+    public static final Map<Integer, String> SUPPORT_SCRIPT_TYPES = new HashMap<>() {
+        @Serial
+        private static final long serialVersionUID = -1339559361036477136L;
+
+        {
         put(SCRIPT_TYPE_GROOVY, "Groovy");
         put(SCRIPT_TYPE_JAVASCRIPT, "JavaScript");
     }};
@@ -127,7 +156,11 @@ public class Constants {
     public static final int LINK_SCOPE_ALL = 1;                     //全局抽链
     public static final int LINK_SCOPE_DOMAIN = 2;                  //domain抽链
     public static final int LINK_SCOPE_HOST = 3;                    //host抽链
-    public static final Map<Integer, String> SUPPORT_LINK_SCOPES = new HashMap<Integer, String>() {{
+    public static final Map<Integer, String> SUPPORT_LINK_SCOPES = new HashMap<>() {
+        @Serial
+        private static final long serialVersionUID = -4319598110652058246L;
+
+        {
         put(LINK_SCOPE_ALL, "ALL");
         put(LINK_SCOPE_DOMAIN, "DOMAIN");
         put(LINK_SCOPE_HOST, "HOST");
@@ -138,7 +171,11 @@ public class Constants {
      */
     public static final int PLAN_CATEGORY_ONCE = 0;                 //一次性计划
     public static final int PLAN_CATEGORY_PERIOD = 1;               //周期性计划
-    public static final Map<Integer, String> SUPPORT_PLAN_CATEGORIES = new HashMap<Integer, String>() {{
+    public static final Map<Integer, String> SUPPORT_PLAN_CATEGORIES = new HashMap<>() {
+        @Serial
+        private static final long serialVersionUID = -3162511278902980623L;
+
+        {
         put(PLAN_CATEGORY_ONCE, "一次性计划");
         put(PLAN_CATEGORY_PERIOD, "周期性计划");
     }};
@@ -148,7 +185,11 @@ public class Constants {
      */
     public static final int PLAN_STATUS_STOPPED = 0;                //停止
     public static final int PLAN_STATUS_RUNNING = 1;                //运行
-    public static final Map<Integer, String> SUPPORT_PLAN_STATUSES = new HashMap<Integer, String>() {{
+    public static final Map<Integer, String> SUPPORT_PLAN_STATUSES = new HashMap<>() {
+        @Serial
+        private static final long serialVersionUID = -429322310787905638L;
+
+        {
         put(PLAN_STATUS_STOPPED, "停止");
         put(PLAN_STATUS_RUNNING, "运行");
     }};
@@ -158,7 +199,11 @@ public class Constants {
      */
     public static final int JOB_STATUS_FINISHED = 0;                //结束
     public static final int JOB_STATUS_RUNNING = 1;                 //运行
-    public static final Map<Integer, String> SUPPORT_JOB_STATUSES = new HashMap<Integer, String>() {{
+    public static final Map<Integer, String> SUPPORT_JOB_STATUSES = new HashMap<>() {
+        @Serial
+        private static final long serialVersionUID = 3319818508852692276L;
+
+        {
         put(JOB_STATUS_FINISHED, "结束");
         put(JOB_STATUS_RUNNING, "运行");
     }};

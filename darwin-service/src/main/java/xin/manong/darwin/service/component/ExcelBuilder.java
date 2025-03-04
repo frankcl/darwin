@@ -37,7 +37,7 @@ public class ExcelBuilder {
     /**
      * 初始化excel构建器
      *
-     * @throws IOException
+     * @throws IOException I/O异常
      */
     public void init() throws IOException {
         if (workbook != null) workbook.close();
@@ -51,13 +51,10 @@ public class ExcelBuilder {
      * 导出数据
      *
      * @param outputStream 导出目标流
-     * @throws IOException
+     * @throws IOException I/O异常
      */
     public void export(OutputStream outputStream) throws IOException {
-        if (workbook == null) {
-            logger.error("excel builder is not init");
-            return;
-        }
+        assert workbook != null;
         try {
             for (Map.Entry<String, Sheet> entry : sheetMap.entrySet()) {
                 String name = entry.getKey();
@@ -81,10 +78,7 @@ public class ExcelBuilder {
      * @return 成功返回true，否则返回false
      */
     public boolean createSheet(String name, List<String> columns) {
-        if (workbook == null) {
-            logger.error("excel builder is not init");
-            return false;
-        }
+        assert workbook != null;
         if (sheetMap.containsKey(name)) {
             logger.error("sheet[{}] has existed", name);
             return false;
@@ -109,13 +103,10 @@ public class ExcelBuilder {
      * @param sheetName sheet名称
      * @param data 数据
      * @return 成功返回true，否则返回false
-     * @throws IOException
+     * @throws IOException I/O异常
      */
     public boolean add(String sheetName, Map<String, Object> data) throws IOException {
-        if (workbook == null) {
-            logger.error("excel builder is not init");
-            return false;
-        }
+        assert workbook != null;
         Sheet sheet = sheetMap.getOrDefault(sheetName, null);
         List<String> columns = sheetColumnsMap.getOrDefault(sheetName, null);
         if (sheet == null || columns == null) {

@@ -25,7 +25,7 @@ import java.util.concurrent.TimeUnit;
  */
 public abstract class RuleService {
 
-    private static final Logger logger = LoggerFactory.getLogger(JobService.class);
+    private static final Logger logger = LoggerFactory.getLogger(RuleService.class);
 
     protected CacheConfig cacheConfig;
     protected Cache<Integer, Optional<Rule>> ruleCache;
@@ -37,7 +37,7 @@ public abstract class RuleService {
                 .concurrencyLevel(1)
                 .maximumSize(cacheConfig.ruleCacheNum)
                 .expireAfterWrite(cacheConfig.ruleExpiredMinutes, TimeUnit.MINUTES)
-                .removalListener(n -> onRemoval(n));
+                .removalListener(this::onRemoval);
         ruleCache = builder.build();
     }
 
@@ -47,7 +47,8 @@ public abstract class RuleService {
      * @param notification 移除通知
      */
     private void onRemoval(RemovalNotification<Integer, Optional<Rule>> notification) {
-        if (!notification.getValue().isPresent()) return;
+        assert notification.getValue() != null;
+        if (notification.getValue().isEmpty()) return;
         logger.info("rule[{}] is removed from cache", notification.getValue().get().id);
     }
 
@@ -63,7 +64,7 @@ public abstract class RuleService {
                 Rule rule = get(ruleId);
                 return Optional.ofNullable(rule);
             });
-            if (!optional.isPresent()) {
+            if (optional.isEmpty()) {
                 ruleCache.invalidate(ruleId);
                 return null;
             }
@@ -79,7 +80,7 @@ public abstract class RuleService {
      * @param rule 规则
      * @return 添加成功返回true，否则返回false
      */
-    public abstract Boolean add(Rule rule);
+    public abstract boolean add(Rule rule);
 
     /**
      * 更新规则
@@ -87,7 +88,7 @@ public abstract class RuleService {
      * @param rule 规则
      * @return 更新成功返回true，否则返回false
      */
-    public abstract Boolean update(Rule rule);
+    public abstract boolean update(Rule rule);
 
     /**
      * 根据ID删除规则
@@ -95,7 +96,7 @@ public abstract class RuleService {
      * @param id 规则ID
      * @return 删除成功返回true，否则返回false
      */
-    public abstract Boolean delete(Integer id);
+    public abstract boolean delete(Integer id);
 
     /**
      * 根据ID获取规则
@@ -127,7 +128,7 @@ public abstract class RuleService {
      * @param ruleHistory 规则历史
      * @return 成功返回true，否则返回false
      */
-    public abstract Boolean addHistory(RuleHistory ruleHistory);
+    public abstract boolean addHistory(RuleHistory ruleHistory);
 
     /**
      * 移除规则历史
@@ -135,7 +136,7 @@ public abstract class RuleService {
      * @param id 规则历史ID
      * @return 成功返回true，否则返回false
      */
-    public abstract Boolean removeHistory(Integer id);
+    public abstract boolean removeHistory(Integer id);
 
     /**
      * 移除规则所有关联历史
@@ -143,7 +144,7 @@ public abstract class RuleService {
      * @param ruleId 规则ID
      * @return 成功返回true，否则返回false
      */
-    public abstract Boolean removeAllHistory(Integer ruleId);
+    public abstract boolean removeAllHistory(Integer ruleId);
 
     /**
      * 获取规则历史
@@ -171,7 +172,7 @@ public abstract class RuleService {
      * @param ruleHistoryId 规则历史ID
      * @return 成功返回true，否则返回false
      */
-    public abstract Boolean rollBack(Integer ruleId, Integer ruleHistoryId);
+    public abstract boolean rollBack(Integer ruleId, Integer ruleHistoryId);
 
     /**
      * 判断URL是否匹配规则
@@ -180,7 +181,7 @@ public abstract class RuleService {
      * @param rule 规则
      * @return 匹配返回true，否则返回false
      */
-    public abstract Boolean match(URLRecord record, Rule rule);
+    public abstract boolean match(URLRecord record, Rule rule);
 
     /**
      * 获取URL匹配规则数量

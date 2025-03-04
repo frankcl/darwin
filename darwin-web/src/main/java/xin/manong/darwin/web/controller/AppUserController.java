@@ -1,10 +1,10 @@
 package xin.manong.darwin.web.controller;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import jakarta.annotation.Resource;
+import jakarta.ws.rs.*;
+import jakarta.ws.rs.core.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
-import xin.manong.darwin.common.Constants;
 import xin.manong.darwin.common.model.AppUser;
 import xin.manong.darwin.common.model.Pager;
 import xin.manong.darwin.service.iface.AppUserService;
@@ -12,11 +12,7 @@ import xin.manong.darwin.service.request.AppUserSearchRequest;
 import xin.manong.darwin.web.component.PermissionSupport;
 import xin.manong.darwin.web.convert.Converter;
 import xin.manong.darwin.web.request.AppUserRequest;
-import xin.manong.weapon.spring.web.ws.aspect.EnableWebLogAspect;
-
-import javax.annotation.Resource;
-import javax.ws.rs.*;
-import javax.ws.rs.core.MediaType;
+import xin.manong.weapon.spring.boot.aspect.EnableWebLogAspect;
 
 /**
  * 应用用户关系控制器
@@ -29,8 +25,6 @@ import javax.ws.rs.core.MediaType;
 @Path("/app_user")
 @RequestMapping("/app_user")
 public class AppUserController {
-
-    private static final Logger logger = LoggerFactory.getLogger(AppUserController.class);
 
     @Resource
     protected AppUserService appUserService;
@@ -53,12 +47,7 @@ public class AppUserController {
     public Pager<AppUser> getAppUsers(@QueryParam("app_id") Integer appId,
                                       @QueryParam("current") Integer current,
                                       @QueryParam("size") Integer size) {
-        if (current == null || current < 1) current = Constants.DEFAULT_CURRENT;
-        if (size == null || size <= 0) size = Constants.DEFAULT_PAGE_SIZE;
-        if (appId == null) {
-            logger.error("app id is null");
-            throw new BadRequestException("应用ID为空");
-        }
+        if (appId == null) throw new BadRequestException("应用ID为空");
         AppUserSearchRequest searchRequest = new AppUserSearchRequest();
         searchRequest.current = current;
         searchRequest.size = size;
@@ -79,11 +68,8 @@ public class AppUserController {
     @Path("add")
     @PutMapping("add")
     @EnableWebLogAspect
-    public Boolean add(AppUserRequest request) {
-        if (request == null) {
-            logger.error("app user relation is null");
-            throw new BadRequestException("应用用户关系为空");
-        }
+    public Boolean add(@RequestBody AppUserRequest request) {
+        if (request == null) throw new BadRequestException("应用用户关系为空");
         request.check();
         permissionSupport.checkAppPermission(request.appId);
         AppUser appUser = Converter.convert(request);
@@ -102,15 +88,9 @@ public class AppUserController {
     @DeleteMapping("delete")
     @EnableWebLogAspect
     public Boolean delete(@QueryParam("id") Integer id) {
-        if (id == null) {
-            logger.error("missing param[id]");
-            throw new BadRequestException("应用用户关系ID缺失");
-        }
+        if (id == null) throw new BadRequestException("应用用户关系ID缺失");
         AppUser appUser = appUserService.get(id);
-        if (appUser == null) {
-            logger.error("app user relation is not found for id[{}]", id);
-            throw new NotFoundException(String.format("应用用户关系[%d]不存在", id));
-        }
+        if (appUser == null) throw new NotFoundException("应用用户关系不存在");
         permissionSupport.checkAppPermission(appUser.appId);
         return appUserService.delete(id);
     }

@@ -1,5 +1,6 @@
 package xin.manong.darwin.queue.multi;
 
+import jakarta.annotation.Resource;
 import org.apache.commons.lang3.StringUtils;
 import org.redisson.api.*;
 import org.redisson.client.codec.Codec;
@@ -12,7 +13,6 @@ import xin.manong.darwin.common.model.URLRecord;
 import xin.manong.weapon.base.redis.RedisClient;
 import xin.manong.weapon.base.redis.RedisMemory;
 
-import javax.annotation.Resource;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
@@ -27,7 +27,7 @@ public class MultiQueue {
 
     private static final Logger logger = LoggerFactory.getLogger(MultiQueue.class);
 
-    private MultiQueueConfig config;
+    private final MultiQueueConfig config;
     private RSetCache<String> concurrentUnits;
 
     /**
@@ -130,9 +130,7 @@ public class MultiQueue {
      */
     public Set<String> concurrentUnitsSnapshots() {
         RSetCache<String> concurrentUnits = currentConcurrentUnits();
-        Set<String> snapshots = new HashSet<>();
-        for (String concurrentUnit : concurrentUnits) snapshots.add(concurrentUnit);
-        return snapshots;
+        return new HashSet<>(concurrentUnits);
     }
 
     /**
@@ -163,9 +161,9 @@ public class MultiQueue {
             RBlockingQueueAsync<URLRecord> urlQueue = batch.getBlockingQueue(concurrentURLQueueKey, codec);
             urlQueue.sizeAsync();
         }
-        BatchResult result = batch.execute();
-        List<Integer> responses = result.getResponses();
-        for (Integer response : responses) if (response != null && response > 0) return false;
+        BatchResult<?> result = batch.execute();
+        List<?> responses = result.getResponses();
+        for (Object response : responses) if (response != null && (Integer) response > 0) return false;
         RSetCache<String> concurrentUnits = currentConcurrentUnits();
         concurrentUnits.add(concurrentUnit, config.maxConcurrentUnitExpiredTimeSeconds, TimeUnit.SECONDS);
         logger.info("remove concurrent unit[{}] in {} seconds from global concurrent unit set", concurrentUnit,
@@ -200,7 +198,9 @@ public class MultiQueue {
         String concurrentUnitQueueKey = buildConcurrentUnitQueueKey(record);
         RBlockingQueue<URLRecord> recordQueue = redisClient.getRedissonClient().
                 getBlockingQueue(concurrentUnitQueueKey, codec);
-        if (recordQueue != null) recordQueue.remove(record);
+        if (recordQueue != null) {
+            if (!recordQueue.remove(record)) logger.warn("remove URL[{}] failed", record.url);
+        }
     }
 
     /**
@@ -271,7 +271,7 @@ public class MultiQueue {
     public MultiQueueStatus push(URLRecord record) {
         if (record == null || !record.check()) {
             logger.error("record is null or is invalid");
-            record.status = Constants.URL_STATUS_INVALID;
+            if (record != null) record.status = Constants.URL_STATUS_INVALID;
             return MultiQueueStatus.ERROR;
         }
         String concurrentUnit = ConcurrentUnitComputer.compute(record);
@@ -300,8 +300,8 @@ public class MultiQueue {
             batch.getBlockingQueue(concurrentUnitQueueKey, codec).offerAsync(record);
             batch.getSetCache(MultiQueueConstants.MULTI_QUEUE_CONCURRENT_UNITS).addAsync(
                     concurrentUnit, 0, TimeUnit.SECONDS);
-            BatchResult result = batch.execute();
-            List responses = result.getResponses();
+            BatchResult<?> result = batch.execute();
+            List<?> responses = result.getResponses();
             if (responses.size() != 2 || !((Boolean) responses.get(0))) {
                 throw new MultiQueueException("push record failed");
             }

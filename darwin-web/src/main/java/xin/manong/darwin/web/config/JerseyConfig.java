@@ -4,8 +4,8 @@ import org.glassfish.jersey.jackson.internal.jackson.jaxrs.json.JacksonJsonProvi
 import org.glassfish.jersey.media.multipart.MultiPartFeature;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.springframework.stereotype.Component;
-import xin.manong.weapon.spring.web.ws.filter.WebResponseFilter;
-import xin.manong.weapon.spring.web.ws.handler.ExceptionHandler;
+import xin.manong.weapon.jersey.filter.WebResponseFilter;
+import xin.manong.weapon.jersey.handler.ExceptionHandler;
 
 /**
  * Jersey配置

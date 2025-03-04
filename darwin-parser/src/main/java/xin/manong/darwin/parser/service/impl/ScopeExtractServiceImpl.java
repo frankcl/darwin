@@ -40,10 +40,6 @@ public class ScopeExtractServiceImpl implements ScopeExtractService {
         String parentURL = StringUtils.isEmpty(request.redirectURL) ? request.url : request.redirectURL;
         Document document = Jsoup.parse(request.html, parentURL);
         Element body = document.body();
-        if (body == null) {
-            logger.error("body is not found");
-            return ParseResponse.buildError("HTML body不存在");
-        }
         List<URLRecord> childURLs = new ArrayList<>();
         scopeExtract(body, parentURL, request.scope, childURLs);
         return ParseResponse.buildOK(null, childURLs, null);
@@ -68,6 +64,7 @@ public class ScopeExtractServiceImpl implements ScopeExtractService {
                 new URL(childURL);
                 childURLs.add(new URLRecord(childURL));
             } catch (Exception e) {
+                logger.warn("invalid child URL[{}]", childURL);
             }
             return;
         }
@@ -108,7 +105,7 @@ public class ScopeExtractServiceImpl implements ScopeExtractService {
     private boolean isVisible(Element element) {
         if (element == null) return false;
         String style = element.attr(ATTR_NAME_STYLE);
-        style = style == null ? "" : style.replaceAll("\\s", "");
-        return style.indexOf("display:none") == -1;
+        style = style.replaceAll("\\s", "");
+        return !style.contains("display:none");
     }
 }

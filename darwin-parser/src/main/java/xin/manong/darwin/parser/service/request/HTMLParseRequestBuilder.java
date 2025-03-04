@@ -10,7 +10,7 @@ import java.util.Map;
  */
 public class HTMLParseRequestBuilder {
 
-    private HTMLParseRequest delegate;
+    private final HTMLParseRequest delegate;
 
     public HTMLParseRequestBuilder() {
         delegate = new HTMLParseRequest();

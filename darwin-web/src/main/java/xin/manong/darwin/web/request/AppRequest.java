@@ -2,11 +2,12 @@ package xin.manong.darwin.web.request;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import jakarta.ws.rs.BadRequestException;
+import jakarta.xml.bind.annotation.XmlAccessType;
+import jakarta.xml.bind.annotation.XmlAccessorType;
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-import javax.ws.rs.BadRequestException;
+import java.io.Serial;
 import java.io.Serializable;
 
 /**
@@ -15,10 +16,12 @@ import java.io.Serializable;
  * @author frankcl
  * @date 2023-10-20 13:56:23
  */
+@XmlAccessorType(XmlAccessType.FIELD)
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class AppRequest implements Serializable {
 
-    private static final Logger logger = LoggerFactory.getLogger(AppRequest.class);
+    @Serial
+    private static final long serialVersionUID = -12199126875758434L;
 
     /**
      * 应用名
@@ -31,9 +34,6 @@ public class AppRequest implements Serializable {
      * 无效抛出异常
      */
     public void check() {
-        if (StringUtils.isEmpty(name)) {
-            logger.error("app name is empty");
-            throw new BadRequestException("应用名为空");
-        }
+        if (StringUtils.isEmpty(name)) throw new BadRequestException("应用名为空");
     }
 }

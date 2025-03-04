@@ -1,11 +1,16 @@
 package xin.manong.darwin.spider;
 
+import jakarta.annotation.Resource;
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import xin.manong.darwin.common.Constants;
 import xin.manong.darwin.service.iface.ProxyService;
+import xin.manong.weapon.base.log.JSONLogger;
+
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * 爬虫配置信息
@@ -33,12 +38,14 @@ public class SpiderConfig {
     public int keepAliveMinutes = DEFAULT_KEEP_ALIVE_MINUTES;
     public int maxIdleConnections = DEFAULT_MAX_IDLE_CONNECTIONS;
     public int retryCnt = DEFAULT_RETRY_CNT;
-    public Boolean enableURLDispatcher = true;
     public String userAgent = DEFAULT_USER_AGENT;
     public String contentRegion;
     public String contentBucket;
     public String contentDirectory;
     public String tempDirectory;
+
+    @Resource(name = "recordAspectLogger")
+    protected JSONLogger aspectLogger;
 
     /**
      * 构建长效代理选择器
@@ -60,5 +67,33 @@ public class SpiderConfig {
     @Bean(name = "spiderShortProxySelector")
     public SpiderProxySelector buildSpiderShortProxySelector(ProxyService proxyService) {
         return new SpiderProxySelector(Constants.PROXY_CATEGORY_SHORT, proxyService);
+    }
+
+    /**
+     * 构建HTML URL接收器
+     *
+     * @param spiderFactory 爬虫工厂
+     * @return HTML URL接收器
+     */
+    @Bean(name = "htmlURLReceiver")
+    public URLReceiver buildHTMLURLReceiver(SpiderFactory spiderFactory) {
+        Set<String> categories = new HashSet<>();
+        categories.add("1");
+        categories.add("2");
+        return new URLReceiver(spiderFactory, aspectLogger, categories);
+    }
+
+    /**
+     * 构建资源URL接收器
+     *
+     * @param spiderFactory 爬虫工厂
+     * @return 资源URL接收器
+     */
+    @Bean(name = "resourceURLReceiver")
+    public URLReceiver buildResourceURLReceiver(SpiderFactory spiderFactory) {
+        Set<String> categories = new HashSet<>();
+        categories.add("3");
+        categories.add("4");
+        return new URLReceiver(spiderFactory, aspectLogger, categories);
     }
 }

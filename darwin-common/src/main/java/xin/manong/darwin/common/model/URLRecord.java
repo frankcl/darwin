@@ -6,6 +6,8 @@ import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import jakarta.xml.bind.annotation.XmlAccessType;
+import jakarta.xml.bind.annotation.XmlAccessorType;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
@@ -20,8 +22,10 @@ import xin.manong.weapon.aliyun.ots.annotation.Column;
 import xin.manong.weapon.aliyun.ots.annotation.PrimaryKey;
 import xin.manong.weapon.base.util.RandomID;
 
+import java.io.Serial;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * URL信息
@@ -32,11 +36,14 @@ import java.util.Map;
 @Getter
 @Setter
 @Accessors(chain = true)
+@XmlAccessorType(XmlAccessType.FIELD)
 @TableName(value = "url", autoResultMap = true)
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class URLRecord extends BasicModel {
+public class URLRecord extends BaseModel {
 
     private static final Logger logger = LoggerFactory.getLogger(URLRecord.class);
+    @Serial
+    private static final long serialVersionUID = 4425209680844398546L;
 
     /**
      * 唯一key
@@ -404,7 +411,7 @@ public class URLRecord extends BasicModel {
     /**
      * 设置URL，设置hash
      *
-     * @param url
+     * @param url URL
      */
     public void setUrl(String url) {
         this.url = url;
@@ -413,11 +420,9 @@ public class URLRecord extends BasicModel {
 
     @Override
     public boolean equals(Object object) {
-        if (object == null || !(object instanceof URLRecord)) return false;
-        URLRecord other = (URLRecord) object;
-        if (other == this || key == other.key) return true;
-        if (key == null || other.key == null) return false;
-        return key.equals(other.key);
+        if (!(object instanceof URLRecord other)) return false;
+        if (object == this) return true;
+        return Objects.equals(key, other.key);
     }
 
     @Override

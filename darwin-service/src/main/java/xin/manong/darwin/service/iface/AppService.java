@@ -2,6 +2,7 @@ package xin.manong.darwin.service.iface;
 
 import xin.manong.darwin.common.model.App;
 import xin.manong.darwin.common.model.Pager;
+import xin.manong.darwin.service.request.AppSearchRequest;
 
 /**
  * 应用服务接口定义
@@ -17,7 +18,7 @@ public interface AppService {
      * @param app 应用信息
      * @return 添加成功返回true，否则返回false
      */
-    Boolean add(App app);
+    boolean add(App app);
 
     /**
      * 更新应用
@@ -25,7 +26,7 @@ public interface AppService {
      * @param app 应用
      * @return 更新成功返回true，否则返回false
      */
-    Boolean update(App app);
+    boolean update(App app);
 
     /**
      * 根据ID删除应用
@@ -33,7 +34,7 @@ public interface AppService {
      * @param id 应用ID
      * @return 删除成功返回true，否则返回false
      */
-    Boolean delete(Integer id);
+    boolean delete(Integer id);
 
     /**
      * 根据ID获取应用
@@ -44,21 +45,10 @@ public interface AppService {
     App get(Integer id);
 
     /**
-     * 获取应用列表
-     *
-     * @param current 页码，从1开始
-     * @param size 每页数量
-     * @return 应用列表
-     */
-    Pager<App> getList(int current, int size);
-
-    /**
      * 根据名称搜索应用列表
      *
-     * @param name 应用名
-     * @param current 页码，从1开始
-     * @param size 每页数量
+     * @param searchRequest 搜索请求
      * @return 搜索列表
      */
-    Pager<App> search(String name, int current, int size);
+    Pager<App> search(AppSearchRequest searchRequest);
 }

@@ -1,20 +1,24 @@
 package xin.manong.darwin.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import jakarta.annotation.Resource;
+import jakarta.ws.rs.BadRequestException;
+import jakarta.ws.rs.ForbiddenException;
+import jakarta.ws.rs.NotFoundException;
 import org.apache.commons.lang3.StringUtils;
 import org.quartz.CronExpression;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.interceptor.TransactionAspectSupport;
 import xin.manong.darwin.common.Constants;
-import xin.manong.darwin.common.model.Job;
-import xin.manong.darwin.common.model.Pager;
-import xin.manong.darwin.common.model.Plan;
-import xin.manong.darwin.common.model.URLRecord;
+import xin.manong.darwin.common.model.*;
 import xin.manong.darwin.common.util.DarwinUtil;
 import xin.manong.darwin.queue.multi.MultiQueue;
 import xin.manong.darwin.queue.multi.MultiQueueStatus;
@@ -22,15 +26,16 @@ import xin.manong.darwin.service.convert.Converter;
 import xin.manong.darwin.service.dao.mapper.PlanMapper;
 import xin.manong.darwin.service.iface.JobService;
 import xin.manong.darwin.service.iface.PlanService;
+import xin.manong.darwin.service.iface.RuleService;
 import xin.manong.darwin.service.iface.URLService;
 import xin.manong.darwin.service.impl.ots.JobServiceImpl;
 import xin.manong.darwin.service.impl.ots.URLServiceImpl;
 import xin.manong.darwin.service.request.JobSearchRequest;
 import xin.manong.darwin.service.request.PlanSearchRequest;
+import xin.manong.darwin.service.util.ModelValidator;
 import xin.manong.weapon.base.common.Context;
 import xin.manong.weapon.base.log.JSONLogger;
 
-import javax.annotation.Resource;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Date;
@@ -50,59 +55,82 @@ public class PlanServiceImpl implements PlanService {
     @Resource
     protected PlanMapper planMapper;
     @Resource
+    @Lazy
+    protected RuleService ruleService;
+    @Resource
+    @Lazy
     protected JobService jobService;
     @Resource
+    @Lazy
     protected URLService urlService;
     @Resource
+    @Lazy
     protected MultiQueue multiQueue;
     @Resource(name = "recordAspectLogger")
     protected JSONLogger aspectLogger;
 
     @Override
     public Plan get(String planId) {
-        if (StringUtils.isEmpty(planId)) {
-            logger.error("plan id is empty");
-            throw new IllegalArgumentException("计划ID为空");
-        }
+        if (StringUtils.isEmpty(planId)) throw new BadRequestException("计划ID为空");
         return planMapper.selectById(planId);
     }
 
     @Override
-    public Boolean add(Plan plan) {
+    public boolean add(Plan plan) {
         LambdaQueryWrapper<Plan> query = new LambdaQueryWrapper<>();
         query.eq(Plan::getName, plan.name).eq(Plan::getAppId, plan.appId);
-        if (planMapper.selectCount(query) > 0) {
-            logger.error("plan[{}] has existed for app[{}]", plan.name, plan.appId);
-            throw new RuntimeException(String.format("同名计划[%s]已存在", plan.name));
-        }
+        if (planMapper.selectCount(query) > 0) throw new IllegalStateException("同名计划已存在");
         return planMapper.insert(plan) > 0;
     }
 
     @Override
-    public Boolean update(Plan plan) {
-        if (planMapper.selectById(plan.planId) == null) {
-            logger.error("plan[{}] is not found", plan.planId);
-            return false;
-        }
+    public boolean update(Plan plan) {
+        if (planMapper.selectById(plan.planId) == null) throw new NotFoundException("计划不存在");
         return planMapper.updateById(plan) > 0;
     }
 
     @Override
-    public Boolean delete(String planId) {
-        if (planMapper.selectById(planId) == null) {
-            logger.error("plan[{}] is not found", planId);
-            return false;
-        }
+    @Transactional(rollbackFor = Exception.class)
+    public boolean delete(String planId) {
+        Plan plan = planMapper.selectById(planId);
+        if (plan == null) throw new NotFoundException("计划不存在");
         JobSearchRequest searchRequest = new JobSearchRequest();
-        searchRequest.current = 1;
-        searchRequest.size = 1;
         searchRequest.planId = planId;
         Pager<Job> pager = jobService.search(searchRequest);
-        if (pager.total > 0) {
-            logger.error("jobs are not empty for plan[{}]", planId);
-            throw new RuntimeException(String.format("计划[%s]中任务不为空", planId));
+        if (pager.total > 0) throw new ForbiddenException("计划任务不为空");
+        if (plan.ruleIds != null && !plan.ruleIds.isEmpty()) {
+            for (Integer ruleId : plan.ruleIds) {
+                if (!ruleService.delete(ruleId)) throw new IllegalStateException("删除规则失败");
+            }
         }
         return planMapper.deleteById(planId) > 0;
+    }
+
+    @Override
+    public boolean addRule(String planId, Integer ruleId) {
+        Plan plan = planMapper.selectById(planId);
+        if (plan == null) throw new NotFoundException("计划不存在");
+        List<Integer> ruleIds = plan.ruleIds;
+        if (ruleIds == null) ruleIds = new ArrayList<>();
+        if (ruleIds.contains(ruleId)) throw new IllegalStateException("规则已存在");
+        ruleIds.add(ruleId);
+        LambdaUpdateWrapper<Plan> wrapper = new LambdaUpdateWrapper<>();
+        wrapper.eq(Plan::getPlanId, planId);
+        wrapper.set(Plan::getRuleIds, ruleIds);
+        return planMapper.update(null, wrapper) > 0;
+    }
+
+    @Override
+    public boolean removeRule(String planId, Integer ruleId) {
+        Plan plan = planMapper.selectById(planId);
+        if (plan == null) throw new NotFoundException("计划不存在");
+        List<Integer> ruleIds = plan.ruleIds;
+        if (ruleIds == null || !ruleIds.contains(ruleId)) throw new IllegalStateException("规则不存在");
+        ruleIds.remove(ruleId);
+        LambdaUpdateWrapper<Plan> wrapper = new LambdaUpdateWrapper<>();
+        wrapper.eq(Plan::getPlanId, planId);
+        wrapper.set(Plan::getRuleIds, ruleIds);
+        return planMapper.update(null, wrapper) > 0;
     }
 
     @Override
@@ -110,21 +138,21 @@ public class PlanServiceImpl implements PlanService {
         if (searchRequest == null) searchRequest = new PlanSearchRequest();
         if (searchRequest.current == null || searchRequest.current < 1) searchRequest.current = Constants.DEFAULT_CURRENT;
         if (searchRequest.size == null || searchRequest.size <= 0) searchRequest.size = Constants.DEFAULT_PAGE_SIZE;
-        LambdaQueryWrapper<Plan> query = new LambdaQueryWrapper<>();
-        query.orderByDesc(Plan::getCreateTime);
-        if (searchRequest.category != null) query.eq(Plan::getCategory, searchRequest.category);
-        if (searchRequest.status != null) query.eq(Plan::getStatus, searchRequest.status);
-        if (searchRequest.priority != null) query.eq(Plan::getPriority, searchRequest.priority);
-        if (searchRequest.appId != null) query.eq(Plan::getAppId, searchRequest.appId);
-        if (!StringUtils.isEmpty(searchRequest.name)) query.like(Plan::getName, searchRequest.name);
+        ModelValidator.validateOrderBy(Plan.class, searchRequest);
+        QueryWrapper<Plan> query = new QueryWrapper<>();
+        searchRequest.prepareOrderBy(query);
+        if (searchRequest.category != null) query.eq("category", searchRequest.category);
+        if (searchRequest.status != null) query.eq("status", searchRequest.status);
+        if (searchRequest.priority != null) query.eq("priority", searchRequest.priority);
+        if (searchRequest.appId != null) query.eq("app_id", searchRequest.appId);
+        if (!StringUtils.isEmpty(searchRequest.name)) query.like("name", searchRequest.name);
         IPage<Plan> page = planMapper.selectPage(new Page<>(searchRequest.current, searchRequest.size), query);
         return Converter.convert(page);
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public boolean execute(Plan plan) {
-        if (plan == null) return false;
         if (plan.status != Constants.PLAN_STATUS_RUNNING) {
             logger.warn("plan[{}] is not running", plan.planId);
             return false;

@@ -1,33 +1,39 @@
 weapon:
+  common:
+    kafka:
+      consumer:
+        many:
+          html:
+            servers: localhost:9092
+            group-id: GID_TEST_DARWIN_FETCH_HTML
+            name: html_consumer
+            processor-name: htmlURLReceiver
+            consumeThreadNum: 2
+            topics:
+              - TEST_DARWIN_FETCH_URL
+            auth-config:
+              security-protocol: SASL_PLAINTEXT
+              sasl-mechanism: PLAIN
+              sasl-jaas-config: org.apache.kafka.common.security.plain.PlainLoginModule required username=\"admin\" password=\"admin-123456\";
+          resource:
+            servers: localhost:9092
+            group-id: GID_TEST_DARWIN_FETCH_RESOURCE
+            name: resource_consumer
+            processor-name: resourceURLReceiver
+            consumeThreadNum: 2
+            topics:
+              - TEST_DARWIN_FETCH_URL
+            auth-config:
+              security-protocol: SASL_PLAINTEXT
+              sasl-mechanism: PLAIN
+              sasl-jaas-config: org.apache.kafka.common.security.plain.PlainLoginModule required username=\"admin\" password=\"admin-123456\";
   aliyun:
     oss:
-      client-map:
-        default:
-          endpoint: https://oss-cn-hangzhou.aliyuncs.com
-          socket-timeout-ms: 3000
-          connection-timeout-ms: 3000
-          retry-cnt: 3
-    ons:
-      producer-map:
-        default:
-          serverURL: http://onsaddr.mq-internet-access.mq-internet.aliyuncs.com:80
-      consumer-map:
-        html:
-          serverURL: http://onsaddr.mq-internet-access.mq-internet.aliyuncs.com:80
-          consumeId: GID_TEST_DARWIN_FETCH_HTML
-          consumeThreadNum: 2
-          subscribes:
-            - topic: TEST_DARWIN_FETCH_URL
-              tags: 1||2
-              listener-name: urlReceiver
-        resource:
-          serverURL: http://onsaddr.mq-internet-access.mq-internet.aliyuncs.com:80
-          consumeId: GID_TEST_DARWIN_FETCH_RESOURCE
-          consumeThreadNum: 2
-          subscribes:
-            - topic: TEST_DARWIN_FETCH_URL
-              tags: 3||4
-              listener-name: urlReceiver
+      client:
+        endpoint: https://oss-cn-hangzhou.aliyuncs.com
+        socket-timeout-ms: 3000
+        connection-timeout-ms: 3000
+        retry-cnt: 2
 app:
   spider:
     content-region: cn-hangzhou

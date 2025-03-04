@@ -1,26 +1,30 @@
 package xin.manong.darwin.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import jakarta.annotation.Resource;
+import jakarta.ws.rs.BadRequestException;
+import jakarta.ws.rs.NotFoundException;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import xin.manong.darwin.common.Constants;
-import xin.manong.darwin.common.model.Pager;
-import xin.manong.darwin.common.model.Rule;
-import xin.manong.darwin.common.model.RuleHistory;
-import xin.manong.darwin.common.model.URLRecord;
+import xin.manong.darwin.common.model.*;
 import xin.manong.darwin.service.config.CacheConfig;
 import xin.manong.darwin.service.convert.Converter;
 import xin.manong.darwin.service.dao.mapper.RuleHistoryMapper;
 import xin.manong.darwin.service.dao.mapper.RuleMapper;
+import xin.manong.darwin.service.iface.PlanService;
 import xin.manong.darwin.service.iface.RuleService;
 import xin.manong.darwin.service.request.RuleSearchRequest;
+import xin.manong.darwin.service.util.ModelValidator;
 
-import javax.annotation.Resource;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -39,6 +43,9 @@ public class RuleServiceImpl extends RuleService {
     private static final Logger logger = LoggerFactory.getLogger(RuleServiceImpl.class);
 
     @Resource
+    @Lazy
+    protected PlanService planService;
+    @Resource
     protected RuleMapper ruleMapper;
     @Resource
     protected RuleHistoryMapper ruleHistoryMapper;
@@ -49,53 +56,49 @@ public class RuleServiceImpl extends RuleService {
     }
 
     @Override
-    public Boolean add(Rule rule) {
+    @Transactional(rollbackFor = Exception.class)
+    public boolean add(Rule rule) {
         LambdaQueryWrapper<Rule> query = new LambdaQueryWrapper<>();
-        query.eq(Rule::getName, rule.name).eq(Rule::getRuleGroup, rule.ruleGroup);
-        if (ruleMapper.selectCount(query) > 0) {
-            logger.error("rule has existed for name[{}] and group[{}]", rule.name, rule.ruleGroup);
-            throw new RuntimeException(String.format("分组[%d]下同名规则[%s]已存在", rule.ruleGroup, rule.name));
-        }
+        query.eq(Rule::getName, rule.name).eq(Rule::getPlanId, rule.planId);
+        if (ruleMapper.selectCount(query) > 0) throw new IllegalStateException("同名规则已存在");
         int n = ruleMapper.insert(rule);
-        if (n > 0) addHistory(new RuleHistory(rule));
+        if (n > 0) {
+            if (!addHistory(new RuleHistory(rule))) throw new IllegalStateException("添加规则历史失败");
+            if (!planService.addRule(rule.planId, rule.id)) throw new IllegalStateException("添加计划规则失败");
+        }
         return n > 0;
     }
 
     @Override
-    public Boolean update(Rule rule) {
-        if (ruleMapper.selectById(rule.id) == null) {
-            logger.error("rule[{}] is not found", rule.id);
-            return false;
-        }
+    @Transactional(rollbackFor = Exception.class)
+    public boolean update(Rule rule) {
+        if (ruleMapper.selectById(rule.id) == null) throw new NotFoundException("规则不存在");
         int n = ruleMapper.updateById(rule);
         if (n > 0) {
-            ruleCache.invalidate(rule.id);
             Rule wholeRule = get(rule.id);
-            if (wholeRule != null) addHistory(new RuleHistory(wholeRule));
+            if (wholeRule != null) {
+                if (!addHistory(new RuleHistory(wholeRule))) throw new IllegalStateException("添加规则历史失败");
+            }
+            ruleCache.invalidate(rule.id);
         }
         return n > 0;
     }
 
     @Override
-    public Boolean delete(Integer id) {
-        if (ruleMapper.selectById(id) == null) {
-            logger.error("rule[{}] is not found", id);
-            return false;
-        }
+    @Transactional(rollbackFor = Exception.class)
+    public boolean delete(Integer id) {
+        Rule rule = ruleMapper.selectById(id);
+        if (rule == null) throw new NotFoundException("规则不存在");
+        if (!planService.removeRule(rule.planId, id)) throw new IllegalStateException("移除计划规则失败");
+        if (!removeAllHistory(id)) throw new IllegalStateException("删除规则历史失败");
         int n = ruleMapper.deleteById(id);
-        if (n > 0) {
-            ruleCache.invalidate(id);
-            removeAllHistory(id);
-        }
+        if (n > 0) ruleCache.invalidate(id);
         return n > 0;
     }
 
     @Override
     public Rule get(Integer id) {
-        if (id == null) {
-            logger.error("rule id is null");
-            throw new IllegalArgumentException("规则ID为空");
-        }
+        if (id == null) throw new IllegalArgumentException("规则ID为空");
         return ruleMapper.selectById(id);
     }
 
@@ -109,7 +112,6 @@ public class RuleServiceImpl extends RuleService {
                 Rule rule = ruleMapper.selectById(id);
                 if (rule != null) rules.add(rule);
             } catch (Exception e) {
-                logger.error("exception occurred for getting rule[{}]", id);
                 logger.error(e.getMessage(), e);
             } finally {
                 countDownLatch.countDown();
@@ -128,36 +130,31 @@ public class RuleServiceImpl extends RuleService {
         if (searchRequest == null) searchRequest = new RuleSearchRequest();
         if (searchRequest.current == null || searchRequest.current < 1) searchRequest.current = Constants.DEFAULT_CURRENT;
         if (searchRequest.size == null || searchRequest.size <= 0) searchRequest.size = Constants.DEFAULT_PAGE_SIZE;
-        LambdaQueryWrapper<Rule> query = new LambdaQueryWrapper<>();
-        query.orderByDesc(Rule::getCreateTime);
-        if (searchRequest.ruleGroup != null) query.eq(Rule::getRuleGroup, searchRequest.ruleGroup);
-        if (searchRequest.scriptType != null) query.eq(Rule::getScriptType, searchRequest.scriptType);
-        if (!StringUtils.isEmpty(searchRequest.domain)) query.eq(Rule::getDomain, searchRequest.domain);
-        if (!StringUtils.isEmpty(searchRequest.name)) query.like(Rule::getName, searchRequest.name);
+        ModelValidator.validateOrderBy(Rule.class, searchRequest);
+        QueryWrapper<Rule> query = new QueryWrapper<>();
+        searchRequest.prepareOrderBy(query);
+        if (searchRequest.scriptType != null) query.eq("script_type", searchRequest.scriptType);
+        if (!StringUtils.isEmpty(searchRequest.domain)) query.eq("domain", searchRequest.domain);
+        if (!StringUtils.isEmpty(searchRequest.name)) query.like("name", searchRequest.name);
         IPage<Rule> page = ruleMapper.selectPage(new Page<>(searchRequest.current, searchRequest.size), query);
         return Converter.convert(page);
     }
 
     @Override
-    public Boolean addHistory(RuleHistory ruleHistory) {
-        if (ruleHistory == null || !ruleHistory.check()) {
-            logger.error("rule history is invalid");
-            return false;
-        }
+    public boolean addHistory(RuleHistory ruleHistory) {
+        assert ruleHistory != null;
+        ruleHistory.check();
         return ruleHistoryMapper.insert(ruleHistory) > 0;
     }
 
     @Override
-    public Boolean removeHistory(Integer id) {
-        if (ruleHistoryMapper.selectById(id) == null) {
-            logger.error("rule history[{}] is not found", id);
-            return false;
-        }
+    public boolean removeHistory(Integer id) {
+        if (ruleHistoryMapper.selectById(id) == null) throw new NotFoundException("规则历史不存在");
         return ruleHistoryMapper.deleteById(id) > 0;
     }
 
     @Override
-    public Boolean removeAllHistory(Integer ruleId) {
+    public boolean removeAllHistory(Integer ruleId) {
         LambdaQueryWrapper<RuleHistory> query = new LambdaQueryWrapper<>();
         query.eq(RuleHistory::getRuleId, ruleId);
         return ruleHistoryMapper.delete(query) > 0;
@@ -165,10 +162,7 @@ public class RuleServiceImpl extends RuleService {
 
     @Override
     public RuleHistory getRuleHistory(Integer id) {
-        if (id == null) {
-            logger.error("rule history id is null");
-            throw new IllegalArgumentException("规则历史ID为空");
-        }
+        if (id == null) throw new BadRequestException("规则历史ID为空");
         return ruleHistoryMapper.selectById(id);
     }
 
@@ -184,16 +178,11 @@ public class RuleServiceImpl extends RuleService {
     }
 
     @Override
-    public Boolean rollBack(Integer ruleId, Integer ruleHistoryId) {
+    @Transactional(rollbackFor = Exception.class)
+    public boolean rollBack(Integer ruleId, Integer ruleHistoryId) {
         RuleHistory ruleHistory = getRuleHistory(ruleHistoryId);
-        if (ruleHistory == null) {
-            logger.error("rule history[{}] is not found", ruleHistoryId);
-            return false;
-        }
-        if (ruleHistory.ruleId != ruleId) {
-            logger.error("rule history and rule are not matched");
-            return false;
-        }
+        if (ruleHistory == null) throw new NotFoundException("规则历史不存在");
+        if (!ruleHistory.ruleId.equals(ruleId)) throw new IllegalStateException("历史不属于此规则");
         Rule rule = new Rule();
         rule.id = ruleId;
         rule.regex = ruleHistory.regex;
@@ -204,7 +193,7 @@ public class RuleServiceImpl extends RuleService {
     }
 
     @Override
-    public Boolean match(URLRecord record, Rule rule) {
+    public boolean match(URLRecord record, Rule rule) {
         if (record == null || StringUtils.isEmpty(record.url)) {
             logger.error("url is empty");
             return false;

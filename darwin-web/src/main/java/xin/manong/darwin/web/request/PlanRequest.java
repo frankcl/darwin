@@ -2,13 +2,14 @@ package xin.manong.darwin.web.request;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import jakarta.ws.rs.BadRequestException;
+import jakarta.xml.bind.annotation.XmlAccessType;
+import jakarta.xml.bind.annotation.XmlAccessorType;
 import org.apache.commons.lang3.StringUtils;
 import org.quartz.CronExpression;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import xin.manong.darwin.common.Constants;
 
-import javax.ws.rs.BadRequestException;
+import java.io.Serial;
 import java.io.Serializable;
 import java.util.List;
 
@@ -18,10 +19,12 @@ import java.util.List;
  * @author frankcl
  * @date 2023-10-20 15:08:20
  */
+@XmlAccessorType(XmlAccessType.FIELD)
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class PlanRequest implements Serializable {
 
-    private static final Logger logger = LoggerFactory.getLogger(PlanRequest.class);
+    @Serial
+    private static final long serialVersionUID = 8123536219475587256L;
 
     /**
      * 避免重复抓取
@@ -85,21 +88,11 @@ public class PlanRequest implements Serializable {
      * 无效抛出异常
      */
     public void check() {
-        if (appId == null) {
-            logger.error("app id is null");
-            throw new BadRequestException("应用ID为空");
-        }
-        if (StringUtils.isEmpty(name)) {
-            logger.error("plan name is empty");
-            throw new BadRequestException("计划名为空");
-        }
-        if (!Constants.SUPPORT_PLAN_CATEGORIES.containsKey(category)) {
-            logger.error("not support plan category[{}]", category);
-            throw new BadRequestException(String.format("不支持的计划类型[%d]", category));
-        }
+        if (appId == null) throw new BadRequestException("应用ID为空");
+        if (StringUtils.isEmpty(name)) throw new BadRequestException("计划名为空");
+        if (!Constants.SUPPORT_PLAN_CATEGORIES.containsKey(category)) throw new BadRequestException("不支持的计划类型");
         if (category == Constants.PLAN_CATEGORY_PERIOD && (StringUtils.isEmpty(crontabExpression) ||
                 !CronExpression.isValidExpression(crontabExpression))) {
-            logger.error("crontab expression[{}] is invalid", crontabExpression);
             throw new BadRequestException("非法crontab表达式");
         }
         if (seedURLs != null) for (URLRequest seedURL : seedURLs) seedURL.check();

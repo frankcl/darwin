@@ -8,7 +8,7 @@ import org.apache.log4j.spi.LoggingEvent;
 import java.io.BufferedWriter;
 import java.io.ByteArrayOutputStream;
 import java.io.OutputStreamWriter;
-import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 
 /**
  * Groovy脚本日志appender
@@ -28,7 +28,7 @@ class GroovyLogAppender extends WriterAppender {
     private static final String LOG4J_LOGGER_CLASS = "org.slf4j.impl.Log4jLoggerAdapter";
     private static final String GROOVY_RUNTIME_CALL_SITE_PACKAGE_PREFIX = "org.codehaus.groovy.runtime.callsite.";
 
-    private ByteArrayOutputStream output;
+    private final ByteArrayOutputStream output;
 
     public GroovyLogAppender(Layout layout) {
         super();
@@ -52,7 +52,7 @@ class GroovyLogAppender extends WriterAppender {
      */
     public String getLogContent() {
         if (output == null) return null;
-        return new String(output.toByteArray(), Charset.forName("UTF-8"));
+        return output.toString(StandardCharsets.UTF_8);
     }
 
     /**

@@ -18,8 +18,8 @@ public class ProxyCache {
 
     private static final Logger logger = LoggerFactory.getLogger(ProxyCache.class);
 
-    private Random random;
-    private ReentrantReadWriteLock readWriteLock;
+    private final Random random;
+    private final ReentrantReadWriteLock readWriteLock;
     private List<Proxy> proxies;
     private Map<Integer, Proxy> proxyMap;
 
@@ -121,7 +121,7 @@ public class ProxyCache {
             Iterator<Proxy> iterator = proxies.iterator();
             while (iterator.hasNext()) {
                 Proxy cachedProxy = iterator.next();
-                if (cachedProxy.id != proxy.id) continue;
+                if (!Objects.equals(cachedProxy.id, proxy.id)) continue;
                 iterator.remove();
                 break;
             }

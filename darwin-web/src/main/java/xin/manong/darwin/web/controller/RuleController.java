@@ -1,14 +1,14 @@
 package xin.manong.darwin.web.controller;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import jakarta.annotation.Resource;
+import jakarta.ws.rs.*;
+import jakarta.ws.rs.core.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import xin.manong.darwin.common.Constants;
 import xin.manong.darwin.common.model.Pager;
 import xin.manong.darwin.common.model.Rule;
 import xin.manong.darwin.common.model.RuleHistory;
-import xin.manong.darwin.service.iface.RuleGroupService;
 import xin.manong.darwin.service.iface.RuleService;
 import xin.manong.darwin.service.request.RuleSearchRequest;
 import xin.manong.darwin.web.component.PermissionSupport;
@@ -16,11 +16,7 @@ import xin.manong.darwin.web.convert.Converter;
 import xin.manong.darwin.web.request.RuleRequest;
 import xin.manong.darwin.web.request.RuleRollBackRequest;
 import xin.manong.darwin.web.request.RuleUpdateRequest;
-import xin.manong.weapon.spring.web.ws.aspect.EnableWebLogAspect;
-
-import javax.annotation.Resource;
-import javax.ws.rs.*;
-import javax.ws.rs.core.MediaType;
+import xin.manong.weapon.spring.boot.aspect.EnableWebLogAspect;
 
 /**
  * 规则控制器
@@ -34,12 +30,8 @@ import javax.ws.rs.core.MediaType;
 @RequestMapping("/rule")
 public class RuleController {
 
-    private static final Logger logger = LoggerFactory.getLogger(RuleController.class);
-
     @Resource
     protected RuleService ruleService;
-    @Resource
-    protected RuleGroupService ruleGroupService;
     @Resource
     protected PermissionSupport permissionSupport;
 
@@ -55,10 +47,7 @@ public class RuleController {
     @GetMapping("get")
     @EnableWebLogAspect
     public Rule get(@QueryParam("id") Integer id) {
-        if (id == null) {
-            logger.error("missing param[id]");
-            throw new BadRequestException("规则ID缺失");
-        }
+        if (id == null) throw new BadRequestException("规则ID缺失");
         return ruleService.get(id);
     }
 
@@ -68,16 +57,13 @@ public class RuleController {
      * @param request 规则搜索请求
      * @return 规则分页列表
      */
-    @POST
+    @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     @Path("search")
-    @PostMapping("search")
+    @GetMapping("search")
     @EnableWebLogAspect
-    public Pager<Rule> search(RuleSearchRequest request) {
-        if (request == null) request = new RuleSearchRequest();
-        if (request.current == null || request.current < 1) request.current = Constants.DEFAULT_CURRENT;
-        if (request.size == null || request.size <= 0) request.size = Constants.DEFAULT_PAGE_SIZE;
+    public Pager<Rule> search(@BeanParam RuleSearchRequest request) {
         return ruleService.search(request);
     }
 
@@ -93,17 +79,12 @@ public class RuleController {
     @Path("add")
     @PutMapping("add")
     @EnableWebLogAspect
-    public Boolean add(RuleRequest request) {
-        if (request == null) {
-            logger.error("rule request is null");
-            throw new BadRequestException("规则请求信息为空");
-        }
+    public Boolean add(@RequestBody RuleRequest request) {
+        if (request == null) throw new BadRequestException("规则请求信息为空");
         request.check();
-        if (ruleGroupService.get(request.ruleGroup) == null) {
-            logger.error("rule group[{}] is not found", request.ruleGroup);
-            throw new NotFoundException(String.format("规则分组[%d]不存在", request.ruleGroup));
-        }
         Rule rule = Converter.convert(request);
+        rule.check();
+        permissionSupport.checkAppPermission(rule.appId);
         return ruleService.add(rule);
     }
 
@@ -119,19 +100,14 @@ public class RuleController {
     @Path("update")
     @PostMapping("update")
     @EnableWebLogAspect
-    public Boolean update(RuleUpdateRequest request) {
-        if (request == null) {
-            logger.error("rule update info is null");
-            throw new BadRequestException("规则更新信息为空");
-        }
+    public Boolean update(@RequestBody RuleUpdateRequest request) {
+        if (request == null) throw new BadRequestException("规则更新信息为空");
         request.check();
-        if (ruleService.get(request.id) == null) {
-            logger.error("rule[{}] is not found", request.id);
-            throw new NotFoundException(String.format("规则[%d]不存在", request.id));
-        }
-        permissionSupport.checkRulePermission(request.id);
-        Rule rule = Converter.convert(request);
-        return ruleService.update(rule);
+        Rule rule = ruleService.get(request.id);
+        if (rule == null) throw new NotFoundException("规则不存在");
+        permissionSupport.checkAppPermission(rule.appId);
+        Rule updateRule = Converter.convert(request);
+        return ruleService.update(updateRule);
     }
 
     /**
@@ -146,15 +122,10 @@ public class RuleController {
     @DeleteMapping("delete")
     @EnableWebLogAspect
     public Boolean delete(@QueryParam("id") Integer id) {
-        if (id == null) {
-            logger.error("rule id is null");
-            throw new BadRequestException("规则ID为空");
-        }
-        if (ruleService.get(id) == null) {
-            logger.error("rule[{}] is not found", id);
-            throw new NotFoundException(String.format("规则[%d]不存在", id));
-        }
-        permissionSupport.checkRulePermission(id);
+        if (id == null) throw new BadRequestException("规则ID为空");
+        Rule rule = ruleService.get(id);
+        if (rule == null) throw new NotFoundException("规则不存在");
+        permissionSupport.checkAppPermission(rule.appId);
         return ruleService.delete(id);
     }
 
@@ -170,10 +141,7 @@ public class RuleController {
     @GetMapping("getHistory")
     @EnableWebLogAspect
     public RuleHistory getHistory(@QueryParam("id") Integer id) {
-        if (id == null) {
-            logger.error("missing param[id]");
-            throw new BadRequestException("规则历史ID缺失");
-        }
+        if (id == null) throw new BadRequestException("规则历史ID缺失");
         return ruleService.getRuleHistory(id);
     }
 
@@ -189,16 +157,12 @@ public class RuleController {
     @DeleteMapping("deleteHistory")
     @EnableWebLogAspect
     public Boolean deleteHistory(@QueryParam("id") Integer id) {
-        if (id == null) {
-            logger.error("rule history id is null");
-            throw new BadRequestException("规则历史ID为空");
-        }
+        if (id == null) throw new BadRequestException("规则历史ID为空");
         RuleHistory ruleHistory = ruleService.getRuleHistory(id);
-        if (ruleHistory == null) {
-            logger.error("rule history[{}] is not found", id);
-            throw new NotFoundException(String.format("规则历史[%d]不存在", id));
-        }
-        permissionSupport.checkRulePermission(ruleHistory.ruleId);
+        if (ruleHistory == null) throw new NotFoundException("规则历史不存在");
+        Rule rule = ruleService.get(id);
+        if (rule == null) throw new NotFoundException("规则不存在");
+        permissionSupport.checkAppPermission(rule.appId);
         return ruleService.removeHistory(id);
     }
 
@@ -218,10 +182,7 @@ public class RuleController {
     public Pager<RuleHistory> listHistory(@QueryParam("rule_id") Integer ruleId,
                                           @QueryParam("current") Integer current,
                                           @QueryParam("size") Integer size) {
-        if (ruleId == null) {
-            logger.error("rule id is null");
-            throw new BadRequestException("规则ID为空");
-        }
+        if (ruleId == null) throw new BadRequestException("规则ID为空");
         current = current == null || current < 1 ? Constants.DEFAULT_CURRENT : current;
         size = size == null || size <= 0 ? Constants.DEFAULT_PAGE_SIZE : size;
         return ruleService.listHistory(ruleId, current, size);
@@ -239,13 +200,12 @@ public class RuleController {
     @Path("rollback")
     @PostMapping("rollback")
     @EnableWebLogAspect
-    public Boolean rollBack(RuleRollBackRequest rollBackRequest) {
-        if (rollBackRequest == null) {
-            logger.error("rollback request is null");
-            throw new BadRequestException("规则回滚请求为空");
-        }
+    public Boolean rollBack(@RequestBody RuleRollBackRequest rollBackRequest) {
+        if (rollBackRequest == null) throw new BadRequestException("规则回滚请求为空");
         rollBackRequest.check();
-        permissionSupport.checkRulePermission(rollBackRequest.ruleId);
+        Rule rule = ruleService.get(rollBackRequest.ruleId);
+        if (rule == null) throw new NotFoundException("规则不存在");
+        permissionSupport.checkAppPermission(rule.appId);
         return ruleService.rollBack(rollBackRequest.ruleId, rollBackRequest.ruleHistoryId);
     }
 }

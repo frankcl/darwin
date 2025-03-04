@@ -27,8 +27,8 @@ public abstract class HTMLParser {
 
     private static final String LOG_LAYOUT_PATTERN = "%-d{yyyy-MM-dd HH:mm:ss,SSS}-%r [%p] [%t] [%X{GC}:%X{GL}] - %m%n";
 
-    private Logger logger = LoggerFactory.getLogger(HTMLParser.class);
-    private ThreadLocal<Logger> groovyLogger = new ThreadLocal<>();
+    private static final Logger logger = LoggerFactory.getLogger(HTMLParser.class);
+    private final ThreadLocal<Logger> groovyLogger = new ThreadLocal<>();
 
     /**
      * 脚本解析
@@ -54,7 +54,7 @@ public abstract class HTMLParser {
         } finally {
             sweepSLF4JLogger(name);
             sweepLog4JLogger(name);
-            if (appender != null) appender.close();
+            appender.close();
             groovyLogger.remove();
         }
     }
@@ -81,6 +81,7 @@ public abstract class HTMLParser {
      *
      * @param name logger名称
      */
+    @SuppressWarnings("unchecked")
     private void sweepSLF4JLogger(String name) {
         try {
             ILoggerFactory factory = LoggerFactory.getILoggerFactory();
@@ -102,10 +103,11 @@ public abstract class HTMLParser {
      *
      * @param name logger名称
      */
+    @SuppressWarnings("unchecked")
     private void sweepLog4JLogger(String name) {
         try {
             LoggerRepository loggerRepository = LogManager.getLoggerRepository();
-            Hashtable<String, org.apache.log4j.Logger> logTable = (Hashtable<String, org.apache.log4j.Logger>)
+            Hashtable<Object, org.apache.log4j.Logger> logTable = (Hashtable<Object, org.apache.log4j.Logger>)
                     ReflectUtil.getFieldValue(loggerRepository, LOG4J_FIELD_LOGGER_HASH_TABLE);
             if (logTable == null) {
                 logger.warn("field[{}] is not found in Log4J log manager", LOG4J_FIELD_LOGGER_HASH_TABLE);

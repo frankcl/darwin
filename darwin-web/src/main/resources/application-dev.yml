@@ -1,9 +1,15 @@
+hylian:
+  client:
+    appId: darwin
+    appSecret: 123456
+    serverURL: http://192.168.3.43:8080/
+  filter:
+    guard:
+      excludePatterns:
+        - api/health/*
+        - favicon.ico
+
 app:
-  security:
-    sso:
-      appId: darwin
-      appSecret: 123456
-      serverURL: http://localhost:8080/
   web:
     ignore-check-permission: true
     aspect-log-file: ./log/aspect/web.log

@@ -1,12 +1,12 @@
 package xin.manong.darwin.queue.concurrent;
 
+import jakarta.annotation.Resource;
 import org.redisson.api.RAtomicLong;
 import org.redisson.api.RMap;
 import org.redisson.client.codec.Codec;
 import org.redisson.codec.SnappyCodecV2;
 import xin.manong.weapon.base.redis.RedisClient;
 
-import javax.annotation.Resource;
 import java.time.Duration;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -22,10 +22,10 @@ public class ConcurrentManager {
     private static final String CONCURRENT_COUNT_PREFIX = "DARWIN_CONCURRENT_COUNT";
     private static final String CONCURRENT_RECORD_PREFIX = "DARWIN_CONCURRENT_RECORD";
 
-    private int maxConcurrentConnectionNum;
-    private int concurrentConnectionTtlSecond;
-    private Map<String, ConcurrentConnectionCount> concurrentConnectionCountMap;
-    private Map<String, Integer> concurrentUnitMaxConnectionMap;
+    private final int maxConcurrentConnectionNum;
+    private final int concurrentConnectionTtlSecond;
+    private final Map<String, ConcurrentConnectionCount> concurrentConnectionCountMap;
+    private final Map<String, Integer> concurrentUnitMaxConnectionMap;
     /**
      * 使用snappy压缩节省URLRecord内存占用空间
      */
@@ -82,7 +82,7 @@ public class ConcurrentManager {
         RMap<String, Long> connectionRecordMap = redisClient.getRedissonClient().getMap(redisKey, codec);
         int size = connectionRecordMap == null ? 0 : connectionRecordMap.size();
         int availableCount = getMaxConcurrentConnectionNum(concurrentUnit) - size;
-        return availableCount < 0 ? 0 : availableCount;
+        return Math.max(availableCount, 0);
     }
 
     /**
@@ -107,7 +107,7 @@ public class ConcurrentManager {
         ConcurrentConnectionCount concurrentConnectionCount = getConcurrentConnectionCount(concurrentUnit);
         int availableConnections = (int) (getMaxConcurrentConnectionNum(concurrentUnit) -
                 concurrentConnectionCount.connectionCount.get());
-        return availableConnections < 0 ? 0 : availableConnections;
+        return Math.max(availableConnections, 0);
     }
 
     /**

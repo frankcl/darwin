@@ -2,7 +2,10 @@ package xin.manong.darwin.common.model;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import jakarta.xml.bind.annotation.XmlAccessType;
+import jakarta.xml.bind.annotation.XmlAccessorType;
 
+import java.io.Serial;
 import java.io.Serializable;
 import java.util.List;
 
@@ -12,9 +15,12 @@ import java.util.List;
  * @author frankcl
  * @date 2022-09-21 11:26:50
  */
+@XmlAccessorType(XmlAccessType.FIELD)
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class Pager<T> implements Serializable {
 
+    @Serial
+    private static final long serialVersionUID = -8803034913332652744L;
     /**
      * 页码：从1开始
      */

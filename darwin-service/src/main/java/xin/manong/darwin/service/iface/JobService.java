@@ -3,6 +3,7 @@ package xin.manong.darwin.service.iface;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.RemovalNotification;
+import jakarta.annotation.Resource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import xin.manong.darwin.common.Constants;
@@ -13,8 +14,8 @@ import xin.manong.darwin.common.model.URLRecord;
 import xin.manong.darwin.service.config.CacheConfig;
 import xin.manong.darwin.service.request.JobSearchRequest;
 import xin.manong.darwin.service.request.URLSearchRequest;
+import xin.manong.darwin.service.util.ModelValidator;
 
-import javax.annotation.Resource;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -43,7 +44,7 @@ public abstract class JobService {
                 .concurrencyLevel(1)
                 .maximumSize(cacheConfig.jobCacheNum)
                 .expireAfterWrite(cacheConfig.jobExpiredMinutes, TimeUnit.MINUTES)
-                .removalListener(n -> onRemoval(n));
+                .removalListener(this::onRemoval);
         jobCache = builder.build();
     }
 
@@ -53,7 +54,8 @@ public abstract class JobService {
      * @param notification 移除通知
      */
     private void onRemoval(RemovalNotification<String, Optional<Job>> notification) {
-        if (!notification.getValue().isPresent()) return;
+        assert notification.getValue() != null;
+        if (notification.getValue().isEmpty()) return;
         logger.info("job[{}] is removed from cache", notification.getValue().get().jobId);
     }
 
@@ -69,7 +71,7 @@ public abstract class JobService {
                 Job job = get(jobId);
                 return Optional.ofNullable(job);
             });
-            if (!optional.isPresent()) {
+            if (optional.isEmpty()) {
                 jobCache.invalidate(jobId);
                 return null;
             }
@@ -77,6 +79,21 @@ public abstract class JobService {
         } catch (ExecutionException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    /**
+     * 准备搜索请求
+     *
+     * @param searchRequest 搜索请求
+     * @return 搜索请求
+     */
+    protected JobSearchRequest prepareSearchRequest(JobSearchRequest searchRequest) {
+        if (searchRequest == null) searchRequest = new JobSearchRequest();
+        if (searchRequest.current == null || searchRequest.current < 1) searchRequest.current = Constants.DEFAULT_CURRENT;
+        if (searchRequest.size == null || searchRequest.size <= 0) searchRequest.size = Constants.DEFAULT_PAGE_SIZE;
+        RangeValue<Long> rangeValue = ModelValidator.validateRangeValue(searchRequest.createTime, Long.class);
+        if (rangeValue != null) searchRequest.createTimeRange = rangeValue;
+        return searchRequest;
     }
 
     /**
@@ -93,7 +110,7 @@ public abstract class JobService {
      * @param job 任务信息
      * @return 成功返回true，否则返回false
      */
-    public abstract Boolean add(Job job);
+    public abstract boolean add(Job job);
 
     /**
      * 更新任务
@@ -101,7 +118,7 @@ public abstract class JobService {
      * @param job 任务信息
      * @return 成功返回true，否则返回false
      */
-    public abstract Boolean update(Job job);
+    public abstract boolean update(Job job);
 
     /**
      * 删除任务
@@ -109,7 +126,7 @@ public abstract class JobService {
      * @param jobId 任务ID
      * @return 成功返回true，否则返回false
      */
-    public abstract Boolean delete(String jobId);
+    public abstract boolean delete(String jobId);
 
     /**
      * 搜索任务列表
@@ -157,9 +174,9 @@ public abstract class JobService {
         JobSearchRequest searchRequest = new JobSearchRequest();
         searchRequest.current = 1;
         searchRequest.size = size <= 0 ? Constants.DEFAULT_PAGE_SIZE : size;
-        searchRequest.createTime = new RangeValue<>();
-        searchRequest.createTime.end = before;
-        searchRequest.createTime.includeUpper = true;
+        searchRequest.createTimeRange = new RangeValue<>();
+        searchRequest.createTimeRange.end = before;
+        searchRequest.createTimeRange.includeUpper = true;
         searchRequest.status = Constants.JOB_STATUS_RUNNING;
         Pager<Job> pager = search(searchRequest);
         return pager == null || pager.records == null ? new ArrayList<>() : pager.records;

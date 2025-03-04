@@ -4,7 +4,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
-import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 
 /**
  * 应用测试入口
@@ -20,10 +20,11 @@ public class ApplicationTest {
         byte[] byteArray = new byte[size];
         try (InputStream inputStream = ApplicationTest.class.getResourceAsStream(path);
              ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
+            assert inputStream != null;
             while ((n = inputStream.read(byteArray, 0, size)) != -1) {
                 outputStream.write(byteArray, 0, n);
             }
-            return new String(outputStream.toByteArray(), Charset.forName("UTF-8"));
+            return outputStream.toString(StandardCharsets.UTF_8);
         }
     }
 }

@@ -1,5 +1,6 @@
 package xin.manong.darwin.spider;
 
+import jakarta.annotation.Resource;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.jsoup.Jsoup;
@@ -26,9 +27,9 @@ import xin.manong.weapon.aliyun.oss.OSSClient;
 import xin.manong.weapon.aliyun.oss.OSSMeta;
 import xin.manong.weapon.base.common.Context;
 
-import javax.annotation.Resource;
 import java.io.ByteArrayOutputStream;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -84,7 +85,7 @@ public class HTMLSpider extends Spider {
      * @return 成功返回true，否则返回false
      */
     private boolean parseHTML(String html, URLRecord record, Rule rule, Context context) {
-        Long startTime = System.currentTimeMillis();
+        long startTime = System.currentTimeMillis();
         try {
             HTMLParseRequestBuilder builder = new HTMLParseRequestBuilder().html(html).
                     url(record.url).redirectURL(record.redirectURL).userDefinedMap(record.userDefinedMap);
@@ -121,9 +122,9 @@ public class HTMLSpider extends Spider {
      * @return 成功返回true，否则返回false
      */
     private boolean writeHTML(String html, URLRecord record, Context context) {
-        Long startTime = System.currentTimeMillis();
+        long startTime = System.currentTimeMillis();
         try {
-            byte[] bytes = html.getBytes(Charset.forName(CHARSET_UTF8));
+            byte[] bytes = html.getBytes(StandardCharsets.UTF_8);
             String suffix = buildResourceFileSuffix(record);
             String key = String.format("%s/%s/%s", config.contentDirectory, category, record.key);
             if (!StringUtils.isEmpty(suffix)) key = String.format("%s.%s", key, suffix);
@@ -151,13 +152,13 @@ public class HTMLSpider extends Spider {
      * @return 成功返回HTML文本，否则返回null
      */
     private String fetchAndGetHTML(URLRecord record, Context context) throws Exception {
-        Long startTime = System.currentTimeMillis();
+        long startTime = System.currentTimeMillis();
         ByteArrayOutputStream outputStream = null;
         SpiderResource resource = getSpiderResource(record, context);
         if (resource == null) resource = fetch(record, context);
         if (resource != null) resource.copyTo(record);
         try {
-            if (resource.inputStream == null) return null;
+            if (resource == null || resource.inputStream == null) return null;
             int n;
             byte[] buffer = new byte[BUFFER_SIZE];
             outputStream = new ByteArrayOutputStream();
@@ -237,12 +238,10 @@ public class HTMLSpider extends Spider {
      */
     private String parseCharsetFromHTML(byte[] body) {
         try {
-            Document document = Jsoup.parse(new String(body, Charset.forName(CHARSET_UTF8)));
+            Document document = Jsoup.parse(new String(body, StandardCharsets.UTF_8));
             Element head = document.head();
-            if (head == null) return null;
             Elements elements = head.select("meta[http-equiv=content-type]");
-            for (int i = 0; elements != null && i < elements.size(); i++) {
-                Element element = elements.get(i);
+            for (Element element : elements) {
                 if (!element.hasAttr("content")) continue;
                 String content = element.attr("content");
                 if (StringUtils.isEmpty(content)) continue;
@@ -253,6 +252,7 @@ public class HTMLSpider extends Spider {
                     Charset.forName(charset);
                     return charset;
                 } catch (Exception e) {
+                    logger.warn("invalid charset[{}]", charset);
                 }
             }
         } catch (Exception e) {

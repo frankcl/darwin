@@ -15,6 +15,6 @@ public class JSONListURLRecordTypeHandler extends AbstractJSONListTypeHandler<UR
 
     @Override
     protected TypeReference<List<URLRecord>> specificType() {
-        return new TypeReference<List<URLRecord>>() {};
+        return new TypeReference<>() {};
     }
 }

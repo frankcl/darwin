@@ -51,7 +51,7 @@ public class GroovyScript extends Script {
      * @param scriptCode 脚本代码
      */
     private void buildGroovyObject(String scriptCode) throws ScriptCompileException {
-        Class groovyClass = null;
+        Class<?> groovyClass = null;
         try {
             groovyClass = classLoader.parseClass(scriptCode, key);
             if (!HTMLParser.class.isAssignableFrom(groovyClass)) {
@@ -59,10 +59,9 @@ public class GroovyScript extends Script {
                 throw new ScriptCompileException("无效Groovy脚本");
             }
             groovyClass.getMethod(METHOD_PARSE, ParseRequest.class);
-            this.groovyObject = (GroovyObject) groovyClass.newInstance();
+            this.groovyObject = (GroovyObject) groovyClass.getDeclaredConstructor().newInstance();
         } catch (NoSuchMethodException e) {
-            logger.error("parse method[{}] is not found for parser[{}]", METHOD_PARSE,
-                    groovyClass != null ? groovyClass.getName() : "");
+            logger.error("parse method[{}] is not found for parser[{}]", METHOD_PARSE, groovyClass.getName());
             logger.error(e.getMessage(), e);
             throw new ScriptCompileException(String.format("未找到解析方法[%s]", METHOD_PARSE), e);
         } catch (Exception e) {

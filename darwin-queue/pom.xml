@@ -17,6 +17,10 @@
             <artifactId>junit</artifactId>
         </dependency>
         <dependency>
+            <groupId>jakarta.annotation</groupId>
+            <artifactId>jakarta.annotation-api</artifactId>
+        </dependency>
+        <dependency>
             <groupId>org.xerial.snappy</groupId>
             <artifactId>snappy-java</artifactId>
         </dependency>
@@ -47,25 +51,7 @@
         </dependency>
         <dependency>
             <groupId>xin.manong</groupId>
-            <artifactId>weapon-spring-boot-starter</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.shuwen.ops</groupId>
-            <artifactId>shaman-configmap</artifactId>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.yaml</groupId>
-                    <artifactId>snakeyaml</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>com.alibaba</groupId>
-                    <artifactId>fastjson</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-        <dependency>
-            <groupId>com.shuwen</groupId>
-            <artifactId>shaman-dynamic-secret-listener</artifactId>
+            <artifactId>weapon-spring-boot</artifactId>
         </dependency>
         <dependency>
             <groupId>xin.manong</groupId>

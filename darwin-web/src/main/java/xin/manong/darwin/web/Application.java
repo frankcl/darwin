@@ -1,13 +1,11 @@
 package xin.manong.darwin.web;
 
-import com.shuwen.dynamic.secret.property.ShamanPropertySourceFactory;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.context.annotation.PropertySource;
-import xin.manong.weapon.spring.boot.annotation.EnableONSProducer;
+import xin.manong.weapon.spring.boot.annotation.EnableKafkaProducer;
 import xin.manong.weapon.spring.boot.annotation.EnableOSSClient;
 import xin.manong.weapon.spring.boot.annotation.EnableRedisClient;
-import xin.manong.weapon.spring.web.ws.aspect.EnableWebLogAspect;
+import xin.manong.weapon.spring.boot.aspect.EnableWebLogAspect;
 
 /**
  * 应用程序入口
@@ -18,9 +16,8 @@ import xin.manong.weapon.spring.web.ws.aspect.EnableWebLogAspect;
  */
 @EnableOSSClient
 @EnableRedisClient
-@EnableONSProducer
+@EnableKafkaProducer
 @EnableWebLogAspect
-@PropertySource(name = "configmap", value = "xhzy-data#darwin-spider", factory = ShamanPropertySourceFactory.class)
 @SpringBootApplication(scanBasePackages = {"xin.manong.darwin"})
 public class Application {
 

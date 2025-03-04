@@ -4,12 +4,16 @@ import com.alibaba.fastjson.annotation.JSONField;
 import com.baomidou.mybatisplus.annotation.*;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import jakarta.xml.bind.annotation.XmlAccessType;
+import jakarta.xml.bind.annotation.XmlAccessorType;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.io.Serial;
 
 /**
  * 应用信息
@@ -20,11 +24,14 @@ import org.slf4j.LoggerFactory;
 @Getter
 @Setter
 @Accessors(chain = true)
+@XmlAccessorType(XmlAccessType.FIELD)
 @TableName(value = "app", autoResultMap = true)
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class App extends BasicModel {
+public class App extends BaseModel {
 
     private static final Logger logger = LoggerFactory.getLogger(App.class);
+    @Serial
+    private static final long serialVersionUID = 6333115720821294547L;
 
     /**
      * 应用ID

@@ -1,5 +1,6 @@
 package xin.manong.darwin.monitor;
 
+import jakarta.annotation.Resource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import xin.manong.darwin.common.Constants;
@@ -11,9 +12,8 @@ import xin.manong.darwin.service.iface.URLService;
 import xin.manong.darwin.service.notify.JobCompleteNotifier;
 import xin.manong.darwin.service.notify.URLCompleteNotifier;
 import xin.manong.weapon.base.common.Context;
+import xin.manong.weapon.base.executor.ExecuteRunner;
 
-import javax.annotation.Resource;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -23,12 +23,11 @@ import java.util.Set;
  * @author frankcl
  * @date 2023-03-07 17:57:48
  */
-public class MultiQueueMonitor extends ExecuteMonitor {
+public class MultiQueueMonitor extends ExecuteRunner {
 
     private static final Logger logger = LoggerFactory.getLogger(MultiQueueMonitor.class);
 
-    private long expiredTimeIntervalMs;
-    private Set<Integer> updateStatusList;
+    private final long expiredTimeIntervalMs;
     @Resource
     protected URLService urlService;
     @Resource
@@ -41,11 +40,8 @@ public class MultiQueueMonitor extends ExecuteMonitor {
     protected JobCompleteNotifier jobCompleteNotifier;
 
     public MultiQueueMonitor(long checkTimeIntervalMs, long expiredTimeIntervalMs) {
-        super(checkTimeIntervalMs);
+        super("MultiQueueMonitor", checkTimeIntervalMs);
         this.expiredTimeIntervalMs = expiredTimeIntervalMs;
-        this.updateStatusList = new HashSet<>();
-        this.updateStatusList.add(Constants.URL_STATUS_FETCHING);
-        this.updateStatusList.add(Constants.URL_STATUS_CREATED);
     }
 
     @Override

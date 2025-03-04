@@ -3,8 +3,13 @@ app:
     topic: TEST_DARWIN_FETCH_URL
 
 weapon:
-  aliyun:
-    ons:
-      producer-map:
-        default:
-          serverURL: http://onsaddr.mq-internet-access.mq-internet.aliyuncs.com:80
+  common:
+    kafka:
+      producer:
+        servers: localhost:9092
+        request-timeout-ms: 3000
+        retry-cnt: 2
+        auth-config:
+          security-protocol: SASL_PLAINTEXT
+          sasl-mechanism: PLAIN
+          sasl-jaas-config: org.apache.kafka.common.security.plain.PlainLoginModule required username=\"admin\" password=\"admin-123456\";

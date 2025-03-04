@@ -19,14 +19,14 @@ public class ScriptCache {
 
     private static final Logger logger = LoggerFactory.getLogger(ScriptCache.class);
 
-    private Cache<String, Script> cache;
+    private final Cache<String, Script> cache;
 
     public ScriptCache(int maxSize, int expiredTimeMinutes) {
         CacheBuilder<String, Script> builder = CacheBuilder.newBuilder()
                 .concurrencyLevel(1)
                 .maximumSize(maxSize)
                 .expireAfterAccess(expiredTimeMinutes, TimeUnit.MINUTES)
-                .removalListener(n -> onRemoval(n));
+                .removalListener(this::onRemoval);
         cache = builder.build();
     }
 
@@ -39,6 +39,7 @@ public class ScriptCache {
         Script script = notification.getValue();
         if (script != null && script.currentReferenceCount() <= 0) script.close();
         RemovalCause cause = notification.getCause();
+        assert script != null;
         logger.info("{}[{}] is removed, cause[{}]", script.getClass().getSimpleName(),
                 notification.getKey(), cause.name());
     }
@@ -56,8 +57,7 @@ public class ScriptCache {
         }
         try {
             Script prevScript = cache.get(script.getKey(), () -> script);
-            if (prevScript != null && prevScript != script &&
-                    prevScript.currentReferenceCount() == 0) {
+            if (prevScript != script && prevScript.currentReferenceCount() == 0) {
                 prevScript.close();
             }
         } catch (Exception e) {

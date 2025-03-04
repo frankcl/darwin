@@ -1,5 +1,6 @@
 package xin.manong.darwin.parser.service.impl;
 
+import jakarta.annotation.Resource;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -12,8 +13,6 @@ import xin.manong.darwin.parser.service.ScopeExtractService;
 import xin.manong.darwin.parser.service.ParseService;
 import xin.manong.darwin.parser.service.request.HTMLParseRequest;
 import xin.manong.darwin.parser.service.response.CompileResponse;
-
-import javax.annotation.Resource;
 
 /**
  * 解析服务实现
@@ -45,7 +44,6 @@ public class ParseServiceImpl implements ParseService {
         }
         try {
             Script script = ScriptFactory.make(scriptType, scriptCode);
-            if (script == null) return CompileResponse.buildError("编译脚本失败");
             script.close();
             return CompileResponse.buildOK();
         } catch (ScriptCompileException e) {

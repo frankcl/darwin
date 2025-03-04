@@ -1,12 +1,11 @@
 package xin.manong.darwin.spider;
 
+import jakarta.annotation.Resource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import xin.manong.darwin.common.Constants;
 import xin.manong.darwin.common.model.URLRecord;
-
-import javax.annotation.Resource;
 
 /**
  * 爬虫工厂

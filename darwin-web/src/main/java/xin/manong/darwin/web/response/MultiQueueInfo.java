@@ -2,7 +2,10 @@ package xin.manong.darwin.web.response;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import jakarta.xml.bind.annotation.XmlAccessType;
+import jakarta.xml.bind.annotation.XmlAccessorType;
 
+import java.io.Serial;
 import java.io.Serializable;
 
 /**
@@ -11,9 +14,11 @@ import java.io.Serializable;
  * @author frankcl
  * @date 2023-08-28 11:09:57
  */
+@XmlAccessorType(XmlAccessType.FIELD)
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class MultiQueueInfo implements Serializable {
 
+    @Serial
     private static final long serialVersionUID = 5192194278750852497L;
 
     /**

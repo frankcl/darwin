@@ -4,6 +4,8 @@ import com.alibaba.fastjson.annotation.JSONField;
 import com.baomidou.mybatisplus.annotation.*;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import jakarta.xml.bind.annotation.XmlAccessType;
+import jakarta.xml.bind.annotation.XmlAccessorType;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
@@ -11,6 +13,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import xin.manong.darwin.common.Constants;
+
+import java.io.Serial;
 
 /**
  * 代理IP
@@ -21,11 +25,14 @@ import xin.manong.darwin.common.Constants;
 @Getter
 @Setter
 @Accessors(chain = true)
+@XmlAccessorType(XmlAccessType.FIELD)
 @TableName(value = "proxy", autoResultMap = true)
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class Proxy extends BasicModel {
+public class Proxy extends BaseModel {
 
     private static final Logger logger = LoggerFactory.getLogger(Proxy.class);
+    @Serial
+    private static final long serialVersionUID = 867495051081193091L;
 
     /**
      * 代理ID
@@ -78,7 +85,6 @@ public class Proxy extends BasicModel {
     /**
      * 过期时间
      */
-    @TableField(value = "expired_time")
     @JSONField(name = "expired_time")
     @JsonProperty("expired_time")
     public Long expiredTime;
@@ -92,13 +98,12 @@ public class Proxy extends BasicModel {
      */
     public boolean isExpired() {
         if (expiredTime == null || expiredTime <= 0) return false;
-        Long currentTime = System.currentTimeMillis();
-        return currentTime >= expiredTime;
+        return System.currentTimeMillis() >= expiredTime;
     }
 
     @Override
     public String toString() {
-        StringBuffer buffer = new StringBuffer("http://");
+        StringBuilder buffer = new StringBuilder("https://");
         if (!StringUtils.isEmpty(username) && !StringUtils.isEmpty(password)) {
             buffer.append(username).append(":").append(password).append("@");
         }

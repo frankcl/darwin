@@ -14,6 +14,6 @@ public class JSONMapObjectTypeHandler extends AbstractJSONMapTypeHandler<Object>
 
     @Override
     protected TypeReference<Map<String, Object>> specificType() {
-        return new TypeReference<Map<String, Object>>() {};
+        return new TypeReference<>() {};
     }
 }

@@ -43,7 +43,7 @@ public class CharsetDetector {
         if (byteSize <= 0) byteSize = MAX_BYTE_SIZE;
         UniversalDetector detector = new UniversalDetector(null);
         try {
-            detector.handleData(body, 0, body.length > byteSize ? byteSize : body.length);
+            detector.handleData(body, 0, Math.min(body.length, byteSize));
             detector.dataEnd();
             String charset = detector.getDetectedCharset();
             return StringUtils.isEmpty(charset) ? CHARSET_UTF8 : charset;

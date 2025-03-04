@@ -84,7 +84,7 @@ public class MybatisPlusGenerator {
      */
     private static TemplateConfig buildTemplateConfig() {
         return new TemplateConfig.Builder().disable(TemplateType.CONTROLLER).disable(TemplateType.SERVICE).
-                disable(TemplateType.SERVICEIMPL).disable(TemplateType.XML).build();
+                disable(TemplateType.SERVICE_IMPL).disable(TemplateType.XML).build();
     }
 
     /**

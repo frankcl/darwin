@@ -18,7 +18,7 @@ public interface ProxyService {
      * @param proxy 代理信息
      * @return 成功返回true，否则返回false
      */
-    Boolean add(Proxy proxy);
+    boolean add(Proxy proxy);
 
     /**
      * 更新代理
@@ -26,7 +26,7 @@ public interface ProxyService {
      * @param proxy 代理信息
      * @return 成功返回true，否则返回false
      */
-    Boolean update(Proxy proxy);
+    boolean update(Proxy proxy);
 
     /**
      * 删除代理
@@ -34,16 +34,15 @@ public interface ProxyService {
      * @param id 代理ID
      * @return 成功返回true，否则返回false
      */
-    Boolean delete(int id);
+    boolean delete(int id);
 
     /**
      * 刷新代理
      * 代理分类：长效代理1；短效代理2
      *
      * @param category 代理分类
-     * @return 成功返回true，否则返回false
      */
-    Boolean refreshCache(int category);
+    void refreshCache(int category);
 
     /**
      * 删除过期代理

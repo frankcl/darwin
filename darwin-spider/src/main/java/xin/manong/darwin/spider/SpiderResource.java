@@ -13,6 +13,7 @@ import xin.manong.weapon.aliyun.oss.OSSMeta;
 
 import java.io.*;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 
 /**
  * 抓取内容资源
@@ -83,7 +84,7 @@ public class SpiderResource implements Closeable {
         if (inputStream == null) return null;
         SpiderResource spiderResource = new SpiderResource(false);
         spiderResource.inputStream = inputStream;
-        spiderResource.charset = Charset.forName("UTF-8");
+        spiderResource.charset = StandardCharsets.UTF_8;
         spiderResource.record = record;
         return spiderResource;
     }
@@ -110,6 +111,7 @@ public class SpiderResource implements Closeable {
             spiderResource.record.redirectURL = targetURL;
         }
         ResponseBody responseBody = httpResponse.body();
+        assert responseBody != null;
         spiderResource.inputStream = responseBody.byteStream();
         MediaType mediaType = responseBody.contentType();
         if (mediaType == null) return spiderResource;

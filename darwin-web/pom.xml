@@ -13,8 +13,8 @@
 
     <dependencies>
         <dependency>
-            <groupId>javax.servlet</groupId>
-            <artifactId>javax.servlet-api</artifactId>
+            <groupId>jakarta.servlet</groupId>
+            <artifactId>jakarta.servlet-api</artifactId>
         </dependency>
         <dependency>
             <groupId>org.glassfish.jaxb</groupId>
@@ -55,11 +55,15 @@
         </dependency>
         <dependency>
             <groupId>xin.manong</groupId>
-            <artifactId>weapon-spring-boot-starter</artifactId>
+            <artifactId>weapon-spring-boot</artifactId>
         </dependency>
         <dependency>
             <groupId>xin.manong</groupId>
-            <artifactId>security-keeper-sso-client</artifactId>
+            <artifactId>weapon-jersey</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>xin.manong</groupId>
+            <artifactId>hylian-client</artifactId>
         </dependency>
         <dependency>
             <groupId>xin.manong</groupId>

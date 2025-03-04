@@ -1,5 +1,7 @@
 package xin.manong.darwin.parser.script;
 
+import java.io.Serial;
+
 /**
  * 脚本并发操作异常
  *
@@ -7,6 +9,9 @@ package xin.manong.darwin.parser.script;
  * @date 2023-11-08 11:14:17
  */
 public class ScriptConcurrentException extends Exception {
+
+    @Serial
+    private static final long serialVersionUID = -800725212208689806L;
 
     public ScriptConcurrentException() {
         super();

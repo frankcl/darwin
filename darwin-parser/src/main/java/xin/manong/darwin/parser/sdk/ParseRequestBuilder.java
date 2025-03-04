@@ -10,7 +10,7 @@ import java.util.Map;
  */
 public class ParseRequestBuilder {
 
-    private ParseRequest delegate;
+    private final ParseRequest delegate;
 
     public ParseRequestBuilder() {
         delegate = new ParseRequest();

@@ -1,23 +1,19 @@
 package xin.manong.darwin.web.controller;
 
-import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import jakarta.annotation.Resource;
+import jakarta.ws.rs.*;
+import jakarta.ws.rs.core.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
-import xin.manong.darwin.common.Constants;
 import xin.manong.darwin.common.model.App;
 import xin.manong.darwin.common.model.Pager;
 import xin.manong.darwin.service.iface.AppService;
+import xin.manong.darwin.service.request.AppSearchRequest;
 import xin.manong.darwin.web.convert.Converter;
 import xin.manong.darwin.web.request.AppRequest;
 import xin.manong.darwin.web.request.AppUpdateRequest;
 import xin.manong.darwin.web.component.PermissionSupport;
-import xin.manong.weapon.spring.web.ws.aspect.EnableWebLogAspect;
-
-import javax.annotation.Resource;
-import javax.ws.rs.*;
-import javax.ws.rs.core.MediaType;
+import xin.manong.weapon.spring.boot.aspect.EnableWebLogAspect;
 
 /**
  * 应用控制器
@@ -31,8 +27,6 @@ import javax.ws.rs.core.MediaType;
 @RequestMapping("/app")
 public class AppController {
 
-    private static final Logger logger = LoggerFactory.getLogger(AppController.class);
-
     @Resource
     protected AppService appService;
     @Resource
@@ -41,9 +35,7 @@ public class AppController {
     /**
      * 根据应用名搜索应用
      *
-     * @param name 应用名
-     * @param current 页码，从1开始
-     * @param size 分页大小，默认20
+     * @param searchRequest 搜索请求
      * @return 应用分页数据
      */
     @GET
@@ -51,35 +43,8 @@ public class AppController {
     @Path("search")
     @GetMapping("search")
     @EnableWebLogAspect
-    public Pager<App> search(@QueryParam("name") String name,
-                             @QueryParam("current") Integer current,
-                             @QueryParam("size") Integer size) {
-        if (current == null || current < 1) current = Constants.DEFAULT_CURRENT;
-        if (size == null || size <= 0) size = Constants.DEFAULT_PAGE_SIZE;
-        if (StringUtils.isEmpty(name)) {
-            logger.error("search app name is empty");
-            throw new BadRequestException("搜索应用名为空");
-        }
-        return appService.search(name, current, size);
-    }
-
-    /**
-     * 列表应用
-     *
-     * @param current 页码，从1开始
-     * @param size 分页大小，默认20
-     * @return 应用分页列表
-     */
-    @GET
-    @Produces(MediaType.APPLICATION_JSON)
-    @Path("list")
-    @GetMapping("list")
-    @EnableWebLogAspect
-    public Pager<App> list(@QueryParam("current") Integer current,
-                           @QueryParam("size") Integer size) {
-        if (current == null || current < 1) current = Constants.DEFAULT_CURRENT;
-        if (size == null || size <= 0) size = Constants.DEFAULT_PAGE_SIZE;
-        return appService.getList(current, size);
+    public Pager<App> search(@BeanParam AppSearchRequest searchRequest) {
+        return appService.search(searchRequest);
     }
 
     /**
@@ -94,10 +59,7 @@ public class AppController {
     @GetMapping("get")
     @EnableWebLogAspect
     public App get(@QueryParam("id") Integer id) {
-        if (id == null) {
-            logger.error("missing param[id]");
-            throw new BadRequestException("应用ID缺失");
-        }
+        if (id == null) throw new BadRequestException("应用ID缺失");
         return appService.get(id);
     }
 
@@ -113,11 +75,8 @@ public class AppController {
     @Path("add")
     @PutMapping("add")
     @EnableWebLogAspect
-    public Boolean add(AppRequest request) {
-        if (request == null) {
-            logger.error("app request is null");
-            throw new BadRequestException("应用信息为空");
-        }
+    public Boolean add(@RequestBody AppRequest request) {
+        if (request == null) throw new BadRequestException("应用信息为空");
         request.check();
         App app = Converter.convert(request);
         return appService.add(app);
@@ -135,16 +94,9 @@ public class AppController {
     @Path("update")
     @PostMapping("update")
     @EnableWebLogAspect
-    public Boolean update(AppUpdateRequest request) {
-        if (request == null) {
-            logger.error("update app info is null");
-            throw new BadRequestException("更新应用信息为空");
-        }
+    public Boolean update(@RequestBody AppUpdateRequest request) {
+        if (request == null) throw new BadRequestException("更新应用信息为空");
         request.check();
-        if (appService.get(request.id) == null) {
-            logger.error("app is not found for id[{}]", request.id);
-            throw new NotFoundException(String.format("应用[%d]不存在", request.id));
-        }
         permissionSupport.checkAppPermission(request.id);
         App app = Converter.convert(request);
         return appService.update(app);
@@ -162,14 +114,7 @@ public class AppController {
     @DeleteMapping("delete")
     @EnableWebLogAspect
     public Boolean delete(@QueryParam("id") Integer id) {
-        if (id == null) {
-            logger.error("missing param[id]");
-            throw new BadRequestException("应用ID缺失");
-        }
-        if (appService.get(id) == null) {
-            logger.error("app is not found for id[{}]", id);
-            throw new NotFoundException(String.format("应用[%d]不存在", id));
-        }
+        if (id == null) throw new BadRequestException("应用ID缺失");
         permissionSupport.checkAppPermission(id);
         return appService.delete(id);
     }
