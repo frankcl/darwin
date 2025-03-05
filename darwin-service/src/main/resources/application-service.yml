@@ -12,15 +12,6 @@ spring:
       test-on-return: true
       filters: stat,wall,slf4j,config
 
-weapon:
-  aliyun:
-    oss:
-      client:
-        endpoint: http://oss-cn-hangzhou.aliyuncs.com
-        socket-timeout-ms: 3000
-        connection-timeout-ms: 3000
-        retry-cnt: 3
-
 app:
   service:
     refreshProxyTimeIntervalMs: 300000

@@ -9,11 +9,12 @@ class GroovyParser extends HTMLParser {
     public ParseResponse parse(ParseRequest request) {
         Map<String, Object> fieldMap = new HashMap<>();
         JSONObject body = JSONObject.parseObject(request.html);
-        if (!body.containsKey("status") || !body.getBooleanValue("status")) {
+        if (!body.containsKey("result")) {
             logger.error("parse json failed");
             return ParseResponse.buildError("JSON解析失败");
         }
-        int size = body.containsKey("data") ? body.getJSONArray("data").size() : 0;
+        JSONObject result = body.getJSONObject("result");
+        int size = result.containsKey("data") ? result.getJSONArray("data").size() : 0;
         fieldMap.put("result_size", size);
         return ParseResponse.buildOK(fieldMap, null, null);
     }

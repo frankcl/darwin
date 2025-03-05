@@ -10,13 +10,14 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.transaction.annotation.Transactional;
 import xin.manong.darwin.common.Constants;
-import xin.manong.darwin.common.model.Pager;
-import xin.manong.darwin.common.model.Rule;
-import xin.manong.darwin.common.model.RuleHistory;
-import xin.manong.darwin.common.model.URLRecord;
+import xin.manong.darwin.common.model.*;
 import xin.manong.darwin.service.ApplicationTest;
+import xin.manong.darwin.service.iface.PlanService;
 import xin.manong.darwin.service.iface.RuleService;
 import xin.manong.darwin.service.request.RuleSearchRequest;
+import xin.manong.weapon.base.util.RandomID;
+
+import java.util.ArrayList;
 
 /**
  * @author frankcl
@@ -29,17 +30,33 @@ public class RuleServiceImplTest {
 
     @Resource
     protected RuleService ruleService;
+    @Resource
+    protected PlanService planService;
 
     @Test
     @Transactional
     @Rollback
     public void testRuleOperations() {
+        Plan plan = new Plan();
+        plan.name = "测试计划";
+        plan.planId = RandomID.build();
+        plan.appId = 0;
+        plan.appName = "测试应用";
+        plan.category = Constants.PLAN_CATEGORY_PERIOD;
+        plan.status = Constants.PLAN_STATUS_RUNNING;
+        plan.crontabExpression = "0 0 6-23 * * ?";
+        plan.seedURLs = new ArrayList<>();
+        plan.seedURLs.add(new URLRecord("http://www.sina.com.cn/"));
+        Assert.assertTrue(plan.check());
+        Assert.assertTrue(planService.add(plan));
+
         Rule rule = new Rule();
         rule.name = "测试规则";
         rule.scriptType = Constants.SCRIPT_TYPE_GROOVY;
         rule.script = "function";
         rule.regex = "http://www.sina.com.cn/\\d+.html";
-        rule.planId = "plan";
+        rule.domain = "sina.com.cn";
+        rule.planId = plan.planId;
         rule.appId = 1;
         rule.check();
 

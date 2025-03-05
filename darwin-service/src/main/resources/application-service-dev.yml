@@ -20,14 +20,7 @@ weapon:
         auth-config:
           security-protocol: SASL_PLAINTEXT
           sasl-mechanism: PLAIN
-          sasl-jaas-config: org.apache.kafka.common.security.plain.PlainLoginModule required username=\"admin\" password=\"admin-123456\";
-  aliyun:
-    oss:
-      client:
-        endpoint: http://oss-cn-hangzhou.aliyuncs.com
-        socket-timeout-ms: 3000
-        connection-timeout-ms: 3000
-        retry-cnt: 2
+          sasl-jaas-config: 'org.apache.kafka.common.security.plain.PlainLoginModule required username="admin" password="admin-123456";'
 
 app:
   service:

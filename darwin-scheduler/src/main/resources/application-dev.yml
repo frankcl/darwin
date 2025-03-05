@@ -12,4 +12,4 @@ weapon:
         auth-config:
           security-protocol: SASL_PLAINTEXT
           sasl-mechanism: PLAIN
-          sasl-jaas-config: org.apache.kafka.common.security.plain.PlainLoginModule required username=\"admin\" password=\"admin-123456\";
+          sasl-jaas-config: 'org.apache.kafka.common.security.plain.PlainLoginModule required username="admin" password="admin-123456";'

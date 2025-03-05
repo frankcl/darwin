@@ -13,10 +13,11 @@ import org.springframework.transaction.annotation.Transactional;
 import xin.manong.darwin.common.Constants;
 import xin.manong.darwin.common.model.Pager;
 import xin.manong.darwin.common.model.Plan;
+import xin.manong.darwin.common.model.Rule;
 import xin.manong.darwin.common.model.URLRecord;
 import xin.manong.darwin.service.ApplicationTest;
 import xin.manong.darwin.service.iface.PlanService;
-import xin.manong.darwin.service.iface.URLService;
+import xin.manong.darwin.service.iface.RuleService;
 import xin.manong.darwin.service.request.PlanSearchRequest;
 import xin.manong.weapon.base.util.RandomID;
 
@@ -35,7 +36,7 @@ public class PlanServiceImplTest {
     @Resource
     protected PlanService planService;
     @Resource
-    protected URLService urlService;
+    protected RuleService ruleService;
 
     @Test
     @Transactional
@@ -50,12 +51,22 @@ public class PlanServiceImplTest {
         plan.category = Constants.PLAN_CATEGORY_PERIOD;
         plan.status = Constants.PLAN_STATUS_RUNNING;
         plan.crontabExpression = "0 0 6-23 * * ?";
-        plan.ruleIds = new ArrayList<>();
-        plan.ruleIds.add(0);
         plan.seedURLs = new ArrayList<>();
         plan.seedURLs.add(record);
         Assert.assertTrue(plan.check());
         Assert.assertTrue(planService.add(plan));
+
+        Rule rule = new Rule();
+        rule.name = "测试规则";
+        rule.scriptType = Constants.SCRIPT_TYPE_GROOVY;
+        rule.script = "function";
+        rule.regex = "http://www.sina.com.cn/\\d+.html";
+        rule.domain = "sina.com.cn";
+        rule.planId = plan.planId;
+        rule.appId = 1;
+        rule.check();
+        Assert.assertTrue(ruleService.add(rule));
+        Assert.assertTrue(rule.id != null && rule.id > 0L);
 
         Plan planInDB = planService.get(plan.planId);
         Assert.assertNotNull(planInDB);
@@ -67,7 +78,7 @@ public class PlanServiceImplTest {
         Assert.assertEquals(Constants.PLAN_CATEGORY_PERIOD, planInDB.category.intValue());
         Assert.assertEquals(Constants.PLAN_STATUS_RUNNING, planInDB.status.intValue());
         Assert.assertEquals(1, planInDB.ruleIds.size());
-        Assert.assertEquals(0, planInDB.ruleIds.get(0).intValue());
+        Assert.assertEquals(rule.id.intValue(), planInDB.ruleIds.get(0).intValue());
         Assert.assertEquals(1, planInDB.seedURLs.size());
         Assert.assertEquals(record.key, planInDB.seedURLs.get(0).key);
         Assert.assertEquals(record.url, planInDB.seedURLs.get(0).url);
@@ -91,7 +102,7 @@ public class PlanServiceImplTest {
         Assert.assertEquals(Constants.PLAN_CATEGORY_PERIOD, planInDB.category.intValue());
         Assert.assertEquals(Constants.PLAN_STATUS_STOPPED, planInDB.status.intValue());
         Assert.assertEquals(1, planInDB.ruleIds.size());
-        Assert.assertEquals(0, planInDB.ruleIds.get(0).intValue());
+        Assert.assertEquals(rule.id.intValue(), planInDB.ruleIds.get(0).intValue());
         Assert.assertEquals(2, planInDB.seedURLs.size());
         Assert.assertEquals("http://www.sohu.com/", planInDB.seedURLs.get(0).url);
         Assert.assertEquals("http://www.163.net/", planInDB.seedURLs.get(1).url);

@@ -1,9 +1,9 @@
 spring:
   application:
     name: darwin-scheduler
+  profiles:
+    active: @profileActive@
   config:
-    activate:
-      on-profile: @profileActive@
     import:
       - classpath:application-service.yml
       - classpath:application-service-@profileActive@.yml

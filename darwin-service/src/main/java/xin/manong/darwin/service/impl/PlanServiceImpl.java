@@ -1,5 +1,6 @@
 package xin.manong.darwin.service.impl;
 
+import com.alibaba.fastjson.JSON;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
@@ -99,7 +100,8 @@ public class PlanServiceImpl implements PlanService {
         Pager<Job> pager = jobService.search(searchRequest);
         if (pager.total > 0) throw new ForbiddenException("计划任务不为空");
         if (plan.ruleIds != null && !plan.ruleIds.isEmpty()) {
-            for (Integer ruleId : plan.ruleIds) {
+            List<Integer> ruleIds = new ArrayList<>(plan.ruleIds);
+            for (Integer ruleId : ruleIds) {
                 if (!ruleService.delete(ruleId)) throw new IllegalStateException("删除规则失败");
             }
         }
@@ -116,7 +118,7 @@ public class PlanServiceImpl implements PlanService {
         ruleIds.add(ruleId);
         LambdaUpdateWrapper<Plan> wrapper = new LambdaUpdateWrapper<>();
         wrapper.eq(Plan::getPlanId, planId);
-        wrapper.set(Plan::getRuleIds, ruleIds);
+        wrapper.set(Plan::getRuleIds, JSON.toJSONString(ruleIds));
         return planMapper.update(null, wrapper) > 0;
     }
 
@@ -129,7 +131,7 @@ public class PlanServiceImpl implements PlanService {
         ruleIds.remove(ruleId);
         LambdaUpdateWrapper<Plan> wrapper = new LambdaUpdateWrapper<>();
         wrapper.eq(Plan::getPlanId, planId);
-        wrapper.set(Plan::getRuleIds, ruleIds);
+        wrapper.set(Plan::getRuleIds, JSON.toJSONString(ruleIds));
         return planMapper.update(null, wrapper) > 0;
     }
 

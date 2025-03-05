@@ -51,8 +51,10 @@ public class MultiQueue {
     public boolean refuseService() {
         RedisMemory redisMemory = redisClient.getMemoryInfo();
         if (redisMemory == null) return false;
-        return redisMemory.maxMemoryBytes == 0 || redisMemory.usedMemoryRssBytes * 1.0d /
-                redisMemory.maxMemoryBytes >= config.maxUsedMemoryRatio;
+        long maxMemoryBytes = redisMemory.maxMemoryBytes == 0L ?
+                redisMemory.totalSystemMemoryBytes : redisMemory.maxMemoryBytes;
+        return maxMemoryBytes == 0L || redisMemory.usedMemoryRssBytes * 1.0d /
+                maxMemoryBytes >= config.maxUsedMemoryRatio;
     }
 
     /**

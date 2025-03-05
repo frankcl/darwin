@@ -12,13 +12,16 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.transaction.annotation.Transactional;
 import xin.manong.darwin.common.Constants;
 import xin.manong.darwin.common.model.Job;
+import xin.manong.darwin.common.model.Plan;
 import xin.manong.darwin.common.model.Rule;
 import xin.manong.darwin.common.model.URLRecord;
 import xin.manong.darwin.service.iface.JobService;
+import xin.manong.darwin.service.iface.PlanService;
 import xin.manong.darwin.service.iface.RuleService;
 import xin.manong.weapon.aliyun.oss.OSSClient;
 import xin.manong.weapon.aliyun.oss.OSSMeta;
 import xin.manong.weapon.base.common.Context;
+import xin.manong.weapon.base.util.RandomID;
 
 import java.util.ArrayList;
 
@@ -38,16 +41,34 @@ public class HTMLSpiderTest {
     @Resource
     protected JobService jobService;
     @Resource
+    protected PlanService planService;
+    @Resource
     protected OSSClient ossClient;
     @Resource
     protected HTMLSpider spider;
 
-    private void sweepJobAndRule(Job job) {
-        for (Integer ruleId : job.ruleIds) Assert.assertTrue(ruleService.delete(ruleId));
+    private void sweep(Plan plan, Job job) {
         Assert.assertTrue(jobService.delete(job.jobId));
+        Assert.assertTrue(planService.delete(plan.planId));
     }
 
-    private Job prepareJobAndHTMLRule() throws Exception {
+    private Plan preparePlan() {
+        Plan plan = new Plan();
+        plan.name = "测试计划";
+        plan.planId = RandomID.build();
+        plan.appId = 0;
+        plan.appName = "测试应用";
+        plan.category = Constants.PLAN_CATEGORY_PERIOD;
+        plan.status = Constants.PLAN_STATUS_RUNNING;
+        plan.crontabExpression = "0 0 6-23 * * ?";
+        plan.seedURLs = new ArrayList<>();
+        plan.seedURLs.add(new URLRecord("http://www.sina.com.cn/"));
+        Assert.assertTrue(plan.check());
+        Assert.assertTrue(planService.add(plan));
+        return plan;
+    }
+
+    private Job prepareJobAndHTMLRule(Plan plan) throws Exception {
         String scriptCode = ApplicationTest.readScript("/html_parse_script");
         Rule rule = new Rule();
         rule.domain = "people.com.cn";
@@ -56,14 +77,14 @@ public class HTMLSpiderTest {
         rule.scriptType = Constants.SCRIPT_TYPE_GROOVY;
         rule.script = scriptCode;
         rule.appId = 1;
-        rule.planId = "xxx";
+        rule.planId = plan.planId;
         Assert.assertTrue(ruleService.add(rule));
 
         Job job = new Job();
         job.jobId = "aaa";
         job.name = "测试任务";
         job.priority = Constants.PRIORITY_NORMAL;
-        job.planId = "xxx";
+        job.planId = plan.planId;
         job.appId = 1;
         job.status = Constants.JOB_STATUS_RUNNING;
         job.avoidRepeatedFetch = true;
@@ -73,23 +94,23 @@ public class HTMLSpiderTest {
         return job;
     }
 
-    private Job prepareJobAndJSONRule() throws Exception {
+    private Job prepareJobAndJSONRule(Plan plan) throws Exception {
         String scriptCode = ApplicationTest.readScript("/json_parse_script");
         Rule rule = new Rule();
-        rule.domain = "shuwen.com";
+        rule.domain = "sina.com.cn";
         rule.name = "JSON解析规则";
-        rule.regex = "http://external-data-service.shuwen.com/report/histogram";
+        rule.regex = "https://www.sina.com.cn/api/hotword.json";
         rule.scriptType = Constants.SCRIPT_TYPE_GROOVY;
         rule.script = scriptCode;
         rule.appId = 1;
-        rule.planId = "xxx";
+        rule.planId = plan.planId;
         Assert.assertTrue(ruleService.add(rule));
 
         Job job = new Job();
         job.jobId = "aaa";
         job.name = "测试任务";
         job.priority = Constants.PRIORITY_NORMAL;
-        job.planId = "xxx";
+        job.planId = plan.planId;
         job.appId = 1;
         job.status = Constants.JOB_STATUS_RUNNING;
         job.avoidRepeatedFetch = true;
@@ -103,14 +124,15 @@ public class HTMLSpiderTest {
     @Rollback
     @Transactional
     public void testFetchHTML() throws Exception {
-        Job job = prepareJobAndHTMLRule();
+        Plan plan = preparePlan();
+        Job job = prepareJobAndHTMLRule(plan);
         try {
             String url = "http://politics.people.com.cn/n1/2023/0406/c1001-32658085.html";
             URLRecord record = new URLRecord(url);
             record.category = Constants.CONTENT_CATEGORY_CONTENT;
             record.fetchMethod = Constants.FETCH_METHOD_LONG_PROXY;
             record.jobId = "aaa";
-            record.planId = "xxx";
+            record.planId = plan.planId;
             record.appId = 1;
             Context context = new Context();
             spider.process(record, context);
@@ -128,7 +150,7 @@ public class HTMLSpiderTest {
             Assert.assertTrue(ossClient.exist(ossMeta.bucket, ossMeta.key));
             ossClient.deleteObject(ossMeta.bucket, ossMeta.key);
         } finally {
-            sweepJobAndRule(job);
+            sweep(plan, job);
         }
     }
 
@@ -136,13 +158,14 @@ public class HTMLSpiderTest {
     @Rollback
     @Transactional
     public void testFetchJSON() throws Exception {
-        Job job = prepareJobAndJSONRule();
+        Plan plan = preparePlan();
+        Job job = prepareJobAndJSONRule(plan);
         try {
-            String url = "http://external-data-service.shuwen.com/report/histogram";
+            String url = "https://www.sina.com.cn/api/hotword.json";
             URLRecord record = new URLRecord(url);
             record.category = Constants.CONTENT_CATEGORY_CONTENT;
             record.jobId = "aaa";
-            record.planId = "xxx";
+            record.planId = plan.planId;
             record.appId = 1;
             Context context = new Context();
             spider.process(record, context);
@@ -156,12 +179,12 @@ public class HTMLSpiderTest {
             Assert.assertTrue(record.fetchTime != null && record.fetchTime > 0L);
             Assert.assertTrue(record.fieldMap != null && !record.fieldMap.isEmpty());
             Assert.assertTrue(record.fieldMap.containsKey("result_size"));
-            Assert.assertEquals(7, (int) record.fieldMap.get("result_size"));
+            Assert.assertEquals(10, (int) record.fieldMap.get("result_size"));
             ossMeta = OSSClient.parseURL(record.fetchContentURL);
             Assert.assertTrue(ossClient.exist(ossMeta.bucket, ossMeta.key));
             ossClient.deleteObject(ossMeta.bucket, ossMeta.key);
         } finally {
-            sweepJobAndRule(job);
+            sweep(plan, job);
         }
     }
 
@@ -169,13 +192,14 @@ public class HTMLSpiderTest {
     @Rollback
     @Transactional
     public void testFetchFail() throws Exception {
-        Job job = prepareJobAndHTMLRule();
+        Plan plan = preparePlan();
+        Job job = prepareJobAndHTMLRule(plan);
         try {
             String url = "http://politics.people.com.cn/n1/2023/0406/c1001-32658085111.html";
             URLRecord record = new URLRecord(url);
             record.category = Constants.CONTENT_CATEGORY_CONTENT;
             record.jobId = "aaa";
-            record.planId = "xxx";
+            record.planId = plan.planId;
             record.appId = 1;
             Context context = new Context();
             spider.process(record, context);
@@ -183,7 +207,7 @@ public class HTMLSpiderTest {
             Assert.assertTrue(record.fetchTime != null && record.fetchTime > 0L);
             Assert.assertTrue(StringUtils.isEmpty(record.fetchContentURL));
         } finally {
-            sweepJobAndRule(job);
+            sweep(plan, job);
         }
     }
 }

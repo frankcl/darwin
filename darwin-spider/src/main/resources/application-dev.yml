@@ -1,5 +1,11 @@
 weapon:
   common:
+    etcd:
+      client:
+        username: root
+        password: xmjjyhy28p
+        endpoints:
+          - http://127.0.0.1:2379
     kafka:
       consumer:
         many:
@@ -14,7 +20,7 @@ weapon:
             auth-config:
               security-protocol: SASL_PLAINTEXT
               sasl-mechanism: PLAIN
-              sasl-jaas-config: org.apache.kafka.common.security.plain.PlainLoginModule required username=\"admin\" password=\"admin-123456\";
+              sasl-jaas-config: 'org.apache.kafka.common.security.plain.PlainLoginModule required username="admin" password="admin-123456";'
           resource:
             servers: localhost:9092
             group-id: GID_TEST_DARWIN_FETCH_RESOURCE
@@ -26,7 +32,7 @@ weapon:
             auth-config:
               security-protocol: SASL_PLAINTEXT
               sasl-mechanism: PLAIN
-              sasl-jaas-config: org.apache.kafka.common.security.plain.PlainLoginModule required username=\"admin\" password=\"admin-123456\";
+              sasl-jaas-config: 'org.apache.kafka.common.security.plain.PlainLoginModule required username="admin" password="admin-123456";'
   aliyun:
     oss:
       client:
@@ -37,6 +43,6 @@ weapon:
 app:
   spider:
     content-region: cn-hangzhou
-    content-bucket: default-crawler-file
-    content-directory: darwin
-    temp-directory: ./spider/temp/
+    content-bucket: darwin-spider
+    content-directory: content
+    temp-directory: ./temp/

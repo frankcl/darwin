@@ -39,6 +39,7 @@
         <mysql-connector-j.version>9.1.0</mysql-connector-j.version>
         <guava.version>33.3.1-jre</guava.version>
         <kafka.version>3.9.0</kafka.version>
+        <jetcd.version>0.8.3</jetcd.version>
         <spring.version>6.1.14</spring.version>
         <spring-boot.version>3.3.5</spring-boot.version>
         <groovy.version>3.0.16</groovy.version>
@@ -186,6 +187,11 @@
                 <version>${kafka.version}</version>
             </dependency>
             <dependency>
+                <groupId>io.etcd</groupId>
+                <artifactId>jetcd-core</artifactId>
+                <version>${jetcd.version}</version>
+            </dependency>
+            <dependency>
                 <groupId>com.squareup.okhttp3</groupId>
                 <artifactId>okhttp</artifactId>
                 <version>${okhttp3.version}</version>
@@ -250,6 +256,17 @@
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot</artifactId>
                 <version>${spring-boot.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-starter</artifactId>
+                <version>${spring-boot.version}</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>ch.qos.logback</groupId>
+                        <artifactId>logback-classic</artifactId>
+                    </exclusion>
+                </exclusions>
             </dependency>
             <dependency>
                 <groupId>org.springframework.boot</groupId>
@@ -340,17 +357,37 @@
                 <groupId>com.aliyun.openservices</groupId>
                 <artifactId>tablestore</artifactId>
                 <version>${tablestore.version}</version>
+                <classifier>jar-with-dependencies</classifier>
+                <exclusions>
+                    <exclusion>
+                        <groupId>com.google.protobuf</groupId>
+                        <artifactId>protobuf-java</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>org.apache.httpcomponents</groupId>
+                        <artifactId>httpasyncclient</artifactId>
+                    </exclusion>
+                </exclusions>
             </dependency>
             <dependency>
                 <groupId>com.baomidou</groupId>
-                <artifactId>mybatis-plus-boot-starter</artifactId>
+                <artifactId>mybatis-plus-spring-boot3-starter</artifactId>
                 <version>${mybatis-plus.version}</version>
                 <exclusions>
                     <exclusion>
                         <groupId>ch.qos.logback</groupId>
                         <artifactId>logback-classic</artifactId>
                     </exclusion>
+                    <exclusion>
+                        <groupId>org.springframework.boot</groupId>
+                        <artifactId>spring-boot-autoconfigure</artifactId>
+                    </exclusion>
                 </exclusions>
+            </dependency>
+            <dependency>
+                <groupId>org.glassfish.jersey.core</groupId>
+                <artifactId>jersey-common</artifactId>
+                <version>${jersey.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.glassfish.jersey.media</groupId>
