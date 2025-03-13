@@ -23,6 +23,7 @@ import xin.manong.weapon.aliyun.ots.annotation.PrimaryKey;
 import xin.manong.weapon.base.util.RandomID;
 
 import java.io.Serial;
+import java.nio.charset.Charset;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -281,6 +282,12 @@ public class URLRecord extends BaseModel {
     @JSONField(name = "headers", deserializeUsing = MapDeserializer.class)
     @JsonProperty("headers")
     public Map<String, String> headers = new HashMap<>();
+
+    /**
+     * HTTP头编码
+     */
+    @TableField(exist = false)
+    public Charset charset;
 
     public URLRecord() {
         key = RandomID.build();

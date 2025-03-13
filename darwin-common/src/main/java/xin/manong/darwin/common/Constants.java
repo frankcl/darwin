@@ -209,6 +209,22 @@ public class Constants {
     }};
 
     /**
+     * 执行器状态
+     */
+    public static final int EXECUTOR_STATUS_STOPPED = 0;
+    public static final int EXECUTOR_STATUS_RUNNING = 1;
+    public static final int EXECUTOR_STATUS_ERROR = 2;
+    public static final Map<Integer, String> SUPPORT_EXECUTOR_STATUSES = new HashMap<>() {
+        @Serial
+        private static final long serialVersionUID = 1999022686678355828L;
+
+        {
+            put(EXECUTOR_STATUS_STOPPED, "停止");
+            put(EXECUTOR_STATUS_RUNNING, "运行");
+            put(EXECUTOR_STATUS_ERROR, "错误");
+        }};
+
+    /**
      * 数据记录类型
      */
     public static final String RECORD_TYPE_URL = "URL";

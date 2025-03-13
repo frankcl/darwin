@@ -44,7 +44,7 @@ public class SpiderConfig {
     public String contentDirectory;
     public String tempDirectory;
 
-    @Resource(name = "recordAspectLogger")
+    @Resource(name = "urlAspectLogger")
     protected JSONLogger aspectLogger;
 
     /**
@@ -77,10 +77,10 @@ public class SpiderConfig {
      */
     @Bean(name = "htmlURLReceiver")
     public URLReceiver buildHTMLURLReceiver(SpiderFactory spiderFactory) {
-        Set<String> categories = new HashSet<>();
-        categories.add("1");
-        categories.add("2");
-        return new URLReceiver(spiderFactory, aspectLogger, categories);
+        Set<String> supportedCategory = new HashSet<>();
+        supportedCategory.add(String.valueOf(Constants.CONTENT_CATEGORY_CONTENT));
+        supportedCategory.add(String.valueOf(Constants.CONTENT_CATEGORY_LIST));
+        return new URLReceiver(spiderFactory, aspectLogger, supportedCategory);
     }
 
     /**
@@ -91,9 +91,9 @@ public class SpiderConfig {
      */
     @Bean(name = "resourceURLReceiver")
     public URLReceiver buildResourceURLReceiver(SpiderFactory spiderFactory) {
-        Set<String> categories = new HashSet<>();
-        categories.add("3");
-        categories.add("4");
-        return new URLReceiver(spiderFactory, aspectLogger, categories);
+        Set<String> supportedCategory = new HashSet<>();
+        supportedCategory.add(String.valueOf(Constants.CONTENT_CATEGORY_RESOURCE));
+        supportedCategory.add(String.valueOf(Constants.CONTENT_CATEGORY_STREAM));
+        return new URLReceiver(spiderFactory, aspectLogger, supportedCategory);
     }
 }

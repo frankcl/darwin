@@ -1,7 +1,9 @@
 package xin.manong.darwin.spider;
 
 import jakarta.annotation.Resource;
+import okhttp3.MediaType;
 import okhttp3.Response;
+import okhttp3.ResponseBody;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
@@ -23,6 +25,7 @@ import xin.manong.weapon.base.http.*;
 import xin.manong.weapon.base.log.JSONLogger;
 import xin.manong.weapon.base.util.CommonUtil;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Map;
@@ -56,7 +59,7 @@ public abstract class Spider {
     protected String category;
     @Resource
     protected SpiderConfig config;
-    @Resource(name = "recordAspectLogger")
+    @Resource(name = "urlAspectLogger")
     protected JSONLogger aspectLogger;
     @Resource
     protected OSSClient ossClient;
@@ -87,28 +90,52 @@ public abstract class Spider {
      * @param record URL记录
      * @param inputStream 内容字节流
      * @param context 上下文
-     * @return 成功返回true，否则返回false
      */
-    protected boolean writeStream(URLRecord record, InputStream inputStream, Context context) {
+    protected void write(URLRecord record, InputStream inputStream, Context context) throws IOException {
         long startTime = System.currentTimeMillis();
         try {
             String key = String.format("%s/%s/%s", config.contentDirectory, category, record.key);
-            String suffix = buildResourceFileSuffix(record);
+            String suffix = generateSuffixUsingMimeType(record);
             if (!StringUtils.isEmpty(suffix)) key = String.format("%s.%s", key, suffix);
             if (!ossClient.putObject(config.contentBucket, key, inputStream)) {
                 record.status = Constants.URL_STATUS_IO_ERROR;
-                logger.error("write fetch content failed for url[{}]", record.url);
-                context.put(Constants.DARWIN_DEBUG_MESSAGE, "抓取内容写入OSS失败");
-                return false;
+                logger.error("write fetched content failed for URL[{}]", record.url);
+                throw new IOException("抓取内容写入OSS失败");
             }
             OSSMeta ossMeta = new OSSMeta();
             ossMeta.region = config.contentRegion;
             ossMeta.bucket = config.contentBucket;
             ossMeta.key = key;
             record.fetchContentURL = OSSClient.buildURL(ossMeta);
-            return true;
         } finally {
             context.put(Constants.DARWIN_WRITE_TIME, System.currentTimeMillis() - startTime);
+        }
+    }
+
+    /**
+     * 执行HTTP请求
+     *
+     * @param record URL数据
+     * @return HTTP响应
+     */
+    protected Response httpRequest(URLRecord record) throws Exception {
+        try {
+            HttpClient httpClient = getHttpClient(record.fetchMethod);
+            HttpRequest httpRequest = new HttpRequest.Builder().requestURL(record.url).method(RequestMethod.GET).build();
+            if (!StringUtils.isEmpty(config.userAgent)) httpRequest.headers.put(HEADER_USER_AGENT, config.userAgent);
+            if (!StringUtils.isEmpty(record.parentURL)) httpRequest.headers.put(HEADER_REFERER, record.parentURL);
+            String host = CommonUtil.getHost(record.url);
+            if (!StringUtils.isEmpty(host) && !CommonUtil.isIP(host)) httpRequest.headers.put(HEADER_HOST, host);
+            if (record.headers != null && !record.headers.isEmpty()) httpRequest.headers.putAll(record.headers);
+            if (record.timeout != null && record.timeout > 0) {
+                httpRequest.connectTimeoutMs = record.timeout;
+                httpRequest.readTimeoutMs = record.timeout;
+            }
+            return httpClient.execute(httpRequest);
+        } catch (Exception e) {
+            logger.error("exception occurred when fetching url[{}]", record.url);
+            logger.error(e.getMessage(), e);
+            throw e;
         }
     }
 
@@ -123,9 +150,6 @@ public abstract class Spider {
      */
     protected HttpClient getHttpClient(Integer fetchMethod) {
         int category = fetchMethod == null ? Constants.FETCH_METHOD_COMMON : fetchMethod;
-        if (category != Constants.FETCH_METHOD_LONG_PROXY && category != Constants.FETCH_METHOD_SHORT_PROXY) {
-            category = Constants.FETCH_METHOD_COMMON;
-        }
         if (httpClientMap.containsKey(category)) return httpClientMap.get(category);
         synchronized (this) {
             if (httpClientMap.containsKey(category)) return httpClientMap.get(category);
@@ -149,7 +173,7 @@ public abstract class Spider {
     }
 
     /**
-     * 获取以前抓取资源，避免重复抓取
+     * 获取以前抓取记录输入流，避免重复抓取
      * 满足以下条件可以使用以前抓取资源
      * 1. 任务设置避免重复抓取
      * 2. URL在一天内抓取过
@@ -157,9 +181,9 @@ public abstract class Spider {
      *
      * @param record URL记录
      * @param context 上下文
-     * @return 成功返回抓取资源，否则返回null
+     * @return 成功返回输入流，否则返回null
      */
-    protected SpiderResource getSpiderResource(URLRecord record, Context context) {
+    protected InputStream getPrevInputStream(URLRecord record, Context context) {
         if (context == null || !context.contains(Constants.AVOID_REPEATED_FETCH) ||
                 !((boolean) context.get(Constants.AVOID_REPEATED_FETCH))) return null;
         URLSearchRequest searchRequest = new URLSearchRequest();
@@ -174,7 +198,40 @@ public abstract class Spider {
         Pager<URLRecord> pager = urlService.search(searchRequest);
         if (pager == null || pager.records == null || pager.records.isEmpty()) return null;
         URLRecord prevRecord = pager.records.get(0);
-        return SpiderResource.buildFrom(prevRecord, ossClient);
+        if (StringUtils.isEmpty(prevRecord.fetchContentURL)) return null;
+        OSSMeta ossMeta = OSSClient.parseURL(prevRecord.fetchContentURL);
+        if (ossMeta == null || !ossClient.exist(ossMeta.bucket, ossMeta.key)) return null;
+        record.status = prevRecord.status;
+        record.httpCode = prevRecord.httpCode;
+        record.redirectURL = prevRecord.redirectURL;
+        record.mimeType = prevRecord.mimeType;
+        record.subMimeType = prevRecord.subMimeType;
+        return ossClient.getObjectStream(ossMeta.bucket, ossMeta.key);
+    }
+
+    /**
+     * 从HTTP响应中获取输入流
+     *
+     * @param httpResponse HTTP响应
+     * @param record URL数据
+     * @return 输入流
+     * @throws Exception 异常
+     */
+    protected InputStream getHTTPInputStream(Response httpResponse, URLRecord record) throws Exception {
+        if (httpResponse == null) throw new IOException("获取HTTP响应失败");
+        if (httpResponse.isSuccessful()) record.status = Constants.URL_STATUS_SUCCESS;
+        record.httpCode = httpResponse.code();
+        String targetURL = httpResponse.request().url().url().toString();
+        if (!StringUtils.isEmpty(targetURL) && !targetURL.equals(record.url)) record.redirectURL = targetURL;
+        ResponseBody responseBody = httpResponse.body();
+        assert responseBody != null;
+        MediaType mediaType = responseBody.contentType();
+        if (mediaType != null) {
+            record.mimeType = mediaType.type();
+            record.subMimeType = mediaType.subtype();
+            record.charset = mediaType.charset();
+        }
+        return responseBody.byteStream();
     }
 
     /**
@@ -183,7 +240,7 @@ public abstract class Spider {
      * @param record URL记录
      * @return 成功返回资源文件后缀，否则返回null
      */
-    protected String buildResourceFileSuffix(URLRecord record) {
+    protected String generateSuffixUsingMimeType(URLRecord record) {
         if (!Constants.SUPPORT_MIME_TYPES.contains(record.mimeType)) return null;
         if (StringUtils.isEmpty(record.subMimeType)) return null;
         if (record.mimeType.equalsIgnoreCase(MIME_TYPE_TEXT) &&
@@ -192,41 +249,6 @@ public abstract class Spider {
                 !record.subMimeType.equalsIgnoreCase(SUB_MIME_TYPE_PDF) &&
                 !record.subMimeType.equalsIgnoreCase(SUB_MIME_TYPE_JSON)) return null;
         return record.subMimeType.toLowerCase();
-    }
-
-    /**
-     * 抓取URL
-     *
-     * @param record URL记录
-     * @param context 上下文
-     * @return 爬虫抓取资源
-     */
-    protected SpiderResource fetch(URLRecord record, Context context) {
-        try {
-            HttpClient httpClient = getHttpClient(record.fetchMethod);
-            HttpRequest httpRequest = new HttpRequest.Builder().requestURL(record.url).method(RequestMethod.GET).build();
-            if (!StringUtils.isEmpty(config.userAgent)) httpRequest.headers.put(HEADER_USER_AGENT, config.userAgent);
-            if (!StringUtils.isEmpty(record.parentURL)) httpRequest.headers.put(HEADER_REFERER, record.parentURL);
-            String host = CommonUtil.getHost(record.url);
-            if (!StringUtils.isEmpty(host) && !CommonUtil.isIP(host)) httpRequest.headers.put(HEADER_HOST, host);
-            if (record.headers != null && !record.headers.isEmpty()) httpRequest.headers.putAll(record.headers);
-            if (record.timeout != null && record.timeout > 0) {
-                httpRequest.connectTimeoutMs = record.timeout;
-                httpRequest.readTimeoutMs = record.timeout;
-            }
-            Response httpResponse = httpClient.execute(httpRequest);
-            if (httpResponse == null || !httpResponse.isSuccessful()) {
-                context.put(Constants.DARWIN_DEBUG_MESSAGE, "执行HTTP请求失败");
-                logger.error("execute http request failed for url[{}]", record.url);
-            }
-            return SpiderResource.buildFrom(record.url, httpResponse);
-        } catch (Exception e) {
-            context.put(Constants.DARWIN_DEBUG_MESSAGE, "执行HTTP请求异常");
-            context.put(Constants.DARWIN_STACK_TRACE, ExceptionUtils.getStackTrace(e));
-            logger.error("exception occurred when fetching url[{}]", record.url);
-            logger.error(e.getMessage(), e);
-            return SpiderResource.buildFrom(record.url, null);
-        }
     }
 
     /**
@@ -240,7 +262,10 @@ public abstract class Spider {
         try {
             Job job = jobService.getCache(record.jobId);
             if (job != null && job.avoidRepeatedFetch) context.put(Constants.AVOID_REPEATED_FETCH, true);
+            record.status = Constants.URL_STATUS_FETCH_FAIL;
+            record.fetchTime = System.currentTimeMillis();
             handle(record, context);
+            record.status = Constants.URL_STATUS_SUCCESS;
         } catch (Throwable t) {
             context.put(Constants.DARWIN_DEBUG_MESSAGE, "抓取数据异常");
             context.put(Constants.DARWIN_STACK_TRACE, ExceptionUtils.getStackTrace(t));

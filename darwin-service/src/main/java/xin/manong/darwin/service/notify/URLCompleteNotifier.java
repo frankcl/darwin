@@ -43,7 +43,7 @@ public class URLCompleteNotifier implements CompleteNotifier<URLRecord> {
     protected ConcurrentManager concurrentManager;
     @Resource
     protected KafkaProducer producer;
-    @Resource(name = "recordAspectLogger")
+    @Resource(name = "urlAspectLogger")
     protected JSONLogger aspectLogger;
 
     public URLCompleteNotifier() {
@@ -81,7 +81,8 @@ public class URLCompleteNotifier implements CompleteNotifier<URLRecord> {
     private void pushMessage(URLRecord record, Context context) {
         if (record == null || record.category == Constants.CONTENT_CATEGORY_LIST) return;
         String recordString = JSON.toJSONString(record, SerializerFeature.DisableCircularReferenceDetect);
-        RecordMetadata metadata = producer.send(record.key, recordString.getBytes(StandardCharsets.UTF_8), config.recordTopic);
+        RecordMetadata metadata = producer.send(record.key,
+                recordString.getBytes(StandardCharsets.UTF_8), config.topicURL);
         if (metadata == null) {
             context.put(Constants.DARWIN_DEBUG_MESSAGE, "推送消息失败");
             logger.warn("push record finish message failed for key[{}]", record.key);

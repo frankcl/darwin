@@ -45,6 +45,6 @@ public class SpiderFactory {
             return streamSpider;
         }
         logger.error("unsupported spider for category[{}]", record.category);
-        throw new RuntimeException(String.format("根据URL类型[%d]未找到对应爬虫实例", record.category));
+        throw new IllegalArgumentException(String.format("根据URL类型[%d]未找到对应爬虫实例", record.category));
     }
 }

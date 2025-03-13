@@ -1,8 +1,11 @@
 package xin.manong.darwin.spider;
 
+import okhttp3.Response;
 import org.springframework.stereotype.Component;
 import xin.manong.darwin.common.model.URLRecord;
 import xin.manong.weapon.base.common.Context;
+
+import java.io.InputStream;
 
 /**
  * 资源爬虫
@@ -24,15 +27,17 @@ public class ResourceSpider extends Spider {
 
     @Override
     protected void handle(URLRecord record, Context context) throws Exception {
-        SpiderResource resource = null;
+        Response httpResponse = null;
+        InputStream inputStream = getPrevInputStream(record, context);
         try {
-            resource = getSpiderResource(record, context);
-            if (resource == null) resource = fetch(record, context);
-            if (resource != null) resource.copyTo(record);
-            if (resource == null || resource.inputStream == null) return;
-            writeStream(record, resource.inputStream, context);
+            if (inputStream == null) {
+                httpResponse = httpRequest(record);
+                inputStream = getHTTPInputStream(httpResponse, record);
+            }
+            write(record, inputStream, context);
         } finally {
-            if (resource != null) resource.close();
+            if (inputStream != null) inputStream.close();
+            if (httpResponse != null) httpResponse.close();
         }
     }
 }

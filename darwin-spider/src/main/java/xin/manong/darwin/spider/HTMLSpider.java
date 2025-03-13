@@ -1,6 +1,7 @@
 package xin.manong.darwin.spider;
 
 import jakarta.annotation.Resource;
+import okhttp3.Response;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.jsoup.Jsoup;
@@ -28,6 +29,8 @@ import xin.manong.weapon.aliyun.oss.OSSMeta;
 import xin.manong.weapon.base.common.Context;
 
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -67,12 +70,81 @@ public class HTMLSpider extends Spider {
     @Override
     protected void handle(URLRecord record, Context context) throws Exception {
         boolean scopeExtract = record.isScopeExtract();
-        Rule rule = scopeExtract ? null : getMatchRule(record, context);
-        if (!scopeExtract && rule == null) return;
-        String html = fetchAndGetHTML(record, context);
-        if (html == null) return;
-        if (!writeHTML(html, record, context)) return;
-        parseHTML(html, record, rule, context);
+        Rule rule = scopeExtract ? null : findMatchRule(record);
+        if (!scopeExtract && rule == null) throw new IllegalStateException("未找到匹配规则");
+        InputStream inputStream = getPrevInputStream(record, context);
+        boolean prev = inputStream != null;
+        Response httpResponse = null;
+        try {
+            if (inputStream == null) {
+                httpResponse = httpRequest(record);
+                inputStream = getHTTPInputStream(httpResponse, record);
+            }
+            String html = readHTML(inputStream, record, context, prev);
+            writeHTML(html, record, context);
+            parseHTML(html, record, rule, context);
+        } finally {
+            if (inputStream != null) inputStream.close();
+            if (httpResponse != null) httpResponse.close();
+        }
+    }
+
+    /**
+     * 从输入流读取HTML
+     *
+     * @param inputStream 输入流
+     * @param record URL数据
+     * @param context 上下文
+     * @param prev 是否使用以前抓取数据
+     * @return HTML字符串
+     */
+    private String readHTML(InputStream inputStream, URLRecord record, Context context, boolean prev) {
+        if (inputStream == null) throw new IllegalStateException("获取数据输入流失败");
+        long startTime = System.currentTimeMillis();
+        try (inputStream; ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
+            int n;
+            byte[] buffer = new byte[BUFFER_SIZE];
+            while ((n = inputStream.read(buffer, 0, BUFFER_SIZE)) != -1) outputStream.write(buffer, 0, n);
+            byte[] body = outputStream.toByteArray();
+            String charset = prev ? CHARSET_UTF8 : parseCharset(body, record.charset);
+            context.put(Constants.CHARSET, charset);
+            return new String(body, Charset.forName(charset));
+        } catch (Exception e) {
+            record.status = Constants.URL_STATUS_IO_ERROR;
+            logger.error("read {} input stream failed", prev ? "OSS" : "HTML");
+            throw new IllegalStateException(prev ? "读取OSS数据失败" : "读取HTML数据失败", e);
+        } finally {
+            context.put(Constants.DARWIN_FETCH_TIME, System.currentTimeMillis() - startTime);
+        }
+    }
+
+    /**
+     * 将抓取HTML文本写入OSS
+     *
+     * @param html HTML文本
+     * @param record URL记录
+     * @param context 上下文
+     */
+    private void writeHTML(String html, URLRecord record, Context context) throws IOException {
+        long startTime = System.currentTimeMillis();
+        try {
+            byte[] bytes = html.getBytes(StandardCharsets.UTF_8);
+            String suffix = generateSuffixUsingMimeType(record);
+            String key = String.format("%s/%s/%s", config.contentDirectory, category, record.key);
+            if (!StringUtils.isEmpty(suffix)) key = String.format("%s.%s", key, suffix);
+            if (!ossClient.putObject(config.contentBucket, key, bytes)) {
+                record.status = Constants.URL_STATUS_IO_ERROR;
+                logger.error("write HTML into OSS failed for URL[{}]", record.url);
+                throw new IOException("HTML写入OSS失败");
+            }
+            OSSMeta ossMeta = new OSSMeta();
+            ossMeta.region = config.contentRegion;
+            ossMeta.bucket = config.contentBucket;
+            ossMeta.key = key;
+            record.fetchContentURL = OSSClient.buildURL(ossMeta);
+        } finally {
+            context.put(Constants.DARWIN_WRITE_TIME, System.currentTimeMillis() - startTime);
+        }
     }
 
     /**
@@ -82,9 +154,8 @@ public class HTMLSpider extends Spider {
      * @param record URL记录
      * @param rule 解析规则
      * @param context 上下文
-     * @return 成功返回true，否则返回false
      */
-    private boolean parseHTML(String html, URLRecord record, Rule rule, Context context) {
+    private void parseHTML(String html, URLRecord record, Rule rule, Context context) {
         long startTime = System.currentTimeMillis();
         try {
             HTMLParseRequestBuilder builder = new HTMLParseRequestBuilder().html(html).
@@ -95,9 +166,8 @@ public class HTMLSpider extends Spider {
             ParseResponse response = parseService.parse(request);
             if (!response.status) {
                 record.status = Constants.URL_STATUS_PARSE_ERROR;
-                context.put(Constants.DARWIN_DEBUG_MESSAGE, response.message);
-                logger.error("parse HTML failed for url[{}], cause[{}]", record.url, response.message);
-                return false;
+                logger.error("parse HTML failed for URL[{}], cause[{}]", record.url, response.message);
+                throw new IllegalStateException("解析HTML失败");
             }
             if (response.fieldMap != null && !response.fieldMap.isEmpty()) {
                 record.fieldMap = response.fieldMap;
@@ -107,80 +177,8 @@ public class HTMLSpider extends Spider {
                 record.userDefinedMap.putAll(response.userDefinedMap);
             }
             processChildURLs(response.childURLs, record, context);
-            return true;
         } finally {
             context.put(Constants.DARWIN_PARSE_TIME, System.currentTimeMillis() - startTime);
-        }
-    }
-
-    /**
-     * 将抓取HTML文本写入OSS
-     *
-     * @param html HTML文本
-     * @param record URL记录
-     * @param context 上下文
-     * @return 成功返回true，否则返回false
-     */
-    private boolean writeHTML(String html, URLRecord record, Context context) {
-        long startTime = System.currentTimeMillis();
-        try {
-            byte[] bytes = html.getBytes(StandardCharsets.UTF_8);
-            String suffix = buildResourceFileSuffix(record);
-            String key = String.format("%s/%s/%s", config.contentDirectory, category, record.key);
-            if (!StringUtils.isEmpty(suffix)) key = String.format("%s.%s", key, suffix);
-            if (!ossClient.putObject(config.contentBucket, key, bytes)) {
-                record.status = Constants.URL_STATUS_IO_ERROR;
-                context.put(Constants.DARWIN_DEBUG_MESSAGE, "HTML写入OSS失败");
-                return false;
-            }
-            OSSMeta ossMeta = new OSSMeta();
-            ossMeta.region = config.contentRegion;
-            ossMeta.bucket = config.contentBucket;
-            ossMeta.key = key;
-            record.fetchContentURL = OSSClient.buildURL(ossMeta);
-            return true;
-        } finally {
-            context.put(Constants.DARWIN_WRITE_TIME, System.currentTimeMillis() - startTime);
-        }
-    }
-
-    /**
-     * 抓取或获取HTML文本资源
-     *
-     * @param record URL记录
-     * @param context 上下文
-     * @return 成功返回HTML文本，否则返回null
-     */
-    private String fetchAndGetHTML(URLRecord record, Context context) throws Exception {
-        long startTime = System.currentTimeMillis();
-        ByteArrayOutputStream outputStream = null;
-        SpiderResource resource = getSpiderResource(record, context);
-        if (resource == null) resource = fetch(record, context);
-        if (resource != null) resource.copyTo(record);
-        try {
-            if (resource == null || resource.inputStream == null) return null;
-            int n;
-            byte[] buffer = new byte[BUFFER_SIZE];
-            outputStream = new ByteArrayOutputStream();
-            while ((n = resource.inputStream.read(buffer, 0, BUFFER_SIZE)) != -1) outputStream.write(buffer, 0, n);
-            byte[] body = outputStream.toByteArray();
-            String charset = resource.guessCharset ? parseCharset(body, resource.charset) : CHARSET_UTF8;
-            context.put(Constants.CHARSET, charset);
-            return new String(body, Charset.forName(charset));
-        } catch (Exception e) {
-            context.put(Constants.DARWIN_DEBUG_MESSAGE, "获取HTML资源异常");
-            context.put(Constants.DARWIN_STACK_TRACE, ExceptionUtils.getStackTrace(e));
-            logger.error("get html resource failed");
-            logger.error(e.getMessage(), e);
-            return null;
-        } finally {
-            try {
-                context.put(Constants.DARWIN_FETCH_TIME, System.currentTimeMillis() - startTime);
-                if (outputStream != null) outputStream.close();
-                if (resource != null) resource.close();
-            } catch (Exception e) {
-                logger.error(e.getMessage(), e);
-            }
         }
     }
 
@@ -188,16 +186,13 @@ public class HTMLSpider extends Spider {
      * 根据URL记录获取匹配规则
      *
      * @param record URL记录
-     * @param context 上下文
-     * @return 匹配规则，无匹配返回null
+     * @return 匹配规则
      */
-    private Rule getMatchRule(URLRecord record, Context context) {
+    private Rule findMatchRule(URLRecord record) {
         Job job = jobService.getCache(record.jobId);
         if (job == null) {
-            record.status = Constants.URL_STATUS_UNKNOWN_ERROR;
-            context.put(Constants.DARWIN_DEBUG_MESSAGE, "爬虫任务不存在");
             logger.error("job[{}] is not found for url[{}]", record.jobId, record.url);
-            return null;
+            throw new IllegalStateException("爬虫任务不存在");
         }
         List<Rule> rules = new ArrayList<>();
         for (Integer ruleId : job.ruleIds) {
@@ -206,10 +201,8 @@ public class HTMLSpider extends Spider {
             rules.add(rule);
         }
         if (rules.size() != 1) {
-            record.status = Constants.URL_STATUS_UNKNOWN_ERROR;
-            context.put(Constants.DARWIN_DEBUG_MESSAGE, String.format("匹配规则数量[%d]不符合预期", rules.size()));
             logger.error("match rule num[{}] is unexpected", rules.size());
-            return null;
+            throw new IllegalStateException("存在多条匹配规则");
         }
         return rules.get(0);
     }
@@ -221,11 +214,11 @@ public class HTMLSpider extends Spider {
      * 3. 猜测HTML编码
      *
      * @param body HTML字节数组
-     * @param c HTTP响应头字符编码
-     * @return 成功返回编码，否则返回默认编码UTF-8
+     * @param headerCharset HTTP响应头字符编码
+     * @return 返回编码
      */
-    private String parseCharset(byte[] body, Charset c) {
-        if (c != null) return c.name();
+    private String parseCharset(byte[] body, Charset headerCharset) {
+        if (headerCharset != null) return headerCharset.name();
         String charset = parseCharsetFromHTML(body);
         return StringUtils.isEmpty(charset) ? CharsetDetector.detect(body) : charset;
     }
@@ -298,8 +291,10 @@ public class HTMLSpider extends Spider {
             childURL.depth = parentRecord.depth + 1;
             childURL.status = Constants.URL_STATUS_CREATED;
             if (childURL.priority == null) childURL.priority = parentRecord.priority;
-            if (childURL.concurrentLevel == null) childURL.concurrentLevel = parentRecord.concurrentLevel;
             if (childURL.fetchMethod == null) childURL.fetchMethod = parentRecord.fetchMethod;
+            if (childURL.concurrentLevel == null && DarwinUtil.isSameHost(childURL, parentRecord)) {
+                childURL.concurrentLevel = parentRecord.concurrentLevel;
+            }
             if (parentRecord.userDefinedMap != null && !parentRecord.userDefinedMap.isEmpty()) {
                 Map<String, Object> userDefinedMap = childURL.userDefinedMap;
                 childURL.userDefinedMap = new HashMap<>();
@@ -318,7 +313,7 @@ public class HTMLSpider extends Spider {
             }
             MultiQueueStatus status = multiQueue.push(childURL, 3);
             if (status != MultiQueueStatus.OK) {
-                context.put(Constants.DARWIN_DEBUG_MESSAGE, String.format("抽链结果添加MultiQueue失败[%s]", status.name()));
+                context.put(Constants.DARWIN_DEBUG_MESSAGE, String.format("新链接添加多级队列失败[%s]", status.name()));
                 logger.warn("push child URL[{}] into MultiQueue failed, status[{}]", childURL.url, status.name());
                 return false;
             }

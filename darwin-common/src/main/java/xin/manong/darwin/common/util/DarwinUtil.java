@@ -6,6 +6,8 @@ import xin.manong.darwin.common.model.Job;
 import xin.manong.darwin.common.model.Plan;
 import xin.manong.darwin.common.model.URLRecord;
 import xin.manong.weapon.base.common.Context;
+import xin.manong.weapon.base.util.CommonUtil;
+import xin.manong.weapon.base.util.DomainUtil;
 
 /**
  * 爬虫通用工具
@@ -83,5 +85,35 @@ public class DarwinUtil {
         if (job.status != null) context.put(Constants.STATUS, Constants.SUPPORT_JOB_STATUSES.get(job.status));
         if (job.fetchMethod != null) context.put(Constants.FETCH_METHOD, Constants.SUPPORT_FETCH_METHODS.get(job.fetchMethod));
         if (job.priority != null) context.put(Constants.PRIORITY, job.priority);
+    }
+
+    /**
+     * 判断URL的host是否相同
+     *
+     * @param record1 URL数据
+     * @param record2 URL数据
+     * @return 相同返回true，否则返回false
+     */
+    public static boolean isSameHost(URLRecord record1, URLRecord record2) {
+        if (record1 == null || record2 == null) return false;
+        String host1 = CommonUtil.getHost(record1.url);
+        String host2 = CommonUtil.getHost(record2.url);
+        return host1.equals(host2);
+    }
+
+    /**
+     * 判断URL的domain是否相同
+     *
+     * @param record1 URL数据
+     * @param record2 URL数据
+     * @return 相同返回true，否则返回false
+     */
+    public static boolean isSameDomain(URLRecord record1, URLRecord record2) {
+        if (record1 == null || record2 == null) return false;
+        String host1 = CommonUtil.getHost(record1.url);
+        String host2 = CommonUtil.getHost(record2.url);
+        String domain1 = DomainUtil.getDomain(host1);
+        String domain2 = DomainUtil.getDomain(host2);
+        return domain1.equals(domain2);
     }
 }

@@ -67,7 +67,7 @@ public class PlanServiceImpl implements PlanService {
     @Resource
     @Lazy
     protected MultiQueue multiQueue;
-    @Resource(name = "recordAspectLogger")
+    @Resource(name = "urlAspectLogger")
     protected JSONLogger aspectLogger;
 
     @Override

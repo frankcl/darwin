@@ -19,7 +19,7 @@ public class AspectLogConfig {
 
     public String jobLogFile;
     public String planLogFile;
-    public String recordLogFile;
+    public String urlLogFile;
     public String concurrentLogFile;
 
     @Bean(name = "jobAspectLogger")
@@ -32,9 +32,9 @@ public class AspectLogConfig {
         return new JSONLogger(planLogFile, null);
     }
 
-    @Bean(name = "recordAspectLogger")
-    public JSONLogger recordAspectLogger() {
-        return new JSONLogger(recordLogFile, null);
+    @Bean(name = "urlAspectLogger")
+    public JSONLogger urlAspectLogger() {
+        return new JSONLogger(urlLogFile, null);
     }
 
     @Bean(name = "concurrentAspectLogger")

@@ -66,7 +66,7 @@ public class JobCompleteNotifier implements CompleteNotifier<String> {
     private void pushMessage(Job job, Context context) {
         String jobString = JSON.toJSONString(job, SerializerFeature.DisableCircularReferenceDetect);
         RecordMetadata metadata = producer.send(job.jobId,
-                jobString.getBytes(StandardCharsets.UTF_8), config.jobTopic);
+                jobString.getBytes(StandardCharsets.UTF_8), config.topicJob);
         if (metadata == null) {
             context.put(Constants.DARWIN_DEBUG_MESSAGE, "推送消息失败");
             logger.warn("push finish message failed for job[{}]", job.jobId);

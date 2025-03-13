@@ -23,7 +23,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.Set;
 
 /**
- * 同步URL接收器
+ * URL接收器
  *
  * @author frankcl
  * @date 2023-03-24 10:28:37
@@ -32,14 +32,14 @@ public class URLReceiver implements MessageListener, KafkaRecordProcessor {
 
     private static final Logger logger = LoggerFactory.getLogger(URLReceiver.class);
 
-    private final Set<String> categories;
+    protected final Set<String> supportedCategory;
     protected final SpiderFactory spiderFactory;
     protected final JSONLogger aspectLogger;
 
-    public URLReceiver(SpiderFactory spiderFactory, JSONLogger aspectLogger, Set<String> categories) {
+    public URLReceiver(SpiderFactory spiderFactory, JSONLogger aspectLogger, Set<String> supportedCategory) {
         this.spiderFactory = spiderFactory;
         this.aspectLogger = aspectLogger;
-        this.categories = categories;
+        this.supportedCategory = supportedCategory;
     }
 
     private void handle(byte[] body, Context context) {
@@ -92,8 +92,9 @@ public class URLReceiver implements MessageListener, KafkaRecordProcessor {
     public void process(ConsumerRecord<byte[], byte[]> consumerRecord) throws Exception {
         Headers headers = consumerRecord.headers();
         if (headers == null) return;
-        Header header = headers.lastHeader("category");
-        if (header == null || !categories.contains(new String(header.value(), StandardCharsets.UTF_8))) return;
+        Header header = headers.lastHeader(Constants.CATEGORY);
+        if (header == null || supportedCategory == null ||
+                !supportedCategory.contains(new String(header.value(), StandardCharsets.UTF_8))) return;
         Context context = new Context();
         context.put(Constants.DARWIN_STAGE, Constants.STAGE_FETCH);
         if (consumerRecord.key() != null) {

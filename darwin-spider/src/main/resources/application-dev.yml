@@ -7,6 +7,10 @@ weapon:
         endpoints:
           - http://127.0.0.1:2379
     kafka:
+      auth:
+        security-protocol: SASL_PLAINTEXT
+        sasl-mechanism: PLAIN
+        sasl-jaas-config: 'org.apache.kafka.common.security.plain.PlainLoginModule required username="admin" password="admin-123456";'
       consumer:
         many:
           html:
@@ -17,10 +21,6 @@ weapon:
             consumeThreadNum: 2
             topics:
               - TEST_DARWIN_FETCH_URL
-            auth-config:
-              security-protocol: SASL_PLAINTEXT
-              sasl-mechanism: PLAIN
-              sasl-jaas-config: 'org.apache.kafka.common.security.plain.PlainLoginModule required username="admin" password="admin-123456";'
           resource:
             servers: localhost:9092
             group-id: GID_TEST_DARWIN_FETCH_RESOURCE
@@ -29,10 +29,6 @@ weapon:
             consumeThreadNum: 2
             topics:
               - TEST_DARWIN_FETCH_URL
-            auth-config:
-              security-protocol: SASL_PLAINTEXT
-              sasl-mechanism: PLAIN
-              sasl-jaas-config: 'org.apache.kafka.common.security.plain.PlainLoginModule required username="admin" password="admin-123456";'
   aliyun:
     oss:
       client:

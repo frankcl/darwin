@@ -15,10 +15,9 @@
         <module>darwin-service</module>
         <module>darwin-web</module>
         <module>darwin-queue</module>
-        <module>darwin-monitor</module>
         <module>darwin-parser</module>
         <module>darwin-spider</module>
-        <module>darwin-scheduler</module>
+        <module>darwin-executor</module>
     </modules>
 
     <properties>

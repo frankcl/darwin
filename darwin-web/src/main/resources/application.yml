@@ -5,6 +5,8 @@ spring:
     active: @profileActive@
   config:
     import:
+      - classpath:application-executor.yml
+      - classpath:application-executor-@profileActive@.yml
       - classpath:application-service.yml
       - classpath:application-service-@profileActive@.yml
       - classpath:application-queue.yml
@@ -13,7 +15,7 @@ spring:
       - classpath:application-log-@profileActive@.yml
 
 server:
-  port: 8088
+  port: 8080
   jetty:
     threads:
       acceptors: 2

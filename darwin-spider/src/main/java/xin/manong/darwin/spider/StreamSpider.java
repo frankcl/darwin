@@ -3,7 +3,6 @@ package xin.manong.darwin.spider;
 import jakarta.annotation.Resource;
 import okhttp3.Response;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.bytedeco.javacpp.Loader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -13,11 +12,11 @@ import xin.manong.darwin.common.model.Proxy;
 import xin.manong.darwin.common.model.URLRecord;
 import xin.manong.darwin.service.iface.ProxyService;
 import xin.manong.weapon.base.common.Context;
-import xin.manong.weapon.base.http.HttpClient;
-import xin.manong.weapon.base.http.HttpRequest;
-import xin.manong.weapon.base.http.RequestMethod;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -50,70 +49,71 @@ public class StreamSpider extends Spider {
 
     @Override
     protected void handle(URLRecord record, Context context) throws Exception {
-        SpiderResource resource = getSpiderResource(record, context);
+        InputStream inputStream = getPrevInputStream(record, context);
         String tempFile = String.format("%s/%s.mp4", config.tempDirectory, record.key);
         try {
-            if (resource == null || resource.inputStream == null) {
-                if (!fetchM3U8(record, tempFile, context)) {
-                    record.fetchTime = System.currentTimeMillis();
-                    record.status = Constants.URL_STATUS_FETCH_FAIL;
-                    return;
-                }
-                resource = SpiderResource.buildFrom(tempFile);
+            if (inputStream == null) {
+                inputStream = getM3U8InputStream(record, tempFile, context);
+                record.mimeType = Spider.MIME_TYPE_VIDEO;
+                record.subMimeType = Spider.SUB_MIME_TYPE_MP4;
+                record.httpCode = Spider.HTTP_CODE_OK;
+                record.status = Constants.URL_STATUS_SUCCESS;
             }
-            resource.copyTo(record);
-            writeStream(record, resource.inputStream, context);
+            write(record, inputStream, context);
         } finally {
-            if (resource != null) resource.close();
+            if (inputStream != null) inputStream.close();
             if (!new File(tempFile).delete()) logger.warn("delete temp file failed: {}", tempFile);
         }
     }
 
-    private boolean fetchM3U8(URLRecord record, String tempFile, Context context) {
+    /**
+     * 抓取M3U8视频流
+     *
+     * @param record URL数据
+     * @param tempFile 临时文件
+     * @param context 上下文
+     * @return 输入流
+     * @throws Exception 异常
+     */
+    private InputStream getM3U8InputStream(URLRecord record, String tempFile, Context context) throws Exception {
         long startTime = System.currentTimeMillis();
         try {
-            String m3U8Meta = fetchM3U8Meta(record, context);
-            if (m3U8Meta == null || !m3U8Meta.contains(LIVE_STREAM_FINISH_TAG)) {
+            String meta = fetchM3U8Meta(record);
+            if (!meta.contains(LIVE_STREAM_FINISH_TAG)) {
                 record.httpCode = HTTP_CODE_NOT_ACCEPTABLE;
-                context.put(Constants.DARWIN_DEBUG_MESSAGE, "不支持直播流抓取");
-                logger.error("unsupported live stream fetching for url[{}]", record.url);
-                return false;
+                logger.error("unsupported live stream fetching for URL[{}]", record.url);
+                throw new IllegalStateException("不支持直播流抓取");
             }
-            return fetchM3U8Resource(record, context, tempFile);
+            fetchM3U8Stream(record, tempFile);
+            return new FileInputStream(tempFile);
         } finally {
             context.put(Constants.DARWIN_FETCH_TIME, System.currentTimeMillis() - startTime);
         }
     }
+
     /**
      * 下载M3U8直播流资源
      *
      * @param record URL记录
-     * @param context 上下文
      * @param tempFile 保存临时文件
-     * @return 成功返回true，否则返回false
      */
-    private boolean fetchM3U8Resource(URLRecord record, Context context, String tempFile) {
+    private void fetchM3U8Stream(URLRecord record, String tempFile) throws Exception {
         Process process = null;
         try {
             createTempDirectory();
             List<String> commands = buildFFMPEGCommands(record, tempFile);
             ProcessBuilder processBuilder = new ProcessBuilder();
             process = processBuilder.inheritIO().command(commands).start();
-            int returnCode = process.waitFor();
-            if (returnCode == 0) {
-                logger.error("execute ffmpeg command[{}] success",
-                        String.join(" ", commands.toArray(new String[0])));
-                return true;
+            int code = process.waitFor();
+            String cmd = String.join(" ", commands.toArray(new String[0]));
+            if (code != 0) {
+                logger.error("execute ffmpeg command[{}] failed for code[{}]", cmd, code);
+                throw new IllegalStateException(String.format("ffmpeg抓取直播流失败，返回码[%d]", code));
             }
-            context.put(Constants.DARWIN_DEBUG_MESSAGE, String.format("ffmpeg抓取直播流失败，返回码[%d]", returnCode));
-            logger.error("execute ffmpeg command[{}] failed for code[{}]",
-                    String.join(" ", commands.toArray(new String[0])), returnCode);
-            return false;
+            logger.error("execute ffmpeg command[{}] success", cmd);
         } catch (Exception e) {
-            context.put(Constants.DARWIN_DEBUG_MESSAGE, "ffmpeg抓取直播流异常");
-            context.put(Constants.DARWIN_STACK_TRACE, ExceptionUtils.getStackTrace(e));
-            logger.error(e.getMessage(), e);
-            return false;
+            logger.error("exception occurred when fetching M3U8 stream for URL[{}]", record.url);
+            throw new IOException("ffmpeg抓取直播流异常");
         } finally {
             if (process != null) process.destroy();
         }
@@ -123,37 +123,17 @@ public class StreamSpider extends Spider {
      * 抓取M3U8元数据
      *
      * @param record URL记录
-     * @param context 上下文
      * @return 成功返回M3U8元数据，否则返回null
      */
-    private String fetchM3U8Meta(URLRecord record, Context context) {
-        HttpClient httpClient = getHttpClient(record.fetchMethod);
-        HttpRequest httpRequest = new HttpRequest.Builder().requestURL(record.url).
-                method(RequestMethod.GET).build();
-        if (record.timeout != null && record.timeout > 0) {
-            httpRequest.connectTimeoutMs = record.timeout;
-            httpRequest.readTimeoutMs = record.timeout;
-        }
-        Response httpResponse = httpClient.execute(httpRequest);
-        try {
+    private String fetchM3U8Meta(URLRecord record) throws Exception {
+        try (Response httpResponse = httpRequest(record)) {
             if (httpResponse == null || !httpResponse.isSuccessful()) {
-                record.status = Constants.URL_STATUS_FETCH_FAIL;
                 if (httpResponse != null) record.httpCode = httpResponse.code();
-                context.put(Constants.DARWIN_DEBUG_MESSAGE, "抓取M3U8元信息失败");
-                logger.error("fetch M3U8 meta failed for url[{}]", record.url);
-                return null;
+                logger.error("fetch M3U8 meta failed for URL[{}]", record.url);
+                throw new IOException("抓取M3U8元信息失败");
             }
             assert httpResponse.body() != null;
             return httpResponse.body().string();
-        } catch (Exception e) {
-            record.status = Constants.URL_STATUS_FETCH_FAIL;
-            if (httpResponse != null) record.httpCode = httpResponse.code();
-            context.put(Constants.DARWIN_DEBUG_MESSAGE, "抓取M3U8元信息异常");
-            context.put(Constants.DARWIN_STACK_TRACE, ExceptionUtils.getStackTrace(e));
-            logger.error(e.getMessage(), e);
-            return null;
-        } finally {
-            if (httpResponse != null) httpResponse.close();
         }
     }
 

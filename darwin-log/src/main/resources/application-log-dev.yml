@@ -2,5 +2,5 @@ app:
   log:
     job-log-file: ./log/aspect/job.log
     plan-log-file: ./log/aspect/plan.log
-    record-log-file: ./log/aspect/record.log
+    url-log-file: ./log/aspect/url.log
     concurrent-log-file: ./log/aspect/concurrent.log

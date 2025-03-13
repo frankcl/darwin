@@ -1,0 +1,4 @@
+app:
+  executor:
+    scheduler:
+      topicURL: TEST_DARWIN_FETCH_URL

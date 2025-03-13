@@ -6,4 +6,4 @@ weapon:
         connection-pool-size: 200
         password: xmjjyhy28p
         address: 127.0.0.1:6379
-        db: 1
+        db: 0
