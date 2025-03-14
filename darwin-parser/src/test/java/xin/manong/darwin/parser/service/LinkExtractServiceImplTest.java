@@ -11,7 +11,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 import xin.manong.darwin.common.Constants;
 import xin.manong.darwin.parser.ApplicationTest;
 import xin.manong.darwin.parser.sdk.ParseResponse;
-import xin.manong.darwin.parser.service.request.HTMLParseRequest;
+import xin.manong.darwin.parser.service.request.ScriptParseRequest;
 import xin.manong.weapon.base.http.HttpClient;
 import xin.manong.weapon.base.http.HttpRequest;
 
@@ -24,10 +24,10 @@ import java.io.IOException;
 @RunWith(SpringRunner.class)
 @ActiveProfiles(value = { "parse", "parse-dev" })
 @SpringBootTest(classes = ApplicationTest.class)
-public class ScopeExtractServiceImplTest {
+public class LinkExtractServiceImplTest {
 
     @Resource
-    private ScopeExtractService scopeExtractService;
+    private LinkExtractService linkExtractService;
     private final HttpClient httpClient = new HttpClient();
 
     private String fetch(String url) throws IOException {
@@ -43,11 +43,11 @@ public class ScopeExtractServiceImplTest {
     @Test
     public void testScopeExtract() throws Exception {
         String url = "http://www.sina.com.cn";
-        HTMLParseRequest request = new HTMLParseRequest();
+        ScriptParseRequest request = new ScriptParseRequest();
         request.url = url;
         request.html = fetch(url);
-        request.scope = Constants.LINK_SCOPE_HOST;
-        ParseResponse response = scopeExtractService.parse(request);
+        request.linkScope = Constants.LINK_SCOPE_HOST;
+        ParseResponse response = linkExtractService.extract(request);
         Assert.assertTrue(response != null && response.status);
     }
 

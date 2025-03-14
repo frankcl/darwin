@@ -96,8 +96,20 @@ public class DarwinUtil {
      */
     public static boolean isSameHost(URLRecord record1, URLRecord record2) {
         if (record1 == null || record2 == null) return false;
-        String host1 = CommonUtil.getHost(record1.url);
-        String host2 = CommonUtil.getHost(record2.url);
+        return isSameHost(record1.url, record2.url);
+    }
+
+    /**
+     * 判断URL的host是否相同
+     *
+     * @param url1 URL数据
+     * @param url2 URL数据
+     * @return 相同返回true，否则返回false
+     */
+    public static boolean isSameHost(String url1, String url2) {
+        if (StringUtils.isEmpty(url1) || StringUtils.isEmpty(url2)) return false;
+        String host1 = CommonUtil.getHost(url1);
+        String host2 = CommonUtil.getHost(url2);
         return host1.equals(host2);
     }
 
@@ -110,8 +122,21 @@ public class DarwinUtil {
      */
     public static boolean isSameDomain(URLRecord record1, URLRecord record2) {
         if (record1 == null || record2 == null) return false;
-        String host1 = CommonUtil.getHost(record1.url);
-        String host2 = CommonUtil.getHost(record2.url);
+        return isSameDomain(record1.url, record2.url);
+    }
+
+    /**
+     * 判断URL的domain是否相同
+     *
+     * @param url1 URL数据
+     * @param url2 URL数据
+     * @return 相同返回true，否则返回false
+     */
+    public static boolean isSameDomain(String url1, String url2) {
+        if (StringUtils.isEmpty(url1) || StringUtils.isEmpty(url2)) return false;
+        String host1 = CommonUtil.getHost(url1);
+        String host2 = CommonUtil.getHost(url2);
+        if (StringUtils.isEmpty(host1) || StringUtils.isEmpty(host2)) return false;
         String domain1 = DomainUtil.getDomain(host1);
         String domain2 = DomainUtil.getDomain(host2);
         return domain1.equals(domain2);

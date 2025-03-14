@@ -113,4 +113,22 @@ public class DarwinUtilTest {
         Assert.assertEquals(Constants.PRIORITY_HIGH, (int) context.get(Constants.PRIORITY));
         Assert.assertEquals("0 0 6-23/1 * * ?", context.get(Constants.CRONTAB_EXPRESSION));
     }
+
+    @Test
+    public void testIsSameHost() {
+        Assert.assertTrue(DarwinUtil.isSameHost(new URLRecord("http://www.sina.com.cn/1"),
+                new URLRecord("http://www.sina.com.cn/2")));
+        Assert.assertFalse(DarwinUtil.isSameHost(new URLRecord("http://sports.sina.com.cn/1"),
+                new URLRecord("http://www.sina.com.cn/2")));
+    }
+
+    @Test
+    public void testIsSameDomain() {
+        Assert.assertTrue(DarwinUtil.isSameDomain(new URLRecord("http://www.sina.com.cn/1"),
+                new URLRecord("http://www.sina.com.cn/2")));
+        Assert.assertTrue(DarwinUtil.isSameDomain(new URLRecord("http://sports.sina.com.cn/1"),
+                new URLRecord("http://www.sina.com.cn/2")));
+        Assert.assertFalse(DarwinUtil.isSameDomain(new URLRecord("http://sports.sina.com.cn/1"),
+                new URLRecord("http://www.sohu.com/2")));
+    }
 }

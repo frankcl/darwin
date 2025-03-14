@@ -56,8 +56,10 @@ public class ScriptCache {
             return;
         }
         try {
-            Script prevScript = cache.get(script.getKey(), () -> script);
-            if (prevScript != script && prevScript.currentReferenceCount() == 0) {
+            Script prevScript = cache.getIfPresent(script.key);
+            cache.put(script.key, script);
+            if (prevScript != null && prevScript != script &&
+                    prevScript.currentReferenceCount() == 0) {
                 prevScript.close();
             }
         } catch (Exception e) {

@@ -17,11 +17,9 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
  * @author frankcl
  * @date 2023-03-16 19:55:36
  */
-public abstract class Script {
+public abstract class Script implements AutoCloseable {
 
     private static final Logger logger = LoggerFactory.getLogger(Script.class);
-
-    protected static final String METHOD_PARSE = "parse";
 
     @Setter
     @Getter
@@ -83,6 +81,7 @@ public abstract class Script {
     /**
      * 关闭脚本，释放资源
      */
+    @Override
     public void close() {
         try {
             readWriteLock.writeLock().lock();
@@ -120,5 +119,4 @@ public abstract class Script {
     public int currentReferenceCount() {
         return referenceCount.get();
     }
-
 }

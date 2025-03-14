@@ -10,38 +10,37 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import xin.manong.darwin.common.Constants;
 import xin.manong.darwin.common.model.URLRecord;
+import xin.manong.darwin.common.util.DarwinUtil;
 import xin.manong.darwin.parser.sdk.ParseResponse;
-import xin.manong.darwin.parser.service.ScopeExtractService;
-import xin.manong.darwin.parser.service.request.HTMLParseRequest;
-import xin.manong.weapon.base.util.CommonUtil;
-import xin.manong.weapon.base.util.DomainUtil;
+import xin.manong.darwin.parser.service.LinkExtractService;
+import xin.manong.darwin.parser.service.request.ScriptParseRequest;
 
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
 /**
- * 范围抽链服务实现
+ * 抽链服务实现
  *
  * @author frankcl
  * @date 2023-11-15 14:49:36
  */
 @Service
-public class ScopeExtractServiceImpl implements ScopeExtractService {
+public class LinkExtractServiceImpl implements LinkExtractService {
 
-    private static final Logger logger = LoggerFactory.getLogger(ScopeExtractServiceImpl.class);
+    private static final Logger logger = LoggerFactory.getLogger(LinkExtractServiceImpl.class);
 
     private static final String TAG_NAME_A = "a";
     private static final String ATTR_NAME_HREF = "href";
     private static final String ATTR_NAME_STYLE = "style";
 
     @Override
-    public ParseResponse parse(HTMLParseRequest request) {
+    public ParseResponse extract(ScriptParseRequest request) {
         String parentURL = StringUtils.isEmpty(request.redirectURL) ? request.url : request.redirectURL;
         Document document = Jsoup.parse(request.html, parentURL);
         Element body = document.body();
         List<URLRecord> childURLs = new ArrayList<>();
-        scopeExtract(body, parentURL, request.scope, childURLs);
+        scopeExtract(body, parentURL, request.linkScope, childURLs);
         return ParseResponse.buildOK(null, childURLs, null);
     }
 
@@ -83,15 +82,10 @@ public class ScopeExtractServiceImpl implements ScopeExtractService {
     private boolean supportExtract(String childURL, int scope, String parentURL) {
         if (StringUtils.isEmpty(childURL)) return false;
         if (scope == Constants.LINK_SCOPE_ALL) return true;
-        String host = CommonUtil.getHost(childURL);
-        String parentHost = CommonUtil.getHost(parentURL);
-        if (StringUtils.isEmpty(host) || StringUtils.isEmpty(parentHost)) return false;
         if (scope == Constants.LINK_SCOPE_DOMAIN) {
-            String domain = DomainUtil.getDomain(host);
-            String parentDomain = DomainUtil.getDomain(parentHost);
-            return domain.equals(parentDomain);
+            return DarwinUtil.isSameDomain(childURL, parentURL);
         } else if (scope == Constants.LINK_SCOPE_HOST) {
-            return host.equals(parentHost);
+            return DarwinUtil.isSameHost(childURL, parentURL);
         }
         return false;
     }

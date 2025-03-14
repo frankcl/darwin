@@ -218,8 +218,8 @@ public abstract class Spider {
      * @throws Exception 异常
      */
     protected InputStream getHTTPInputStream(Response httpResponse, URLRecord record) throws Exception {
-        if (httpResponse == null) throw new IOException("获取HTTP响应失败");
-        if (httpResponse.isSuccessful()) record.status = Constants.URL_STATUS_SUCCESS;
+        if (httpResponse == null || !httpResponse.isSuccessful()) throw new IOException("获取HTTP响应失败");
+        record.status = Constants.URL_STATUS_SUCCESS;
         record.httpCode = httpResponse.code();
         String targetURL = httpResponse.request().url().url().toString();
         if (!StringUtils.isEmpty(targetURL) && !targetURL.equals(record.url)) record.redirectURL = targetURL;

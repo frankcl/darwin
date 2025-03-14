@@ -12,7 +12,7 @@ import java.nio.charset.StandardCharsets;
 
 /**
  * Groovy脚本日志appender
- * 1. 日志记录在内容，不超过1MB
+ * 1. 日志记录，不超过1MB
  * 2. 从调用堆栈获取日志打印文件和行号，解决Groovy调用Log4J打印文件行号缺失问题
  *
  * @author frankcl

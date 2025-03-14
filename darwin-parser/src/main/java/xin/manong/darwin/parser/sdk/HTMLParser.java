@@ -36,7 +36,7 @@ public abstract class HTMLParser {
      * @param request 解析请求
      * @return 解析响应
      */
-    public final ParseResponse doParse(ParseRequest request) {
+    public final ParseResponse execute(ParseRequest request) {
         String name = String.format("%s$%s", HTMLParser.class.getName(), UUID.randomUUID());
         Logger slf4jLogger = LoggerFactory.getLogger(name);
         Layout layout = new PatternLayout(LOG_LAYOUT_PATTERN);

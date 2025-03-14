@@ -24,7 +24,7 @@ public class GroovyScript extends Script {
 
     private static final Logger logger = LoggerFactory.getLogger(GroovyScript.class);
 
-    private static final String METHOD_PARSE = "doParse";
+    private static final String METHOD_EXECUTE = "execute";
 
     /**
      * groovy脚本对象类加载器
@@ -58,12 +58,12 @@ public class GroovyScript extends Script {
                 logger.error("parse groovy failed");
                 throw new ScriptCompileException("无效Groovy脚本");
             }
-            groovyClass.getMethod(METHOD_PARSE, ParseRequest.class);
+            groovyClass.getMethod(METHOD_EXECUTE, ParseRequest.class);
             this.groovyObject = (GroovyObject) groovyClass.getDeclaredConstructor().newInstance();
         } catch (NoSuchMethodException e) {
-            logger.error("parse method[{}] is not found for parser[{}]", METHOD_PARSE, groovyClass.getName());
+            logger.error("parse method[{}] is not found for parser[{}]", METHOD_EXECUTE, groovyClass.getName());
             logger.error(e.getMessage(), e);
-            throw new ScriptCompileException(String.format("未找到解析方法[%s]", METHOD_PARSE), e);
+            throw new ScriptCompileException(String.format("未找到解析方法[%s]", METHOD_EXECUTE), e);
         } catch (Exception e) {
             logger.error("build Groovy script failed for id[{}]", key);
             logger.error(e.getMessage(), e);
@@ -80,7 +80,7 @@ public class GroovyScript extends Script {
     @Override
     public ParseResponse doExecute(ParseRequest request) throws Exception {
         if (groovyObject == null) throw new ScriptConcurrentException();
-        return (ParseResponse) groovyObject.invokeMethod(METHOD_PARSE, request);
+        return (ParseResponse) groovyObject.invokeMethod(METHOD_EXECUTE, request);
     }
 
     /**

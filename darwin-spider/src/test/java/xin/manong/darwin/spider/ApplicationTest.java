@@ -1,10 +1,7 @@
 package xin.manong.darwin.spider;
 
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import xin.manong.weapon.spring.boot.annotation.EnableEtcdClient;
-import xin.manong.weapon.spring.boot.annotation.EnableKafkaProducer;
-import xin.manong.weapon.spring.boot.annotation.EnableOSSClient;
-import xin.manong.weapon.spring.boot.annotation.EnableRedisClient;
+import xin.manong.weapon.spring.boot.annotation.*;
 
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
@@ -19,6 +16,7 @@ import java.nio.charset.StandardCharsets;
 @EnableRedisClient
 @EnableEtcdClient
 @EnableKafkaProducer
+@EnableKafkaConsumer
 @EnableOSSClient
 @SpringBootApplication(scanBasePackages = { "xin.manong.darwin.spider", "xin.manong.darwin.service",
         "xin.manong.darwin.queue", "xin.manong.darwin.parser", "xin.manong.darwin.log" })

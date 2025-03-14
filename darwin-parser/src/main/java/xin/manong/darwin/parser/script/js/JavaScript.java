@@ -35,6 +35,7 @@ public class JavaScript extends Script {
 
     private static final Logger logger = LoggerFactory.getLogger(JavaScript.class);
 
+    private static final String METHOD_PARSE = "parse";
     private static final String JAVASCRIPT_UTILS_FILE = "/js/parse_utils.js";
     private static final String JAVASCRIPT_ENGINE_NAME = "nashorn";
     private static final ScriptEngineManager scriptEngineManager = new ScriptEngineManager();

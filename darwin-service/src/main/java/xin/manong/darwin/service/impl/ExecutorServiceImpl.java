@@ -43,6 +43,8 @@ public class ExecutorServiceImpl implements ExecutorService {
 
     @Override
     public List<Executor> getList() {
-        return executorMapper.selectList(null);
+        LambdaQueryWrapper<Executor> query = new LambdaQueryWrapper<>();
+        query.orderByDesc(Executor::getCreateTime);
+        return executorMapper.selectList(query);
     }
 }

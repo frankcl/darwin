@@ -50,7 +50,7 @@ public class ExecutorServiceImplTest {
         Assert.assertEquals(Constants.EXECUTOR_STATUS_RUNNING, getExecutor.status.intValue());
 
         List<Executor> executors = executorService.getList();
-        Assert.assertEquals(1, executors.size());
+        Assert.assertFalse(executors.isEmpty());
         Assert.assertEquals(executor.id, executors.get(0).id);
     }
 }

@@ -3,17 +3,17 @@ package xin.manong.darwin.parser.service.request;
 import java.util.Map;
 
 /**
- * HTML解析请求构建器
+ * 脚本解析请求构建器
  *
  * @author frankcl
  * @date 2023-08-25 15:08:17
  */
-public class HTMLParseRequestBuilder {
+public class ScriptParseRequestBuilder {
 
-    private final HTMLParseRequest delegate;
+    private final ScriptParseRequest delegate;
 
-    public HTMLParseRequestBuilder() {
-        delegate = new HTMLParseRequest();
+    public ScriptParseRequestBuilder() {
+        delegate = new ScriptParseRequest();
     }
 
     /**
@@ -22,7 +22,7 @@ public class HTMLParseRequestBuilder {
      * @param url URL
      * @return 构建器
      */
-    public HTMLParseRequestBuilder url(String url) {
+    public ScriptParseRequestBuilder url(String url) {
         delegate.url = url;
         return this;
     }
@@ -33,7 +33,7 @@ public class HTMLParseRequestBuilder {
      * @param redirectURL 重定向URL
      * @return 构建器
      */
-    public HTMLParseRequestBuilder redirectURL(String redirectURL) {
+    public ScriptParseRequestBuilder redirectURL(String redirectURL) {
         delegate.redirectURL = redirectURL;
         return this;
     }
@@ -44,7 +44,7 @@ public class HTMLParseRequestBuilder {
      * @param html 待解析HTML
      * @return 构建器
      */
-    public HTMLParseRequestBuilder html(String html) {
+    public ScriptParseRequestBuilder html(String html) {
         delegate.html = html;
         return this;
     }
@@ -55,7 +55,7 @@ public class HTMLParseRequestBuilder {
      * @param scriptType 脚本类型
      * @return 构建器
      */
-    public HTMLParseRequestBuilder scriptType(int scriptType) {
+    public ScriptParseRequestBuilder scriptType(int scriptType) {
         delegate.scriptType = scriptType;
         return this;
     }
@@ -66,30 +66,19 @@ public class HTMLParseRequestBuilder {
      * @param scriptCode 脚本代码
      * @return 构建器
      */
-    public HTMLParseRequestBuilder scriptCode(String scriptCode) {
+    public ScriptParseRequestBuilder scriptCode(String scriptCode) {
         delegate.scriptCode = scriptCode;
         return this;
     }
 
     /**
-     * 设置全局抽链范围
+     * 设置抽链范围
      *
-     * @param scope 全局抽链范围
+     * @param linkScope 抽链范围
      * @return 构建器
      */
-    public HTMLParseRequestBuilder scope(int scope) {
-        delegate.scope = scope;
-        return this;
-    }
-
-    /**
-     * 设置页面类型
-     *
-     * @param category 页面类型
-     * @return 构建器
-     */
-    public HTMLParseRequestBuilder category(int category) {
-        delegate.category = category;
+    public ScriptParseRequestBuilder linkScope(int linkScope) {
+        delegate.linkScope = linkScope;
         return this;
     }
 
@@ -99,7 +88,7 @@ public class HTMLParseRequestBuilder {
      * @param userDefinedMap 用户自定义数据
      * @return 构建器
      */
-    public HTMLParseRequestBuilder userDefinedMap(Map<String, Object> userDefinedMap) {
+    public ScriptParseRequestBuilder userDefinedMap(Map<String, Object> userDefinedMap) {
         delegate.userDefinedMap = userDefinedMap;
         return this;
     }
@@ -109,12 +98,11 @@ public class HTMLParseRequestBuilder {
      *
      * @return 请求对象
      */
-    public HTMLParseRequest build() {
-        HTMLParseRequest request = new HTMLParseRequest();
+    public ScriptParseRequest build() {
+        ScriptParseRequest request = new ScriptParseRequest();
         request.html = delegate.html;
         request.url = delegate.url;
-        request.scope = delegate.scope;
-        request.category = delegate.category;
+        request.linkScope = delegate.linkScope;
         request.redirectURL = delegate.redirectURL;
         request.userDefinedMap = delegate.userDefinedMap;
         request.scriptType = delegate.scriptType;

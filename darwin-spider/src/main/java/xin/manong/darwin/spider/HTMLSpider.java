@@ -18,8 +18,8 @@ import xin.manong.darwin.common.model.URLRecord;
 import xin.manong.darwin.common.util.DarwinUtil;
 import xin.manong.darwin.parser.sdk.ParseResponse;
 import xin.manong.darwin.parser.service.ParseService;
-import xin.manong.darwin.parser.service.request.HTMLParseRequest;
-import xin.manong.darwin.parser.service.request.HTMLParseRequestBuilder;
+import xin.manong.darwin.parser.service.request.ScriptParseRequest;
+import xin.manong.darwin.parser.service.request.ScriptParseRequestBuilder;
 import xin.manong.darwin.queue.multi.MultiQueue;
 import xin.manong.darwin.queue.multi.MultiQueueStatus;
 import xin.manong.darwin.service.component.CharsetDetector;
@@ -158,11 +158,11 @@ public class HTMLSpider extends Spider {
     private void parseHTML(String html, URLRecord record, Rule rule, Context context) {
         long startTime = System.currentTimeMillis();
         try {
-            HTMLParseRequestBuilder builder = new HTMLParseRequestBuilder().html(html).
+            ScriptParseRequestBuilder builder = new ScriptParseRequestBuilder().html(html).
                     url(record.url).redirectURL(record.redirectURL).userDefinedMap(record.userDefinedMap);
-            if (record.isScopeExtract()) builder.scope(record.scope).category(record.category);
+            if (record.isScopeExtract()) builder.linkScope(record.scope);
             else builder.scriptType(rule.scriptType).scriptCode(rule.script);
-            HTMLParseRequest request = builder.build();
+            ScriptParseRequest request = builder.build();
             ParseResponse response = parseService.parse(request);
             if (!response.status) {
                 record.status = Constants.URL_STATUS_PARSE_ERROR;
