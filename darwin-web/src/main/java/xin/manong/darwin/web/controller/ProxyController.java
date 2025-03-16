@@ -23,8 +23,8 @@ import xin.manong.weapon.spring.boot.aspect.EnableWebLogAspect;
  */
 @RestController
 @Controller
-@Path("/proxy")
-@RequestMapping("/proxy")
+@Path("/api/proxy")
+@RequestMapping("/api/proxy")
 public class ProxyController {
 
     @Resource

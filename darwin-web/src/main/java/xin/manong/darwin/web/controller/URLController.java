@@ -27,8 +27,8 @@ import java.io.IOException;
  */
 @RestController
 @Controller
-@Path("/url")
-@RequestMapping("/url")
+@Path("/api/url")
+@RequestMapping("/api/url")
 public class URLController {
 
     private static final String HEADER_CONTENT_DISPOSITION = "Content-disposition";

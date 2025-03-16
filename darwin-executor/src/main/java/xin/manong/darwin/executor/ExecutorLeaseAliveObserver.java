@@ -32,10 +32,9 @@ public class ExecutorLeaseAliveObserver implements StreamObserver<LeaseKeepAlive
                 leaseKeepAliveResponse.getTTL());
         if (executorService.get(executorName) == null) return;
         Executor updateExecutor = new Executor();
-        updateExecutor.name = executorName;
         updateExecutor.status = Constants.EXECUTOR_STATUS_RUNNING;
         updateExecutor.cause = "";
-        if (!executorService.update(updateExecutor)) {
+        if (!executorService.updateByName(executorName, updateExecutor)) {
             logger.warn("update running status failed for global executor[{}]", executorName);
         }
     }
@@ -44,10 +43,9 @@ public class ExecutorLeaseAliveObserver implements StreamObserver<LeaseKeepAlive
     public void onError(Throwable throwable) {
         logger.error("error occurred when keeping alive for global executor lease[{}]", executorName);
         Executor updateExecutor = new Executor();
-        updateExecutor.name = executorName;
         updateExecutor.status = Constants.EXECUTOR_STATUS_ERROR;
         updateExecutor.cause = throwable.getMessage();
-        if (!executorService.update(updateExecutor)) {
+        if (!executorService.updateByName(executorName, updateExecutor)) {
             logger.error("update error status failed for global executor[{}]", executorName);
         }
     }
@@ -56,10 +54,9 @@ public class ExecutorLeaseAliveObserver implements StreamObserver<LeaseKeepAlive
     public void onCompleted() {
         logger.info("global executor lease[{}] keep alive completed", executorName);
         Executor updateExecutor = new Executor();
-        updateExecutor.name = executorName;
         updateExecutor.status = Constants.EXECUTOR_STATUS_STOPPED;
         updateExecutor.cause = "";
-        if (!executorService.update(updateExecutor)) {
+        if (!executorService.updateByName(executorName, updateExecutor)) {
             logger.error("update stopped status failed for global executor[{}]", executorName);
         }
     }

@@ -26,8 +26,8 @@ import xin.manong.weapon.spring.boot.aspect.EnableWebLogAspect;
  */
 @RestController
 @Controller
-@Path("/rule")
-@RequestMapping("/rule")
+@Path("/api/rule")
+@RequestMapping("/api/rule")
 public class RuleController {
 
     @Resource

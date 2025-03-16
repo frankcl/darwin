@@ -37,6 +37,15 @@ public interface ExecutorService {
     boolean update(Executor executor);
 
     /**
+     * 根据指定名称执行器
+     *
+     * @param name 执行器名称
+     * @param executor 更新信息
+     * @return 更新成功返回true，否则返回false
+     */
+    boolean updateByName(String name, Executor executor);
+
+    /**
      * 获取执行器列表
      *
      * @return 执行器列表

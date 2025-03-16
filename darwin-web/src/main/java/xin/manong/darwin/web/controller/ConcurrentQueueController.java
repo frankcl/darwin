@@ -29,8 +29,8 @@ import java.util.Set;
  */
 @RestController
 @Controller
-@Path("/concurrent_queue")
-@RequestMapping("/concurrent_queue")
+@Path("/api/concurrent_queue")
+@RequestMapping("/api/concurrent_queue")
 public class ConcurrentQueueController {
 
     @Resource

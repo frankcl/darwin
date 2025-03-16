@@ -42,6 +42,14 @@ public class ExecutorServiceImpl implements ExecutorService {
     }
 
     @Override
+    public boolean updateByName(String name, Executor executor) {
+        Executor prev = get(name);
+        if (prev == null) throw new NotFoundException("执行器不存在");
+        executor.id = prev.id;
+        return update(executor);
+    }
+
+    @Override
     public List<Executor> getList() {
         LambdaQueryWrapper<Executor> query = new LambdaQueryWrapper<>();
         query.orderByDesc(Executor::getCreateTime);

@@ -32,8 +32,8 @@ import java.nio.charset.Charset;
  */
 @RestController
 @Controller
-@Path("/script")
-@RequestMapping("/script")
+@Path("/api/script")
+@RequestMapping("/api/script")
 public class ScriptController {
 
     private static final Logger logger = LoggerFactory.getLogger(ScriptController.class);

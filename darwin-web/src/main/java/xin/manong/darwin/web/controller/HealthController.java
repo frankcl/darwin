@@ -17,8 +17,8 @@ import org.springframework.web.bind.annotation.RestController;
  */
 @RestController
 @Controller
-@Path("/health")
-@RequestMapping("/health")
+@Path("/api/health")
+@RequestMapping("/api/health")
 public class HealthController {
 
     /**

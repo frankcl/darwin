@@ -1,3 +1,11 @@
+weapon:
+  common:
+    etcd:
+      client:
+        username: root
+        password: xmjjyhy28p
+        endpoints:
+          - http://127.0.0.1:2379
 app:
   executor:
     scheduler:

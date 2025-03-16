@@ -2,6 +2,7 @@ package xin.manong.darwin.web;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import xin.manong.weapon.spring.boot.annotation.EnableEtcdClient;
 import xin.manong.weapon.spring.boot.annotation.EnableKafkaProducer;
 import xin.manong.weapon.spring.boot.annotation.EnableRedisClient;
 import xin.manong.weapon.spring.boot.aspect.EnableWebLogAspect;
@@ -13,6 +14,7 @@ import xin.manong.weapon.spring.boot.aspect.EnableWebLogAspect;
  * @author frankcl
  * @date 2022-08-24 12:58:39
  */
+@EnableEtcdClient
 @EnableRedisClient
 @EnableKafkaProducer
 @EnableWebLogAspect

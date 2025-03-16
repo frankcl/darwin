@@ -22,8 +22,8 @@ import java.util.List;
  */
 @RestController
 @Controller
-@Path("/executor")
-@RequestMapping("/executor")
+@Path("/api/executor")
+@RequestMapping("/api/executor")
 public class ExecutorController {
 
     @Resource

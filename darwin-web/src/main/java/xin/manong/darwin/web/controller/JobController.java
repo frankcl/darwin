@@ -22,8 +22,8 @@ import xin.manong.weapon.spring.boot.aspect.EnableWebLogAspect;
  */
 @RestController
 @Controller
-@Path("/job")
-@RequestMapping("/job")
+@Path("/api/job")
+@RequestMapping("/api/job")
 public class JobController {
 
     @Resource

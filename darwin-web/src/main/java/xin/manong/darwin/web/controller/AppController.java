@@ -23,8 +23,8 @@ import xin.manong.weapon.spring.boot.aspect.EnableWebLogAspect;
  */
 @RestController
 @Controller
-@Path("/app")
-@RequestMapping("/app")
+@Path("/api/app")
+@RequestMapping("/api/app")
 public class AppController {
 
     @Resource

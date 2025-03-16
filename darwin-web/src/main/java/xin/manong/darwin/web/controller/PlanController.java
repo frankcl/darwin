@@ -30,8 +30,8 @@ import java.util.List;
  */
 @RestController
 @Controller
-@Path("/plan")
-@RequestMapping("/plan")
+@Path("/api/plan")
+@RequestMapping("/api/plan")
 public class PlanController {
 
     private static final Logger logger = LoggerFactory.getLogger(PlanController.class);

@@ -2,10 +2,7 @@ package xin.manong.darwin.spider;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import xin.manong.weapon.spring.boot.annotation.EnableKafkaConsumer;
-import xin.manong.weapon.spring.boot.annotation.EnableKafkaProducer;
-import xin.manong.weapon.spring.boot.annotation.EnableOSSClient;
-import xin.manong.weapon.spring.boot.annotation.EnableRedisClient;
+import xin.manong.weapon.spring.boot.annotation.*;
 
 /**
  * 应用程序入口
@@ -15,6 +12,7 @@ import xin.manong.weapon.spring.boot.annotation.EnableRedisClient;
  * @date 2022-08-24 12:58:39
  */
 @EnableOSSClient
+@EnableEtcdClient
 @EnableKafkaProducer
 @EnableKafkaConsumer
 @EnableRedisClient
