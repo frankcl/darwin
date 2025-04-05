@@ -45,7 +45,6 @@ public class RuleHistory extends RuleCommon {
 
     public RuleHistory(Rule rule) {
         ruleId = rule.id;
-        domain = rule.domain;
         script = rule.script;
         scriptType = rule.scriptType;
         regex = rule.regex;

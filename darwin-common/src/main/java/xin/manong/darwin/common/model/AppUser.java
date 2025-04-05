@@ -14,6 +14,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.Serial;
+import java.util.Objects;
 
 /**
  * 应用用户关系信息
@@ -64,6 +65,18 @@ public class AppUser extends BaseModel {
     @JSONField(name = "nick_name")
     @JsonProperty("nick_name")
     public String nickName;
+
+    @Override
+    public boolean equals(Object object) {
+        if (!(object instanceof AppUser appUser)) return false;
+        return Objects.equals(appUser.appId, appId) &&
+                Objects.equals(appUser.userId, userId);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(appId, userId);
+    }
 
     /**
      * 检测有效性

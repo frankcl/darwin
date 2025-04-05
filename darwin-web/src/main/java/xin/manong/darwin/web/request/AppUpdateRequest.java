@@ -33,6 +33,11 @@ public class AppUpdateRequest implements Serializable {
      */
     @JsonProperty("name")
     public String name;
+    /**
+     * 应用说明
+     */
+    @JsonProperty("comment")
+    public String comment;
 
     /**
      * 检测有效性
@@ -40,6 +45,6 @@ public class AppUpdateRequest implements Serializable {
      */
     public void check() {
         if (id == null) throw new BadRequestException("应用ID为空");
-        if (StringUtils.isEmpty(name)) throw new BadRequestException("更新应用信息为空");
+        if (StringUtils.isEmpty(name) && StringUtils.isEmpty(comment)) throw new BadRequestException("更新应用信息为空");
     }
 }

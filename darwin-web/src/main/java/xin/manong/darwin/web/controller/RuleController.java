@@ -3,12 +3,15 @@ package xin.manong.darwin.web.controller;
 import jakarta.annotation.Resource;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import xin.manong.darwin.common.Constants;
 import xin.manong.darwin.common.model.Pager;
+import xin.manong.darwin.common.model.Plan;
 import xin.manong.darwin.common.model.Rule;
 import xin.manong.darwin.common.model.RuleHistory;
+import xin.manong.darwin.service.iface.PlanService;
 import xin.manong.darwin.service.iface.RuleService;
 import xin.manong.darwin.service.request.RuleSearchRequest;
 import xin.manong.darwin.web.component.PermissionSupport;
@@ -16,7 +19,11 @@ import xin.manong.darwin.web.convert.Converter;
 import xin.manong.darwin.web.request.RuleRequest;
 import xin.manong.darwin.web.request.RuleRollBackRequest;
 import xin.manong.darwin.web.request.RuleUpdateRequest;
+import xin.manong.hylian.client.core.ContextManager;
+import xin.manong.hylian.model.User;
 import xin.manong.weapon.spring.boot.aspect.EnableWebLogAspect;
+
+import java.util.List;
 
 /**
  * 规则控制器
@@ -32,6 +39,8 @@ public class RuleController {
 
     @Resource
     protected RuleService ruleService;
+    @Resource
+    protected PlanService planService;
     @Resource
     protected PermissionSupport permissionSupport;
 
@@ -49,6 +58,22 @@ public class RuleController {
     public Rule get(@QueryParam("id") Integer id) {
         if (id == null) throw new BadRequestException("规则ID缺失");
         return ruleService.get(id);
+    }
+
+    /**
+     * 获取计划相关规则列表
+     *
+     * @param planId 计划ID
+     * @return 规则列表
+     */
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("getPlanRules")
+    @GetMapping("getPlanRules")
+    @EnableWebLogAspect
+    public List<Rule> getPlanRules(@QueryParam("plan_id") String planId) {
+        if (StringUtils.isEmpty(planId)) throw new BadRequestException("计划ID为空");
+        return ruleService.getPlanRules(planId);
     }
 
     /**
@@ -84,7 +109,9 @@ public class RuleController {
         request.check();
         Rule rule = Converter.convert(request);
         rule.check();
-        permissionSupport.checkAppPermission(rule.appId);
+        checkAppPermission(rule);
+        User user = ContextManager.getUser();
+        if (user != null) rule.creator = rule.modifier = user.name;
         return ruleService.add(rule);
     }
 
@@ -105,8 +132,10 @@ public class RuleController {
         request.check();
         Rule rule = ruleService.get(request.id);
         if (rule == null) throw new NotFoundException("规则不存在");
-        permissionSupport.checkAppPermission(rule.appId);
+        checkAppPermission(rule);
         Rule updateRule = Converter.convert(request);
+        User user = ContextManager.getUser();
+        if (user != null) updateRule.modifier = user.name;
         return ruleService.update(updateRule);
     }
 
@@ -125,7 +154,7 @@ public class RuleController {
         if (id == null) throw new BadRequestException("规则ID为空");
         Rule rule = ruleService.get(id);
         if (rule == null) throw new NotFoundException("规则不存在");
-        permissionSupport.checkAppPermission(rule.appId);
+        checkAppPermission(rule);
         return ruleService.delete(id);
     }
 
@@ -162,12 +191,12 @@ public class RuleController {
         if (ruleHistory == null) throw new NotFoundException("规则历史不存在");
         Rule rule = ruleService.get(id);
         if (rule == null) throw new NotFoundException("规则不存在");
-        permissionSupport.checkAppPermission(rule.appId);
+        checkAppPermission(rule);
         return ruleService.removeHistory(id);
     }
 
     /**
-     * 列表规则历史
+     * 获取规则历史
      *
      * @param ruleId 规则ID
      * @param current 页码，从1开始
@@ -176,16 +205,16 @@ public class RuleController {
      */
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @Path("listHistory")
-    @GetMapping("listHistory")
+    @Path("getHistoryList")
+    @GetMapping("getHistoryList")
     @EnableWebLogAspect
-    public Pager<RuleHistory> listHistory(@QueryParam("rule_id") Integer ruleId,
-                                          @QueryParam("current") Integer current,
-                                          @QueryParam("size") Integer size) {
+    public Pager<RuleHistory> getHistoryList(@QueryParam("rule_id") Integer ruleId,
+                                            @QueryParam("current") Integer current,
+                                            @QueryParam("size") Integer size) {
         if (ruleId == null) throw new BadRequestException("规则ID为空");
         current = current == null || current < 1 ? Constants.DEFAULT_CURRENT : current;
         size = size == null || size <= 0 ? Constants.DEFAULT_PAGE_SIZE : size;
-        return ruleService.listHistory(ruleId, current, size);
+        return ruleService.getHistoryList(ruleId, current, size);
     }
 
     /**
@@ -200,12 +229,23 @@ public class RuleController {
     @Path("rollback")
     @PostMapping("rollback")
     @EnableWebLogAspect
-    public Boolean rollBack(@RequestBody RuleRollBackRequest rollBackRequest) {
+    public Boolean rollback(@RequestBody RuleRollBackRequest rollBackRequest) {
         if (rollBackRequest == null) throw new BadRequestException("规则回滚请求为空");
         rollBackRequest.check();
         Rule rule = ruleService.get(rollBackRequest.ruleId);
         if (rule == null) throw new NotFoundException("规则不存在");
-        permissionSupport.checkAppPermission(rule.appId);
-        return ruleService.rollBack(rollBackRequest.ruleId, rollBackRequest.ruleHistoryId);
+        checkAppPermission(rule);
+        return ruleService.rollback(rollBackRequest.ruleId, rollBackRequest.ruleHistoryId);
+    }
+
+    /**
+     * 检测应用权限
+     *
+     * @param rule 规则
+     */
+    private void checkAppPermission(Rule rule) {
+        Plan plan = planService.get(rule.planId);
+        if (plan == null) throw new ForbiddenException("计划不存在");
+        permissionSupport.checkAppPermission(plan.appId);
     }
 }

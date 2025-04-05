@@ -114,10 +114,7 @@ public class URLServiceImpl extends URLService {
 
     @Override
     public URLRecord get(String key) {
-        if (StringUtils.isEmpty(key)) throw new BadRequestException("URL记录key为空");
-        URLRecord record = urlMapper.selectById(key);
-        if (record == null) logger.warn("url record is not found for key[{}]", key);
-        return record;
+        return urlMapper.selectById(key);
     }
 
     @Override

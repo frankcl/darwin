@@ -23,8 +23,6 @@ import xin.manong.weapon.aliyun.oss.OSSMeta;
 import xin.manong.weapon.base.common.Context;
 import xin.manong.weapon.base.util.RandomID;
 
-import java.util.ArrayList;
-
 /**
  * @author frankcl
  * @date 2023-03-31 14:36:24
@@ -50,6 +48,7 @@ public class HTMLSpiderTest {
     private void sweep(Plan plan, Job job) {
         Assert.assertTrue(jobService.delete(job.jobId));
         Assert.assertTrue(planService.delete(plan.planId));
+        Assert.assertTrue(ruleService.deletePlanRules(plan.planId));
     }
 
     private Plan preparePlan() {
@@ -59,10 +58,8 @@ public class HTMLSpiderTest {
         plan.appId = 0;
         plan.appName = "测试应用";
         plan.category = Constants.PLAN_CATEGORY_PERIOD;
-        plan.status = Constants.PLAN_STATUS_RUNNING;
+        plan.status = true;
         plan.crontabExpression = "0 0 6-23 * * ?";
-        plan.seedURLs = new ArrayList<>();
-        plan.seedURLs.add(new URLRecord("http://www.sina.com.cn/"));
         Assert.assertTrue(plan.check());
         Assert.assertTrue(planService.add(plan));
         return plan;
@@ -71,12 +68,10 @@ public class HTMLSpiderTest {
     private Job prepareJobAndHTMLRule(Plan plan) throws Exception {
         String scriptCode = ApplicationTest.readScript("/html_parse_script");
         Rule rule = new Rule();
-        rule.domain = "people.com.cn";
         rule.name = "人民网结构化规则";
         rule.regex = "http://politics.people.com.cn/n1/\\d{4}/\\d{4}/c\\d+?-\\d+?\\.html";
         rule.scriptType = Constants.SCRIPT_TYPE_GROOVY;
         rule.script = scriptCode;
-        rule.appId = 1;
         rule.planId = plan.planId;
         Assert.assertTrue(ruleService.add(rule));
 
@@ -87,9 +82,7 @@ public class HTMLSpiderTest {
         job.planId = plan.planId;
         job.appId = 1;
         job.status = Constants.JOB_STATUS_RUNNING;
-        job.avoidRepeatedFetch = true;
-        job.ruleIds = new ArrayList<>();
-        job.ruleIds.add(rule.id);
+        job.allowRepeat = false;
         Assert.assertTrue(jobService.add(job));
         return job;
     }
@@ -97,12 +90,10 @@ public class HTMLSpiderTest {
     private Job prepareJobAndJSONRule(Plan plan) throws Exception {
         String scriptCode = ApplicationTest.readScript("/json_parse_script");
         Rule rule = new Rule();
-        rule.domain = "sina.com.cn";
         rule.name = "JSON解析规则";
         rule.regex = "https://www.sina.com.cn/api/hotword.json";
         rule.scriptType = Constants.SCRIPT_TYPE_GROOVY;
         rule.script = scriptCode;
-        rule.appId = 1;
         rule.planId = plan.planId;
         Assert.assertTrue(ruleService.add(rule));
 
@@ -113,9 +104,7 @@ public class HTMLSpiderTest {
         job.planId = plan.planId;
         job.appId = 1;
         job.status = Constants.JOB_STATUS_RUNNING;
-        job.avoidRepeatedFetch = true;
-        job.ruleIds = new ArrayList<>();
-        job.ruleIds.add(rule.id);
+        job.allowRepeat = false;
         Assert.assertTrue(jobService.add(job));
         return job;
     }

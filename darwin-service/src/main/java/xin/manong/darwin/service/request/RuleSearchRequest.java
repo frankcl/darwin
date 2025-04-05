@@ -32,10 +32,4 @@ public class RuleSearchRequest extends SearchRequest {
     @JsonProperty("name")
     @QueryParam("name")
     public String name;
-    /**
-     * 规则域名
-     */
-    @JsonProperty("domain")
-    @QueryParam("domain")
-    public String domain;
 }

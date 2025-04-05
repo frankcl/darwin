@@ -1,6 +1,5 @@
 package xin.manong.darwin.service.impl;
 
-import com.alibaba.fastjson.JSON;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
@@ -25,10 +24,7 @@ import xin.manong.darwin.queue.multi.MultiQueue;
 import xin.manong.darwin.queue.multi.MultiQueueStatus;
 import xin.manong.darwin.service.convert.Converter;
 import xin.manong.darwin.service.dao.mapper.PlanMapper;
-import xin.manong.darwin.service.iface.JobService;
-import xin.manong.darwin.service.iface.PlanService;
-import xin.manong.darwin.service.iface.RuleService;
-import xin.manong.darwin.service.iface.URLService;
+import xin.manong.darwin.service.iface.*;
 import xin.manong.darwin.service.impl.ots.JobServiceImpl;
 import xin.manong.darwin.service.impl.ots.URLServiceImpl;
 import xin.manong.darwin.service.request.JobSearchRequest;
@@ -66,6 +62,9 @@ public class PlanServiceImpl implements PlanService {
     protected URLService urlService;
     @Resource
     @Lazy
+    protected SeedService seedService;
+    @Resource
+    @Lazy
     protected MultiQueue multiQueue;
     @Resource(name = "urlAspectLogger")
     protected JSONLogger aspectLogger;
@@ -80,14 +79,46 @@ public class PlanServiceImpl implements PlanService {
     public boolean add(Plan plan) {
         LambdaQueryWrapper<Plan> query = new LambdaQueryWrapper<>();
         query.eq(Plan::getName, plan.name).eq(Plan::getAppId, plan.appId);
-        if (planMapper.selectCount(query) > 0) throw new IllegalStateException("同名计划已存在");
+        if (planMapper.selectCount(query) > 0) throw new IllegalStateException("计划已存在");
         return planMapper.insert(plan) > 0;
     }
 
     @Override
     public boolean update(Plan plan) {
-        if (planMapper.selectById(plan.planId) == null) throw new NotFoundException("计划不存在");
+        Plan prevPlan = planMapper.selectById(plan.planId);
+        if (prevPlan == null) throw new NotFoundException("计划不存在");
+        if (StringUtils.isNotEmpty(plan.name)) {
+            LambdaQueryWrapper<Plan> query = new LambdaQueryWrapper<>();
+            query.eq(Plan::getName, plan.name).eq(Plan::getAppId, plan.appId).
+                    ne(Plan::getName, prevPlan.name).ne(Plan::getAppId, prevPlan.appId);
+            if (planMapper.selectCount(query) > 0) throw new IllegalStateException("计划已存在");
+        }
         return planMapper.updateById(plan) > 0;
+    }
+
+    @Override
+    public void updateNextTime(Plan plan, Long baseTime) {
+        if (plan.category != Constants.PLAN_CATEGORY_PERIOD) {
+            throw new IllegalStateException("单次型计划不支持设置下次调度时间");
+        }
+        try {
+            long currentTime = System.currentTimeMillis();
+            Date date = new Date(baseTime == null ? currentTime : baseTime);
+            long nextTime = new CronExpression(plan.crontabExpression).getNextValidTimeAfter(date).getTime();
+            LambdaUpdateWrapper<Plan> updateWrapper = new LambdaUpdateWrapper<>();
+            updateWrapper.eq(Plan::getPlanId, plan.planId).set(Plan::getUpdateTime, currentTime).
+                    set(Plan::getNextTime, nextTime);
+            if (planMapper.update(updateWrapper) <= 0) logger.warn("update next time failed for plan[{}]", plan.planId);
+        } catch (ParseException e) {
+            throw new IllegalStateException(e);
+        }
+    }
+
+    @Override
+    public void updateAppName(int appId, String appName) {
+        LambdaUpdateWrapper<Plan> updateWrapper = new LambdaUpdateWrapper<>();
+        updateWrapper.eq(Plan::getAppId, appId).set(Plan::getAppName, appName);
+        planMapper.update(updateWrapper);
     }
 
     @Override
@@ -99,40 +130,8 @@ public class PlanServiceImpl implements PlanService {
         searchRequest.planId = planId;
         Pager<Job> pager = jobService.search(searchRequest);
         if (pager.total > 0) throw new ForbiddenException("计划任务不为空");
-        if (plan.ruleIds != null && !plan.ruleIds.isEmpty()) {
-            List<Integer> ruleIds = new ArrayList<>(plan.ruleIds);
-            for (Integer ruleId : ruleIds) {
-                if (!ruleService.delete(ruleId)) throw new IllegalStateException("删除规则失败");
-            }
-        }
+        if (!ruleService.deletePlanRules(planId)) throw new IllegalStateException("删除规则失败");
         return planMapper.deleteById(planId) > 0;
-    }
-
-    @Override
-    public boolean addRule(String planId, Integer ruleId) {
-        Plan plan = planMapper.selectById(planId);
-        if (plan == null) throw new NotFoundException("计划不存在");
-        List<Integer> ruleIds = plan.ruleIds;
-        if (ruleIds == null) ruleIds = new ArrayList<>();
-        if (ruleIds.contains(ruleId)) throw new IllegalStateException("规则已存在");
-        ruleIds.add(ruleId);
-        LambdaUpdateWrapper<Plan> wrapper = new LambdaUpdateWrapper<>();
-        wrapper.eq(Plan::getPlanId, planId);
-        wrapper.set(Plan::getRuleIds, JSON.toJSONString(ruleIds));
-        return planMapper.update(null, wrapper) > 0;
-    }
-
-    @Override
-    public boolean removeRule(String planId, Integer ruleId) {
-        Plan plan = planMapper.selectById(planId);
-        if (plan == null) throw new NotFoundException("计划不存在");
-        List<Integer> ruleIds = plan.ruleIds;
-        if (ruleIds == null || !ruleIds.contains(ruleId)) throw new IllegalStateException("规则不存在");
-        ruleIds.remove(ruleId);
-        LambdaUpdateWrapper<Plan> wrapper = new LambdaUpdateWrapper<>();
-        wrapper.eq(Plan::getPlanId, planId);
-        wrapper.set(Plan::getRuleIds, JSON.toJSONString(ruleIds));
-        return planMapper.update(null, wrapper) > 0;
     }
 
     @Override
@@ -141,13 +140,16 @@ public class PlanServiceImpl implements PlanService {
         if (searchRequest.current == null || searchRequest.current < 1) searchRequest.current = Constants.DEFAULT_CURRENT;
         if (searchRequest.size == null || searchRequest.size <= 0) searchRequest.size = Constants.DEFAULT_PAGE_SIZE;
         ModelValidator.validateOrderBy(Plan.class, searchRequest);
+        searchRequest.appList = ModelValidator.validateListField(searchRequest.appIds, String.class);
         QueryWrapper<Plan> query = new QueryWrapper<>();
         searchRequest.prepareOrderBy(query);
         if (searchRequest.category != null) query.eq("category", searchRequest.category);
         if (searchRequest.status != null) query.eq("status", searchRequest.status);
         if (searchRequest.priority != null) query.eq("priority", searchRequest.priority);
+        if (searchRequest.fetchMethod != null) query.eq("fetch_method", searchRequest.fetchMethod);
         if (searchRequest.appId != null) query.eq("app_id", searchRequest.appId);
         if (!StringUtils.isEmpty(searchRequest.name)) query.like("name", searchRequest.name);
+        if (searchRequest.appList != null) query.in("app_id", searchRequest.appList);
         IPage<Plan> page = planMapper.selectPage(new Page<>(searchRequest.current, searchRequest.size), query);
         return Converter.convert(page);
     }
@@ -155,26 +157,33 @@ public class PlanServiceImpl implements PlanService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public boolean execute(Plan plan) {
-        if (plan.status != Constants.PLAN_STATUS_RUNNING) {
-            logger.warn("plan[{}] is not running", plan.planId);
+        if (plan.status == null || !plan.status) {
+            logger.warn("plan[{}] is not opened", plan.planId);
             return false;
         }
         Job job = plan.buildJob();
-        List<URLRecord> pushDBRecords = new ArrayList<>();
-        List<URLRecord> pushQueueRecords = new ArrayList<>();
+        List<URLRecord> databaseRecords = new ArrayList<>();
+        List<URLRecord> queueRecords = new ArrayList<>();
         try {
             if (!jobService.add(job)) throw new RuntimeException("添加任务失败");
-            for (URLRecord seedURL : job.seedURLs) {
-                pushJobRecord(seedURL, pushDBRecords, pushQueueRecords);
-                commitAspectLog(seedURL);
+            List<SeedRecord> seedRecords = seedService.getList(plan.planId);
+            for (SeedRecord seedRecord : seedRecords) {
+                URLRecord record = Converter.convert(seedRecord);
+                record.appId = plan.appId;
+                record.jobId = job.jobId;
+                if (record.fetchMethod == null) record.fetchMethod = job.fetchMethod;
+                if (record.concurrentLevel == null) record.concurrentLevel = Constants.CONCURRENT_LEVEL_DOMAIN;
+                if (record.priority == null) record.priority = job.priority == null ? Constants.PRIORITY_NORMAL : job.priority;
+                pushQueue(record, databaseRecords, queueRecords);
+                commitAspectLog(record);
             }
             if (plan.category != Constants.PLAN_CATEGORY_PERIOD) return true;
-            updateNextTime(plan.planId, plan.crontabExpression);
+            updateNextTime(plan, System.currentTimeMillis());
             return true;
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
             TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
-            rollBackJob(pushQueueRecords, pushDBRecords, job.jobId);
+            rollbackJob(queueRecords, databaseRecords, job.jobId);
             return false;
         }
     }
@@ -183,32 +192,19 @@ public class PlanServiceImpl implements PlanService {
      * 推送任务种子数据
      *
      * @param record 种子数据
-     * @param pushDBRecords 推送数据库成功数据列表
-     * @param pushQueueRecords 推送队列成功数据列表
+     * @param databaseRecords 推送数据库成功数据列表
+     * @param queueRecords 推送队列成功数据列表
      */
-    private void pushJobRecord(URLRecord record, List<URLRecord> pushDBRecords,
-                               List<URLRecord> pushQueueRecords) {
+    private void pushQueue(URLRecord record, List<URLRecord> databaseRecords, List<URLRecord> queueRecords) {
         MultiQueueStatus status = multiQueue.push(record, 3);
-        if (status == MultiQueueStatus.OK) pushQueueRecords.add(record);
-        logger.info("push record[{}] into queue, status[{}]", record.url,
-                Constants.SUPPORT_URL_STATUSES.get(record.status));
-        if (urlService.add(new URLRecord(record))) pushDBRecords.add(record);
-        else throw new RuntimeException("添加任务种子失败");
-    }
-
-    /**
-     * 更新计划下次调度时间
-     *
-     * @param planId 计划ID
-     * @param crontabExpression crontab表达式
-     */
-    private void updateNextTime(String planId, String crontabExpression) throws ParseException {
-        Date date = new Date();
-        Plan plan = new Plan();
-        plan.planId = planId;
-        plan.updateTime = date.getTime();
-        plan.nextTime = new CronExpression(crontabExpression).getNextValidTimeAfter(date).getTime();
-        if (!update(plan)) logger.warn("update next time failed for plan[{}]", planId);
+        if (status != MultiQueueStatus.OK) {
+            logger.error("push record[{}] into queue failed, status[{}]", record.url,
+                    Constants.SUPPORT_URL_STATUSES.get(record.status));
+            throw new IllegalStateException("添加任务种子到队列失败");
+        }
+        queueRecords.add(record);
+        if (!urlService.add(new URLRecord(record))) throw new IllegalStateException("添加任务种子到数据库失败");
+        databaseRecords.add(record);
     }
 
     /**
@@ -217,13 +213,13 @@ public class PlanServiceImpl implements PlanService {
      * 2. 回滚添加到数据库数据
      * 3. 回滚添加任务
      *
-     * @param pushQueueRecords 推送队列成功数据列表
-     * @param pushDBRecords 推送数据库成功数据列表
+     * @param queueRecords 推送队列成功数据列表
+     * @param databaseRecords 推送数据库成功数据列表
      * @param jobId 任务ID
      */
-    private void rollBackJob(List<URLRecord> pushQueueRecords, List<URLRecord> pushDBRecords, String jobId) {
-        for (URLRecord pushQueueRecord : pushQueueRecords) multiQueue.remove(pushQueueRecord);
-        if (urlService instanceof URLServiceImpl) for (URLRecord record : pushDBRecords) urlService.delete(record.key);
+    private void rollbackJob(List<URLRecord> queueRecords, List<URLRecord> databaseRecords, String jobId) {
+        for (URLRecord record : queueRecords) multiQueue.remove(record);
+        if (urlService instanceof URLServiceImpl) for (URLRecord record : databaseRecords) urlService.delete(record.key);
         if (jobService instanceof JobServiceImpl) jobService.delete(jobId);
     }
 

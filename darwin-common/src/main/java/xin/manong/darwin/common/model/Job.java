@@ -13,13 +13,10 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import xin.manong.darwin.common.Constants;
-import xin.manong.darwin.common.model.handler.JSONListIntegerTypeHandler;
-import xin.manong.darwin.common.model.handler.JSONListURLRecordTypeHandler;
 import xin.manong.weapon.aliyun.ots.annotation.Column;
 import xin.manong.weapon.aliyun.ots.annotation.PrimaryKey;
 
 import java.io.Serial;
-import java.util.List;
 
 /**
  * 抓取任务
@@ -40,13 +37,13 @@ public class Job extends BaseModel {
     private static final long serialVersionUID = 4580876044819518502L;
 
     /**
-     * 避免重复抓取
+     * 允许重复抓取
      */
-    @TableField(value = "avoid_repeated_fetch")
-    @Column(name = "avoid_repeated_fetch")
-    @JSONField(name = "avoid_repeated_fetch")
-    @JsonProperty("avoid_repeated_fetch")
-    public Boolean avoidRepeatedFetch = true;
+    @TableField(value = "allow_repeat")
+    @Column(name = "allow_repeat")
+    @JSONField(name = "allow_repeat")
+    @JsonProperty("allow_repeat")
+    public Boolean allowRepeat = false;
 
     /**
      * 应用ID
@@ -111,24 +108,6 @@ public class Job extends BaseModel {
     @JsonProperty("name")
     public String name;
 
-    /**
-     * 规则ID列表
-     */
-    @TableField(value = "rule_ids", typeHandler = JSONListIntegerTypeHandler.class)
-    @Column(name = "rule_ids")
-    @JSONField(name = "rule_ids")
-    @JsonProperty("rule_ids")
-    public List<Integer> ruleIds;
-
-    /**
-     * 种子列表
-     */
-    @TableField(value = "seed_urls", typeHandler = JSONListURLRecordTypeHandler.class)
-    @Column(name = "seed_urls")
-    @JSONField(name = "seed_urls")
-    @JsonProperty("seed_urls")
-    public List<URLRecord> seedURLs;
-
     public Job() {
     }
 
@@ -161,10 +140,6 @@ public class Job extends BaseModel {
         }
         if (StringUtils.isEmpty(name)) {
             logger.error("job name is empty");
-            return false;
-        }
-        if (seedURLs == null || seedURLs.isEmpty()) {
-            logger.error("seed url list are empty");
             return false;
         }
         if (fetchMethod != null && !Constants.SUPPORT_FETCH_METHODS.containsKey(fetchMethod)) {

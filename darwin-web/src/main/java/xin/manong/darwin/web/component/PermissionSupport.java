@@ -36,7 +36,7 @@ public class PermissionSupport {
         User user = ContextManager.getUser();
         if (user == null) throw new ForbiddenException("用户未登录");
         if (userServiceSupport.isAppAdmin(user)) return;
-        if (!appUserService.hasAppPermission(user.id, appId)) throw new ForbiddenException("无权访问");
+        if (!appUserService.hasAppPermission(user.id, appId)) throw new ForbiddenException("无权操作");
     }
 
     /**

@@ -2,8 +2,12 @@ package xin.manong.darwin.web;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import xin.manong.hylian.client.annotation.EnableCORSFilter;
+import xin.manong.hylian.client.annotation.EnableHylianGuard;
 import xin.manong.weapon.spring.boot.annotation.EnableEtcdClient;
+import xin.manong.weapon.spring.boot.annotation.EnableJettySupportSSL;
 import xin.manong.weapon.spring.boot.annotation.EnableKafkaProducer;
+import xin.manong.weapon.spring.boot.annotation.EnableOSSClient;
 import xin.manong.weapon.spring.boot.annotation.EnableRedisClient;
 import xin.manong.weapon.spring.boot.aspect.EnableWebLogAspect;
 
@@ -16,9 +20,13 @@ import xin.manong.weapon.spring.boot.aspect.EnableWebLogAspect;
  */
 @EnableEtcdClient
 @EnableRedisClient
+@EnableJettySupportSSL
 @EnableKafkaProducer
+@EnableOSSClient
 @EnableWebLogAspect
-@SpringBootApplication(scanBasePackages = {"xin.manong.darwin", "xin.manong.hylian.client"})
+@EnableHylianGuard
+@EnableCORSFilter
+@SpringBootApplication(scanBasePackages = {"xin.manong.darwin"})
 public class Application {
 
     /**

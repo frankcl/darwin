@@ -4,8 +4,6 @@ import jakarta.annotation.Resource;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import xin.manong.darwin.common.Constants;
@@ -16,10 +14,11 @@ import xin.manong.darwin.web.convert.Converter;
 import xin.manong.darwin.web.request.PlanRequest;
 import xin.manong.darwin.web.request.PlanUpdateRequest;
 import xin.manong.darwin.web.component.PermissionSupport;
+import xin.manong.hylian.client.core.ContextManager;
+import xin.manong.hylian.model.User;
 import xin.manong.weapon.base.util.RandomID;
 import xin.manong.weapon.spring.boot.aspect.EnableWebLogAspect;
 
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -34,8 +33,6 @@ import java.util.List;
 @RequestMapping("/api/plan")
 public class PlanController {
 
-    private static final Logger logger = LoggerFactory.getLogger(PlanController.class);
-
     @Resource
     protected AppService appService;
     @Resource
@@ -43,44 +40,47 @@ public class PlanController {
     @Resource
     protected RuleService ruleService;
     @Resource
+    protected SeedService seedService;
+    @Resource
     protected PermissionSupport permissionSupport;
 
     /**
-     * 启动计划
+     * 开启计划
      *
-     * @param planId 计划ID
-     * @return 启动成功返回true，否则返回false
+     * @param id 计划ID
+     * @return 开启成功返回true，否则返回false
      */
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @Path("start")
-    @GetMapping("start")
+    @Path("open")
+    @GetMapping("open")
     @EnableWebLogAspect
-    public Boolean start(@QueryParam("plan_id") String planId) {
-        checkPeriodPlan(planId, Constants.PLAN_STATUS_STOPPED);
-        Plan updatePlan = new Plan();
-        updatePlan.planId = planId;
-        updatePlan.status = Constants.PLAN_STATUS_RUNNING;
-        return planService.update(updatePlan);
+    public Boolean open(@QueryParam("id") String id) {
+        checkPermission(id);
+        checkBeforeOpenExecute(id);
+        Plan plan = new Plan();
+        plan.planId = id;
+        plan.status = true;
+        return planService.update(plan);
     }
 
     /**
-     * 停止计划
+     * 关闭计划
      *
-     * @param planId 计划ID
-     * @return 停止成功返回true，否则返回false
+     * @param id 计划ID
+     * @return 关闭成功返回true，否则返回false
      */
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @Path("stop")
-    @GetMapping("stop")
+    @Path("close")
+    @GetMapping("close")
     @EnableWebLogAspect
-    public Boolean stop(@QueryParam("plan_id") String planId) {
-        checkPeriodPlan(planId, Constants.PLAN_STATUS_RUNNING);
-        Plan updatePlan = new Plan();
-        updatePlan.planId = planId;
-        updatePlan.status = Constants.PLAN_STATUS_STOPPED;
-        return planService.update(updatePlan);
+    public Boolean close(@QueryParam("id") String id) {
+        checkPermission(id);
+        Plan plan = new Plan();
+        plan.planId = id;
+        plan.status = false;
+        return planService.update(plan);
     }
 
     /**
@@ -132,9 +132,11 @@ public class PlanController {
         request.check();
         permissionSupport.checkAppPermission(request.appId);
         Plan plan = Converter.convert(request);
+        User user = ContextManager.getUser();
+        if (user != null) plan.creator = plan.modifier = user.name;
         fillAppName(plan);
-        checkSeeds(plan.seedURLs, plan.ruleIds);
         plan.planId = RandomID.build();
+        if (plan.category == Constants.PLAN_CATEGORY_PERIOD) plan.nextTime = System.currentTimeMillis();
         if (!plan.check()) throw new BadRequestException("计划非法");
         return planService.add(plan);
     }
@@ -157,9 +159,14 @@ public class PlanController {
         Plan previous = planService.get(request.planId);
         if (previous == null) throw new NotFoundException("计划不存在");
         permissionSupport.checkAppPermission(previous.appId);
+        if (request.appId != null) permissionSupport.checkAppPermission(request.appId);
         Plan plan = Converter.convert(request);
-        if (plan.ruleIds == null || plan.ruleIds.isEmpty()) plan.ruleIds = previous.ruleIds;
-        checkSeeds(plan.seedURLs, plan.ruleIds);
+        User user = ContextManager.getUser();
+        if (user != null) plan.modifier = user.name;
+        if (previous.category == Constants.PLAN_CATEGORY_ONCE &&
+                plan.category == Constants.PLAN_CATEGORY_PERIOD) {
+            plan.nextTime = System.currentTimeMillis();
+        }
         return planService.update(plan);
     }
 
@@ -179,7 +186,8 @@ public class PlanController {
         Plan plan = planService.get(id);
         if (plan == null) throw new NotFoundException("计划不存在");
         permissionSupport.checkAppPermission(plan.appId);
-        if (plan.status != Constants.PLAN_STATUS_RUNNING) throw new IllegalStateException("计划处于非运行状态");
+        if (plan.status == null || !plan.status) throw new IllegalStateException("计划处于关闭状态");
+        checkBeforeOpenExecute(plan.planId);
         if (!planService.execute(plan)) throw new InternalServerErrorException("执行计划失败");
         return true;
     }
@@ -204,43 +212,40 @@ public class PlanController {
     }
 
     /**
-     * 检测种子URL是否匹配规则
-     * 如果存在不匹配规则的种子URL则抛出异常
+     * 计划开启执行前检测
+     * 1. 检测是否配置种子URL
+     * 2. 检测种子URL是否存在匹配脚本规则，且规则唯一
      *
-     * @param seedURLs 种子列表
-     * @param ruleIds 规则ID列表
+     * @param planId 计划ID
      */
-    private void checkSeeds(List<URLRecord> seedURLs, List<Integer> ruleIds) {
-        if (seedURLs == null || seedURLs.isEmpty()) return;
-        int passCount = 0;
-        List<Rule> rules = ruleIds == null ? new ArrayList<>() : ruleService.batchGet(ruleIds);
-        for (URLRecord seedURL : seedURLs) {
-            if ((seedURL.category != null && (seedURL.category == Constants.CONTENT_CATEGORY_RESOURCE ||
-                    seedURL.category == Constants.CONTENT_CATEGORY_STREAM)) ||
-                    ruleService.matchRuleCount(seedURL, rules) == 1) {
-                passCount++;
-                continue;
+    private void checkBeforeOpenExecute(String planId) {
+        List<SeedRecord> seedRecords = seedService.getList(planId);
+        if (seedRecords == null || seedRecords.isEmpty()) throw new IllegalStateException("尚未配置种子URL，请完善计划");
+        List<Rule> rules = ruleService.getPlanRules(planId);
+        for (SeedRecord seedRecord : seedRecords) {
+            if (seedRecord.category == null) throw new IllegalStateException("种子URL缺失类型，请完善计划");
+            if (seedRecord.category == Constants.CONTENT_CATEGORY_RESOURCE) continue;
+            if (seedRecord.category == Constants.CONTENT_CATEGORY_STREAM) continue;
+            if (seedRecord.isScopeExtract()) continue;
+            long matchCount = rules.stream().filter(rule -> rule.match(seedRecord.url)).count();
+            if (matchCount == 0) {
+                throw new IllegalStateException(String.format("种子URL:%s没有找到匹配脚本规则，请完善计划", seedRecord.url));
             }
-            logger.warn("matched rule is not found for seed url[{}]", seedURL.url);
+            if (matchCount > 1) {
+                throw new IllegalStateException(String.format("种子URL:%s存在多条匹配规则，请完善计划", seedRecord.url));
+            }
         }
-        if (seedURLs.size() != passCount) throw new BadRequestException("种子URL不匹配规则");
     }
 
     /**
-     * 检测周期性计划
+     * 检测是否有操作计划权限
      *
      * @param planId 计划ID
-     * @param status 当前状态
      */
-    private void checkPeriodPlan(String planId, int status) {
+    private void checkPermission(String planId) {
         if (StringUtils.isEmpty(planId)) throw new BadRequestException("计划ID为空");
         Plan plan = planService.get(planId);
-        if (plan == null) throw new NotFoundException("计划未找到");
-        if (plan.category != Constants.PLAN_CATEGORY_PERIOD) throw new IllegalStateException("非周期性计划");
-        if (plan.status != status) {
-            throw new IllegalStateException(String.format("不是期望的计划状态：%s",
-                    Constants.SUPPORT_PLAN_STATUSES.get(status)));
-        }
+        if (plan == null) throw new NotFoundException("计划不存在");
         permissionSupport.checkAppPermission(plan.appId);
     }
 

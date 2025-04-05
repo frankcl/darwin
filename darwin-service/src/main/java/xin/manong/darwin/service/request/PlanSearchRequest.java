@@ -45,9 +45,15 @@ public class PlanSearchRequest extends SearchRequest {
     @QueryParam("priority")
     public Integer priority;
     /**
-     * 计划状态：停止0，运行1
+     * 计划状态
      */
     @JsonProperty("status")
     @QueryParam("status")
-    public Integer status;
+    public Boolean status;
+    /**
+     * 抓取方式：普通0，长效代理1，短效代理2，渲染3
+     */
+    @JsonProperty("fetch_method")
+    @QueryParam("fetch_method")
+    public Integer fetchMethod;
 }

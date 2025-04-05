@@ -50,6 +50,38 @@ public class App extends BaseModel {
     public String name;
 
     /**
+     * 创建人
+     */
+    @TableField(value = "creator")
+    @JSONField(name = "creator")
+    @JsonProperty("creator")
+    public String creator;
+
+    /**
+     * 修改人
+     */
+    @TableField(value = "modifier")
+    @JSONField(name = "modifier")
+    @JsonProperty("modifier")
+    public String modifier;
+
+    /**
+     * 应用说明
+     */
+    @TableField(value = "comment")
+    @JSONField(name = "comment")
+    @JsonProperty("comment")
+    public String comment;
+
+    /**
+     * 创建人ID
+     */
+    @TableField(exist = false)
+    @JSONField(name = "creator_id")
+    @JsonProperty("creator_id")
+    public String creatorId;
+
+    /**
      * 检测应用有效性
      * 1. 应用ID和名称不能为空
      *

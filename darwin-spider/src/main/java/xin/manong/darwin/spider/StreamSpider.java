@@ -163,7 +163,7 @@ public class StreamSpider extends Spider {
      * @param record URL记录
      */
     private void addProxyOptions(List<String> commands, URLRecord record) {
-        if (!record.useProxy()) return;
+        if (!record.isUseProxy()) return;
         Proxy proxy = proxyService.randomGet(record.fetchMethod);
         if (proxy == null) return;
         commands.add("-http_proxy");

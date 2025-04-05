@@ -8,7 +8,6 @@ import org.slf4j.LoggerFactory;
 import xin.manong.darwin.common.model.Pager;
 import xin.manong.darwin.common.model.Rule;
 import xin.manong.darwin.common.model.RuleHistory;
-import xin.manong.darwin.common.model.URLRecord;
 import xin.manong.darwin.service.config.CacheConfig;
 import xin.manong.darwin.service.request.RuleSearchRequest;
 
@@ -99,6 +98,14 @@ public abstract class RuleService {
     public abstract boolean delete(Integer id);
 
     /**
+     * 删除计划所有规则
+     *
+     * @param planId 计划ID
+     * @return 成功返回true，否则返回false
+     */
+    public abstract boolean deletePlanRules(String planId);
+
+    /**
      * 根据ID获取规则
      *
      * @param id 规则ID
@@ -107,12 +114,20 @@ public abstract class RuleService {
     public abstract Rule get(Integer id);
 
     /**
-     * 批量获取规则
+     * 获取计划相关规则列表
      *
-     * @param ids 规则ID列表
+     * @param planId 计划ID
      * @return 规则列表
      */
-    public abstract List<Rule> batchGet(List<Integer> ids);
+    public abstract List<Rule> getPlanRules(String planId);
+
+    /**
+     * 获取计划相关规则ID列表
+     *
+     * @param planId 计划ID
+     * @return 规则ID列表
+     */
+    public abstract List<Integer> getPlanRuleIds(String planId);
 
     /**
      * 搜索规则列表
@@ -163,7 +178,7 @@ public abstract class RuleService {
      *
      * @return 规则历史分页列表
      */
-    public abstract Pager<RuleHistory> listHistory(Integer ruleId, int current, int size);
+    public abstract Pager<RuleHistory> getHistoryList(Integer ruleId, int current, int size);
 
     /**
      * 使用规则历史回滚规则
@@ -172,23 +187,5 @@ public abstract class RuleService {
      * @param ruleHistoryId 规则历史ID
      * @return 成功返回true，否则返回false
      */
-    public abstract boolean rollBack(Integer ruleId, Integer ruleHistoryId);
-
-    /**
-     * 判断URL是否匹配规则
-     *
-     * @param record URL记录
-     * @param rule 规则
-     * @return 匹配返回true，否则返回false
-     */
-    public abstract boolean match(URLRecord record, Rule rule);
-
-    /**
-     * 获取URL匹配规则数量
-     *
-     * @param record URL记录
-     * @param rules 规则列表
-     * @return 匹配规则数量
-     */
-    public abstract int matchRuleCount(URLRecord record, List<Rule> rules);
+    public abstract boolean rollback(Integer ruleId, Integer ruleHistoryId);
 }

@@ -3,6 +3,7 @@ package xin.manong.darwin.web.convert;
 import xin.manong.darwin.common.Constants;
 import xin.manong.darwin.common.model.*;
 import xin.manong.darwin.web.request.*;
+import xin.manong.hylian.model.User;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -26,6 +27,7 @@ public class Converter {
         if (request == null) return null;
         App app = new App();
         app.name = request.name;
+        app.comment = request.comment;
         return app;
     }
 
@@ -40,6 +42,7 @@ public class Converter {
         App app = new App();
         app.id = request.id;
         app.name = request.name;
+        app.comment = request.comment;
         return app;
     }
 
@@ -59,6 +62,25 @@ public class Converter {
     }
 
     /**
+     * 转换批量更新应用用户关系请求
+     *
+     * @param request 批量更新应用用户关系请求
+     * @return 应用用户关系列表
+     */
+    public static List<AppUser> convert(BatchAppUserRequest request) {
+        List<AppUser> appUsers = new ArrayList<>();
+        if (request == null || request.users == null) return appUsers;
+        for (User user : request.users) {
+            AppUser appUser = new AppUser();
+            appUser.appId = request.appId;
+            appUser.userId = user.id;
+            appUser.nickName = user.name;
+            appUsers.add(appUser);
+        }
+        return appUsers;
+    }
+
+    /**
      * 转换计划请求为计划对象
      *
      * @param request 计划请求
@@ -70,13 +92,12 @@ public class Converter {
         plan.appId = request.appId;
         plan.appName = request.appName;
         plan.name = request.name;
-        plan.avoidRepeatedFetch = request.avoidRepeatedFetch == null || request.avoidRepeatedFetch;
-        plan.status = Constants.PLAN_STATUS_RUNNING;
+        plan.allowRepeat = request.allowRepeat != null && request.allowRepeat;
+        plan.status = false;
+        plan.fetchMethod = request.fetchMethod == null ? Constants.FETCH_METHOD_COMMON : request.fetchMethod;
         plan.priority = request.priority == null ? Constants.PRIORITY_NORMAL : request.priority;
         plan.category = request.category;
         plan.crontabExpression = request.crontabExpression;
-        plan.ruleIds = request.ruleIds;
-        plan.seedURLs = convert(request.seedURLs);
         return plan;
     }
 
@@ -91,41 +112,47 @@ public class Converter {
         Plan plan = new Plan();
         plan.planId = request.planId;
         plan.name = request.name;
-        plan.avoidRepeatedFetch = request.avoidRepeatedFetch;
+        plan.allowRepeat = request.allowRepeat;
         plan.priority = request.priority;
         plan.category = request.category;
+        plan.fetchMethod = request.fetchMethod;
+        plan.appId = request.appId;
+        plan.appName = request.appName;
         plan.crontabExpression = request.crontabExpression;
-        plan.ruleIds = request.ruleIds;
-        plan.seedURLs = convert(request.seedURLs);
         return plan;
     }
 
     /**
-     * 转换URL请求列表为URL记录列表
+     * 转换种子URL请求为种子URL记录
      *
-     * @param requests URL请求列表
-     * @return URL记录列表
+     * @param request 种子URL请求
+     * @return 种子URL记录
      */
-    public static List<URLRecord> convert(List<URLRequest> requests) {
-        List<URLRecord> records = new ArrayList<>();
-        if (requests == null || requests.isEmpty()) return records;
-        for (URLRequest request : requests) {
-            URLRecord record = convert(request);
-            if (record == null) continue;
-            records.add(record);
-        }
-        return records;
+    public static SeedRecord convert(SeedRequest request) {
+        if (request == null) return null;
+        SeedRecord record = new SeedRecord(request.url);
+        record.planId = request.planId;
+        record.fetchMethod = request.fetchMethod;
+        record.scope = request.scope;
+        record.category = request.category;
+        record.concurrentLevel = request.concurrentLevel;
+        record.priority = request.priority;
+        record.timeout = request.timeout != null && request.timeout <= 0 ? null : request.timeout;
+        record.headers = request.headers == null ? new HashMap<>() : new HashMap<>(request.headers);
+        record.userDefinedMap = request.userDefinedMap == null ? new HashMap<>() : new HashMap<>(request.userDefinedMap);
+        return record;
     }
 
     /**
-     * 转换URL请求为URL记录
+     * 转换种子URL更新请求为种子URL记录
      *
-     * @param request URL请求
-     * @return URL记录
+     * @param request 种子URL更新请求
+     * @return 种子URL记录
      */
-    public static URLRecord convert(URLRequest request) {
+    public static SeedRecord convert(SeedUpdateRequest request) {
         if (request == null) return null;
-        URLRecord record = new URLRecord(request.url);
+        SeedRecord record = new SeedRecord(request.url);
+        record.key = request.key;
         record.fetchMethod = request.fetchMethod;
         record.scope = request.scope;
         record.category = request.category;
@@ -134,6 +161,7 @@ public class Converter {
         record.timeout = request.timeout;
         record.headers = request.headers == null ? new HashMap<>() : new HashMap<>(request.headers);
         record.userDefinedMap = request.userDefinedMap == null ? new HashMap<>() : new HashMap<>(request.userDefinedMap);
+        record.createTime = null;
         return record;
     }
 
@@ -147,12 +175,10 @@ public class Converter {
         if (request == null) return null;
         Rule rule = new Rule();
         rule.name = request.name;
-        rule.domain = request.domain;
         rule.regex = request.regex;
         rule.script = request.script;
         rule.scriptType = request.scriptType;
         rule.planId = request.planId;
-        rule.appId = request.appId;
         return rule;
     }
 
@@ -167,7 +193,6 @@ public class Converter {
         Rule rule = new Rule();
         rule.id = request.id;
         rule.name = request.name;
-        rule.domain = request.domain;
         rule.regex = request.regex;
         rule.script = request.script;
         rule.scriptType = request.scriptType;

@@ -15,7 +15,12 @@ spring:
       - classpath:application-log-@profileActive@.yml
 
 server:
-  port: 8088
+  port: 10001
+  insecure-port: 10000
+  ssl:
+    key-store: classpath:manong.xin.jks
+    key-store-type: jks
+    key-password: xmjjyhy28p
   jetty:
     threads:
       acceptors: 2
@@ -23,9 +28,10 @@ server:
       min: 8
       max: 200
     max-http-form-post-size: 1048576
+  address: 0.0.0.0
 
 app:
   web:
     name: darwin-web
     connectionExpiredTimeMs: 300000
-    ignore-check-permission: true
+    ignore-check-permission: false

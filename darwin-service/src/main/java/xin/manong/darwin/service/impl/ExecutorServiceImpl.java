@@ -31,7 +31,7 @@ public class ExecutorServiceImpl implements ExecutorService {
 
     @Override
     public boolean add(Executor executor) {
-        if (get(executor.getName()) != null) throw new IllegalStateException("同名执行器存在");
+        if (get(executor.getName()) != null) throw new IllegalStateException("执行器已存在");
         return executorMapper.insert(executor) > 0;
     }
 

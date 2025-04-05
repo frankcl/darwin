@@ -6,9 +6,11 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import jakarta.annotation.Resource;
 import jakarta.ws.rs.BadRequestException;
+import jakarta.ws.rs.InternalServerErrorException;
 import jakarta.ws.rs.NotFoundException;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import xin.manong.darwin.common.Constants;
 import xin.manong.darwin.common.model.AppUser;
 import xin.manong.darwin.common.model.Pager;
@@ -17,6 +19,8 @@ import xin.manong.darwin.service.dao.mapper.AppUserMapper;
 import xin.manong.darwin.service.iface.AppUserService;
 import xin.manong.darwin.service.request.AppUserSearchRequest;
 import xin.manong.darwin.service.util.ModelValidator;
+
+import java.util.List;
 
 /**
  * 应用用户关系服务实现
@@ -45,6 +49,15 @@ public class AppUserServiceImpl implements AppUserService {
     }
 
     @Override
+    public boolean deleteByApp(Integer appId) {
+        LambdaQueryWrapper<AppUser> query = new LambdaQueryWrapper<>();
+        query.eq(AppUser::getAppId, appId);
+        long n = appUserMapper.selectCount(query);
+        if (n == 0) return true;
+        return appUserMapper.delete(query) > 0;
+    }
+
+    @Override
     public AppUser get(Integer id) {
         if (id == null) throw new BadRequestException("应用用户关系ID为空");
         return appUserMapper.selectById(id);
@@ -57,6 +70,31 @@ public class AppUserServiceImpl implements AppUserService {
         searchRequest.appId = appId;
         Pager<AppUser> pager = search(searchRequest);
         return pager != null && pager.records != null && pager.records.size() == 1;
+    }
+
+    @Override
+    public List<AppUser> getAppUsers(Integer appId) {
+        LambdaQueryWrapper<AppUser> query = new LambdaQueryWrapper<>();
+        query.eq(AppUser::getAppId, appId);
+        return appUserMapper.selectList(query);
+    }
+
+    @Override
+    public List<AppUser> getAppUsers(String userId) {
+        LambdaQueryWrapper<AppUser> query = new LambdaQueryWrapper<>();
+        query.eq(AppUser::getUserId, userId);
+        return appUserMapper.selectList(query);
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void batchUpdate(List<AppUser> addAppUsers, List<Integer> removeAppUsers) {
+        for (AppUser appUser : addAppUsers) {
+            if (!add(appUser)) throw new InternalServerErrorException("添加应用用户关系失败");
+        }
+        for (Integer id : removeAppUsers) {
+            if (!delete(id)) throw new InternalServerErrorException("删除应用用户关系失败");
+        }
     }
 
     @Override

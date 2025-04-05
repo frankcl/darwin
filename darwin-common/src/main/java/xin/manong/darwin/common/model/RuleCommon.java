@@ -42,14 +42,6 @@ public class RuleCommon extends BaseModel {
     public Integer id;
 
     /**
-     * 规则domain
-     */
-    @TableField(value = "domain")
-    @JSONField(name = "domain")
-    @JsonProperty("domain")
-    public String domain;
-
-    /**
      * 规则正则表达式
      */
     @TableField(value = "regex")
@@ -76,12 +68,27 @@ public class RuleCommon extends BaseModel {
     public Integer scriptType;
 
     /**
+     * 创建人
+     */
+    @TableField(value = "creator")
+    @JSONField(name = "creator")
+    @JsonProperty("creator")
+    public String creator;
+
+    /**
+     * 修改人
+     */
+    @TableField(value = "modifier")
+    @JSONField(name = "modifier")
+    @JsonProperty("modifier")
+    public String modifier;
+
+    /**
      * 检测合法性
      */
     public void check() {
         if (StringUtils.isEmpty(regex)) throw new BadRequestException("正则表达式为空");
         if (!Constants.SUPPORT_SCRIPT_TYPES.containsKey(scriptType)) throw new BadRequestException("不支持脚本类型");
         if (StringUtils.isEmpty(script)) throw new BadRequestException("脚本内容为空");
-        if (StringUtils.isEmpty(domain)) throw new BadRequestException("domain为空");
     }
 }

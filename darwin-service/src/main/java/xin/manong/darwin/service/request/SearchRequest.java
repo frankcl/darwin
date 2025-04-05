@@ -43,6 +43,14 @@ public class SearchRequest implements Serializable {
     @QueryParam("order_by")
     public String orderBy;
 
+    /**
+     * 应用ID列表字符串
+     */
+    @JsonProperty("app_ids")
+    @QueryParam("app_ids")
+    public String appIds;
+
+    public List<String> appList;
     public List<OrderByRequest> orderByRequests;
 
     /**

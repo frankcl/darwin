@@ -13,6 +13,8 @@ import xin.manong.darwin.web.convert.Converter;
 import xin.manong.darwin.web.request.AppRequest;
 import xin.manong.darwin.web.request.AppUpdateRequest;
 import xin.manong.darwin.web.component.PermissionSupport;
+import xin.manong.hylian.client.core.ContextManager;
+import xin.manong.hylian.model.User;
 import xin.manong.weapon.spring.boot.aspect.EnableWebLogAspect;
 
 /**
@@ -79,6 +81,12 @@ public class AppController {
         if (request == null) throw new BadRequestException("应用信息为空");
         request.check();
         App app = Converter.convert(request);
+        User user = ContextManager.getUser();
+        if (user != null) {
+            app.creatorId = user.id;
+            app.creator = user.name;
+            app.modifier = user.name;
+        }
         return appService.add(app);
     }
 
@@ -98,7 +106,9 @@ public class AppController {
         if (request == null) throw new BadRequestException("更新应用信息为空");
         request.check();
         permissionSupport.checkAppPermission(request.id);
+        User user = ContextManager.getUser();
         App app = Converter.convert(request);
+        if (user != null) app.modifier = user.name;
         return appService.update(app);
     }
 

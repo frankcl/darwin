@@ -49,7 +49,7 @@ public class JobServiceImpl extends JobService {
     public boolean add(Job job) {
         LambdaQueryWrapper<Job> query = new LambdaQueryWrapper<>();
         query.eq(Job::getName, job.getName()).eq(Job::getPlanId, job.getPlanId());
-        if (jobMapper.selectCount(query) > 0) throw new IllegalStateException("同名任务已存在");
+        if (jobMapper.selectCount(query) > 0) throw new IllegalStateException("任务已存在");
         return jobMapper.insert(job) > 0;
     }
 

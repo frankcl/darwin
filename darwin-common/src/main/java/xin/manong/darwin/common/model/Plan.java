@@ -16,14 +16,10 @@ import org.quartz.CronExpression;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import xin.manong.darwin.common.Constants;
-import xin.manong.darwin.common.model.handler.JSONListIntegerTypeHandler;
-import xin.manong.darwin.common.model.handler.JSONListURLRecordTypeHandler;
 import xin.manong.weapon.base.util.CommonUtil;
 import xin.manong.weapon.base.util.RandomID;
 
 import java.io.Serial;
-import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * 任务计划：用于生成爬虫任务
@@ -46,12 +42,12 @@ public class Plan extends BaseModel {
     private static final long serialVersionUID = -2706430539910683801L;
 
     /**
-     * 避免重复抓取
+     * 允许重复抓取
      */
-    @TableField(value = "avoid_repeated_fetch")
-    @JSONField(name = "avoid_repeated_fetch")
-    @JsonProperty("avoid_repeated_fetch")
-    public Boolean avoidRepeatedFetch;
+    @TableField(value = "allow_repeat")
+    @JSONField(name = "allow_repeat")
+    @JsonProperty("allow_repeat")
+    public Boolean allowRepeat;
 
     /**
      * 计划状态
@@ -59,7 +55,7 @@ public class Plan extends BaseModel {
     @TableField(value = "status")
     @JSONField(name = "status")
     @JsonProperty("status")
-    public Integer status;
+    public Boolean status;
 
     /**
      * 任务优先级
@@ -135,20 +131,20 @@ public class Plan extends BaseModel {
     public Integer fetchMethod;
 
     /**
-     * 规则ID列表
+     * 创建人
      */
-    @TableField(value = "rule_ids", typeHandler = JSONListIntegerTypeHandler.class)
-    @JSONField(name = "rule_ids")
-    @JsonProperty("rule_ids")
-    public List<Integer> ruleIds;
+    @TableField(value = "creator")
+    @JSONField(name = "creator")
+    @JsonProperty("creator")
+    public String creator;
 
     /**
-     * 种子列表
+     * 修改人
      */
-    @TableField(value = "seed_urls", typeHandler = JSONListURLRecordTypeHandler.class)
-    @JSONField(name = "seed_urls")
-    @JsonProperty("seed_urls")
-    public List<URLRecord> seedURLs;
+    @TableField(value = "modifier")
+    @JSONField(name = "modifier")
+    @JsonProperty("modifier")
+    public String modifier;
 
     /**
      * 根据当前计划生成任务
@@ -160,28 +156,12 @@ public class Plan extends BaseModel {
         job.createTime = System.currentTimeMillis();
         job.planId = planId;
         job.appId = appId;
-        job.avoidRepeatedFetch = avoidRepeatedFetch == null || avoidRepeatedFetch;
+        job.allowRepeat = allowRepeat != null && allowRepeat;
         job.priority = priority == null ? Constants.PRIORITY_NORMAL : priority;
         job.status = Constants.JOB_STATUS_RUNNING;
         job.fetchMethod = fetchMethod;
         job.jobId = RandomID.build();
         job.name = String.format("%s_%s", name, CommonUtil.timeToString(System.currentTimeMillis(), DATE_TIME_FORMAT));
-        job.ruleIds = ruleIds;
-        job.seedURLs = seedURLs == null ? null : seedURLs.stream().map(record -> {
-            URLRecord seedRecord = new URLRecord(record);
-            seedRecord.rebuildKey();
-            seedRecord.appId = job.appId;
-            seedRecord.jobId = job.jobId;
-            seedRecord.planId = job.planId;
-            seedRecord.status = Constants.URL_STATUS_CREATED;
-            if (seedRecord.fetchMethod == null) seedRecord.fetchMethod = job.fetchMethod;
-            if (seedRecord.category == null) seedRecord.category = Constants.CONTENT_CATEGORY_CONTENT;
-            if (seedRecord.concurrentLevel == null) seedRecord.concurrentLevel = Constants.CONCURRENT_LEVEL_DOMAIN;
-            if (seedRecord.priority == null) {
-                seedRecord.priority = job.priority == null ? Constants.PRIORITY_NORMAL : job.priority;
-            }
-            return seedRecord;
-        }).collect(Collectors.toList());
         return job;
     }
 
@@ -211,16 +191,8 @@ public class Plan extends BaseModel {
             logger.error("plan name is empty");
             return false;
         }
-        if (seedURLs == null || seedURLs.isEmpty()) {
-            logger.error("seed url list are empty");
-            return false;
-        }
         if (!Constants.SUPPORT_PLAN_CATEGORIES.containsKey(category)) {
             logger.error("not supported plan category[{}]", category);
-            return false;
-        }
-        if (!Constants.SUPPORT_PLAN_STATUSES.containsKey(status)) {
-            logger.error("not supported plan status[{}]", status);
             return false;
         }
         if (fetchMethod != null && !Constants.SUPPORT_FETCH_METHODS.containsKey(fetchMethod)) {
@@ -232,9 +204,9 @@ public class Plan extends BaseModel {
             logger.error("crontab expression[{}] is invalid", crontabExpression);
             return false;
         }
-        if (avoidRepeatedFetch == null) avoidRepeatedFetch = true;
+        if (status == null) status = false;
+        if (allowRepeat == null) allowRepeat = false;
         if (priority == null) priority = Constants.PRIORITY_NORMAL;
-        if (status == null) status = Constants.PLAN_STATUS_RUNNING;
         return true;
     }
 }

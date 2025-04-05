@@ -61,12 +61,12 @@ public class DarwinUtil {
         if (!StringUtils.isEmpty(plan.planId)) context.put(Constants.PLAN_ID, plan.planId);
         if (!StringUtils.isEmpty(plan.name)) context.put(Constants.NAME, plan.name);
         if (!StringUtils.isEmpty(plan.crontabExpression)) context.put(Constants.CRONTAB_EXPRESSION, plan.crontabExpression);
-        if (plan.status != null) context.put(Constants.STATUS, Constants.SUPPORT_PLAN_STATUSES.get(plan.status));
+        if (plan.status != null) context.put(Constants.STATUS, plan.status);
         if (plan.category != null) context.put(Constants.CATEGORY, Constants.SUPPORT_PLAN_CATEGORIES.get(plan.category));
         if (plan.fetchMethod != null) context.put(Constants.FETCH_METHOD, Constants.SUPPORT_FETCH_METHODS.get(plan.fetchMethod));
         if (plan.appId != null) context.put(Constants.APP_ID, plan.appId);
         if (plan.priority != null) context.put(Constants.PRIORITY, plan.priority);
-        if (plan.avoidRepeatedFetch != null) context.put(Constants.AVOID_REPEATED_FETCH, plan.avoidRepeatedFetch);
+        if (plan.allowRepeat != null) context.put(Constants.ALLOW_REPEAT, plan.allowRepeat);
     }
 
     /**

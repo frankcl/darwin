@@ -37,30 +37,28 @@ public interface PlanService {
     boolean update(Plan plan);
 
     /**
+     * 更新计划下次调度时间
+     *
+     * @param plan 计划
+     * @param baseTime 基准时间（毫秒时间戳）
+     */
+    void updateNextTime(Plan plan, Long baseTime);
+
+    /**
+     * 更新属于应用ID的所有计划的所属应用名
+     *
+     * @param appId 应用ID
+     * @param appName 应用名
+     */
+    void updateAppName(int appId, String appName);
+
+    /**
      * 删除计划
      *
      * @param planId 计划ID
      * @return 成功返回true，否则返回false
      */
     boolean delete(String planId);
-
-    /**
-     * 增加计划规则
-     *
-     * @param planId 计划ID
-     * @param ruleId 规则ID
-     * @return 成功返回true，否则返回false
-     */
-    boolean addRule(String planId, Integer ruleId);
-
-    /**
-     * 移除计划规则
-     *
-     * @param planId 计划ID
-     * @param ruleId 规则ID
-     * @return 成功返回true，否则返回false
-     */
-    boolean removeRule(String planId, Integer ruleId);
 
     /**
      * 搜索计划列表

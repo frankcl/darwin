@@ -2,12 +2,15 @@ package xin.manong.darwin.service.convert;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import xin.manong.darwin.common.model.Pager;
+import xin.manong.darwin.common.model.SeedRecord;
+import xin.manong.darwin.common.model.URLRecord;
 import xin.manong.weapon.aliyun.ots.OTSConverter;
 import xin.manong.weapon.aliyun.ots.OTSSearchResponse;
 import xin.manong.weapon.base.record.KVRecord;
 import xin.manong.weapon.base.record.KVRecords;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 
 /**
  * 数据转换器
@@ -16,6 +19,26 @@ import java.util.ArrayList;
  * @date 2023-03-15 17:08:50
  */
 public class Converter {
+
+    /**
+     * 转换种子记录为URL记录
+     *
+     * @param seedRecord 种子记录
+     * @return URL记录
+     */
+    public static URLRecord convert(SeedRecord seedRecord) {
+        URLRecord record = new URLRecord(seedRecord.url);
+        record.timeout = seedRecord.timeout;
+        record.priority = seedRecord.priority;
+        record.fetchMethod = seedRecord.fetchMethod;
+        record.category = seedRecord.category;
+        record.concurrentLevel = seedRecord.concurrentLevel;
+        record.scope = seedRecord.scope;
+        record.planId = seedRecord.planId;
+        record.headers = seedRecord.headers == null ? new HashMap<>() : seedRecord.headers;
+        record.userDefinedMap = seedRecord.userDefinedMap == null ? new HashMap<>() : seedRecord.userDefinedMap;
+        return record;
+    }
 
     /**
      * 转化数据库分页信息为通用分页信息

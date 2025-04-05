@@ -12,7 +12,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import xin.manong.darwin.common.Constants;
-import xin.manong.darwin.common.model.Job;
 import xin.manong.darwin.common.model.Rule;
 import xin.manong.darwin.common.model.URLRecord;
 import xin.manong.darwin.common.util.DarwinUtil;
@@ -189,15 +188,11 @@ public class HTMLSpider extends Spider {
      * @return 匹配规则
      */
     private Rule findMatchRule(URLRecord record) {
-        Job job = jobService.getCache(record.jobId);
-        if (job == null) {
-            logger.error("job[{}] is not found for url[{}]", record.jobId, record.url);
-            throw new IllegalStateException("爬虫任务不存在");
-        }
+        List<Integer> ruleIds = ruleService.getPlanRuleIds(record.planId);
         List<Rule> rules = new ArrayList<>();
-        for (Integer ruleId : job.ruleIds) {
+        for (Integer ruleId : ruleIds) {
             Rule rule = ruleService.getCache(ruleId);
-            if (rule == null || !ruleService.match(record, rule)) continue;
+            if (rule == null || !rule.match(record.url)) continue;
             rules.add(rule);
         }
         if (rules.size() != 1) {

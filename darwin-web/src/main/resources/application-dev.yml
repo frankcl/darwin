@@ -1,16 +1,29 @@
+weapon:
+  aliyun:
+    oss:
+      client:
+        endpoint: https://oss-cn-hangzhou.aliyuncs.com
+        socket-timeout-ms: 3000
+        connection-timeout-ms: 3000
+        retry-cnt: 2
+
 hylian:
   client:
-    appId: darwin
-    appSecret: 123456
-    serverURL: http://192.168.3.43:8080/
+    appId: f733a689783eee56ad79886de1012699
+    appSecret: oSUf9lwQ
+    serverURL: https://hylian.manong.xin/
   filter:
     guard:
       excludePatterns:
         - api/health/*
-        - api/*
+        - api/app/search
+        - api/app/get
+        - api/plan/search
+        - api/plan/get
+        - api/app_user/getAppUsers
+        - api/user/getAllUsers
         - favicon.ico
 
 app:
   web:
-    ignore-check-permission: true
     aspect-log-file: ./log/aspect/web.log

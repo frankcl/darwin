@@ -184,8 +184,8 @@ public abstract class Spider {
      * @return 成功返回输入流，否则返回null
      */
     protected InputStream getPrevInputStream(URLRecord record, Context context) {
-        if (context == null || !context.contains(Constants.AVOID_REPEATED_FETCH) ||
-                !((boolean) context.get(Constants.AVOID_REPEATED_FETCH))) return null;
+        if (context != null && context.contains(Constants.ALLOW_REPEAT) &&
+                (boolean) context.get(Constants.ALLOW_REPEAT)) return null;
         URLSearchRequest searchRequest = new URLSearchRequest();
         searchRequest.statusList = new ArrayList<>();
         searchRequest.statusList.add(Constants.URL_STATUS_SUCCESS);
@@ -261,7 +261,7 @@ public abstract class Spider {
         long startTime = System.currentTimeMillis();
         try {
             Job job = jobService.getCache(record.jobId);
-            if (job != null && job.avoidRepeatedFetch) context.put(Constants.AVOID_REPEATED_FETCH, true);
+            if (job != null && job.allowRepeat != null) context.put(Constants.ALLOW_REPEAT, job.allowRepeat);
             record.status = Constants.URL_STATUS_FETCH_FAIL;
             record.fetchTime = System.currentTimeMillis();
             handle(record, context);

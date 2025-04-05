@@ -18,8 +18,6 @@ import xin.manong.darwin.service.iface.JobService;
 import xin.manong.darwin.service.request.JobSearchRequest;
 import xin.manong.weapon.base.util.RandomID;
 
-import java.util.ArrayList;
-
 /**
  * @author frankcl
  * @date 2023-03-15 15:18:57
@@ -43,10 +41,6 @@ public class JobServiceImplTest {
         job.jobId = RandomID.build();
         job.planId = RandomID.build();
         job.priority = Constants.PRIORITY_HIGH;
-        job.ruleIds = new ArrayList<>();
-        job.ruleIds.add(0);
-        job.seedURLs = new ArrayList<>();
-        job.seedURLs.add(record);
         Assert.assertTrue(job.check());
         Assert.assertTrue(jobService.add(job));
 
@@ -56,19 +50,10 @@ public class JobServiceImplTest {
         Assert.assertEquals(1, jobInDB.appId.intValue());
         Assert.assertEquals(job.planId, jobInDB.planId);
         Assert.assertEquals(job.priority.intValue(), jobInDB.priority.intValue());
-        Assert.assertEquals(1, jobInDB.ruleIds.size());
-        Assert.assertEquals(0, jobInDB.ruleIds.get(0).intValue());
-        Assert.assertEquals(1, jobInDB.seedURLs.size());
-        Assert.assertEquals(record.key, jobInDB.seedURLs.get(0).key);
-        Assert.assertEquals(record.url, jobInDB.seedURLs.get(0).url);
-        Assert.assertEquals(record.createTime.longValue(), jobInDB.seedURLs.get(0).createTime.longValue());
 
         Job updateJob = new Job();
         updateJob.jobId = job.jobId;
         updateJob.priority = Constants.PRIORITY_LOW;
-        updateJob.seedURLs = new ArrayList<>();
-        updateJob.seedURLs.add(new URLRecord("http://www.sohu.com/"));
-        updateJob.seedURLs.add(new URLRecord("http://www.163.net/"));
         Assert.assertTrue(jobService.update(updateJob));
 
         jobInDB = jobService.get(job.jobId);
@@ -76,11 +61,6 @@ public class JobServiceImplTest {
         Assert.assertEquals("测试任务", jobInDB.name);
         Assert.assertEquals(job.planId, jobInDB.planId);
         Assert.assertEquals(Constants.PRIORITY_LOW, jobInDB.priority.intValue());
-        Assert.assertEquals(1, jobInDB.ruleIds.size());
-        Assert.assertEquals(0, jobInDB.ruleIds.get(0).intValue());
-        Assert.assertEquals(2, jobInDB.seedURLs.size());
-        Assert.assertEquals("http://www.sohu.com/", jobInDB.seedURLs.get(0).url);
-        Assert.assertEquals("http://www.163.net/", jobInDB.seedURLs.get(1).url);
 
         jobInDB = jobService.getCache(job.jobId);
         Assert.assertNotNull(jobInDB);

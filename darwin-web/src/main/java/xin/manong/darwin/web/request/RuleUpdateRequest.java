@@ -35,8 +35,7 @@ public class RuleUpdateRequest extends RuleRequest {
     public void check() {
         if (id == null) throw new BadRequestException("规则ID为空");
         if (scriptType == null && StringUtils.isEmpty(script) &&
-                StringUtils.isEmpty(regex) && StringUtils.isEmpty(domain) &&
-                StringUtils.isEmpty(name)) {
+                StringUtils.isEmpty(regex) && StringUtils.isEmpty(name)) {
             throw new BadRequestException("规则更新信息为空");
         }
         if (scriptType != null && !Constants.SUPPORT_SCRIPT_TYPES.containsKey(scriptType)) {

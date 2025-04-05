@@ -85,11 +85,11 @@ public class DarwinUtilTest {
         Plan plan = new Plan();
         plan.planId = "xxx";
         plan.name = "test plan";
-        plan.status = Constants.PLAN_STATUS_RUNNING;
+        plan.status = false;
         plan.appId = 1;
         plan.priority = Constants.PRIORITY_HIGH;
         plan.category = Constants.PLAN_CATEGORY_PERIOD;
-        plan.avoidRepeatedFetch = true;
+        plan.allowRepeat = true;
         plan.crontabExpression = "0 0 6-23/1 * * ?";
         DarwinUtil.putContext(context, plan);
 
@@ -99,15 +99,15 @@ public class DarwinUtilTest {
         Assert.assertTrue(context.contains(Constants.STATUS));
         Assert.assertTrue(context.contains(Constants.PRIORITY));
         Assert.assertTrue(context.contains(Constants.CATEGORY));
-        Assert.assertTrue(context.contains(Constants.AVOID_REPEATED_FETCH));
+        Assert.assertTrue(context.contains(Constants.ALLOW_REPEAT));
         Assert.assertTrue(context.contains(Constants.CRONTAB_EXPRESSION));
         Assert.assertTrue(context.contains(Constants.DARWIN_RECORD_TYPE));
 
         Assert.assertEquals(Constants.RECORD_TYPE_PLAN, context.get(Constants.DARWIN_RECORD_TYPE));
         Assert.assertEquals("xxx", context.get(Constants.PLAN_ID));
         Assert.assertEquals("test plan", context.get(Constants.NAME));
-        Assert.assertEquals(true, context.get(Constants.AVOID_REPEATED_FETCH));
-        Assert.assertEquals(Constants.SUPPORT_PLAN_STATUSES.get(Constants.PLAN_STATUS_RUNNING), context.get(Constants.STATUS));
+        Assert.assertEquals(true, context.get(Constants.ALLOW_REPEAT));
+        Assert.assertEquals(false, context.get(Constants.STATUS));
         Assert.assertEquals(Constants.SUPPORT_PLAN_CATEGORIES.get(Constants.PLAN_CATEGORY_PERIOD), context.get(Constants.CATEGORY));
         Assert.assertEquals(1, (int) context.get(Constants.APP_ID));
         Assert.assertEquals(Constants.PRIORITY_HIGH, (int) context.get(Constants.PRIORITY));

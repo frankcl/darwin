@@ -6,9 +6,9 @@ spring:
     druid:
       connection-properties: druid.stat.mergeSql=true;druid.stat.slowSqlMillis=5000;config.decrypt=true;config.decrypt.key=MFwwDQYJKoZIhvcNAQEBBQADSwAwSAJBAKcOdAgLcEa5CdiFLYz1cH7lb8zw8iyzRjgEpJnV+L2D1Gv5rkm7YkNHL607T81FiJdvYTZd2wwQ9ZZJqExLT+kCAwEAAQ==
 
-mybatis-plus:
-  configuration:
-    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+#mybatis-plus:
+#  configuration:
+#    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
 
 weapon:
   common:

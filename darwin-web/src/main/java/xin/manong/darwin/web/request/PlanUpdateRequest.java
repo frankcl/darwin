@@ -11,7 +11,6 @@ import xin.manong.darwin.common.Constants;
 
 import java.io.Serial;
 import java.io.Serializable;
-import java.util.List;
 
 /**
  * 计划更新请求信息
@@ -29,8 +28,8 @@ public class PlanUpdateRequest implements Serializable {
     /**
      * 避免重复抓取
      */
-    @JsonProperty("avoid_repeated_fetch")
-    public Boolean avoidRepeatedFetch;
+    @JsonProperty("allow_repeat")
+    public Boolean allowRepeat;
 
     /**
      * 任务优先级
@@ -51,6 +50,18 @@ public class PlanUpdateRequest implements Serializable {
     public String planId;
 
     /**
+     * 应用ID
+     */
+    @JsonProperty("app_id")
+    public Integer appId;
+
+    /**
+     * 应用名
+     */
+    @JsonProperty("app_name")
+    public String appName;
+
+    /**
      * 周期性任务crontab表达式
      * 针对周期性任务有效
      */
@@ -64,16 +75,10 @@ public class PlanUpdateRequest implements Serializable {
     public Integer category;
 
     /**
-     * 规则ID列表
+     * 抓取方式
      */
-    @JsonProperty("rule_ids")
-    public List<Integer> ruleIds;
-
-    /**
-     * 种子列表
-     */
-    @JsonProperty("seed_urls")
-    public List<URLRequest> seedURLs;
+    @JsonProperty("fetch_method")
+    public Integer fetchMethod;
 
     /**
      * 检测有效性
@@ -81,10 +86,12 @@ public class PlanUpdateRequest implements Serializable {
      */
     public void check() {
         if (StringUtils.isEmpty(planId)) throw new BadRequestException("计划ID为空");
-        if (avoidRepeatedFetch == null && StringUtils.isEmpty(name) && priority == null
-                && category == null && (ruleIds == null || ruleIds.isEmpty()) &&
-                (seedURLs == null || seedURLs.isEmpty())) {
+        if (allowRepeat == null && StringUtils.isEmpty(name) &&
+                priority == null && category == null && fetchMethod == null) {
             throw new BadRequestException("更新计划信息为空");
+        }
+        if (fetchMethod != null && !Constants.SUPPORT_FETCH_METHODS.containsKey(fetchMethod)) {
+            throw new BadRequestException("不支持的抓取方式");
         }
         if (category != null && !Constants.SUPPORT_PLAN_CATEGORIES.containsKey(category)) {
             throw new BadRequestException("不支持的计划类型");
@@ -92,6 +99,5 @@ public class PlanUpdateRequest implements Serializable {
         if (!StringUtils.isEmpty(crontabExpression) && !CronExpression.isValidExpression(crontabExpression)) {
             throw new BadRequestException("非法crontab表达式");
         }
-        if (seedURLs != null) for (URLRequest seedURL : seedURLs) seedURL.check();
     }
 }

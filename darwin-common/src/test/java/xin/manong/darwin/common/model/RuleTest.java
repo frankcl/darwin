@@ -16,10 +16,8 @@ public class RuleTest {
         rule.name = "测试规则";
         rule.scriptType = Constants.SCRIPT_TYPE_GROOVY;
         rule.script = "def A() {}";
-        rule.domain = "sina.com.cn";
         rule.regex = "http://\\w+.sina.com.cn/index.html";
         rule.planId = "123";
-        rule.appId = 1;
         rule.check();
     }
 
@@ -30,8 +28,6 @@ public class RuleTest {
         rule.scriptType = null;
         rule.script = "def A() {}";
         rule.regex = "http://\\w+.sina.com.cn/index.html";
-        rule.planId = "123";
-        rule.appId = 1;
         rule.check();
     }
 }

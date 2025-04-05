@@ -33,6 +33,8 @@ public class AppServiceImplTest {
     public void testAppOperations() {
         App app = new App();
         app.name = "测试应用1";
+        app.creatorId = "xxx";
+        app.creator = "frankcl";
         Assert.assertTrue(appService.add(app));
         Assert.assertTrue(app.id != null && app.id > 0L);
 

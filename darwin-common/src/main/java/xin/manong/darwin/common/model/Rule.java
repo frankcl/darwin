@@ -13,6 +13,7 @@ import lombok.experimental.Accessors;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.Serial;
+import java.util.regex.Pattern;
 
 /**
  * 规则
@@ -47,13 +48,19 @@ public class Rule extends RuleCommon {
     @JsonProperty("plan_id")
     public String planId;
 
+    @TableField(exist = false)
+    private Pattern pattern;
+
     /**
-     * 应用ID
+     * URL是否匹配规则
+     *
+     * @param url URL
+     * @return 匹配返回true，否则返回false
      */
-    @TableField(value = "app_id")
-    @JSONField(name = "app_id")
-    @JsonProperty("app_id")
-    public Integer appId;
+    public boolean match(String url) {
+        if (pattern == null) pattern = Pattern.compile(regex);
+        return pattern.matcher(url).matches();
+    }
 
     /**
      * 检测合法性
@@ -62,6 +69,5 @@ public class Rule extends RuleCommon {
         super.check();
         if (StringUtils.isEmpty(name)) throw new BadRequestException("规则名为空");
         if (StringUtils.isEmpty(planId)) throw new BadRequestException("所属计划ID为空");
-        if (appId == null) throw new BadRequestException("所属应用ID为空");
     }
 }

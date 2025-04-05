@@ -176,22 +176,8 @@ public class Constants {
         private static final long serialVersionUID = -3162511278902980623L;
 
         {
-        put(PLAN_CATEGORY_ONCE, "一次性计划");
-        put(PLAN_CATEGORY_PERIOD, "周期性计划");
-    }};
-
-    /**
-     * 计划状态
-     */
-    public static final int PLAN_STATUS_STOPPED = 0;                //停止
-    public static final int PLAN_STATUS_RUNNING = 1;                //运行
-    public static final Map<Integer, String> SUPPORT_PLAN_STATUSES = new HashMap<>() {
-        @Serial
-        private static final long serialVersionUID = -429322310787905638L;
-
-        {
-        put(PLAN_STATUS_STOPPED, "停止");
-        put(PLAN_STATUS_RUNNING, "运行");
+        put(PLAN_CATEGORY_ONCE, "单次型计划");
+        put(PLAN_CATEGORY_PERIOD, "周期型计划");
     }};
 
     /**
@@ -273,7 +259,7 @@ public class Constants {
     public static final String NAME = "name";
     public static final String STATUS = "status";
     public static final String PRIORITY = "priority";
-    public static final String AVOID_REPEATED_FETCH = "avoid_repeated_fetch";
+    public static final String ALLOW_REPEAT = "allow_repeat";
     public static final String CRONTAB_EXPRESSION = "crontab_expression";
 
     /**

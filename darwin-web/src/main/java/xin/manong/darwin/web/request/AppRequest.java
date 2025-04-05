@@ -28,6 +28,11 @@ public class AppRequest implements Serializable {
      */
     @JsonProperty("name")
     public String name;
+    /**
+     * 应用说明
+     */
+    @JsonProperty("comment")
+    public String comment;
 
     /**
      * 检测有效性
@@ -35,5 +40,6 @@ public class AppRequest implements Serializable {
      */
     public void check() {
         if (StringUtils.isEmpty(name)) throw new BadRequestException("应用名为空");
+        if (StringUtils.isEmpty(comment)) throw new BadRequestException("应用说明为空");
     }
 }

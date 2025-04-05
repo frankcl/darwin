@@ -14,17 +14,17 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * 请求URL
+ * 种子URL更新请求
  *
  * @author frankcl
- * @date 2023-11-07 10:52:10
+ * @date 2025-04-01 10:52:10
  */
 @XmlAccessorType(XmlAccessType.FIELD)
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class URLRequest implements Serializable {
+public class SeedUpdateRequest implements Serializable {
 
     @Serial
-    private static final long serialVersionUID = 589201152717708705L;
+    private static final long serialVersionUID = 5727200756828988838L;
 
     /**
      * 超时时间（毫秒）
@@ -79,10 +79,16 @@ public class URLRequest implements Serializable {
     public Integer scope;
 
     /**
-     * 抓取URL
+     * 种子URL
      */
     @JsonProperty("url")
     public String url;
+
+    /**
+     * 唯一key
+     */
+    @JsonProperty("key")
+    public String key;
 
     /**
      * HTTP header信息
@@ -101,13 +107,26 @@ public class URLRequest implements Serializable {
      * 无效抛出异常
      */
     public void check() {
-        if (StringUtils.isEmpty(url)) throw new BadRequestException("URL为空");
-        if (!Constants.SUPPORT_CONTENT_CATEGORIES.containsKey(category)) throw new BadRequestException("不支持的URL类型");
-        if (fetchMethod == null) fetchMethod = Constants.FETCH_METHOD_COMMON;
-        if (priority == null) priority = Constants.PRIORITY_NORMAL;
-        if (concurrentLevel == null) concurrentLevel = Constants.CONCURRENT_LEVEL_DOMAIN;
-        if (!Constants.SUPPORT_FETCH_METHODS.containsKey(fetchMethod)) throw new BadRequestException("不支持的抓取方式");
-        if (!Constants.SUPPORT_CONCURRENT_LEVELS.containsKey(concurrentLevel)) throw new BadRequestException("不支持的并发级别");
-        if (priority > Constants.PRIORITY_LOW || priority < Constants.PRIORITY_HIGH) throw new BadRequestException("不支持的优先级");
+        if (StringUtils.isEmpty(key)) throw new BadRequestException("种子URL key为空");
+        if (StringUtils.isEmpty(url) && category == null && fetchMethod == null && priority == null &&
+                concurrentLevel == null && timeout == null && scope == null &&
+                headers.isEmpty() && userDefinedMap.isEmpty()) {
+            throw new BadRequestException("种子更新信息为空");
+        }
+        if (category != null && !Constants.SUPPORT_CONTENT_CATEGORIES.containsKey(category)) {
+            throw new BadRequestException("不支持的URL类型");
+        }
+        if (fetchMethod != null && !Constants.SUPPORT_FETCH_METHODS.containsKey(fetchMethod)) {
+            throw new BadRequestException("不支持的抓取方式");
+        }
+        if (concurrentLevel != null && !Constants.SUPPORT_CONCURRENT_LEVELS.containsKey(concurrentLevel)) {
+            throw new BadRequestException("不支持的并发级别");
+        }
+        if (scope != null && !Constants.SUPPORT_LINK_SCOPES.containsKey(scope)) {
+            throw new BadRequestException("不支持的抽链类型");
+        }
+        if (priority != null && (priority > Constants.PRIORITY_LOW || priority < Constants.PRIORITY_HIGH)) {
+            throw new BadRequestException("不支持的优先级");
+        }
     }
 }

@@ -133,7 +133,7 @@ public class PlanScheduler extends AspectLogSupport {
     private Pager<Plan> getPlans(int current, int size) {
         PlanSearchRequest searchRequest = new PlanSearchRequest();
         searchRequest.category = Constants.PLAN_CATEGORY_PERIOD;
-        searchRequest.status = Constants.PLAN_STATUS_RUNNING;
+        searchRequest.status = true;
         searchRequest.current = current;
         searchRequest.size = size;
         return planService.search(searchRequest);
