@@ -118,7 +118,7 @@ public class Constants {
     public static final int CONTENT_CATEGORY_CONTENT = 1;           //内容页
     public static final int CONTENT_CATEGORY_LIST = 2;              //列表页
     public static final int CONTENT_CATEGORY_RESOURCE = 3;          //资源：图片视频等
-    public static final int CONTENT_CATEGORY_STREAM = 4;            //流：视频流等
+    public static final int CONTENT_CATEGORY_STREAM = 4;            //视频流等
     public static final Map<Integer, String> SUPPORT_CONTENT_CATEGORIES = new HashMap<>() {
         @Serial
         private static final long serialVersionUID = 3318891098314553137L;
@@ -163,8 +163,8 @@ public class Constants {
     /**
      * 计划分类
      */
-    public static final int PLAN_CATEGORY_ONCE = 0;                 //一次性计划
-    public static final int PLAN_CATEGORY_PERIOD = 1;               //周期性计划
+    public static final int PLAN_CATEGORY_ONCE = 0;                 //单次型计划
+    public static final int PLAN_CATEGORY_PERIOD = 1;               //周期型计划
     public static final Map<Integer, String> SUPPORT_PLAN_CATEGORIES = new HashMap<>() {
         @Serial
         private static final long serialVersionUID = -3162511278902980623L;
