@@ -9,12 +9,13 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 import xin.manong.darwin.common.Constants;
 import xin.manong.darwin.common.model.URLRecord;
+import xin.manong.darwin.spider.core.*;
 
 /**
  * @author frankcl
  * @date 2023-08-23 14:15:41
  */
-@ActiveProfiles(value = { "dev", "service", "service-dev", "parse", "parse-dev", "queue", "queue-dev", "log", "log-dev" })
+@ActiveProfiles(value = { "spider", "spider-dev", "service", "service-dev", "parse", "parse-dev", "queue", "queue-dev", "log", "log-dev" })
 @RunWith(SpringRunner.class)
 @SpringBootTest(classes = { ApplicationTest.class })
 public class SpiderFactoryTest {

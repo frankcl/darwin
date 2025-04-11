@@ -61,7 +61,7 @@ public class Job extends BaseModel {
     @Column(name = "status")
     @JSONField(name = "status")
     @JsonProperty("status")
-    public Integer status;
+    public Boolean status;
 
     /**
      * 抓取方式
@@ -146,7 +146,7 @@ public class Job extends BaseModel {
             logger.error("not supported fetch method[{}]", fetchMethod);
             return false;
         }
-        if (status == null) status = Constants.JOB_STATUS_RUNNING;
+        if (status == null) status = true;
         if (priority == null) priority = Constants.PRIORITY_NORMAL;
         return true;
     }

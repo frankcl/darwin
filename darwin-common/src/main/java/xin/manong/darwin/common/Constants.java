@@ -181,20 +181,6 @@ public class Constants {
     }};
 
     /**
-     * 任务状态
-     */
-    public static final int JOB_STATUS_FINISHED = 0;                //结束
-    public static final int JOB_STATUS_RUNNING = 1;                 //运行
-    public static final Map<Integer, String> SUPPORT_JOB_STATUSES = new HashMap<>() {
-        @Serial
-        private static final long serialVersionUID = 3319818508852692276L;
-
-        {
-        put(JOB_STATUS_FINISHED, "结束");
-        put(JOB_STATUS_RUNNING, "运行");
-    }};
-
-    /**
      * 执行器状态
      */
     public static final int EXECUTOR_STATUS_STOPPED = 0;
@@ -238,15 +224,15 @@ public class Constants {
     public static final String FETCH_CONTENT_URL = "fetch_content_url";
     public static final String FETCH_TIME = "fetch_time";
     public static final String FETCH_METHOD = "fetch_method";
-    public static final String IN_QUEUE_TIME = "in_queue_time";
-    public static final String OUT_QUEUE_TIME = "out_queue_time";
+    public static final String PUSH_TIME = "push_time";
+    public static final String POP_TIME = "pop_time";
     public static final String CATEGORY = "category";
     public static final String DEPTH = "depth";
     public static final String CONCURRENT_LEVEL = "concurrent_level";
     public static final String TIMEOUT = "timeout";
     public static final String HTTP_CODE = "http_code";
-    public static final String CHILD_URL_COUNT = "child_url_count";
-    public static final String FAILED_CHILD_URL_COUNT = "failed_child_url_count";
+    public static final String CHILDREN = "children";
+    public static final String INVALID_CHILDREN = "invalid_children";
     public static final String MIME_TYPE = "mime_type";
     public static final String SUB_MIME_TYPE = "sub_mime_type";
     public static final String CHARSET = "charset";

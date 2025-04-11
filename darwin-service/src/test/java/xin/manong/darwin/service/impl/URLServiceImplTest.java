@@ -83,8 +83,8 @@ public class URLServiceImplTest {
         URLRecord updateRecord = new URLRecord();
         updateRecord.status = null;
         updateRecord.createTime = null;
-        updateRecord.inQueueTime = 123L;
-        updateRecord.outQueueTime = 1123L;
+        updateRecord.pushTime = 123L;
+        updateRecord.popTime = 1123L;
         updateRecord.key = record.key;
         Assert.assertTrue(urlService.updateQueueTime(updateRecord));
 
@@ -102,8 +102,8 @@ public class URLServiceImplTest {
         Assert.assertEquals(record.url, recordInDB.url);
         Assert.assertEquals(record.hash, recordInDB.hash);
         Assert.assertEquals(Constants.URL_STATUS_SUCCESS, recordInDB.status.intValue());
-        Assert.assertEquals(123L, recordInDB.inQueueTime.longValue());
-        Assert.assertEquals(1123L, recordInDB.outQueueTime.longValue());
+        Assert.assertEquals(123L, recordInDB.pushTime.longValue());
+        Assert.assertEquals(1123L, recordInDB.popTime.longValue());
         Assert.assertNull(recordInDB.parentURL);
         Assert.assertEquals("http://www.sohu.com/123.html", recordInDB.fetchContentURL);
 

@@ -16,7 +16,7 @@ public class JobTest {
         job.jobId = "xxx";
         job.planId = "zzz";
         job.name = "test";
-        job.status = Constants.JOB_STATUS_RUNNING;
+        job.status = true;
         job.allowRepeat = true;
         job.appId = 1;
         job.priority = Constants.PRIORITY_HIGH;
@@ -29,7 +29,7 @@ public class JobTest {
         job.jobId = "xxx";
         job.planId = "zzz";
         job.name = "test";
-        job.status = Constants.JOB_STATUS_RUNNING;
+        job.status = true;
         job.allowRepeat = true;
         job.priority = Constants.PRIORITY_HIGH;
         Assert.assertFalse(job.check());

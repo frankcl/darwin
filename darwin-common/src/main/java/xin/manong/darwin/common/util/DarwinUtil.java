@@ -40,8 +40,8 @@ public class DarwinUtil {
         if (record.httpCode != null) context.put(Constants.HTTP_CODE, record.httpCode);
         if (record.fetchMethod != null) context.put(Constants.FETCH_METHOD, Constants.SUPPORT_FETCH_METHODS.get(record.fetchMethod));
         if (record.fetchTime != null) context.put(Constants.FETCH_TIME, record.fetchTime);
-        if (record.inQueueTime != null) context.put(Constants.IN_QUEUE_TIME, record.inQueueTime);
-        if (record.outQueueTime != null) context.put(Constants.OUT_QUEUE_TIME, record.outQueueTime);
+        if (record.pushTime != null) context.put(Constants.PUSH_TIME, record.pushTime);
+        if (record.popTime != null) context.put(Constants.POP_TIME, record.popTime);
         if (record.depth != null) context.put(Constants.DEPTH, record.depth);
         if (record.timeout != null) context.put(Constants.TIMEOUT, record.timeout);
         if (record.priority != null) context.put(Constants.PRIORITY, record.priority);
@@ -82,7 +82,7 @@ public class DarwinUtil {
         if (!StringUtils.isEmpty(job.planId)) context.put(Constants.PLAN_ID, job.planId);
         if (!StringUtils.isEmpty(job.name)) context.put(Constants.NAME, job.name);
         if (job.appId != null) context.put(Constants.APP_ID, job.appId);
-        if (job.status != null) context.put(Constants.STATUS, Constants.SUPPORT_JOB_STATUSES.get(job.status));
+        if (job.status != null) context.put(Constants.STATUS, job.status);
         if (job.fetchMethod != null) context.put(Constants.FETCH_METHOD, Constants.SUPPORT_FETCH_METHODS.get(job.fetchMethod));
         if (job.priority != null) context.put(Constants.PRIORITY, job.priority);
     }

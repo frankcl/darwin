@@ -68,12 +68,12 @@ public class RuleCommon extends BaseModel {
     public Integer scriptType;
 
     /**
-     * 创建人
+     * 版本
      */
-    @TableField(value = "creator")
-    @JSONField(name = "creator")
-    @JsonProperty("creator")
-    public String creator;
+    @TableField(value = "version")
+    @JSONField(name = "version")
+    @JsonProperty("version")
+    public Integer version;
 
     /**
      * 修改人
@@ -84,11 +84,20 @@ public class RuleCommon extends BaseModel {
     public String modifier;
 
     /**
+     * 变更日志
+     */
+    @TableField(value = "change_log")
+    @JSONField(name = "change_log")
+    @JsonProperty("change_log")
+    public String changeLog;
+
+    /**
      * 检测合法性
      */
     public void check() {
         if (StringUtils.isEmpty(regex)) throw new BadRequestException("正则表达式为空");
         if (!Constants.SUPPORT_SCRIPT_TYPES.containsKey(scriptType)) throw new BadRequestException("不支持脚本类型");
         if (StringUtils.isEmpty(script)) throw new BadRequestException("脚本内容为空");
+        if (StringUtils.isEmpty(changeLog)) throw new BadRequestException("变更原因为空");
     }
 }

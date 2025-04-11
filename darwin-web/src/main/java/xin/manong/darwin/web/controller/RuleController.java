@@ -11,6 +11,9 @@ import xin.manong.darwin.common.model.Pager;
 import xin.manong.darwin.common.model.Plan;
 import xin.manong.darwin.common.model.Rule;
 import xin.manong.darwin.common.model.RuleHistory;
+import xin.manong.darwin.parser.service.ParseService;
+import xin.manong.darwin.parser.service.request.CompileRequest;
+import xin.manong.darwin.parser.service.response.CompileResult;
 import xin.manong.darwin.service.iface.PlanService;
 import xin.manong.darwin.service.iface.RuleService;
 import xin.manong.darwin.service.request.RuleSearchRequest;
@@ -41,6 +44,8 @@ public class RuleController {
     protected RuleService ruleService;
     @Resource
     protected PlanService planService;
+    @Resource
+    protected ParseService parseService;
     @Resource
     protected PermissionSupport permissionSupport;
 
@@ -110,6 +115,7 @@ public class RuleController {
         Rule rule = Converter.convert(request);
         rule.check();
         checkAppPermission(rule);
+        checkScript(rule);
         User user = ContextManager.getUser();
         if (user != null) rule.creator = rule.modifier = user.name;
         return ruleService.add(rule);
@@ -134,6 +140,7 @@ public class RuleController {
         if (rule == null) throw new NotFoundException("规则不存在");
         checkAppPermission(rule);
         Rule updateRule = Converter.convert(request);
+        if (StringUtils.isNotEmpty(updateRule.script)) checkScript(updateRule);
         User user = ContextManager.getUser();
         if (user != null) updateRule.modifier = user.name;
         return ruleService.update(updateRule);
@@ -189,7 +196,7 @@ public class RuleController {
         if (id == null) throw new BadRequestException("规则历史ID为空");
         RuleHistory ruleHistory = ruleService.getRuleHistory(id);
         if (ruleHistory == null) throw new NotFoundException("规则历史不存在");
-        Rule rule = ruleService.get(id);
+        Rule rule = ruleService.get(ruleHistory.ruleId);
         if (rule == null) throw new NotFoundException("规则不存在");
         checkAppPermission(rule);
         return ruleService.removeHistory(id);
@@ -235,7 +242,22 @@ public class RuleController {
         Rule rule = ruleService.get(rollBackRequest.ruleId);
         if (rule == null) throw new NotFoundException("规则不存在");
         checkAppPermission(rule);
-        return ruleService.rollback(rollBackRequest.ruleId, rollBackRequest.ruleHistoryId);
+        User user = ContextManager.getUser();
+        return ruleService.rollback(rollBackRequest.ruleId,
+                rollBackRequest.ruleHistoryId, user != null ? user.name : null);
+    }
+
+    /**
+     * 检测脚本
+     *
+     * @param rule 规则
+     */
+    private void checkScript(Rule rule) {
+        CompileRequest compileRequest = new CompileRequest();
+        compileRequest.script = rule.script;
+        compileRequest.scriptType = rule.scriptType;
+        CompileResult compileResult = parseService.compile(compileRequest);
+        if (!compileResult.status) throw new BadRequestException(compileResult.message);
     }
 
     /**

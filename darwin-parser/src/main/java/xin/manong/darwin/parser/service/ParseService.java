@@ -1,8 +1,9 @@
 package xin.manong.darwin.parser.service;
 
 import xin.manong.darwin.parser.sdk.ParseResponse;
+import xin.manong.darwin.parser.service.request.CompileRequest;
 import xin.manong.darwin.parser.service.request.ScriptParseRequest;
-import xin.manong.darwin.parser.service.response.CompileResponse;
+import xin.manong.darwin.parser.service.response.CompileResult;
 
 /**
  * 解析服务接口
@@ -23,9 +24,8 @@ public interface ParseService {
     /**
      * 编译脚本
      *
-     * @param scriptType 脚本类型
-     * @param scriptCode 脚本代码
-     * @return 编译响应
+     * @param request 编译请求
+     * @return 编译结果
      */
-    CompileResponse compile(int scriptType, String scriptCode);
+    CompileResult compile(CompileRequest request);
 }

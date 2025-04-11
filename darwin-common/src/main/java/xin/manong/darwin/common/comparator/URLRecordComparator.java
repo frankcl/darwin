@@ -20,8 +20,8 @@ public class URLRecordComparator implements Comparator<URLRecord> {
         int rightPriority = right.priority == null ? Constants.PRIORITY_NORMAL : right.priority;
         if (leftPriority < rightPriority) return -1;
         else if (leftPriority > rightPriority) return 1;
-        long leftInQueueTime = left.inQueueTime == null ? System.currentTimeMillis() : left.inQueueTime;
-        long rightInQueueTime = right.inQueueTime == null ? System.currentTimeMillis() : right.inQueueTime;
+        long leftInQueueTime = left.pushTime == null ? System.currentTimeMillis() : left.pushTime;
+        long rightInQueueTime = right.pushTime == null ? System.currentTimeMillis() : right.pushTime;
         return Long.compare(leftInQueueTime, rightInQueueTime);
     }
 }

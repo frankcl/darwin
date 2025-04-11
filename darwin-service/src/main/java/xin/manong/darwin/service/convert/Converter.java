@@ -1,13 +1,14 @@
 package xin.manong.darwin.service.convert;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
-import xin.manong.darwin.common.model.Pager;
-import xin.manong.darwin.common.model.SeedRecord;
-import xin.manong.darwin.common.model.URLRecord;
+import xin.manong.darwin.common.Constants;
+import xin.manong.darwin.common.model.*;
 import xin.manong.weapon.aliyun.ots.OTSConverter;
 import xin.manong.weapon.aliyun.ots.OTSSearchResponse;
 import xin.manong.weapon.base.record.KVRecord;
 import xin.manong.weapon.base.record.KVRecords;
+import xin.manong.weapon.base.util.CommonUtil;
+import xin.manong.weapon.base.util.RandomID;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -19,6 +20,8 @@ import java.util.HashMap;
  * @date 2023-03-15 17:08:50
  */
 public class Converter {
+
+    private static final String DATE_TIME_FORMAT = "yyyy_MM_dd_HH_mm_ss";
 
     /**
      * 转换种子记录为URL记录
@@ -55,6 +58,26 @@ public class Converter {
         pager.size = page.getSize();
         pager.total = page.getTotal();
         return pager;
+    }
+
+    /**
+     * 转换计划为任务
+     *
+     * @param plan 计划
+     * @return 任务
+     */
+    public static Job convert(Plan plan) {
+        Job job = new Job();
+        job.createTime = System.currentTimeMillis();
+        job.planId = plan.planId;
+        job.appId = plan.appId;
+        job.allowRepeat = plan.allowRepeat != null && plan.allowRepeat;
+        job.priority = plan.priority == null ? Constants.PRIORITY_NORMAL : plan.priority;
+        job.status = true;
+        job.fetchMethod = plan.fetchMethod;
+        job.jobId = RandomID.build();
+        job.name = String.format("%s_%s", plan.name, CommonUtil.timeToString(System.currentTimeMillis(), DATE_TIME_FORMAT));
+        return job;
     }
 
     /**

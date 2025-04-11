@@ -7,6 +7,7 @@ import {
 } from './service'
 
 export const isUndefinedOrNull = o => o === undefined || o === null
+export const sleep = ms => new Promise(resolve => setTimeout(resolve, ms))
 
 export const isJsonStr = str => {
   if (typeof str === 'string') {

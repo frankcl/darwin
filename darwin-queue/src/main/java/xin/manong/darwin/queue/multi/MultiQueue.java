@@ -222,7 +222,7 @@ public class MultiQueue {
             while (true) {
                 URLRecord record = urlQueue.poll();
                 if (record == null) break;
-                record.outQueueTime = System.currentTimeMillis();
+                record.popTime = System.currentTimeMillis();
                 records.add(record);
                 if (records.size() >= n) return records;
             }
@@ -282,7 +282,7 @@ public class MultiQueue {
             record.status = Constants.URL_STATUS_INVALID;
             return MultiQueueStatus.ERROR;
         }
-        record.inQueueTime = System.currentTimeMillis();
+        record.pushTime = System.currentTimeMillis();
         String concurrentUnitQueueKey = buildConcurrentUnitQueueKey(record);
         RBlockingQueue<URLRecord> queue = redisClient.getRedissonClient().
                 getBlockingQueue(concurrentUnitQueueKey, codec);
@@ -317,7 +317,7 @@ public class MultiQueue {
             RBatch rollbackBatch = redisClient.getRedissonClient().createBatch(rollbackOptions);
             rollbackBatch.getBlockingQueue(concurrentUnitQueueKey, codec).removeAsync(record);
             rollbackBatch.execute();
-            record.inQueueTime = null;
+            record.pushTime = null;
             record.status = Constants.URL_STATUS_QUEUING_REFUSED;
             return MultiQueueStatus.REFUSED;
         }

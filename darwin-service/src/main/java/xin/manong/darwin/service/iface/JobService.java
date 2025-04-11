@@ -152,7 +152,7 @@ public abstract class JobService {
             logger.warn("job[{}] is not found", jobId);
             return false;
         }
-        if (job.status != null && job.status == Constants.JOB_STATUS_FINISHED) return true;
+        if (job.status != null && !job.status) return true;
         URLSearchRequest searchRequest = new URLSearchRequest();
         searchRequest.statusList = new ArrayList<>();
         searchRequest.statusList.add(Constants.URL_STATUS_CREATED);
@@ -177,7 +177,7 @@ public abstract class JobService {
         searchRequest.createTimeRange = new RangeValue<>();
         searchRequest.createTimeRange.end = before;
         searchRequest.createTimeRange.includeUpper = true;
-        searchRequest.status = Constants.JOB_STATUS_RUNNING;
+        searchRequest.status = true;
         Pager<Job> pager = search(searchRequest);
         return pager == null || pager.records == null ? new ArrayList<>() : pager.records;
     }

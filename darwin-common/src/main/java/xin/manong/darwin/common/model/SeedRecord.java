@@ -134,6 +134,9 @@ public class SeedRecord extends BaseModel {
     @JsonProperty("scope")
     public Integer scope;
 
+    /**
+     * URL
+     */
     @TableField(value = "url")
     @Column(name = "url")
     @JSONField(name = "url")
@@ -141,7 +144,7 @@ public class SeedRecord extends BaseModel {
     public String url;
 
     /**
-     * 计划ID
+     * 所属计划ID
      */
     @TableField(value = "plan_id")
     @Column(name = "plan_id")

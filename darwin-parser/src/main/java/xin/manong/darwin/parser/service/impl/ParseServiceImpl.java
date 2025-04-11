@@ -2,17 +2,20 @@ package xin.manong.darwin.parser.service.impl;
 
 import jakarta.annotation.Resource;
 import org.apache.commons.codec.digest.DigestUtils;
-import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import xin.manong.darwin.common.Constants;
 import xin.manong.darwin.parser.script.*;
+import xin.manong.darwin.parser.sdk.ParseRequest;
+import xin.manong.darwin.parser.sdk.ParseRequestBuilder;
 import xin.manong.darwin.parser.sdk.ParseResponse;
 import xin.manong.darwin.parser.service.LinkExtractService;
 import xin.manong.darwin.parser.service.ParseService;
+import xin.manong.darwin.parser.service.request.CompileRequest;
 import xin.manong.darwin.parser.service.request.ScriptParseRequest;
-import xin.manong.darwin.parser.service.response.CompileResponse;
+import xin.manong.darwin.parser.service.response.CompileResult;
 
 /**
  * 解析服务实现
@@ -25,6 +28,7 @@ public class ParseServiceImpl implements ParseService {
 
     private static final Logger logger = LoggerFactory.getLogger(ParseServiceImpl.class);
 
+    private static final String COMPILE_HTML = "<html><head></head><body></body></html>";
     private static final int RETRY_COUNT = 3;
 
     @Resource
@@ -33,21 +37,16 @@ public class ParseServiceImpl implements ParseService {
     protected LinkExtractService linkExtractService;
 
     @Override
-    public CompileResponse compile(int scriptType, String scriptCode) {
-        if (!Constants.SUPPORT_SCRIPT_TYPES.containsKey(scriptType)) {
-            logger.error("unsupported script type[{}]", scriptType);
-            return CompileResponse.buildError(String.format("不支持的脚本类型[%d]", scriptType));
-        }
-        if (StringUtils.isEmpty(scriptCode)) {
-            logger.error("script code is empty");
-            return CompileResponse.buildError("脚本代码为空");
-        }
-        try (Script script = ScriptFactory.make(scriptType, scriptCode)) {
-            return CompileResponse.buildOK();
-        } catch (ScriptCompileException e) {
-            logger.error("{} compile failed", Constants.SUPPORT_SCRIPT_TYPES.get(scriptType));
+    public CompileResult compile(CompileRequest request) {
+        try (Script script = ScriptFactory.make(request.scriptType, request.script)) {
+            ParseRequestBuilder builder = new ParseRequestBuilder();
+            ParseRequest parseRequest = builder.html(COMPILE_HTML).build();
+            script.doExecute(parseRequest);
+            return CompileResult.success();
+        } catch (Exception e) {
+            logger.error("compile failed");
             logger.error(e.getMessage(), e);
-            return CompileResponse.buildError(String.format("编译脚本失败[%s]", e.getMessage()));
+            return CompileResult.error(e.getMessage(), ExceptionUtils.getStackTrace(e));
         }
     }
 
@@ -67,7 +66,7 @@ public class ParseServiceImpl implements ParseService {
             }
             try {
                 return script.execute(request);
-            } catch (ScriptConcurrentException e) {
+            } catch (ConcurrentException e) {
                 logger.warn("script concurrent exception occurred");
             } finally {
                 if (script.currentReferenceCount() <= 0 && scriptCache.get(key) == null) script.close();
@@ -96,8 +95,8 @@ public class ParseServiceImpl implements ParseService {
                 scriptCache.put(script);
                 return script;
             }
-        } catch (ScriptCompileException e) {
-            logger.error("compile {} failed", Constants.SUPPORT_SCRIPT_TYPES.get(request.scriptType));
+        } catch (CompileException e) {
+            logger.error("{} script compile failed", Constants.SUPPORT_SCRIPT_TYPES.get(request.scriptType));
             return null;
         }
     }

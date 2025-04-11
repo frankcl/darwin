@@ -48,6 +48,14 @@ public class Rule extends RuleCommon {
     @JsonProperty("plan_id")
     public String planId;
 
+    /**
+     * 创建人
+     */
+    @TableField(value = "creator")
+    @JSONField(name = "creator")
+    @JsonProperty("creator")
+    public String creator;
+
     @TableField(exist = false)
     private Pattern pattern;
 

@@ -18,46 +18,46 @@ public class URLRecordComparatorTest {
         {
             URLRecord left = new URLRecord("http://www.sina.com.cn");
             left.priority = Constants.PRIORITY_HIGH;
-            left.inQueueTime = 1L;
+            left.pushTime = 1L;
             URLRecord right = new URLRecord("http://www.sohu.com");
             right.priority = Constants.PRIORITY_NORMAL;
-            right.inQueueTime = 1L;
+            right.pushTime = 1L;
             Assert.assertEquals(-1, comparator.compare(left, right));
         }
         {
             URLRecord left = new URLRecord("http://www.sina.com.cn");
             left.priority = Constants.PRIORITY_HIGH;
-            left.inQueueTime = 1L;
+            left.pushTime = 1L;
             URLRecord right = new URLRecord("http://www.sohu.com");
             right.priority = Constants.PRIORITY_NORMAL;
-            right.inQueueTime = 1L;
+            right.pushTime = 1L;
             Assert.assertEquals(1, comparator.compare(right, left));
         }
         {
             URLRecord left = new URLRecord("http://www.sina.com.cn");
             left.priority = Constants.PRIORITY_HIGH;
-            left.inQueueTime = 1L;
+            left.pushTime = 1L;
             URLRecord right = new URLRecord("http://www.sohu.com");
             right.priority = Constants.PRIORITY_HIGH;
-            right.inQueueTime = 2L;
+            right.pushTime = 2L;
             Assert.assertEquals(-1, comparator.compare(left, right));
         }
         {
             URLRecord left = new URLRecord("http://www.sina.com.cn");
             left.priority = Constants.PRIORITY_HIGH;
-            left.inQueueTime = 1L;
+            left.pushTime = 1L;
             URLRecord right = new URLRecord("http://www.sohu.com");
             right.priority = Constants.PRIORITY_HIGH;
-            right.inQueueTime = 2L;
+            right.pushTime = 2L;
             Assert.assertEquals(1, comparator.compare(right, left));
         }
         {
             URLRecord left = new URLRecord("http://www.sina.com.cn");
             left.priority = Constants.PRIORITY_HIGH;
-            left.inQueueTime = 1L;
+            left.pushTime = 1L;
             URLRecord right = new URLRecord("http://www.sohu.com");
             right.priority = Constants.PRIORITY_HIGH;
-            right.inQueueTime = 1L;
+            right.pushTime = 1L;
             Assert.assertEquals(0, comparator.compare(left, right));
         }
     }

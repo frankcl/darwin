@@ -7,7 +7,7 @@ import UserLogin from '@/components/user/UserLogin.vue'
 <template>
   <el-container>
     <el-header class="home-header">
-      <el-row align="middle" justify="end" style="height: 100%">
+      <el-row align="middle" justify="end" class="h100">
         <user-login></user-login>
       </el-row>
     </el-header>

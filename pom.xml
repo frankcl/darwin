@@ -13,11 +13,12 @@
         <module>darwin-common</module>
         <module>darwin-log</module>
         <module>darwin-service</module>
-        <module>darwin-web</module>
         <module>darwin-queue</module>
         <module>darwin-parser</module>
-        <module>darwin-spider</module>
         <module>darwin-executor</module>
+        <module>darwin-spider</module>
+        <module>darwin-spider-boot</module>
+        <module>darwin-web</module>
     </modules>
 
     <properties>
@@ -44,7 +45,6 @@
         <groovy.version>3.0.16</groovy.version>
         <quartz.version>2.3.2</quartz.version>
         <jersey.version>3.1.9</jersey.version>
-        <javacv.version>1.5.7</javacv.version>
         <ffmpeg-platform.version>5.0-1.5.7</ffmpeg-platform.version>
         <jackson.version>2.13.3</jackson.version>
         <velocity.version>2.3</velocity.version>
@@ -446,16 +446,6 @@
                 <groupId>com.alibaba</groupId>
                 <artifactId>druid</artifactId>
                 <version>${druid.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.bytedeco</groupId>
-                <artifactId>javacv</artifactId>
-                <version>${javacv.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.bytedeco</groupId>
-                <artifactId>javacpp</artifactId>
-                <version>${javacv.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.bytedeco</groupId>

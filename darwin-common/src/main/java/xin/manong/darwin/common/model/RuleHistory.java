@@ -48,6 +48,11 @@ public class RuleHistory extends RuleCommon {
         script = rule.script;
         scriptType = rule.scriptType;
         regex = rule.regex;
+        modifier = rule.modifier;
+        changeLog = rule.changeLog;
+        createTime = rule.updateTime;
+        updateTime = rule.updateTime;
+        version = rule.version;
     }
 
     /**

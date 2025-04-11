@@ -189,11 +189,81 @@ export const asyncGetRule = async id => {
   })
 }
 
+export const asyncAddRule = async rule => {
+  return await axios({
+    method: HTTP_PUT,
+    url: '/api/rule/add',
+    data: rule
+  })
+}
+
 export const asyncUpdateRule = async rule => {
   return await axios({
     method: HTTP_POST,
     url: '/api/rule/update',
     data: rule
+  })
+}
+
+export const asyncDeleteRule = async id => {
+  return await axios({
+    method: HTTP_DELETE,
+    url: '/api/rule/delete',
+    params: {
+      id: id
+    }
+  })
+}
+
+export const asyncGetHistory = async id => {
+  return await axios({
+    method: HTTP_GET,
+    url: '/api/rule/getHistory',
+    params: {
+      id: id
+    }
+  })
+}
+
+export const asyncDeleteHistory = async id => {
+  return await axios({
+    method: HTTP_DELETE,
+    url: '/api/rule/deleteHistory',
+    params: {
+      id: id
+    }
+  })
+}
+
+export const asyncGetHistoryList = async request => {
+  return await axios({
+    method: HTTP_GET,
+    url: '/api/rule/getHistoryList',
+    params: request
+  })
+}
+
+export const asyncRollbackRule = async request => {
+  return await axios({
+    method: HTTP_POST,
+    url: '/api/rule/rollback',
+    data: request
+  })
+}
+
+export const asyncCompileScript = async request => {
+  return await axios({
+    method: HTTP_POST,
+    url: '/api/script/compile',
+    data: request
+  })
+}
+
+export const asyncDebugScript = async request => {
+  return await axios({
+    method: HTTP_POST,
+    url: '/api/script/debug',
+    data: request
   })
 }
 

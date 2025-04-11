@@ -1,12 +1,3 @@
-weapon:
-  aliyun:
-    oss:
-      client:
-        endpoint: https://oss-cn-hangzhou.aliyuncs.com
-        socket-timeout-ms: 3000
-        connection-timeout-ms: 3000
-        retry-cnt: 2
-
 hylian:
   client:
     appId: f733a689783eee56ad79886de1012699

@@ -161,7 +161,7 @@ public class PlanServiceImpl implements PlanService {
             logger.warn("plan[{}] is not opened", plan.planId);
             return false;
         }
-        Job job = plan.buildJob();
+        Job job = Converter.convert(plan);
         List<URLRecord> databaseRecords = new ArrayList<>();
         List<URLRecord> queueRecords = new ArrayList<>();
         try {

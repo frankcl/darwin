@@ -10,9 +10,10 @@ import org.springframework.test.context.junit4.SpringRunner;
 import xin.manong.darwin.common.Constants;
 import xin.manong.darwin.parser.ApplicationTest;
 import xin.manong.darwin.parser.sdk.ParseResponse;
+import xin.manong.darwin.parser.service.request.CompileRequest;
 import xin.manong.darwin.parser.service.request.ScriptParseRequest;
 import xin.manong.darwin.parser.service.request.ScriptParseRequestBuilder;
-import xin.manong.darwin.parser.service.response.CompileResponse;
+import xin.manong.darwin.parser.service.response.CompileResult;
 
 /**
  * @author frankcl
@@ -29,8 +30,11 @@ public class ParseServiceImplTest {
     @Test
     public void testCompile() throws Exception {
         String scriptCode = ApplicationTest.readScript("/script/groovy_script");
-        CompileResponse response = parseService.compile(Constants.SCRIPT_TYPE_GROOVY, scriptCode);
-        Assert.assertTrue(response.status);
+        CompileRequest request = new CompileRequest();
+        request.scriptType = Constants.SCRIPT_TYPE_GROOVY;
+        request.script = scriptCode;
+        CompileResult result = parseService.compile(request);
+        Assert.assertTrue(result.status);
     }
 
     @Test

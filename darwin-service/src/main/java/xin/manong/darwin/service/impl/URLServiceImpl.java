@@ -92,8 +92,8 @@ public class URLServiceImpl extends URLService {
         wrapper.eq(URLRecord::getKey, record.key);
         wrapper.set(URLRecord::getUpdateTime, System.currentTimeMillis());
         if (record.status != null) wrapper.set(URLRecord::getStatus, record.status);
-        if (record.inQueueTime != null) wrapper.set(URLRecord::getInQueueTime, record.inQueueTime);
-        if (record.outQueueTime != null) wrapper.set(URLRecord::getOutQueueTime, record.outQueueTime);
+        if (record.pushTime != null) wrapper.set(URLRecord::getPushTime, record.pushTime);
+        if (record.popTime != null) wrapper.set(URLRecord::getPopTime, record.popTime);
         int n = urlMapper.update(null, wrapper);
         if (n > 0 && !StringUtils.isEmpty(record.url)) recordCache.invalidate(record.url);
         return n > 0;

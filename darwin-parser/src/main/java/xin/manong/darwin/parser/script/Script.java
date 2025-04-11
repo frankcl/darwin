@@ -60,14 +60,14 @@ public abstract class Script implements AutoCloseable {
      *
      * @param request 解析请求
      * @return 解析响应
-     * @throws ScriptConcurrentException 并发异常
+     * @throws ConcurrentException 并发异常
      */
-    public ParseResponse execute(ParseRequest request) throws ScriptConcurrentException {
+    public ParseResponse execute(ParseRequest request) throws ConcurrentException {
         try {
             readWriteLock.readLock().lock();
             increaseReference();
             return doExecute(request);
-        } catch (ScriptConcurrentException e) {
+        } catch (ConcurrentException e) {
             throw e;
         } catch (Exception e) {
             logger.error(e.getMessage(), e);

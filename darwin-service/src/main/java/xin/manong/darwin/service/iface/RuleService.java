@@ -185,7 +185,8 @@ public abstract class RuleService {
      *
      * @param ruleId 规则ID
      * @param ruleHistoryId 规则历史ID
+     * @param modifier 变更人
      * @return 成功返回true，否则返回false
      */
-    public abstract boolean rollback(Integer ruleId, Integer ruleHistoryId);
+    public abstract boolean rollback(Integer ruleId, Integer ruleHistoryId, String modifier);
 }

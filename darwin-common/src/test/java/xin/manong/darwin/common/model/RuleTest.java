@@ -18,6 +18,7 @@ public class RuleTest {
         rule.script = "def A() {}";
         rule.regex = "http://\\w+.sina.com.cn/index.html";
         rule.planId = "123";
+        rule.changeLog = "test";
         rule.check();
     }
 

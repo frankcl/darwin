@@ -147,7 +147,7 @@ public class URLScheduler extends AspectLogSupport {
         context.put(Constants.DARWIN_STAGE, Constants.STAGE_POP);
         try {
             record.status = Constants.URL_STATUS_FETCHING;
-            record.outQueueTime = System.currentTimeMillis();
+            record.popTime = System.currentTimeMillis();
             if (!urlService.updateQueueTime(record)) logger.warn("update url record[{}] failed", record.key);
             byte[] bytes = JSON.toJSONString(record, SerializerFeature.DisableCircularReferenceDetect).
                     getBytes(StandardCharsets.UTF_8);
@@ -179,8 +179,8 @@ public class URLScheduler extends AspectLogSupport {
      * @return 溢出返回true，否则返回false
      */
     private boolean isOverflowRecord(URLRecord record) {
-        return record.inQueueTime == null || System.currentTimeMillis() -
-                record.inQueueTime > maxOverflowTimeMs;
+        return record.pushTime == null || System.currentTimeMillis() -
+                record.pushTime > maxOverflowTimeMs;
     }
 
     /**

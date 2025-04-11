@@ -6,10 +6,9 @@ import jakarta.ws.rs.BadRequestException;
 import jakarta.xml.bind.annotation.XmlAccessType;
 import jakarta.xml.bind.annotation.XmlAccessorType;
 import org.apache.commons.lang3.StringUtils;
-import xin.manong.darwin.common.Constants;
+import xin.manong.darwin.parser.service.request.CompileRequest;
 
 import java.io.Serial;
-import java.io.Serializable;
 
 /**
  * 脚本调试请求
@@ -19,10 +18,10 @@ import java.io.Serializable;
  */
 @XmlAccessorType(XmlAccessType.FIELD)
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class DebugRequest implements Serializable {
+public class DebugRequest extends CompileRequest {
 
     @Serial
-    private static final long serialVersionUID = 796125460586094776L;
+    private static final long serialVersionUID = -4795530848006054219L;
 
     /**
      * 调试URL
@@ -31,27 +30,10 @@ public class DebugRequest implements Serializable {
     public String url;
 
     /**
-     * 调试脚本
-     */
-    @JsonProperty("script")
-    public String script;
-
-    /**
-     * 调试脚本类型
-     * 1：Groovy脚本
-     * 2：JavaScript脚本
-     */
-    @JsonProperty("script_type")
-    public Integer scriptType;
-
-    /**
      * 检测有效性，无效抛出异常
      */
     public void check() {
+        super.check();
         if (StringUtils.isEmpty(url)) throw new BadRequestException("URL为空");
-        if (StringUtils.isEmpty(script)) throw new BadRequestException("调试脚本为空");
-        if (!Constants.SUPPORT_SCRIPT_TYPES.containsKey(scriptType)) {
-            throw new BadRequestException("不支持的脚本类型");
-        }
     }
 }

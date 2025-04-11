@@ -84,7 +84,7 @@ public class JobCompleteNotifier implements CompleteNotifier<String> {
         Job job = new Job();
         job.allowRepeat = null;
         job.jobId = jobId;
-        job.status = Constants.JOB_STATUS_FINISHED;
+        job.status = false;
         if (!jobService.update(job)) logger.warn("update finish status failed for job[{}]", job.jobId);
     }
 
@@ -97,7 +97,7 @@ public class JobCompleteNotifier implements CompleteNotifier<String> {
     private Job getFinishedJob(String jobId) {
         Job finished = new Job();
         finished.jobId = jobId;
-        finished.status = Constants.JOB_STATUS_FINISHED;
+        finished.status = false;
         Job job = jobService.getCache(jobId);
         if (job == null) return finished;
         finished.planId = job.planId;

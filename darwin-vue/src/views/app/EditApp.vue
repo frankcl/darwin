@@ -39,7 +39,7 @@ watchEffect(async () => {
 
 <template>
   <el-dialog v-model="open" @close="emits('close')" width="680" align-center show-close>
-    <el-space direction="vertical" :size="20" :fill="true" style="min-width: 100%">
+    <el-space direction="vertical" :size="20" :fill="true" class="w100">
       <el-page-header @back="open = false">
         <template #breadcrumb>
           <el-breadcrumb :separator-icon="ArrowRight">
@@ -51,8 +51,7 @@ watchEffect(async () => {
           <span class="text-large font-600 mr-3">编辑应用</span>
         </template>
       </el-page-header>
-      <el-form ref="formRef" :model="appForm" :rules="formRules"
-               label-width="auto" label-position="right">
+      <el-form ref="formRef" :model="appForm" :rules="formRules" label-width="80px" label-position="right">
         <el-form-item label="应用名" prop="name">
           <el-input v-model.trim="appForm.name" clearable></el-input>
         </el-form-item>

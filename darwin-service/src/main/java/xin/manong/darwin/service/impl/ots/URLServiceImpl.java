@@ -96,8 +96,8 @@ public class URLServiceImpl extends URLService {
         initRecord(updateRecord);
         updateRecord.updateTime = System.currentTimeMillis();
         updateRecord.key = record.key;
-        updateRecord.inQueueTime = record.inQueueTime;
-        updateRecord.outQueueTime = record.outQueueTime;
+        updateRecord.pushTime = record.pushTime;
+        updateRecord.popTime = record.popTime;
         updateRecord.status = record.status;
         return update(record, updateRecord);
     }

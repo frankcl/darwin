@@ -5,6 +5,8 @@ spring:
     active: @profileActive@
   config:
     import:
+      - classpath:application-spider.yml
+      - classpath:application-spider-@profileActive@.yml
       - classpath:application-executor.yml
       - classpath:application-executor-@profileActive@.yml
       - classpath:application-service.yml

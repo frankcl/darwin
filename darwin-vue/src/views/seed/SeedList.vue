@@ -62,28 +62,24 @@ watchEffect(async () => await search())
 </script>
 
 <template>
-  <el-space direction="vertical" :size="20" :fill="true" style="min-width: 100%">
-    <el-row style="min-width: 100%">
-      <el-col :span="24">
-        <el-form :model="query" ref="formRef" label-width="auto" style="min-width: 100%">
-          <el-row>
-            <el-col :span="16">
-              <el-form-item label="搜索" prop="url">
-                <el-input v-model="query.url" clearable placeholder="搜索种子URL" />
-              </el-form-item>
-            </el-col>
-            <el-col :span="8">
-              <el-row justify="end">
-                <el-button :disabled="!userStore.injected" @click="openAddDialog = true">新增种子</el-button>
-              </el-row>
-            </el-col>
+  <el-space direction="vertical" :size="20" :fill="true" class="w100">
+    <el-form :model="query" ref="formRef" label-width="50px">
+      <el-row>
+        <el-col :span="16">
+          <el-form-item label="搜索" prop="url">
+            <el-input v-model="query.url" clearable placeholder="搜索种子URL" />
+          </el-form-item>
+        </el-col>
+        <el-col :span="8">
+          <el-row justify="end">
+            <el-button :disabled="!userStore.injected" @click="openAddDialog = true">新增种子</el-button>
           </el-row>
-        </el-form>
-      </el-col>
-    </el-row>
+        </el-col>
+      </el-row>
+    </el-form>
     <el-table ref="tableRef" :data="seeds" max-height="850" table-layout="auto"
               stripe @sort-change="event => fillSearchQuerySort(event, query)">
-      <template #empty>没有种子URL</template>
+      <template #empty>暂无种子URL</template>
       <el-table-column prop="name" label="URL" show-overflow-tooltip>
         <template #default="scope">
           {{ scope.row.url }}

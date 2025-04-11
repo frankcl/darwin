@@ -5,8 +5,8 @@ import groovy.lang.GroovyObject;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import xin.manong.darwin.parser.script.ScriptCompileException;
-import xin.manong.darwin.parser.script.ScriptConcurrentException;
+import xin.manong.darwin.parser.script.CompileException;
+import xin.manong.darwin.parser.script.ConcurrentException;
 import xin.manong.darwin.parser.sdk.HTMLParser;
 import xin.manong.darwin.parser.script.Script;
 import xin.manong.darwin.parser.sdk.ParseRequest;
@@ -39,7 +39,7 @@ public class GroovyScript extends Script {
         super(null);
     }
 
-    public GroovyScript(String scriptCode) throws ScriptCompileException {
+    public GroovyScript(String scriptCode) throws CompileException {
         super(DigestUtils.md5Hex(scriptCode));
         this.classLoader = new GroovyClassLoader();
         buildGroovyObject(scriptCode);
@@ -50,24 +50,24 @@ public class GroovyScript extends Script {
      *
      * @param scriptCode 脚本代码
      */
-    private void buildGroovyObject(String scriptCode) throws ScriptCompileException {
+    private void buildGroovyObject(String scriptCode) throws CompileException {
         Class<?> groovyClass = null;
         try {
             groovyClass = classLoader.parseClass(scriptCode, key);
             if (!HTMLParser.class.isAssignableFrom(groovyClass)) {
-                logger.error("parse groovy failed");
-                throw new ScriptCompileException("无效Groovy脚本");
+                logger.error("must inherit from xin.manong.darwin.parser.sdk.HTMLParser");
+                throw new CompileException("解析类必须继承xin.manong.darwin.parser.sdk.HTMLParser");
             }
             groovyClass.getMethod(METHOD_EXECUTE, ParseRequest.class);
             this.groovyObject = (GroovyObject) groovyClass.getDeclaredConstructor().newInstance();
         } catch (NoSuchMethodException e) {
             logger.error("parse method[{}] is not found for parser[{}]", METHOD_EXECUTE, groovyClass.getName());
             logger.error(e.getMessage(), e);
-            throw new ScriptCompileException(String.format("未找到解析方法[%s]", METHOD_EXECUTE), e);
+            throw new CompileException(String.format("解析类必须实现方法%s", METHOD_EXECUTE), e);
         } catch (Exception e) {
-            logger.error("build Groovy script failed for id[{}]", key);
+            logger.error("build groovy script failed for id[{}]", key);
             logger.error(e.getMessage(), e);
-            throw new ScriptCompileException(String.format("构建Groovy脚本失败[%s]", e.getMessage()), e);
+            throw new CompileException(e.getMessage(), e);
         }
     }
 
@@ -79,7 +79,7 @@ public class GroovyScript extends Script {
      */
     @Override
     public ParseResponse doExecute(ParseRequest request) throws Exception {
-        if (groovyObject == null) throw new ScriptConcurrentException();
+        if (groovyObject == null) throw new ConcurrentException();
         return (ParseResponse) groovyObject.invokeMethod(METHOD_EXECUTE, request);
     }
 

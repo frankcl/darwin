@@ -103,10 +103,6 @@
             <artifactId>kafka-clients</artifactId>
         </dependency>
         <dependency>
-            <groupId>com.aliyun.oss</groupId>
-            <artifactId>aliyun-sdk-oss</artifactId>
-        </dependency>
-        <dependency>
             <groupId>com.aliyun.openservices</groupId>
             <artifactId>tablestore</artifactId>
             <classifier>jar-with-dependencies</classifier>

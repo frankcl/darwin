@@ -18,6 +18,8 @@ import xin.manong.darwin.common.model.URLRecord;
 import xin.manong.darwin.service.iface.JobService;
 import xin.manong.darwin.service.iface.PlanService;
 import xin.manong.darwin.service.iface.RuleService;
+import xin.manong.darwin.spider.core.HTMLSpider;
+import xin.manong.darwin.spider.core.SpiderConfig;
 import xin.manong.weapon.aliyun.oss.OSSClient;
 import xin.manong.weapon.aliyun.oss.OSSMeta;
 import xin.manong.weapon.base.common.Context;
@@ -28,7 +30,7 @@ import xin.manong.weapon.base.util.RandomID;
  * @date 2023-03-31 14:36:24
  */
 @RunWith(SpringRunner.class)
-@ActiveProfiles(value = { "dev", "service", "service-dev", "parse", "parse-dev", "queue", "queue-dev", "log", "log-dev" })
+@ActiveProfiles(value = { "spider", "spider-dev", "service", "service-dev", "parse", "parse-dev", "queue", "queue-dev", "log", "log-dev" })
 @SpringBootTest(classes = { ApplicationTest.class })
 public class HTMLSpiderTest {
 
@@ -81,7 +83,7 @@ public class HTMLSpiderTest {
         job.priority = Constants.PRIORITY_NORMAL;
         job.planId = plan.planId;
         job.appId = 1;
-        job.status = Constants.JOB_STATUS_RUNNING;
+        job.status = true;
         job.allowRepeat = false;
         Assert.assertTrue(jobService.add(job));
         return job;
@@ -103,7 +105,7 @@ public class HTMLSpiderTest {
         job.priority = Constants.PRIORITY_NORMAL;
         job.planId = plan.planId;
         job.appId = 1;
-        job.status = Constants.JOB_STATUS_RUNNING;
+        job.status = true;
         job.allowRepeat = false;
         Assert.assertTrue(jobService.add(job));
         return job;

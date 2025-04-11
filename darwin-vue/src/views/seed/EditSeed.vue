@@ -71,7 +71,7 @@ watchEffect(() => {
 
 <template>
   <el-dialog v-model="open" @close="emits('close')" width="800" align-center show-close>
-    <el-space direction="vertical" :size="20" :fill="true" style="min-width: 100%">
+    <el-space direction="vertical" :size="20" :fill="true" class="w100">
       <el-page-header @click="open = false">
         <template #breadcrumb>
           <el-breadcrumb :separator-icon="ArrowRight">
@@ -84,86 +84,83 @@ watchEffect(() => {
           <span class="text-large font-600 mr-3">修改种子</span>
         </template>
       </el-page-header>
-      <el-row>
-        <el-form ref="formRef" :model="seedForm" :rules="formRules"
-                 label-width="auto" label-position="right" style="min-width: 100%">
-          <el-form-item label="URL" prop="url">
-            <el-input v-model.trim="seedForm.url" clearable></el-input>
-          </el-form-item>
-          <el-form-item label="类型" prop="category" required>
-            <el-radio-group v-model="seedForm.category">
-              <el-radio :value="1">内容页</el-radio>
-              <el-radio :value="2">列表页</el-radio>
-              <el-radio :value="3">媒体资源</el-radio>
-              <el-radio :value="4">视频流</el-radio>
-            </el-radio-group>
-          </el-form-item>
-          <el-form-item label="更多选项" prop="more">
-            <el-switch v-model="more"></el-switch>
-          </el-form-item>
-          <el-divider v-if="more" content-position="left">高级选项</el-divider>
-          <el-row v-if="more" :gutter="10">
-            <el-col :span="12">
-              <el-form-item label="并发级别" prop="concurrent_level">
-                <el-radio-group v-model="seedForm.concurrent_level">
-                  <el-radio :value="0">DOMAIN</el-radio>
-                  <el-radio :value="1">HOST</el-radio>
-                </el-radio-group>
-              </el-form-item>
-            </el-col>
-            <el-col :span="12">
-              <el-form-item label="抓取超时" prop="timeout">
-                <el-input-number v-model="seedForm.timeout" :min="0" :step="100" style="width: 180px" />
-                &nbsp;&nbsp;&nbsp;&nbsp;
-                <el-text size="small">单位：毫秒</el-text>
-              </el-form-item>
-            </el-col>
-          </el-row>
-          <el-row v-if="more" :gutter="10">
-            <el-col :span="12">
-              <el-form-item label="抓取方式" prop="fetch_method">
-                <el-select v-model="seedForm.fetch_method" clearable placeholder="请选择"
-                           @clear="seedForm.fetch_method = null" style="width: 180px">
-                  <el-option key="1" label="本地IP" :value="0"></el-option>
-                  <el-option key="2" label="代理IP" :value="1"></el-option>
-                </el-select>
-              </el-form-item>
-            </el-col>
-            <el-col :span="12">
-              <el-form-item label="优先级" prop="priority">
-                <el-select v-model="seedForm.priority" clearable placeholder="请选择"
-                           @clear="seedForm.priority = null" style="width: 180px">
-                  <el-option key="1" label="高优先级" :value="0"></el-option>
-                  <el-option key="2" label="中优先级" :value="1"></el-option>
-                  <el-option key="2" label="低优先级" :value="2"></el-option>
-                </el-select>
-              </el-form-item>
-            </el-col>
-          </el-row>
-          <el-row v-if="more">
-            <el-form-item label="抽链范围" prop="scope">
-              <el-select v-model="seedForm.scope" clearable placeholder="请选择"
-                         @clear="seedForm.scope = null" style="width: 180px">
-                <el-option key="1" label="所有" :value="1"></el-option>
-                <el-option key="2" label="DOMAIN" :value="2"></el-option>
-                <el-option key="3" label="HOST" :value="3"></el-option>
-              </el-select>
-              &nbsp;&nbsp;&nbsp;&nbsp;
-              <el-text type="danger" size="small">注意：选择抽链范围后规则脚本失效</el-text>
+      <el-form ref="formRef" :model="seedForm" :rules="formRules" label-width="80px" label-position="right">
+        <el-form-item label="URL" prop="url">
+          <el-input v-model.trim="seedForm.url" clearable></el-input>
+        </el-form-item>
+        <el-form-item label="类型" prop="category" required>
+          <el-radio-group v-model="seedForm.category">
+            <el-radio :value="1">内容页</el-radio>
+            <el-radio :value="2">列表页</el-radio>
+            <el-radio :value="3">媒体资源</el-radio>
+            <el-radio :value="4">视频流</el-radio>
+          </el-radio-group>
+        </el-form-item>
+        <el-form-item label="更多选项" prop="more">
+          <el-switch v-model="more"></el-switch>
+        </el-form-item>
+        <el-divider v-if="more" content-position="left">高级选项</el-divider>
+        <el-row v-if="more" :gutter="10">
+          <el-col :span="12">
+            <el-form-item label="并发级别" prop="concurrent_level">
+              <el-radio-group v-model="seedForm.concurrent_level">
+                <el-radio :value="0">DOMAIN</el-radio>
+                <el-radio :value="1">HOST</el-radio>
+              </el-radio-group>
             </el-form-item>
-          </el-row>
-          <el-row v-if="more">
-            <dynamic-map v-model="headerOptions" title="HTTP Header" option-name="header"></dynamic-map>
-          </el-row>
-          <el-row v-if="more">
-            <dynamic-map v-model="userOptions" title="自定义数据" option-name="option"></dynamic-map>
-          </el-row>
-          <el-form-item>
-            <el-button @click="submit(formRef)">修改</el-button>
-            <el-button @click="retrieve(props.key)">重置</el-button>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="抓取超时" prop="timeout">
+              <el-input-number v-model="seedForm.timeout" :min="0" :step="100" style="width: 180px" />
+              &nbsp;&nbsp;&nbsp;&nbsp;
+              <el-text size="small">单位：毫秒</el-text>
+            </el-form-item>
+          </el-col>
+        </el-row>
+        <el-row v-if="more" :gutter="10">
+          <el-col :span="12">
+            <el-form-item label="抓取方式" prop="fetch_method">
+              <el-select v-model="seedForm.fetch_method" clearable placeholder="请选择"
+                         @clear="seedForm.fetch_method = null" style="width: 180px">
+                <el-option key="1" label="本地IP" :value="0"></el-option>
+                <el-option key="2" label="代理IP" :value="1"></el-option>
+              </el-select>
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="优先级" prop="priority">
+              <el-select v-model="seedForm.priority" clearable placeholder="请选择"
+                         @clear="seedForm.priority = null" style="width: 180px">
+                <el-option key="1" label="高优先级" :value="0"></el-option>
+                <el-option key="2" label="中优先级" :value="1"></el-option>
+                <el-option key="2" label="低优先级" :value="2"></el-option>
+              </el-select>
+            </el-form-item>
+          </el-col>
+        </el-row>
+        <el-row v-if="more">
+          <el-form-item label="抽链范围" prop="scope">
+            <el-select v-model="seedForm.scope" clearable placeholder="请选择"
+                       @clear="seedForm.scope = null" style="width: 180px">
+              <el-option key="1" label="所有" :value="1"></el-option>
+              <el-option key="2" label="DOMAIN" :value="2"></el-option>
+              <el-option key="3" label="HOST" :value="3"></el-option>
+            </el-select>
+            &nbsp;&nbsp;&nbsp;&nbsp;
+            <el-text type="danger" size="small">注意：选择抽链范围后规则脚本失效</el-text>
           </el-form-item>
-        </el-form>
-      </el-row>
+        </el-row>
+        <el-row v-if="more">
+          <dynamic-map v-model="headerOptions" title="HTTP Header" field-name="header"></dynamic-map>
+        </el-row>
+        <el-row v-if="more">
+          <dynamic-map v-model="userOptions" title="自定义数据" field-name="option"></dynamic-map>
+        </el-row>
+        <el-form-item>
+          <el-button @click="submit(formRef)">修改</el-button>
+          <el-button @click="retrieve(props.key)">重置</el-button>
+        </el-form-item>
+      </el-form>
     </el-space>
   </el-dialog>
 </template>

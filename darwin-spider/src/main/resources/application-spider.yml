@@ -1,0 +1,8 @@
+app:
+  spider:
+    reuseExpiredTimeMs: 86400000
+    connectTimeoutSeconds: 5
+    readTimeoutSeconds: 10
+    keepAliveMinutes: 3
+    maxIdleConnections: 100
+    retryCnt: 3

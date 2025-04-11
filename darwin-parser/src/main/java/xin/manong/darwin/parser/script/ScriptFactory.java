@@ -22,20 +22,20 @@ public class ScriptFactory {
      *
      * @param scriptType 脚本类型
      * @param scriptCode 脚本代码
-     * @throws ScriptCompileException 编译失败抛出该异常
+     * @throws CompileException 编译失败抛出该异常
      * @return 脚本执行对象
      */
-    public static Script make(int scriptType, String scriptCode) throws ScriptCompileException {
+    public static Script make(int scriptType, String scriptCode) throws CompileException {
         if (StringUtils.isEmpty(scriptCode)) {
             logger.error("script code is empty");
-            throw new ScriptCompileException("脚本代码为空");
+            throw new CompileException("脚本代码为空");
         }
         if (!Constants.SUPPORT_SCRIPT_TYPES.containsKey(scriptType)) {
             logger.error("unsupported script type[{}]", scriptType);
-            throw new ScriptCompileException(String.format("不支持的脚本类型[%d]", scriptType));
+            throw new CompileException("脚本类型不支持");
         }
         if (scriptType == Constants.SCRIPT_TYPE_GROOVY) return new GroovyScript(scriptCode);
         else if (scriptType == Constants.SCRIPT_TYPE_JAVASCRIPT) return new JavaScript(scriptCode);
-        throw new ScriptCompileException(String.format("不支持的脚本类型[%d]", scriptType));
+        throw new CompileException("脚本类型不支持");
     }
 }

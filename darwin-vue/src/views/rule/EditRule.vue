@@ -1,110 +1,99 @@
 <script setup>
-import { reactive, ref, useTemplateRef, watchEffect } from 'vue'
+import { ref, useTemplateRef, watch, watchEffect } from 'vue'
 import {
-  ElButton, ElCol, ElForm, ElFormItem, ElInput, ElNotification, ElOption, ElRow, ElSelect, ElSpace
+  ElButton, ElCol, ElForm, ElFormItem, ElInput, ElNotification, ElOption, ElRow, ElSelect
 } from 'element-plus'
-import { executeAsyncRequest } from '@/common/assortment'
-import { asyncGetRule, asyncUpdateRule } from '@/common/service'
-import PlanRuleSelect from '@/components/rule/PlanRuleSelect'
+import { checkUserLogin, executeAsyncRequest, executeAsyncRequestAfterConfirm } from '@/common/assortment'
+import { asyncDeleteRule, asyncGetRule, asyncUpdateRule } from '@/common/service'
+import CodeEditor from '@/components/data/CodeEditor'
+import { langMap, ruleFormRules } from '@/views/rule/common'
 
-const props = defineProps(['planId'])
+const props = defineProps(['id', 'forceRefresh'])
+const emits = defineEmits(['refresh', 'change', 'remove'])
 const formRef = useTemplateRef('formRef')
-const ruleId = ref()
-const rule = ref({})
-const refresh = ref(Date.now())
-const debugURL = ref('')
-const ruleForm = reactive({})
-const formRules = { }
+const rule = ref()
+const refreshEditor = ref(Date.now())
 
-const submit = async formEl => {
+const update = async formEl => {
+  const updateRule = {
+    id: rule.value.id,
+    name: rule.value.name,
+    regex: rule.value.regex,
+    script: rule.value.script,
+    script_type: rule.value.script_type,
+    change_log: rule.value.change_log
+  }
   const successHandle = () => ElNotification.success('编辑规则成功')
   const failHandle = () => ElNotification.success('编辑规则失败')
-  if (!await executeAsyncRequest(asyncUpdateRule, ruleForm, successHandle, failHandle, formEl)) return
-  open.value = false
+  if (!await executeAsyncRequest(asyncUpdateRule, updateRule, successHandle, failHandle,
+    undefined, formEl)) return
+  refreshEditor.value = Date.now()
+  emits('refresh')
 }
 
-const clearSelectedRule = () => {
-  ruleForm.id = null
-  ruleForm.name = null
-  ruleForm.regex = null
-  ruleForm.script_type = null
-  ruleForm.script = null
+const remove = async id => {
+  if (!checkUserLogin()) return
+  const successHandle = () => ElNotification.success('删除规则成功')
+  const failHandle = () => ElNotification.error('删除规则失败')
+  if (!await executeAsyncRequestAfterConfirm(
+    '删除提示', '是否确定删除该规则？', asyncDeleteRule, id, successHandle, failHandle)) return
+  emits('remove')
 }
 
-const debug = () => {
-  if (!ruleForm.regex || !new RegExp(ruleForm.regex).test(debugURL.value)) {
-    ElNotification.error('调试URL不匹配脚本规则')
+const handleScriptChange = script => rule.value.script = script
+const handleReset = formEl => {
+  formEl.resetFields()
+  refreshEditor.value = Date.now()
+}
+
+watch(() => [props.id, props.forceRefresh], async () => {
+  if (props.id) {
+    rule.value = await asyncGetRule(props.id)
+    refreshEditor.value = Date.now()
   }
-}
-
-watchEffect(async () => {
-  if (ruleId.value) {
-    rule.value = await asyncGetRule(ruleId.value)
-    ruleForm.id = rule.value.id
-    ruleForm.name = rule.value.name
-    ruleForm.regex = rule.value.regex
-    ruleForm.script_type = rule.value.script_type
-    ruleForm.script = rule.value.script
-    ruleForm.creator = rule.value.creator
-    ruleForm.modifier = rule.value.modifier
-  }
-})
+}, { immediate: true })
+watchEffect(() => emits('change', rule.value))
 </script>
 
 <template>
-  <el-space direction="vertical" :size="20" :fill="true" style="min-width: 100%">
+  <el-form v-if="rule" ref="formRef" :model="rule" :rules="ruleFormRules" label-width="80px" label-position="right">
     <el-row :gutter="20">
-      <el-col :span="10">
-        <el-form-item label="请选择规则">
-          <plan-rule-select v-model="ruleId" :plan-id="props.planId" :force-refresh="refresh"
-                            @clear="clearSelectedRule"></plan-rule-select>
+      <el-col :span="14">
+        <el-form-item label="规则名称" prop="name">
+          <el-input v-model.trim="rule.name" clearable />
         </el-form-item>
       </el-col>
+    </el-row>
+    <el-row :gutter="20">
       <el-col :span="14">
-        <el-button>添加规则</el-button>
+        <el-form-item label="匹配规则" prop="regex">
+          <el-input v-model.trim="rule.regex" clearable />
+        </el-form-item>
       </el-col>
     </el-row>
-    <el-form v-if="ruleForm.id" ref="formRef" :model="ruleForm" :rules="formRules" label-position="top">
-      <el-form-item label="规则名" prop="name" required>
-        <el-input v-model.trim="ruleForm.name" clearable></el-input>
-      </el-form-item>
-      <el-form-item label="匹配规则" prop="regex" required>
-        <el-input v-model.trim="ruleForm.regex" clearable></el-input>
-      </el-form-item>
-      <el-row>
-        <el-col :span="8">
-          <el-form-item label="脚本类型" prop="script_type" required>
-            <el-select v-model="ruleForm.script_type" style="width: 250px">
-              <el-option key="1" label="Groovy" :value="1"></el-option>
-              <el-option key="2" label="JavaScript" :value="2"></el-option>
-            </el-select>
-          </el-form-item>
-        </el-col>
-        <el-col :span="8">
-          <el-form-item label="创建人" prop="creator">
-            <el-input :value="rule.creator" style="width: 250px" readonly></el-input>
-          </el-form-item>
-        </el-col>
-        <el-col :span="8">
-          <el-form-item label="修改人" prop="modifier">
-            <el-input :value="rule.modifier" style="width: 250px" readonly></el-input>
-          </el-form-item>
-        </el-col>
-      </el-row>
-      <el-form-item label="规则脚本" prop="script" required>
-        <el-input type="textarea" :rows="20" v-model="ruleForm.script"></el-input>
-      </el-form-item>
-      <el-form-item label="调试URL" prop="debug_url">
-        <el-input v-model="debugURL"></el-input>
-      </el-form-item>
-      <el-form-item>
-        <el-button @click="submit(formRef)">编辑</el-button>
-        <el-button>变更历史</el-button>
-        <el-button @click="debug">脚本调试</el-button>
-        <el-button @click="formRef.resetFields()">重置</el-button>
-      </el-form-item>
-    </el-form>
-  </el-space>
+    <el-row :gutter="20">
+      <el-col :span="6">
+        <el-form-item label="脚本类型" prop="script_type">
+          <el-select v-model="rule.script_type" class="w150px">
+            <el-option key="1" label="Groovy" :value="1" />
+            <el-option key="2" label="JavaScript" :value="2" />
+          </el-select>
+        </el-form-item>
+      </el-col>
+    </el-row>
+    <el-form-item prop="script" label-position="top">
+      <code-editor :code="rule.script" :lang="langMap[rule.script_type]"
+                   :refresh="refreshEditor" @change="handleScriptChange" />
+    </el-form-item>
+    <el-form-item label="变更原因" prop="change_log" label-position="top">
+      <el-input type="textarea" v-model="rule.change_log" :rows="3" />
+    </el-form-item>
+    <el-form-item label-position="top">
+      <el-button @click="update(formRef)">编辑</el-button>
+      <el-button @click="remove(rule.id)">删除</el-button>
+      <el-button @click="handleReset(formRef)">重置</el-button>
+    </el-form-item>
+  </el-form>
 </template>
 
 <style scoped>

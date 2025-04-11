@@ -37,6 +37,7 @@ public class RuleServiceImplTest {
         rule.script = "function";
         rule.regex = "http://www.sina.com.cn/\\d+.html";
         rule.planId = "xxx";
+        rule.changeLog = "test";
         rule.check();
         Assert.assertTrue(rule.match("http://www.sina.com.cn/123.html"));
 
@@ -52,6 +53,7 @@ public class RuleServiceImplTest {
         updateRule.id = rule.id;
         updateRule.name = "test rule";
         updateRule.script = "function() {}";
+        updateRule.changeLog = "test";
         Assert.assertTrue(ruleService.update(updateRule));
 
         Rule getRule = ruleService.get(rule.id);

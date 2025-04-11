@@ -106,7 +106,7 @@ watchEffect(() => search())
 </script>
 
 <template>
-  <el-space direction="vertical" :size="20" :fill="true" style="min-width: 100%">
+  <el-space direction="vertical" :size="20" :fill="true" class="w100">
     <el-page-header @back="router.back()">
       <template #breadcrumb>
         <el-breadcrumb :separator-icon="ArrowRight">
@@ -121,78 +121,77 @@ watchEffect(() => search())
         <el-button :disabled="!userStore.injected" @click="openAddDialog = true">新增计划</el-button>
       </template>
     </el-page-header>
-    <el-row style="min-width: 100%">
-      <el-col :span="24">
-        <el-form :model="query" ref="formRef" label-width="auto" style="max-width: 950px">
-          <el-form-item v-if="userStore.injected" label="计划范围" prop="app_ids">
-            <el-radio-group v-model="query.app_ids">
+    <el-form :model="query" ref="formRef" label-width="80px" class="w100">
+      <el-form-item v-if="userStore.injected" label="计划范围" prop="app_ids">
+        <el-radio-group v-model="query.app_ids">
+          <el-radio-button value="all">全部</el-radio-button>
+          <el-radio-button :value="userStore.apps">我的计划</el-radio-button>
+        </el-radio-group>
+      </el-form-item>
+      <el-row>
+        <el-col :span="8">
+          <el-form-item label="计划状态" prop="status">
+            <el-radio-group v-model="query.status">
               <el-radio-button value="all">全部</el-radio-button>
-              <el-radio-button :value="userStore.apps">我的计划</el-radio-button>
+              <el-radio-button value="false">关闭</el-radio-button>
+              <el-radio-button value="true">开启</el-radio-button>
             </el-radio-group>
           </el-form-item>
-          <el-row>
-            <el-col :span="8">
-              <el-form-item label="计划状态" prop="status">
-                <el-radio-group v-model="query.status">
-                  <el-radio-button value="all">全部</el-radio-button>
-                  <el-radio-button value="false">关闭</el-radio-button>
-                  <el-radio-button value="true">开启</el-radio-button>
-                </el-radio-group>
-              </el-form-item>
-            </el-col>
-            <el-col :span="16">
-              <el-form-item label="抓取方式" prop="fetch_method">
-                <el-radio-group v-model="query.fetch_method">
-                  <el-radio-button value="all">全部</el-radio-button>
-                  <el-radio-button value="0">本地IP</el-radio-button>
-                  <el-radio-button value="1">代理IP</el-radio-button>
-                </el-radio-group>
-              </el-form-item>
-            </el-col>
-          </el-row>
-          <el-row>
-            <el-col :span="8">
-              <el-form-item label="计划类型" prop="category">
-                <el-radio-group v-model="query.category">
-                  <el-radio-button value="all">全部</el-radio-button>
-                  <el-radio-button value="0">单次型</el-radio-button>
-                  <el-radio-button value="1">周期型</el-radio-button>
-                </el-radio-group>
-              </el-form-item>
-            </el-col>
-            <el-col :span="16">
-              <el-form-item label="优先级" prop="priority">
-                <el-radio-group v-model="query.priority">
-                  <el-radio-button value="all">全部</el-radio-button>
-                  <el-radio-button value="0">高优先级</el-radio-button>
-                  <el-radio-button value="1">中优先级</el-radio-button>
-                  <el-radio-button value="2">低优先级</el-radio-button>
-                </el-radio-group>
-              </el-form-item>
-            </el-col>
-          </el-row>
-          <el-form-item label="所属应用" prop="app_id">
-            <el-col :span="15">
-              <app-search v-model="query.app_id" placeholder="根据应用名称搜索"></app-search>
-            </el-col>
+        </el-col>
+        <el-col :span="16">
+          <el-form-item label="抓取方式" prop="fetch_method">
+            <el-radio-group v-model="query.fetch_method">
+              <el-radio-button value="all">全部</el-radio-button>
+              <el-radio-button value="0">本地IP</el-radio-button>
+              <el-radio-button value="1">代理IP</el-radio-button>
+            </el-radio-group>
           </el-form-item>
-          <el-form-item label="计划搜索" prop="name">
-            <el-col :span="15">
-              <el-input v-model="query.name" clearable placeholder="根据计划名搜索" />
-            </el-col>
-            <el-col :span="1"></el-col>
-            <el-col :span="8">
-              <el-tooltip effect="dark" content="清除所有筛选条件" placement="right-end">
-                <el-button @click="formRef.resetFields(); search()" :icon="Delete"></el-button>
-              </el-tooltip>
-            </el-col>
+        </el-col>
+      </el-row>
+      <el-row>
+        <el-col :span="8">
+          <el-form-item label="计划类型" prop="category">
+            <el-radio-group v-model="query.category">
+              <el-radio-button value="all">全部</el-radio-button>
+              <el-radio-button value="0">单次型</el-radio-button>
+              <el-radio-button value="1">周期型</el-radio-button>
+            </el-radio-group>
           </el-form-item>
-        </el-form>
-      </el-col>
-    </el-row>
+        </el-col>
+        <el-col :span="16">
+          <el-form-item label="优先级" prop="priority">
+            <el-radio-group v-model="query.priority">
+              <el-radio-button value="all">全部</el-radio-button>
+              <el-radio-button value="0">高优先级</el-radio-button>
+              <el-radio-button value="1">中优先级</el-radio-button>
+              <el-radio-button value="2">低优先级</el-radio-button>
+            </el-radio-group>
+          </el-form-item>
+        </el-col>
+      </el-row>
+      <el-form-item label="计划搜索">
+        <el-col :span="8">
+          <el-form-item prop="app_id">
+            <app-search v-model="query.app_id" placeholder="根据应用名称搜索" />
+          </el-form-item>
+        </el-col>
+        <el-col :span="1"></el-col>
+        <el-col :span="8">
+          <el-form-item prop="name">
+            <el-input v-model="query.name" clearable placeholder="根据计划名搜索" />
+          </el-form-item>
+        </el-col>
+        <el-col :span="1"></el-col>
+        <el-col :span="2">
+          <el-tooltip effect="dark" content="清除所有筛选条件" placement="right-end">
+            <el-button @click="formRef.resetFields()" :icon="Delete"></el-button>
+          </el-tooltip>
+        </el-col>
+      </el-form-item>
+    </el-form>
     <el-table ref="tableRef" :data="plans" max-height="850" table-layout="auto"
               stripe @sort-change="event => fillSearchQuerySort(event, query)">
-      <template #empty>没有计划数据</template>
+      <template #empty>暂无计划数据</template>
       <el-table-column prop="name" label="计划名称" show-overflow-tooltip>
         <template #default="scope">
           {{ scope.row.name }}
@@ -248,7 +247,7 @@ watchEffect(() => search())
         </template>
         <template #default="scope">
           <el-link>
-            <RouterLink :to="{ name: 'PlanPanel', query: { id: scope.row.plan_id } }">完善</RouterLink>
+            <RouterLink :to="{ name: 'PlanTabs', query: { id: scope.row.plan_id } }">完善</RouterLink>
           </el-link>
           &nbsp;
           <el-link @click="execute(scope.row.plan_id)">执行</el-link>

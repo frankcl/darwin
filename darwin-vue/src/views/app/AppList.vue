@@ -75,7 +75,7 @@ watchEffect(() => search())
 </script>
 
 <template>
-  <el-space direction="vertical" :size="20" :fill="true" style="min-width: 100%">
+  <el-space direction="vertical" :size="20" :fill="true" class="w100">
     <el-page-header @back="router.back()">
       <template #breadcrumb>
         <el-breadcrumb :separator-icon="ArrowRight">
@@ -90,21 +90,17 @@ watchEffect(() => search())
         <el-button :disabled="!userStore.injected" @click="openAddDialog = true">新增应用</el-button>
       </template>
     </el-page-header>
-    <el-row style="min-width: 100%">
-      <el-col :span="24">
-        <el-form :model="query" ref="formRef" label-width="auto" style="max-width: 400px">
-          <el-form-item v-if="userStore.injected" label="应用范围" prop="app_ids">
-            <el-radio-group v-model="query.app_ids">
-              <el-radio-button value="all">全部应用</el-radio-button>
-              <el-radio-button :value="userStore.apps">我的应用</el-radio-button>
-            </el-radio-group>
-          </el-form-item>
-          <el-form-item label="应用搜索" prop="name">
-            <el-input v-model="query.name" clearable placeholder="根据应用名搜索" />
-          </el-form-item>
-        </el-form>
-      </el-col>
-    </el-row>
+    <el-form :model="query" ref="formRef" label-width="80px" class="mw400px">
+      <el-form-item v-if="userStore.injected" label="应用范围" prop="app_ids">
+        <el-radio-group v-model="query.app_ids">
+          <el-radio-button value="all">全部应用</el-radio-button>
+          <el-radio-button :value="userStore.apps">我的应用</el-radio-button>
+        </el-radio-group>
+      </el-form-item>
+      <el-form-item label="应用搜索" prop="name">
+        <el-input v-model="query.name" clearable placeholder="根据应用名搜索" />
+      </el-form-item>
+    </el-form>
     <el-table ref="tableRef" :data="apps" max-height="850" table-layout="auto"
               stripe @sort-change="event => fillSearchQuerySort(event, query)">
       <template #empty>没有应用数据</template>
@@ -129,10 +125,9 @@ watchEffect(() => search())
           {{ format(new Date(scope.row['create_time']), 'yyyy-MM-dd HH:mm:ss') }}
         </template>
       </el-table-column>
-      <el-table-column label="修改时间" prop="update_time" sortable="custom" show-overflow-tooltip>
+      <el-table-column label="应用说明" prop="comment" show-overflow-tooltip>
         <template #default="scope">
-          <el-icon><timer /></el-icon>
-          {{ format(new Date(scope.row['update_time']), 'yyyy-MM-dd HH:mm:ss') }}
+          {{ scope.row.comment }}
         </template>
       </el-table-column>
       <el-table-column width="180" fixed="right">

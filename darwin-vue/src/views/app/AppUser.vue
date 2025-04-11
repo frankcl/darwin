@@ -52,7 +52,7 @@ watch(() => props.id, async () => {
 
 <template>
   <el-dialog v-model="open" @close="emits('close')" width="650" align-center show-close>
-    <el-space direction="vertical" :size="20" :fill="true" style="min-width: 100%">
+    <el-space direction="vertical" :size="20" :fill="true" class="w100">
       <el-page-header @back="open = false">
         <template #breadcrumb>
           <el-breadcrumb :separator-icon="ArrowRight">

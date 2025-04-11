@@ -58,7 +58,7 @@ public class DarwinUtilTest {
         job.jobId = "xxx";
         job.planId = "zzz";
         job.name = "test job";
-        job.status = Constants.JOB_STATUS_RUNNING;
+        job.status = true;
         job.priority = Constants.PRIORITY_HIGH;
         DarwinUtil.putContext(context, job);
 
@@ -74,7 +74,7 @@ public class DarwinUtilTest {
         Assert.assertEquals("xxx", context.get(Constants.JOB_ID));
         Assert.assertEquals("zzz", context.get(Constants.PLAN_ID));
         Assert.assertEquals("test job", context.get(Constants.NAME));
-        Assert.assertEquals(Constants.SUPPORT_JOB_STATUSES.get(Constants.JOB_STATUS_RUNNING), context.get(Constants.STATUS));
+        Assert.assertEquals(true, context.get(Constants.STATUS));
         Assert.assertEquals(1, (int) context.get(Constants.APP_ID));
         Assert.assertEquals(Constants.PRIORITY_HIGH, (int) context.get(Constants.PRIORITY));
     }

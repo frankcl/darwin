@@ -134,20 +134,20 @@ public class URLRecord extends SeedRecord {
     /**
      * 出队时间
      */
-    @TableField(value = "out_queue_time")
-    @Column(name = "out_queue_time")
-    @JSONField(name = "out_queue_time")
-    @JsonProperty("out_queue_time")
-    public Long outQueueTime;
+    @TableField(value = "pop_time")
+    @Column(name = "pop_time")
+    @JSONField(name = "pop_time")
+    @JsonProperty("pop_time")
+    public Long popTime;
 
     /**
      * 入队时间
      */
-    @TableField(value = "in_queue_time")
-    @Column(name = "in_queue_time")
-    @JSONField(name = "in_queue_time")
-    @JsonProperty("in_queue_time")
-    public Long inQueueTime;
+    @TableField(value = "push_time")
+    @Column(name = "push_time")
+    @JSONField(name = "push_time")
+    @JsonProperty("push_time")
+    public Long pushTime;
 
     /**
      * 深度
@@ -173,6 +173,12 @@ public class URLRecord extends SeedRecord {
     @TableField(exist = false)
     public Charset charset;
 
+    /**
+     * HTML内容
+     */
+    @TableField(exist = false)
+    public String html;
+
     public URLRecord() {
         super();
         status = Constants.URL_STATUS_CREATED;
@@ -188,8 +194,8 @@ public class URLRecord extends SeedRecord {
         appId = record.appId;
         jobId = record.jobId;
         fetchTime = record.fetchTime;
-        inQueueTime = record.inQueueTime;
-        outQueueTime = record.outQueueTime;
+        pushTime = record.pushTime;
+        popTime = record.popTime;
         parentURL = record.parentURL;
         redirectURL = record.redirectURL;
         fetchContentURL = record.fetchContentURL;
@@ -200,6 +206,7 @@ public class URLRecord extends SeedRecord {
         httpCode = record.httpCode;
         fieldMap = record.fieldMap == null ? new HashMap<>() : new HashMap<>(record.fieldMap);
         charset = record.charset;
+        html = record.html;
     }
 
     /**

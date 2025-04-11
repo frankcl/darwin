@@ -44,6 +44,7 @@ public class RuleServiceImpl extends RuleService {
 
     @Override
     public boolean add(Rule rule) {
+        rule.version = 1;
         return ruleMapper.insert(rule) > 0;
     }
 
@@ -53,6 +54,7 @@ public class RuleServiceImpl extends RuleService {
         Rule prevRule = ruleMapper.selectById(rule.id);
         if (prevRule == null) throw new NotFoundException("规则不存在");
         if (!addHistory(new RuleHistory(prevRule))) throw new IllegalStateException("添加规则历史失败");
+        rule.version = prevRule.version + 1;
         int n = ruleMapper.updateById(rule);
         if (n > 0) ruleCache.invalidate(rule.id);
         return n > 0;
@@ -152,15 +154,17 @@ public class RuleServiceImpl extends RuleService {
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public boolean rollback(Integer ruleId, Integer ruleHistoryId) {
+    public boolean rollback(Integer ruleId, Integer ruleHistoryId, String modifier) {
         RuleHistory ruleHistory = getRuleHistory(ruleHistoryId);
         if (ruleHistory == null) throw new NotFoundException("规则历史不存在");
-        if (!ruleHistory.ruleId.equals(ruleId)) throw new IllegalStateException("历史不属于此规则");
+        if (!ruleHistory.ruleId.equals(ruleId)) throw new IllegalStateException("变更历史不属于此规则");
         Rule rule = new Rule();
         rule.id = ruleId;
         rule.regex = ruleHistory.regex;
         rule.script = ruleHistory.script;
         rule.scriptType = ruleHistory.scriptType;
+        rule.changeLog = ruleHistory.changeLog;
+        rule.modifier = modifier;
         return update(rule);
     }
 }

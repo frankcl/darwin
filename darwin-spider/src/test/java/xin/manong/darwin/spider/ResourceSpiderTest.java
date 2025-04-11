@@ -10,6 +10,8 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 import xin.manong.darwin.common.Constants;
 import xin.manong.darwin.common.model.URLRecord;
+import xin.manong.darwin.spider.core.ResourceSpider;
+import xin.manong.darwin.spider.core.SpiderConfig;
 import xin.manong.weapon.aliyun.oss.OSSClient;
 import xin.manong.weapon.aliyun.oss.OSSMeta;
 import xin.manong.weapon.base.common.Context;
@@ -20,7 +22,7 @@ import xin.manong.weapon.base.util.RandomID;
  * @date 2023-03-30 15:50:07
  */
 @RunWith(SpringRunner.class)
-@ActiveProfiles(value = { "dev", "service", "service-dev", "parse", "parse-dev", "queue", "queue-dev", "log", "log-dev" })
+@ActiveProfiles(value = { "spider", "spider-dev", "service", "service-dev", "parse", "parse-dev", "queue", "queue-dev", "log", "log-dev" })
 @SpringBootTest(classes = { ApplicationTest.class })
 public class ResourceSpiderTest {
 

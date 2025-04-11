@@ -179,6 +179,7 @@ public class Converter {
         rule.script = request.script;
         rule.scriptType = request.scriptType;
         rule.planId = request.planId;
+        rule.changeLog = request.changeLog;
         return rule;
     }
 
@@ -196,6 +197,7 @@ public class Converter {
         rule.regex = request.regex;
         rule.script = request.script;
         rule.scriptType = request.scriptType;
+        rule.changeLog = request.changeLog;
         return rule;
     }
 

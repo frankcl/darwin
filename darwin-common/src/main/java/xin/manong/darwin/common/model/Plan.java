@@ -16,8 +16,6 @@ import org.quartz.CronExpression;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import xin.manong.darwin.common.Constants;
-import xin.manong.weapon.base.util.CommonUtil;
-import xin.manong.weapon.base.util.RandomID;
 
 import java.io.Serial;
 
@@ -37,7 +35,6 @@ public class Plan extends BaseModel {
 
     private static final Logger logger = LoggerFactory.getLogger(Plan.class);
 
-    private static final String DATE_TIME_FORMAT = "yyyy_MM_dd_HH_mm_ss";
     @Serial
     private static final long serialVersionUID = -2706430539910683801L;
 
@@ -145,25 +142,6 @@ public class Plan extends BaseModel {
     @JSONField(name = "modifier")
     @JsonProperty("modifier")
     public String modifier;
-
-    /**
-     * 根据当前计划生成任务
-     *
-     * @return 任务实例
-     */
-    public Job buildJob() {
-        Job job = new Job();
-        job.createTime = System.currentTimeMillis();
-        job.planId = planId;
-        job.appId = appId;
-        job.allowRepeat = allowRepeat != null && allowRepeat;
-        job.priority = priority == null ? Constants.PRIORITY_NORMAL : priority;
-        job.status = Constants.JOB_STATUS_RUNNING;
-        job.fetchMethod = fetchMethod;
-        job.jobId = RandomID.build();
-        job.name = String.format("%s_%s", name, CommonUtil.timeToString(System.currentTimeMillis(), DATE_TIME_FORMAT));
-        return job;
-    }
 
     /**
      * 检测计划有效性

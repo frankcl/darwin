@@ -12,7 +12,6 @@ import org.springframework.transaction.annotation.Transactional;
 import xin.manong.darwin.common.Constants;
 import xin.manong.darwin.common.model.Job;
 import xin.manong.darwin.common.model.Pager;
-import xin.manong.darwin.common.model.URLRecord;
 import xin.manong.darwin.service.ApplicationTest;
 import xin.manong.darwin.service.iface.JobService;
 import xin.manong.darwin.service.request.JobSearchRequest;
@@ -34,7 +33,6 @@ public class JobServiceImplTest {
     @Transactional
     @Rollback
     public void testJobOperations() {
-        URLRecord record = new URLRecord("http://www.sina.com.cn/");
         Job job = new Job();
         job.name = "测试任务";
         job.appId = 1;
@@ -66,7 +64,7 @@ public class JobServiceImplTest {
         Assert.assertNotNull(jobInDB);
 
         JobSearchRequest searchRequest = new JobSearchRequest();
-        searchRequest.status = Constants.JOB_STATUS_RUNNING;
+        searchRequest.status = true;
         searchRequest.planId = job.planId;
         searchRequest.current = 1;
         searchRequest.size = 10;

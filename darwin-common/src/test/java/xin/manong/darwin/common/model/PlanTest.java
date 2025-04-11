@@ -1,6 +1,5 @@
 package xin.manong.darwin.common.model;
 
-import org.apache.commons.lang3.StringUtils;
 import org.junit.Assert;
 import org.junit.Test;
 import xin.manong.darwin.common.Constants;
@@ -12,7 +11,7 @@ import xin.manong.darwin.common.Constants;
 public class PlanTest {
 
     @Test
-    public void testBuildJob() throws Exception {
+    public void testCheck() throws Exception {
         Plan plan = new Plan();
         plan.appId = 1;
         plan.appName = "test";
@@ -22,11 +21,5 @@ public class PlanTest {
         plan.category = Constants.PLAN_CATEGORY_ONCE;
         plan.priority = Constants.PRIORITY_HIGH;
         Assert.assertTrue(plan.check());
-
-        Job job = plan.buildJob();
-        Assert.assertFalse(StringUtils.isEmpty(job.jobId));
-        Assert.assertFalse(StringUtils.isEmpty(job.name));
-        Assert.assertTrue(job.name.startsWith("test_job_"));
-        Assert.assertEquals("test_id", job.planId);
     }
 }

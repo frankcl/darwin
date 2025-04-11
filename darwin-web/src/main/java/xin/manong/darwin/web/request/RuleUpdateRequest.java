@@ -41,5 +41,6 @@ public class RuleUpdateRequest extends RuleRequest {
         if (scriptType != null && !Constants.SUPPORT_SCRIPT_TYPES.containsKey(scriptType)) {
             throw new BadRequestException("不支持的脚本类型");
         }
+        if (StringUtils.isEmpty(changeLog)) throw new BadRequestException("变更原因为空");
     }
 }

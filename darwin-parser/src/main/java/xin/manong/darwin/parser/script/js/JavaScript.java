@@ -8,8 +8,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import xin.manong.darwin.common.model.URLRecord;
 import xin.manong.darwin.parser.script.Script;
-import xin.manong.darwin.parser.script.ScriptCompileException;
-import xin.manong.darwin.parser.script.ScriptConcurrentException;
+import xin.manong.darwin.parser.script.CompileException;
+import xin.manong.darwin.parser.script.ConcurrentException;
 import xin.manong.darwin.parser.sdk.ParseRequest;
 import xin.manong.darwin.parser.sdk.ParseResponse;
 
@@ -77,7 +77,7 @@ public class JavaScript extends Script {
         super(null);
     }
 
-    public JavaScript(String scriptCode) throws ScriptCompileException {
+    public JavaScript(String scriptCode) throws CompileException {
         super(DigestUtils.md5Hex(scriptCode));
         buildJavaScriptFunction(scriptCode);
     }
@@ -86,9 +86,9 @@ public class JavaScript extends Script {
      * 构建JavaScript调用方法
      *
      * @param scriptCode JavaScript脚本代码
-     * @throws ScriptCompileException 编译失败抛出该异常
+     * @throws CompileException 编译失败抛出该异常
      */
-    private void buildJavaScriptFunction(String scriptCode) throws ScriptCompileException {
+    private void buildJavaScriptFunction(String scriptCode) throws CompileException {
         try {
             ScriptEngine scriptEngine = scriptEngineManager.getEngineByName(JAVASCRIPT_ENGINE_NAME);
             scriptEngine.eval(String.format("%s\n%s", JAVASCRIPT_UTILS, scriptCode));
@@ -96,14 +96,14 @@ public class JavaScript extends Script {
         } catch (Exception e) {
             logger.error("build JavaScript parse script failed for key[{}]", key);
             logger.error(e.getMessage(), e);
-            throw new ScriptCompileException(String.format("创建JavaScript脚本失败[%s]", e.getMessage()), e);
+            throw new CompileException(e.getMessage(), e);
         }
     }
 
     @SuppressWarnings("unchecked")
     @Override
     public ParseResponse doExecute(ParseRequest request) throws Exception {
-        if (function == null) throw new ScriptConcurrentException();
+        if (function == null) throw new ConcurrentException();
         ScriptObjectMirror scriptObject = (ScriptObjectMirror) function.invokeFunction(METHOD_PARSE, request);
         Map<String, Object> map = (Map<String, Object>) convertScriptObjectMirror(scriptObject);
         if (map == null) return ParseResponse.buildError("解析响应为空");

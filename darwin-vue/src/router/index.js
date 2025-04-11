@@ -2,7 +2,7 @@ import { createRouter, createWebHistory } from 'vue-router'
 import Home from '@/views/Home'
 import AppList from '@/views/app/AppList'
 import PlanList from '@/views/plan/PlanList'
-import PlanPanel from '@/views/plan/PlanPanel'
+import PlanTabs from '@/views/plan/PlanTabs'
 
 const routes = [
   {
@@ -21,9 +21,9 @@ const routes = [
         component: PlanList
       },
       {
-        path: 'plan/planPanel',
-        name: 'PlanPanel',
-        component: PlanPanel
+        path: 'plan/tabs',
+        name: 'PlanTabs',
+        component: PlanTabs
       }
     ]
   }

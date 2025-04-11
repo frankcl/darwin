@@ -40,11 +40,11 @@ public class JobSearchRequest extends SearchRequest {
     @QueryParam("priority")
     public Integer priority;
     /**
-     * 任务状态：结束0，运行1
+     * 任务状态：结束false，运行true
      */
     @JsonProperty("status")
     @QueryParam("status")
-    public Integer status;
+    public Boolean status;
     /**
      * 创建时间范围
      */
