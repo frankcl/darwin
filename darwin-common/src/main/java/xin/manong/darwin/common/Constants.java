@@ -41,11 +41,8 @@ public class Constants {
     public static final int URL_STATUS_FETCHING = 4;                //抓取中
     public static final int URL_STATUS_INVALID = 5;                 //URL非法
     public static final int URL_STATUS_TIMEOUT = 6;                 //超时
-    public static final int URL_STATUS_IO_ERROR = 7;                //I/O错误
-    public static final int URL_STATUS_FETCH_FAIL = 8;              //抓取失败
-    public static final int URL_STATUS_PARSE_ERROR = 9;             //解析错误
-    public static final int URL_STATUS_UNKNOWN_ERROR = 10;          //未知错误
-    public static final int URL_STATUS_OVERFLOW = 11;               //溢出
+    public static final int URL_STATUS_FETCH_FAIL = 7;              //抓取失败
+    public static final int URL_STATUS_OVERFLOW = 8;                //溢出
     public static final Map<Integer, String> SUPPORT_URL_STATUSES = new HashMap<>() {
         @Serial
         private static final long serialVersionUID = -897638930689419495L;
@@ -58,10 +55,7 @@ public class Constants {
         put(URL_STATUS_FETCHING, "抓取中");
         put(URL_STATUS_INVALID, "非法状态");
         put(URL_STATUS_TIMEOUT, "超时");
-        put(URL_STATUS_IO_ERROR, "I/O错误");
         put(URL_STATUS_FETCH_FAIL, "抓取失败");
-        put(URL_STATUS_PARSE_ERROR, "解析错误");
-        put(URL_STATUS_UNKNOWN_ERROR, "未知错误");
         put(URL_STATUS_OVERFLOW, "溢出");
     }};
 

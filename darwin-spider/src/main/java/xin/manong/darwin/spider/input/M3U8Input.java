@@ -25,10 +25,10 @@ public class M3U8Input extends Input {
     private static final Logger logger = LoggerFactory.getLogger(M3U8Input.class);
 
     private final String ffmpeg;
-    private final File tempFile;
     private final URLRecord record;
     private final Proxy proxy;
     private final SpiderConfig config;
+    private final File tempFile;
 
     public M3U8Input(URLRecord record, Proxy proxy, SpiderConfig config) {
         this.record = record;
@@ -41,6 +41,7 @@ public class M3U8Input extends Input {
 
     @Override
     public void open() throws IOException {
+        close();
         Process process = null;
         try {
             createTempDirectory();

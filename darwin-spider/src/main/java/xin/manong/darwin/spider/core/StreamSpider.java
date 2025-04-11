@@ -46,7 +46,6 @@ public class StreamSpider extends Spider {
             record.mimeType = Spider.MIME_TYPE_VIDEO;
             record.subMimeType = Spider.SUB_MIME_TYPE_MP4;
             record.httpCode = Spider.HTTP_CODE_OK;
-            record.status = Constants.URL_STATUS_SUCCESS;
         }
         write(record, input, context);
     }
