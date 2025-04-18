@@ -1,88 +1,101 @@
 <script setup>
-import { reactive, ref, useTemplateRef, watchEffect } from 'vue'
+import { reactive, ref, watchEffect } from 'vue'
 import {
-  ElButton, ElCol, ElForm, ElFormItem, ElInput, ElLink,
-  ElNotification, ElPagination, ElRow, ElSpace, ElTable, ElTableColumn
+  ElButton, ElCol, ElForm, ElFormItem, ElIcon, ElInput, ElPagination,
+  ElPopover, ElRow, ElSpace, ElTable, ElTableColumn, ElText
 } from 'element-plus'
 import { useUserStore } from '@/store'
+import {CopyDocument, DocumentCopy, Download} from '@element-plus/icons-vue'
+import { writeClipboard } from '@/common/Clipboard'
 import {
-  checkUserLogin,
-  executeAsyncRequestAfterConfirm,
-  fillSearchQuerySort,
-  searchQueryToRequest,
-} from '@/common/assortment'
-import { asyncDeleteSeed, asyncSearchSeeds } from '@/common/service'
+  asyncExecuteAfterConfirming,
+  ERROR, showMessage, SUCCESS
+} from '@/common/Feedback'
+import {
+  asyncRemoveSeed,
+  asyncSearchSeed, changeSearchQuerySort,
+  newSearchQuery,
+  newSearchRequest
+} from '@/common/AsyncRequest'
 import AddSeed from '@/views/seed/AddSeed'
 import EditSeed from '@/views/seed/EditSeed'
 
-const props = defineProps(['id'])
-const formRef = useTemplateRef('formRef')
-const tableRef = useTemplateRef('tableRef')
+const props = defineProps(['planId'])
 const userStore = useUserStore()
 const openAddDialog = ref(false)
 const openEditDialog = ref(false)
 const seedKey = ref()
+const copiedURL = ref()
 const seeds = ref([])
 const total = ref(0)
-const query = reactive({
-  current: 1,
-  size: 10,
-  url: null,
-  plan_id: null,
-  sort_field: null,
-  sort_order: null
-})
+const query = reactive(newSearchQuery())
 
 const search = async () => {
-  const request = searchQueryToRequest(query)
+  const request = newSearchRequest(query)
   if (query.url) request.url = query.url
   if (query.plan_id) request.plan_id = query.plan_id
-  const pager = await asyncSearchSeeds(request)
+  const pager = await asyncSearchSeed(request)
   total.value = pager.total
   seeds.value = pager.records
 }
 
 const edit = key => {
-  if (!checkUserLogin()) return
   seedKey.value = key
   openEditDialog.value = true
 }
 
 const remove = async key => {
-  if (!checkUserLogin()) return
-  const successHandle = () => ElNotification.success('删除种子URL成功')
-  const failHandle = () => ElNotification.error('删除种子URL失败')
-  if (!await executeAsyncRequestAfterConfirm(
-    '删除提示', '是否确定删除该种子URL？', asyncDeleteSeed, key, successHandle, failHandle)) return
+  const success = await asyncExecuteAfterConfirming(asyncRemoveSeed, key)
+  if (success === undefined) return
+  if (!success) {
+    showMessage('删除种子URL失败', ERROR)
+    return
+  }
+  showMessage('删除种子URL成功', SUCCESS)
   await search()
 }
 
-watchEffect( () => query.plan_id = props.id)
+const copy = async seed => {
+  await writeClipboard(seed.url)
+  copiedURL.value = `URL#${seed.key}`
+  showMessage('复制种子URL成功', SUCCESS)
+}
+
+watchEffect( () => query.plan_id = props.planId)
 watchEffect(async () => await search())
 </script>
 
 <template>
   <el-space direction="vertical" :size="20" :fill="true" class="w100">
-    <el-form :model="query" ref="formRef" label-width="50px">
-      <el-row>
-        <el-col :span="16">
-          <el-form-item label="搜索" prop="url">
-            <el-input v-model="query.url" clearable placeholder="搜索种子URL" />
-          </el-form-item>
-        </el-col>
-        <el-col :span="8">
-          <el-row justify="end">
-            <el-button :disabled="!userStore.injected" @click="openAddDialog = true">新增种子</el-button>
-          </el-row>
-        </el-col>
-      </el-row>
+    <el-form :model="query" ref="filterForm" label-width="50px">
+      <el-col :span="12">
+        <el-form-item label="搜索" prop="url">
+          <el-input v-model="query.url" clearable placeholder="搜索种子URL" />
+        </el-form-item>
+      </el-col>
     </el-form>
-    <el-table ref="tableRef" :data="seeds" max-height="850" table-layout="auto"
-              stripe @sort-change="event => fillSearchQuerySort(event, query)">
+    <el-row align="middle">
+      <el-col :span="12">
+        <span class="text-xl font-bold ml-2">种子列表</span>
+      </el-col>
+      <el-col :span="12">
+        <el-row justify="end">
+          <el-button type="primary" @click="openAddDialog = true" :disabled="!userStore.injected">新增种子</el-button>
+        </el-row>
+      </el-col>
+    </el-row>
+    <el-table :data="seeds" max-height="850" table-layout="auto"
+              stripe @sort-change="event => changeSearchQuerySort(event.prop, event.order, query)">
       <template #empty>暂无种子URL</template>
-      <el-table-column prop="name" label="URL" show-overflow-tooltip>
+      <el-table-column prop="url" label="种子URL" show-overflow-tooltip>
         <template #default="scope">
-          {{ scope.row.url }}
+          <el-icon v-if="copiedURL === `URL#${scope.row.key}`"><document-copy /></el-icon>
+          <el-popover v-else content="点击复制">
+            <template #reference>
+              <el-icon @click="copy(scope.row)"><copy-document /></el-icon>
+            </template>
+          </el-popover>
+          <el-text class="ml-2" :href="scope.row.url" target="_blank">{{ scope.row.url }}</el-text>
         </template>
       </el-table-column>
       <el-table-column prop="category" label="类型" width="100" show-overflow-tooltip>
@@ -113,14 +126,11 @@ watchEffect(async () => await search())
           <span v-else>未知</span>
         </template>
       </el-table-column>
-      <el-table-column width="120">
-        <template #header>
-          操作
-        </template>
+      <el-table-column width="160">
+        <template #header>操作</template>
         <template #default="scope">
-          <el-link @click="edit(scope.row.key)">修改</el-link>
-          &nbsp;
-          <el-link @click="remove(scope.row.key)">删除</el-link>
+          <el-button type="primary" @click="edit(scope.row.key)" :disabled="!userStore.injected">修改</el-button>
+          <el-button type="danger" @click="remove(scope.row.key)" :disabled="!userStore.injected">删除</el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -129,8 +139,8 @@ watchEffect(async () => await search())
                      v-model:page-size="query.size" v-model:current-page="query.current" />
     </el-row>
   </el-space>
-  <add-seed v-model="openAddDialog" :plan-id="props.id" @close="search()"></add-seed>
-  <edit-seed v-model="openEditDialog" :seed-key="seedKey" @close="search()"></edit-seed>
+  <add-seed v-model="openAddDialog" :plan-id="props.planId" @close="search" />
+  <edit-seed v-model="openEditDialog" :seed-key="seedKey" @close="search" />
 </template>
 
 <style scoped>

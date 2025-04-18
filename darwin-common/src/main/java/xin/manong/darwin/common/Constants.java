@@ -126,8 +126,8 @@ public class Constants {
         {
         put(CONTENT_CATEGORY_CONTENT, "内容页");
         put(CONTENT_CATEGORY_LIST, "列表页");
-        put(CONTENT_CATEGORY_RESOURCE, "资源");
-        put(CONTENT_CATEGORY_STREAM, "流媒体");
+        put(CONTENT_CATEGORY_RESOURCE, "图片视频");
+        put(CONTENT_CATEGORY_STREAM, "视频流");
     }};
 
     /**

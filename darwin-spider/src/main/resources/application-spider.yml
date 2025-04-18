@@ -1,8 +1,8 @@
 app:
   spider:
-    reuseExpiredTimeMs: 86400000
-    connectTimeoutSeconds: 5
-    readTimeoutSeconds: 10
-    keepAliveMinutes: 3
-    maxIdleConnections: 100
-    retryCnt: 3
+    max-repeat-fetch-time-interval-ms: 86400000
+    connect-timeout-seconds: 5
+    read-timeout-seconds: 10
+    keep-alive-minutes: 3
+    max-idle-connections: 100
+    retry-cnt: 3

@@ -7,18 +7,20 @@ import DebugRule from '@/views/rule/DebugRule'
 import HistoryList from '@/views/rule/HistoryList'
 
 const props = defineProps(['planId'])
-const currentRuleId = ref()
-const currentRule = ref()
+const ruleId = ref()
+const ruleChanged = ref()
 const refreshSelector = ref(Date.now())
 const refreshEdit = ref(Date.now())
 const refreshHistory = ref(Date.now())
 
-const handleClear = () => currentRuleId.value = currentRule.value = undefined
+const handleClear = () => ruleId.value = ruleChanged.value = undefined
 const handleRefresh = () => {
   refreshSelector.value = Date.now()
   refreshHistory.value = Date.now()
 }
-const handleRuleChange = rule => currentRule.value = rule
+const handleRuleChange = rule => {
+  ruleChanged.value = rule
+}
 const handleRuleRemove = () => {
   handleClear()
   handleRefresh()
@@ -28,21 +30,21 @@ const handleRuleRemove = () => {
 <template>
     <el-form-item label="请选择规则">
       <el-col :span="8">
-        <rule-select v-model="currentRuleId" :plan-id="props.planId"
+        <rule-select v-model="ruleId" :plan-id="props.planId"
                      :force-refresh="refreshSelector" @clear="handleClear" />
       </el-col>
     </el-form-item>
     <el-divider></el-divider>
-    <el-tabs v-if="currentRuleId" tab-position="left" class="rule-tabs">
+    <el-tabs v-if="ruleId" tab-position="left" class="rule-tabs">
       <el-tab-pane label="编辑">
-        <edit-rule :id="currentRuleId" :force-refresh="refreshEdit"
-                   @refresh="handleRefresh" @change="handleRuleChange" @remove="handleRuleRemove" />
+        <edit-rule :id="ruleId" :refresh="refreshEdit"
+                   @update="handleRefresh" @change="handleRuleChange" @remove="handleRuleRemove" />
       </el-tab-pane>
       <el-tab-pane label="调试">
-        <debug-rule v-bind="currentRule" />
+        <debug-rule v-bind="ruleChanged" />
       </el-tab-pane>
       <el-tab-pane label="版本">
-        <history-list :rule-id="currentRuleId" :rule-name="currentRule ? currentRule.name : ''"
+        <history-list :rule-id="ruleId" :rule-name="ruleChanged ? ruleChanged.name : ''"
                       :refresh="refreshHistory" @rollback="refreshEdit = Date.now()" />
       </el-tab-pane>
     </el-tabs>

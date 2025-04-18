@@ -47,10 +47,6 @@
         </dependency>
         <dependency>
             <groupId>xin.manong</groupId>
-            <artifactId>weapon-base</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>xin.manong</groupId>
             <artifactId>weapon-aliyun</artifactId>
         </dependency>
     </dependencies>

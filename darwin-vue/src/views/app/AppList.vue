@@ -1,27 +1,32 @@
 <script setup>
-import { format } from 'date-fns'
-import { reactive, ref, useTemplateRef, watchEffect } from 'vue'
+import { reactive, ref, watchEffect } from 'vue'
 import { useRouter } from 'vue-router'
-import { ArrowRight, Timer } from '@element-plus/icons-vue'
+import { Timer } from '@element-plus/icons-vue'
 import {
-  ElBreadcrumb, ElBreadcrumbItem, ElButton, ElCol, ElForm, ElFormItem,
-  ElIcon, ElInput, ElLink, ElNotification, ElPageHeader, ElPagination, ElRadioButton,
+  ElButton, ElCol, ElForm, ElFormItem,
+  ElIcon, ElInput, ElPagination, ElRadioButton,
   ElRadioGroup, ElRow, ElSpace, ElTable, ElTableColumn
 } from 'element-plus'
 import { useUserStore } from '@/store'
+import { formatDate } from '@/common/Time'
 import {
-  checkUserLogin,
-  executeAsyncRequestAfterConfirm,
-  fillSearchQuerySort,
-  searchQueryToRequest
-} from '@/common/assortment'
-import { asyncDeleteApp, asyncSearchApps } from '@/common/service'
+  asyncRemoveApp,
+  asyncResetUserApps,
+  asyncSearchApp,
+  changeSearchQuerySort,
+  newSearchQuery,
+  newSearchRequest
+} from '@/common/AsyncRequest'
+import {
+  asyncExecuteAfterConfirming,
+  ERROR, showMessage, SUCCESS
+} from '@/common/Feedback'
 import AddApp from '@/views/app/AddApp'
 import AppUser from '@/views/app/AppUser'
 import EditApp from '@/views/app/EditApp'
 
+
 const router = useRouter()
-const tableRef = useTemplateRef('tableRef')
 const userStore = useUserStore()
 const apps = ref([])
 const total = ref(0)
@@ -30,43 +35,40 @@ const openEditDialog = ref(false)
 const openAppUserDialog = ref(false)
 const appId = ref()
 const app = reactive({})
-const query = reactive({
-  current: 1,
-  size: 10,
-  name: null,
-  app_ids: 'all',
-  sort_field: null,
-  sort_order: null
-})
+const query = reactive(newSearchQuery({ app_ids: 'all' }))
+
+const refresh = async () => {
+  await asyncResetUserApps();
+  await search()
+}
 
 const search = async () => {
-  const request = searchQueryToRequest(query)
+  const request = newSearchRequest(query)
   if (query.name) request.name = query.name
   if (query.app_ids && query.app_ids !== 'all') request.app_ids = query.app_ids
-  const pager = await asyncSearchApps(request)
+  const pager = await asyncSearchApp(request)
   total.value = pager.total
   apps.value = pager.records
 }
 
 const remove = async id => {
-  if (!checkUserLogin()) return
-  const successHandle = () => ElNotification.success('删除应用成功')
-  const failHandle = () => ElNotification.success('删除应用失败')
-  if (!await executeAsyncRequestAfterConfirm('删除提示', '是否确定删除应用信息？',
-    asyncDeleteApp, id, successHandle, failHandle)) return
-  await search()
-  await userStore.fillApps()
+  const success = await asyncExecuteAfterConfirming(asyncRemoveApp, id)
+  if (success === undefined) return
+  if (!success) {
+    showMessage('删除应用失败', ERROR)
+    return
+  }
+  showMessage('删除应用成功', SUCCESS)
+  await refresh()
 }
 
-const member = row => {
-  if (!checkUserLogin()) return
+const updateAppUser = row => {
   app.id = row.id
   app.name = row.name
   openAppUserDialog.value = true
 }
 
-const edit = id => {
-  if (!checkUserLogin()) return
+const update = id => {
   appId.value = id
   openEditDialog.value = true
 }
@@ -76,21 +78,7 @@ watchEffect(() => search())
 
 <template>
   <el-space direction="vertical" :size="20" :fill="true" class="w100">
-    <el-page-header @back="router.back()">
-      <template #breadcrumb>
-        <el-breadcrumb :separator-icon="ArrowRight">
-          <el-breadcrumb-item :to="{ name: 'Home' }">首页</el-breadcrumb-item>
-          <el-breadcrumb-item :to="{ name: 'AppList' }">爬虫应用</el-breadcrumb-item>
-        </el-breadcrumb>
-      </template>
-      <template #content>
-        <span class="text-large font-600">应用列表</span>
-      </template>
-      <template #extra>
-        <el-button :disabled="!userStore.injected" @click="openAddDialog = true">新增应用</el-button>
-      </template>
-    </el-page-header>
-    <el-form :model="query" ref="formRef" label-width="80px" class="mw400px">
+    <el-form :model="query" label-width="80px" class="mw400px">
       <el-form-item v-if="userStore.injected" label="应用范围" prop="app_ids">
         <el-radio-group v-model="query.app_ids">
           <el-radio-button value="all">全部应用</el-radio-button>
@@ -101,54 +89,52 @@ watchEffect(() => search())
         <el-input v-model="query.name" clearable placeholder="根据应用名搜索" />
       </el-form-item>
     </el-form>
-    <el-table ref="tableRef" :data="apps" max-height="850" table-layout="auto"
-              stripe @sort-change="event => fillSearchQuerySort(event, query)">
+    <el-row align="middle">
+      <el-col :span="12">
+        <span class="text-xl font-bold ml-2">应用列表</span>
+      </el-col>
+      <el-col :span="12">
+        <el-row justify="end">
+          <el-button type="primary" @click="openAddDialog = true" :disabled="!userStore.injected">新增应用</el-button>
+        </el-row>
+      </el-col>
+    </el-row>
+    <el-table ref="appTable" :data="apps" max-height="850" table-layout="auto"
+              stripe @sort-change="event => changeSearchQuerySort(event.field, event.order, query)">
       <template #empty>没有应用数据</template>
       <el-table-column prop="name" label="应用名" show-overflow-tooltip>
-        <template #default="scope">
-          {{ scope.row.name }}
-        </template>
+        <template #default="scope">{{ scope.row.name }}</template>
       </el-table-column>
       <el-table-column prop="creator" label="创建人" width="100" show-overflow-tooltip>
-        <template #default="scope">
-          {{ scope.row.creator }}
-        </template>
-      </el-table-column>
-      <el-table-column prop="modifier" label="修改人" width="100" show-overflow-tooltip>
-        <template #default="scope">
-          {{ scope.row.modifier }}
-        </template>
+        <template #default="scope">{{ scope.row.creator }}</template>
       </el-table-column>
       <el-table-column label="创建时间" prop="create_time" sortable="custom" show-overflow-tooltip>
         <template #default="scope">
           <el-icon><timer /></el-icon>
-          {{ format(new Date(scope.row['create_time']), 'yyyy-MM-dd HH:mm:ss') }}
+          {{ formatDate(scope.row['create_time']) }}
         </template>
       </el-table-column>
       <el-table-column label="应用说明" prop="comment" show-overflow-tooltip>
-        <template #default="scope">
-          {{ scope.row.comment }}
-        </template>
+        <template #default="scope">{{ scope.row.comment }}</template>
       </el-table-column>
-      <el-table-column width="180" fixed="right">
-        <template #header>
-          应用操作
-        </template>
+      <el-table-column width="230">
+        <template #header>操作</template>
         <template #default="scope">
-          <el-link @click="member(scope.row)">应用成员</el-link>&nbsp;
-          <el-link @click="edit(scope.row.id)">编辑</el-link>&nbsp;
-          <el-link @click="remove(scope.row.id)">删除</el-link>
+          <el-button type="primary" @click="update(scope.row.id)" :disabled="!userStore.injected">编辑</el-button>
+          <el-button type="primary" @click="updateAppUser(scope.row)">成员</el-button>
+          <el-button type="danger" @click="remove(scope.row.id)" :disabled="!userStore.injected">删除</el-button>
         </template>
       </el-table-column>
     </el-table>
     <el-row justify="center" align="middle">
       <el-pagination background layout="prev, pager, next" :total="total"
-                     v-model:page-size="query.size" v-model:current-page="query.current" />
+                     v-model:page-size="query.size"
+                     v-model:current-page="query.current" />
     </el-row>
   </el-space>
-  <add-app v-model="openAddDialog" @close="search(); userStore.fillApps()"></add-app>
-  <edit-app v-model="openEditDialog" :id="appId" @close="search()"></edit-app>
-  <app-user v-model="openAppUserDialog" v-bind="app" @close="search(); userStore.fillApps()"></app-user>
+  <add-app v-model="openAddDialog" @close="refresh" />
+  <edit-app v-model="openEditDialog" :id="appId" @close="search" />
+  <app-user v-model="openAppUserDialog" v-bind="app" @close="refresh" />
 </template>
 
 <style scoped>

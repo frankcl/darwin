@@ -2,62 +2,51 @@
 import { reactive, ref, useTemplateRef, watchEffect } from 'vue'
 import { ArrowRight } from '@element-plus/icons-vue'
 import {
-  ElBreadcrumb,
-  ElBreadcrumbItem,
-  ElButton, ElCol,
-  ElDialog, ElDivider,
-  ElForm,
-  ElFormItem,
-  ElInput, ElInputNumber,
-  ElNotification, ElOption, ElPageHeader,
-  ElRadio,
-  ElRadioGroup,
-  ElRow, ElSelect,
-  ElSpace, ElSwitch, ElText,
+  ElBreadcrumb, ElBreadcrumbItem, ElButton, ElCol, ElDialog, ElDivider,
+  ElForm, ElFormItem, ElInput, ElInputNumber, ElOption, ElPageHeader,
+  ElRadio, ElRadioGroup, ElRow, ElSelect, ElSpace, ElSwitch, ElText
 } from 'element-plus'
-import { asyncAddSeed } from '@/common/service'
-import { executeAsyncRequest } from '@/common/assortment'
-import { seedFormRules, transferFieldArray } from '@/views/seed/common'
+import { useUserStore } from '@/store'
 import DynamicMap from '@/components/data/DynamicMap'
+import { ERROR, showMessage, SUCCESS } from '@/common/Feedback'
+import { asyncAddSeed } from '@/common/AsyncRequest'
+import { fillSeedMapField, seedFormRules } from '@/views/seed/common'
 
 const open = defineModel()
 const emits = defineEmits(['close'])
 const props = defineProps(['planId'])
-const formRef = useTemplateRef('formRef')
+const userStore = useUserStore()
+const seedFormRef = useTemplateRef('seedForm')
 const more = ref(false)
-const seedForm = reactive({
-  url: null,
+const seed = reactive({
   concurrent_level: 0,
-  priority: null,
-  fetch_method: null,
+  priority: 1,
+  fetch_method: 0,
   category: 2,
-  plan_id: null,
-  timeout: 0,
-  scope: null,
-  headers: null,
-  user_defined_map: null
+  timeout: 0
 })
-const headerOptions = reactive([])
-const userOptions = reactive([])
-const formRules = { ... seedFormRules }
+const headers = reactive([])
+const customOptions = reactive([])
 
-const submit = async formEl => {
-  const successHandle = () => ElNotification.success('新增种子成功')
-  const failHandle = () => ElNotification.error('新增种子失败')
-  transferFieldArray(headerOptions, seedForm, 'headers')
-  transferFieldArray(userOptions, seedForm, 'user_defined_map')
-  if (!await executeAsyncRequest(asyncAddSeed, seedForm,
-    successHandle, failHandle, undefined, formEl)) return
+const add = async formElement => {
+  if (!await formElement.validate(v => v)) return
+  fillSeedMapField(seed, 'headers', headers)
+  fillSeedMapField(seed, 'user_defined_map', customOptions)
+  if (!await asyncAddSeed(seed)) {
+    showMessage('新增种子失败', ERROR)
+    return
+  }
+  showMessage('新增种子成功', SUCCESS)
   open.value = false
 }
 
-const resetForm = formEl => {
-  formEl.resetFields()
-  headerOptions.splice(0, headerOptions.length)
-  userOptions.splice(0, userOptions.length)
+const resetSeedForm = formElement => {
+  formElement.resetFields()
+  headers.splice(0, headers.length)
+  customOptions.splice(0, customOptions.length)
 }
 
-watchEffect(() => seedForm.plan_id = props.planId)
+watchEffect(() => seed.plan_id = props.planId)
 </script>
 
 <template>
@@ -68,19 +57,19 @@ watchEffect(() => seedForm.plan_id = props.planId)
           <el-breadcrumb :separator-icon="ArrowRight">
             <el-breadcrumb-item :to="{ name: 'Home' }">首页</el-breadcrumb-item>
             <el-breadcrumb-item :to="{ name: 'PlanList' }">抓取计划</el-breadcrumb-item>
-            <el-breadcrumb-item :to="{ name: 'PlanPanel', query: { id: props.planId } }">完善计划</el-breadcrumb-item>
+            <el-breadcrumb-item :to="{ name: 'PlanTabs', query: { id: props.planId } }">完善计划</el-breadcrumb-item>
           </el-breadcrumb>
         </template>
         <template #content>
-          <span class="text-large font-600 mr-3">新增种子</span>
+          <span class="font-600 mr-3">新增种子</span>
         </template>
       </el-page-header>
-      <el-form ref="formRef" :model="seedForm" :rules="formRules" label-width="80px" label-position="right">
-        <el-form-item label="URL" prop="url">
-          <el-input v-model.trim="seedForm.url" clearable></el-input>
+      <el-form ref="seedForm" :model="seed" :rules="seedFormRules" label-width="80px" label-position="right">
+        <el-form-item label="种子URL" prop="url">
+          <el-input v-model.trim="seed.url" clearable />
         </el-form-item>
-        <el-form-item label="类型" prop="category" required>
-          <el-radio-group v-model="seedForm.category">
+        <el-form-item label="类型" prop="category">
+          <el-radio-group v-model="seed.category">
             <el-radio :value="1">内容页</el-radio>
             <el-radio :value="2">列表页</el-radio>
             <el-radio :value="3">媒体资源</el-radio>
@@ -88,13 +77,13 @@ watchEffect(() => seedForm.plan_id = props.planId)
           </el-radio-group>
         </el-form-item>
         <el-form-item label="更多选项" prop="more">
-          <el-switch v-model="more"></el-switch>
+          <el-switch v-model="more" />
         </el-form-item>
         <el-divider v-if="more" content-position="left">高级选项</el-divider>
         <el-row v-if="more" :gutter="10">
           <el-col :span="12">
             <el-form-item label="并发级别" prop="concurrent_level">
-              <el-radio-group v-model="seedForm.concurrent_level">
+              <el-radio-group v-model="seed.concurrent_level">
                 <el-radio :value="0">DOMAIN</el-radio>
                 <el-radio :value="1">HOST</el-radio>
               </el-radio-group>
@@ -102,29 +91,26 @@ watchEffect(() => seedForm.plan_id = props.planId)
           </el-col>
           <el-col :span="12">
             <el-form-item label="抓取超时" prop="timeout">
-              <el-input-number v-model="seedForm.timeout" :min="0" :step="100" style="width: 180px" />
-              &nbsp;&nbsp;&nbsp;&nbsp;
-              <el-text size="small">单位：毫秒</el-text>
+              <el-input-number v-model="seed.timeout" :min="0" :step="100" class="w180px" />
+              <el-text class="ml-3" size="small">单位：毫秒</el-text>
             </el-form-item>
           </el-col>
         </el-row>
         <el-row v-if="more" :gutter="10">
           <el-col :span="12">
             <el-form-item label="抓取方式" prop="fetch_method">
-              <el-select v-model="seedForm.fetch_method" clearable placeholder="请选择"
-                         @clear="seedForm.fetch_method = null" style="width: 180px">
-                <el-option key="1" label="本地IP" :value="0"></el-option>
-                <el-option key="2" label="代理IP" :value="1"></el-option>
+              <el-select v-model="seed.fetch_method" placeholder="请选择" class="w180px">
+                <el-option key="1" label="本地IP" :value="0" />
+                <el-option key="2" label="代理IP" :value="1" />
               </el-select>
             </el-form-item>
           </el-col>
           <el-col :span="12">
             <el-form-item label="优先级" prop="priority">
-              <el-select v-model="seedForm.priority" clearable placeholder="请选择"
-                         @clear="seedForm.priority = null" style="width: 180px">
-                <el-option key="1" label="高优先级" :value="0"></el-option>
-                <el-option key="2" label="中优先级" :value="1"></el-option>
-                <el-option key="3" label="低优先级" :value="2"></el-option>
+              <el-select v-model="seed.priority" placeholder="请选择" class="w180px">
+                <el-option key="1" label="高优先级" :value="0" />
+                <el-option key="2" label="中优先级" :value="1" />
+                <el-option key="3" label="低优先级" :value="2" />
               </el-select>
             </el-form-item>
           </el-col>
@@ -132,26 +118,25 @@ watchEffect(() => seedForm.plan_id = props.planId)
         <el-row v-if="more" :gutter="10">
           <el-col>
             <el-form-item label="抽链范围" prop="scope">
-              <el-select v-model="seedForm.scope" clearable placeholder="请选择"
-                         @clear="seedForm.scope = null" style="width: 180px">
-                <el-option key="1" label="所有" :value="1"></el-option>
-                <el-option key="2" label="DOMAIN" :value="2"></el-option>
-                <el-option key="3" label="HOST" :value="3"></el-option>
+              <el-select v-model="seed.scope" clearable placeholder="请选择"
+                         @clear="seed.scope = null" class="w180px">
+                <el-option key="1" label="所有" :value="1" />
+                <el-option key="2" label="DOMAIN" :value="2" />
+                <el-option key="3" label="HOST" :value="3" />
               </el-select>
-              &nbsp;&nbsp;&nbsp;&nbsp;
-              <el-text type="danger" size="small">注意：选择抽链范围后规则脚本失效</el-text>
+              <el-text class="ml-3" type="danger" size="small">注意：选择抽链范围后规则脚本失效</el-text>
             </el-form-item>
           </el-col>
         </el-row>
         <el-row v-if="more">
-          <dynamic-map v-model="headerOptions" title="HTTP请求头" field-name="header"></dynamic-map>
+          <dynamic-map v-model="headers" title="HTTP请求头" label="header" />
         </el-row>
         <el-row v-if="more">
-          <dynamic-map v-model="userOptions" title="自定义数据" field-name="field"></dynamic-map>
+          <dynamic-map v-model="customOptions" title="自定义数据" label="数据项" />
         </el-row>
         <el-form-item>
-          <el-button @click="submit(formRef)">新增</el-button>
-          <el-button @click="resetForm(formRef)">重置</el-button>
+          <el-button type="primary" @click="add(seedFormRef)" :disabled="!userStore.injected">新增</el-button>
+          <el-button type="info" @click="resetSeedForm(seedFormRef)">重置</el-button>
         </el-form-item>
       </el-form>
     </el-space>

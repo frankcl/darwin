@@ -73,8 +73,8 @@ public class RuleController {
      */
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @Path("getPlanRules")
-    @GetMapping("getPlanRules")
+    @Path("planRules")
+    @GetMapping("planRules")
     @EnableWebLogAspect
     public List<Rule> getPlanRules(@QueryParam("plan_id") String planId) {
         if (StringUtils.isEmpty(planId)) throw new BadRequestException("计划ID为空");
@@ -173,8 +173,8 @@ public class RuleController {
      */
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @Path("getHistory")
-    @GetMapping("getHistory")
+    @Path("history/get")
+    @GetMapping("history/get")
     @EnableWebLogAspect
     public RuleHistory getHistory(@QueryParam("id") Integer id) {
         if (id == null) throw new BadRequestException("规则历史ID缺失");
@@ -189,8 +189,8 @@ public class RuleController {
      */
     @DELETE
     @Produces(MediaType.APPLICATION_JSON)
-    @Path("deleteHistory")
-    @DeleteMapping("deleteHistory")
+    @Path("history/delete")
+    @DeleteMapping("history/delete")
     @EnableWebLogAspect
     public Boolean deleteHistory(@QueryParam("id") Integer id) {
         if (id == null) throw new BadRequestException("规则历史ID为空");
@@ -203,7 +203,7 @@ public class RuleController {
     }
 
     /**
-     * 获取规则历史
+     * 搜索规则历史
      *
      * @param ruleId 规则ID
      * @param current 页码，从1开始
@@ -212,10 +212,10 @@ public class RuleController {
      */
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @Path("getHistoryList")
-    @GetMapping("getHistoryList")
+    @Path("history/search")
+    @GetMapping("history/search")
     @EnableWebLogAspect
-    public Pager<RuleHistory> getHistoryList(@QueryParam("rule_id") Integer ruleId,
+    public Pager<RuleHistory> searchHistory(@QueryParam("rule_id") Integer ruleId,
                                             @QueryParam("current") Integer current,
                                             @QueryParam("size") Integer size) {
         if (ruleId == null) throw new BadRequestException("规则ID为空");

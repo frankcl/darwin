@@ -35,5 +35,5 @@ server:
 app:
   web:
     name: darwin-web
-    connectionExpiredTimeMs: 300000
     ignore-check-permission: false
+    connection-expired-time-ms: 300000

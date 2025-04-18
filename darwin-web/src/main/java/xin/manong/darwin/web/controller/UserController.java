@@ -4,15 +4,12 @@ import jakarta.annotation.Resource;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
+import xin.manong.darwin.service.iface.OSSService;
 import xin.manong.hylian.client.component.UserServiceSupport;
 import xin.manong.hylian.client.core.ContextManager;
 import xin.manong.hylian.model.User;
-import xin.manong.weapon.aliyun.oss.OSSClient;
-import xin.manong.weapon.aliyun.oss.OSSMeta;
 import xin.manong.weapon.spring.boot.aspect.EnableWebLogAspect;
 
 import java.util.List;
@@ -29,10 +26,8 @@ import java.util.List;
 @RequestMapping("/api/user")
 public class UserController {
 
-    private static final Logger logger = LoggerFactory.getLogger(UserController.class);
-
     @Resource
-    protected OSSClient ossClient;
+    protected OSSService ossService;
     @Resource
     protected UserServiceSupport userServiceSupport;
 
@@ -43,18 +38,13 @@ public class UserController {
      */
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @Path("getCurrentUser")
-    @GetMapping("getCurrentUser")
+    @Path("currentUser")
+    @GetMapping("currentUser")
     @EnableWebLogAspect
-    public User getCurrentUser() {
+    public User currentUser() {
         User user = ContextManager.getUser();
         if (user != null && StringUtils.isNotEmpty(user.avatar)) {
-            OSSMeta ossMeta = OSSClient.parseURL(user.avatar);
-            if (ossMeta == null) {
-                logger.warn("avatar[{}] is invalid", user.avatar);
-                return user;
-            }
-            user.avatar = ossClient.sign(ossMeta.bucket, ossMeta.key);
+            user.avatar = ossService.signURL(user.avatar);
         }
         return user;
     }
@@ -66,10 +56,10 @@ public class UserController {
      */
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @Path("getAllUsers")
-    @GetMapping("getAllUsers")
+    @Path("allUsers")
+    @GetMapping("allUsers")
     @EnableWebLogAspect
-    public List<User> getAllUsers() {
+    public List<User> allUsers() {
         return userServiceSupport.getAllUsers();
     }
 

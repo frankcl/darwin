@@ -12,6 +12,12 @@ spring:
 
 weapon:
   common:
+    etcd:
+      client:
+        username: root
+        password: xmjjyhy28p
+        endpoints:
+          - http://127.0.0.1:2379
     kafka:
       auth:
         security-protocol: SASL_PLAINTEXT
@@ -21,8 +27,19 @@ weapon:
         servers: localhost:9092
         request-timeout-ms: 3000
         retry-cnt: 2
+  aliyun:
+    oss:
+      client:
+        endpoint: https://oss-cn-hangzhou.aliyuncs.com
+        socket-timeout-ms: 3000
+        connection-timeout-ms: 3000
+        retry-cnt: 2
 
 app:
   service:
-    topicJob: TEST_DARWIN_DISPATCH_JOB
-    topicURL: TEST_DARWIN_DISPATCH_RECORD
+    mq:
+      topicJob: TEST_DARWIN_DISPATCH_JOB
+      topicURL: TEST_DARWIN_DISPATCH_RECORD
+    oss:
+      region: cn-hangzhou
+      bucket: darwin-spider

@@ -77,6 +77,12 @@ public class URLSearchRequest extends SearchRequest {
     @QueryParam("plan_id")
     public String planId;
     /**
+     * 应用ID
+     */
+    @JsonProperty("app_id")
+    @QueryParam("app_id")
+    public Integer appId;
+    /**
      * 抓取时间范围
      */
     @JsonProperty("fetch_time")

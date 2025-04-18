@@ -55,7 +55,7 @@ public class JobServiceImpl extends JobService {
         if (StringUtils.isEmpty(jobId)) throw new BadRequestException("任务ID为空");
         Map<String, Object> keyMap = new HashMap<>();
         keyMap.put(KEY_JOB_ID, jobId);
-        KVRecord kvRecord = otsClient.get(serviceConfig.getJobTable(), keyMap);
+        KVRecord kvRecord = otsClient.get(serviceConfig.ots.jobTable, keyMap);
         if (kvRecord == null) return null;
         return OTSConverter.convertKVRecordToJavaObject(kvRecord, Job.class);
     }
@@ -67,24 +67,24 @@ public class JobServiceImpl extends JobService {
         queryList.add(SearchQueryBuilder.buildTermQuery(KEY_NAME, job.name));
         queryList.add(SearchQueryBuilder.buildTermQuery(KEY_PLAN_ID, job.planId));
         boolQuery.setFilterQueries(queryList);
-        OTSSearchRequest request = new OTSSearchRequest.Builder().indexName(serviceConfig.jobTable).
-                tableName(serviceConfig.jobIndexName).query(boolQuery).build();
+        OTSSearchRequest request = new OTSSearchRequest.Builder().indexName(serviceConfig.ots.jobTable).
+                tableName(serviceConfig.ots.jobIndexName).query(boolQuery).build();
         OTSSearchResponse response = otsClient.search(request);
         if (!response.status) throw new InternalServerErrorException("搜索OTS异常");
         if (response.records.getRecordCount() > 0) throw new IllegalStateException("同名任务存在");
         KVRecord kvRecord = OTSConverter.convertJavaObjectToKVRecord(job);
-        return otsClient.put(serviceConfig.jobTable, kvRecord, null) == OTSStatus.SUCCESS;
+        return otsClient.put(serviceConfig.ots.jobTable, kvRecord, null) == OTSStatus.SUCCESS;
     }
 
     @Override
     public boolean update(Job job) {
         Map<String, Object> keyMap = new HashMap<>();
         keyMap.put(KEY_JOB_ID, job.jobId);
-        KVRecord kvRecord = otsClient.get(serviceConfig.jobTable, keyMap);
+        KVRecord kvRecord = otsClient.get(serviceConfig.ots.jobTable, keyMap);
         if (kvRecord == null) throw new NotFoundException("任务不存在");
         job.updateTime = System.currentTimeMillis();
         kvRecord = OTSConverter.convertJavaObjectToKVRecord(job);
-        OTSStatus status = otsClient.update(serviceConfig.jobTable, kvRecord, null);
+        OTSStatus status = otsClient.update(serviceConfig.ots.jobTable, kvRecord, null);
         if (status == OTSStatus.SUCCESS) jobCache.invalidate(job.jobId);
         return status == OTSStatus.SUCCESS;
     }
@@ -93,13 +93,13 @@ public class JobServiceImpl extends JobService {
     public boolean delete(String jobId) {
         Map<String, Object> keyMap = new HashMap<>();
         keyMap.put(KEY_JOB_ID, jobId);
-        KVRecord kvRecord = otsClient.get(serviceConfig.jobTable, keyMap);
+        KVRecord kvRecord = otsClient.get(serviceConfig.ots.jobTable, keyMap);
         if (kvRecord == null) throw new NotFoundException("任务不存在");
         URLSearchRequest searchRequest = new URLSearchRequest();
         searchRequest.jobId = jobId;
         Pager<URLRecord> pager = urlService.search(searchRequest);
         if (pager.total > 0) throw new IllegalStateException("任务URL记录不为空");
-        OTSStatus status = otsClient.delete(serviceConfig.jobTable, keyMap, null);
+        OTSStatus status = otsClient.delete(serviceConfig.ots.jobTable, keyMap, null);
         if (status == OTSStatus.SUCCESS) jobCache.invalidate(jobId);
         return status == OTSStatus.SUCCESS;
     }
@@ -117,7 +117,7 @@ public class JobServiceImpl extends JobService {
         if (searchRequest.createTimeRange != null) queryList.add(SearchQueryBuilder.buildRangeQuery(KEY_CREATE_TIME, searchRequest.createTimeRange));
         if (!queryList.isEmpty()) boolQuery.setFilterQueries(queryList);
         OTSSearchRequest request = new OTSSearchRequest.Builder().offset(offset).limit(searchRequest.size).
-                tableName(serviceConfig.jobTable).indexName(serviceConfig.jobIndexName).query(boolQuery).build();
+                tableName(serviceConfig.ots.jobTable).indexName(serviceConfig.ots.jobIndexName).query(boolQuery).build();
         OTSSearchResponse response = otsClient.search(request);
         if (!response.status) throw new InternalServerErrorException("搜索OTS失败");
         return Converter.convert(response, Job.class, searchRequest.current, searchRequest.size);

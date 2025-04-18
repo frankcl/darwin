@@ -50,6 +50,8 @@ public class HTMLSpider extends Spider {
     @Resource
     protected ParseService parseService;
     @Resource
+    protected HttpClientFactory httpClientFactory;
+    @Resource
     protected MultiQueue multiQueue;
 
     public HTMLSpider() {
@@ -77,7 +79,7 @@ public class HTMLSpider extends Spider {
      * @throws Exception 异常
      */
     public void fetch(URLRecord record) throws Exception {
-        HTTPInput input = new HTTPInput(record, getHttpClient(record.fetchMethod), config);
+        HTTPInput input = new HTTPInput(record, httpClientFactory.getHttpClient(record), config);
         record.html = fetch(record, input, null);
     }
 

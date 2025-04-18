@@ -14,7 +14,7 @@ export const planFormRules = {
       validator: (rule, value, callback) => {
         if (!value || value === '') callback(new Error('请输入调度时间表达式'))
         else if (CronExpressionValidator.isValidCronExpression(value.trim())) callback()
-        else callback(new Error('非法的quartz crontab表达式'))
+        else callback(new Error('非法调度时间表达式'))
       }
     }
   ]

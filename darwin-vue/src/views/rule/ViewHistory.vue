@@ -1,9 +1,9 @@
 <script setup>
 import { ref, watchEffect } from 'vue'
 import { ElDescriptions, ElDescriptionsItem, ElDialog } from 'element-plus'
-import { asyncGetHistory } from '@/common/service'
+import { asyncGetHistory } from '@/common/AsyncRequest'
 import { langMap } from './common'
-import CodeEditor from "@/components/data/CodeEditor.vue";
+import CodeEditor from '@/components/data/CodeEditor'
 
 const props = defineProps(['id', 'name'])
 const open = defineModel()
@@ -28,5 +28,4 @@ watchEffect(async () => {
 </template>
 
 <style scoped>
-
 </style>

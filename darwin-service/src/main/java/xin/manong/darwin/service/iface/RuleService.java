@@ -12,6 +12,7 @@ import xin.manong.darwin.service.config.CacheConfig;
 import xin.manong.darwin.service.request.RuleSearchRequest;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -46,7 +47,7 @@ public abstract class RuleService {
      * @param notification 移除通知
      */
     private void onRemoval(RemovalNotification<Integer, Optional<Rule>> notification) {
-        assert notification.getValue() != null;
+        Objects.requireNonNull(notification.getValue());
         if (notification.getValue().isEmpty()) return;
         logger.info("rule[{}] is removed from cache", notification.getValue().get().id);
     }

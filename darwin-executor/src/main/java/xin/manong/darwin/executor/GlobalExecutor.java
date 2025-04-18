@@ -55,23 +55,21 @@ public class GlobalExecutor {
 
     /**
      * 启动执行器
-     *
-     * @return 成功返回true，否则返回false
      */
-    public boolean start() {
+    public void start() {
         if (running) {
             logger.warn("global executor[{}] has been started", runner.getName());
-            return false;
+            throw new IllegalStateException("执行器处于运行状态");
         }
         etcdLock = etcdClient.lock(lockKey, LEASE_TTL, ACQUIRE_LOCK_TIMEOUT, observer);
         if (etcdLock == null) {
             logger.warn("apply lock failed for key[{}]", lockKey);
-            return false;
+            throw new IllegalStateException("获取锁失败");
         }
         boolean success = runner.start();
         if (!success) {
             etcdClient.unlock(etcdLock);
-            return false;
+            throw new IllegalStateException("启动失败");
         }
         boolean add = false;
         Executor executor = executorService.get(runner.getName());
@@ -86,10 +84,9 @@ public class GlobalExecutor {
         if (!status) {
             logger.error("add/update status failed for global executor[{}]", runner.getName());
             runner.stop();
-            return false;
+            throw new IllegalStateException("更新执行器状态失败");
         }
         running = true;
-        return true;
     }
 
     /**
@@ -99,15 +96,16 @@ public class GlobalExecutor {
         try {
             if (!running) {
                 logger.warn("global executor[{}] is not running", runner.getName());
-                return;
+                throw new IllegalStateException("执行器处于停止状态");
             }
             runner.stop();
             running = false;
             Executor executor = new Executor();
             executor.name = runner.getName();
             executor.status = Constants.EXECUTOR_STATUS_STOPPED;
-            if (!executorService.update(executor)) {
+            if (!executorService.updateByName(executor.name, executor)) {
                 logger.error("update stopped status failed for global executor[{}]", runner.getName());
+                throw new IllegalStateException("更新执行器状态失败");
             }
         } finally {
             if (etcdLock != null) etcdClient.unlock(etcdLock);

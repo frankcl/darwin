@@ -1,6 +1,5 @@
 import { computed, ref } from 'vue'
 import { defineStore } from 'pinia'
-import { asyncGetOwnApps } from '@/common/service'
 
 export const useUserStore = defineStore(
   'user',
@@ -8,51 +7,41 @@ export const useUserStore = defineStore(
     const id = ref()
     const username = ref()
     const name = ref()
-    const openid = ref()
     const avatar = ref()
-    const tenant = ref()
     const superAdmin = ref()
-    const roles = ref()
     const apps = ref()
 
-    const injected = computed(() => username.value !== undefined)
+    const injected = computed(() => id.value !== undefined)
 
-    const inject = async user => {
+    const inject = user => {
       if (!user) return
       id.value = user.id
       username.value = user.username
       name.value = user.name
       avatar.value = user.avatar
-      openid.value = user.wx_openid
       superAdmin.value = user.super_admin
-      tenant.value = user.tenant
-      roles.value = user.roles
     }
 
-    const fillApps = async () => {
+    const injectApps = ownApps => {
       if (!injected.value) return
-      const ownApps = await asyncGetOwnApps()
-      if (ownApps) apps.value = JSON.stringify(ownApps)
+      apps.value = JSON.stringify(ownApps)
     }
 
-    const clear = () => {
+    const $reset = () => {
       id.value = undefined
       username.value = undefined
       name.value = undefined
       avatar.value = undefined
-      openid.value = undefined
       superAdmin.value = undefined
-      tenant.value = undefined
-      roles.value = undefined
       apps.value = undefined
     }
 
-    return { id, username, name, openid, avatar, superAdmin, tenant, roles, apps, injected, inject, fillApps, clear }
+    return { id, username, name, avatar, superAdmin, apps, injected, inject, injectApps, $reset }
   },
   {
     persist: {
       storage: sessionStorage,
-      omit: ['inject', 'fillApps', 'clear', 'injected']
+      omit: ['inject', 'injectApps', '$reset', 'injected']
     }
   }
 )

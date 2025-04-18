@@ -1,7 +1,6 @@
 package xin.manong.darwin.spider.output;
 
-import xin.manong.weapon.aliyun.oss.OSSClient;
-import xin.manong.weapon.aliyun.oss.OSSMeta;
+import xin.manong.darwin.service.iface.OSSService;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -14,24 +13,18 @@ import java.io.InputStream;
  */
 public class OSSOutput extends Output {
 
-    private final OSSMeta ossMeta;
-    private final OSSClient ossClient;
+    private final String key;
+    private final OSSService ossService;
 
-    public OSSOutput(OSSMeta ossMeta, OSSClient ossClient) {
-        this.ossMeta = ossMeta;
-        this.ossClient = ossClient;
-    }
-
-    public OSSOutput(String ossURL, OSSClient ossClient) {
-        this.ossMeta = OSSClient.parseURL(ossURL);
-        this.ossClient = ossClient;
-        if (ossMeta == null) throw new IllegalArgumentException("invalid output oss url");
+    public OSSOutput(String key, OSSService ossService) {
+        this.key = key;
+        this.ossService = ossService;
     }
 
     @Override
     public void sink(InputStream inputStream) throws IOException {
-        if (!ossClient.putObject(ossMeta.bucket, ossMeta.key, inputStream)) {
-            throw new IOException(String.format("put oss object[%s:%s] failed", ossMeta.bucket, ossMeta.key));
+        if (!ossService.put(key, inputStream)) {
+            throw new IOException(String.format("put oss object failed for key: %s", key));
         }
     }
 }

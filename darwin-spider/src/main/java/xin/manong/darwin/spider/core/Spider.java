@@ -11,25 +11,22 @@ import xin.manong.darwin.common.model.Pager;
 import xin.manong.darwin.common.model.RangeValue;
 import xin.manong.darwin.common.model.URLRecord;
 import xin.manong.darwin.service.iface.JobService;
+import xin.manong.darwin.service.iface.OSSService;
 import xin.manong.darwin.service.iface.URLService;
 import xin.manong.darwin.service.notify.JobCompleteNotifier;
 import xin.manong.darwin.service.notify.URLCompleteNotifier;
 import xin.manong.darwin.service.request.URLSearchRequest;
+import xin.manong.darwin.service.util.HTMLUtil;
 import xin.manong.darwin.spider.input.HTTPInput;
 import xin.manong.darwin.spider.input.Input;
 import xin.manong.darwin.spider.input.OSSInput;
 import xin.manong.darwin.spider.output.OSSOutput;
-import xin.manong.weapon.aliyun.oss.OSSClient;
-import xin.manong.weapon.aliyun.oss.OSSMeta;
 import xin.manong.weapon.base.common.Context;
-import xin.manong.weapon.base.http.*;
 import xin.manong.weapon.base.log.JSONLogger;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * 爬虫抽象实现
@@ -45,13 +42,8 @@ public abstract class Spider {
     protected static final int HTTP_CODE_NOT_ACCEPTABLE = 406;
 
     protected static final String CHARSET_UTF8 = "UTF-8";
-    protected static final String MIME_TYPE_TEXT = "text";
     protected static final String MIME_TYPE_VIDEO = "video";
-    protected static final String MIME_TYPE_APPLICATION = "application";
-    protected static final String SUB_MIME_TYPE_PDF = "pdf";
     protected static final String SUB_MIME_TYPE_MP4 = "mp4";
-    protected static final String SUB_MIME_TYPE_JSON = "json";
-    protected static final String SUB_MIME_TYPE_HTML = "html";
 
     protected String category;
     @Resource
@@ -59,26 +51,20 @@ public abstract class Spider {
     @Resource(name = "urlAspectLogger")
     protected JSONLogger aspectLogger;
     @Resource
-    protected OSSClient ossClient;
+    protected OSSService ossService;
     @Resource
     protected URLService urlService;
     @Resource
     protected JobService jobService;
     @Resource
+    protected HttpClientFactory httpClientFactory;
+    @Resource
     protected URLCompleteNotifier urlCompleteNotifier;
     @Resource
     protected JobCompleteNotifier jobCompleteNotifier;
-    @Resource(name = "spiderLongProxySelector")
-    protected SpiderProxySelector spiderLongProxySelector;
-    @Resource(name = "spiderShortProxySelector")
-    protected SpiderProxySelector spiderShortProxySelector;
-    private final HttpProxyAuthenticator authenticator;
-    private final Map<Integer, HttpClient> httpClientMap;
 
     public Spider(String category) {
         this.category = category;
-        this.authenticator = new HttpProxyAuthenticator();
-        this.httpClientMap = new ConcurrentHashMap<>();
     }
 
     /**
@@ -97,9 +83,9 @@ public abstract class Spider {
             record.mimeType = prevRecord.mimeType;
             record.subMimeType = prevRecord.subMimeType;
             record.charset = StandardCharsets.UTF_8;
-            return new OSSInput(prevRecord.fetchContentURL, ossClient);
+            return new OSSInput(prevRecord.fetchContentURL, ossService);
         }
-        return new HTTPInput(record, getHttpClient(record.fetchMethod), config);
+        return new HTTPInput(record, httpClientFactory.getHttpClient(record), config);
     }
 
     /**
@@ -115,10 +101,10 @@ public abstract class Spider {
         try {
             try (input) {
                 input.open();
-                OSSMeta ossMeta = buildOSSMeta(record);
-                OSSOutput output = new OSSOutput(ossMeta, ossClient);
+                String ossKey = buildOSSKey(record);
+                OSSOutput output = new OSSOutput(buildOSSKey(record), ossService);
                 input.transport(output);
-                record.fetchContentURL = OSSClient.buildURL(ossMeta);
+                record.fetchContentURL = ossService.buildURL(ossKey);
             }
         } finally {
             context.put(Constants.DARWIN_WRITE_TIME, System.currentTimeMillis() - startTime);
@@ -146,39 +132,6 @@ public abstract class Spider {
     }
 
     /**
-     * 根据抓取方式获取HTTPClient
-     * 1. 长效代理HttpClient
-     * 2. 短效代理HttpClient
-     * 3. 本地IP HttpClient
-     *
-     * @param fetchMethod 抓取方式
-     * @return HttpClient
-     */
-    protected HttpClient getHttpClient(Integer fetchMethod) {
-        int category = fetchMethod == null ? Constants.FETCH_METHOD_COMMON : fetchMethod;
-        if (httpClientMap.containsKey(category)) return httpClientMap.get(category);
-        synchronized (this) {
-            if (httpClientMap.containsKey(category)) return httpClientMap.get(category);
-            HttpClientConfig httpClientConfig = new HttpClientConfig();
-            httpClientConfig.connectTimeoutSeconds = config.connectTimeoutSeconds;
-            httpClientConfig.readTimeoutSeconds = config.readTimeoutSeconds;
-            httpClientConfig.keepAliveMinutes = config.keepAliveMinutes;
-            httpClientConfig.maxIdleConnections = config.maxIdleConnections;
-            httpClientConfig.retryCnt = config.retryCnt;
-            HttpClient httpClient;
-            if (category == Constants.FETCH_METHOD_LONG_PROXY) {
-                httpClient = new HttpClient(httpClientConfig, spiderLongProxySelector, authenticator);
-            } else if (category == Constants.FETCH_METHOD_SHORT_PROXY) {
-                httpClient = new HttpClient(httpClientConfig, spiderShortProxySelector, authenticator);
-            } else {
-                httpClient = new HttpClient(httpClientConfig);
-            }
-            httpClientMap.put(category, httpClient);
-            return httpClient;
-        }
-    }
-
-    /**
      * 搜索一定时间内抓取数据
      *
      * @param record URL数据
@@ -193,7 +146,7 @@ public abstract class Spider {
         searchRequest.statusList.add(Constants.URL_STATUS_SUCCESS);
         searchRequest.url = record.url;
         searchRequest.fetchTimeRange = new RangeValue<>();
-        searchRequest.fetchTimeRange.start = System.currentTimeMillis() - config.reuseExpiredTimeMs;
+        searchRequest.fetchTimeRange.start = System.currentTimeMillis() - config.maxRepeatFetchTimeIntervalMs;
         searchRequest.fetchTimeRange.includeLower = true;
         searchRequest.current = 1;
         searchRequest.size = 1;
@@ -209,38 +162,20 @@ public abstract class Spider {
      */
     private boolean checkFetchContentURL(URLRecord record) {
         if (record == null || StringUtils.isEmpty(record.fetchContentURL)) return false;
-        OSSMeta ossMeta = OSSClient.parseURL(record.fetchContentURL);
-        return ossMeta != null && ossClient.exist(ossMeta.bucket, ossMeta.key);
+        return ossService.existsByURL(record.fetchContentURL);
     }
 
     /**
-     * 构建OSS元数据
+     * 构建OSS key
      *
      * @param record URL数据
-     * @return OSS元数据
+     * @return OSS key
      */
-    private OSSMeta buildOSSMeta(URLRecord record) {
-        String suffix = generateSuffixUsingMimeType(record);
-        String key = String.format("%s/%s/%s", config.contentDirectory, category, record.key);
-        if (!StringUtils.isEmpty(suffix)) key = String.format("%s.%s", key, suffix);
-        return new OSSMeta(config.contentRegion, config.contentBucket, key);
-    }
-
-    /**
-     * 根据资源mimeType构建资源文件后缀
-     *
-     * @param record URL记录
-     * @return 成功返回资源文件后缀，否则返回null
-     */
-    private String generateSuffixUsingMimeType(URLRecord record) {
-        if (!Constants.SUPPORT_MIME_TYPES.contains(record.mimeType)) return null;
-        if (StringUtils.isEmpty(record.subMimeType)) return null;
-        if (record.mimeType.equalsIgnoreCase(MIME_TYPE_TEXT) &&
-                !record.subMimeType.equalsIgnoreCase(SUB_MIME_TYPE_HTML)) return null;
-        if (record.mimeType.equalsIgnoreCase(MIME_TYPE_APPLICATION) &&
-                !record.subMimeType.equalsIgnoreCase(SUB_MIME_TYPE_PDF) &&
-                !record.subMimeType.equalsIgnoreCase(SUB_MIME_TYPE_JSON)) return null;
-        return record.subMimeType.toLowerCase();
+    private String buildOSSKey(URLRecord record) {
+        String suffix = HTMLUtil.generateSuffixUsingMimeType(record);
+        String key = String.format("%s/%s/%s", config.ossDirectory, category, record.key);
+        if (StringUtils.isEmpty(suffix)) return key;
+        return String.format("%s.%s", key, suffix);
     }
 
     /**
@@ -257,6 +192,7 @@ public abstract class Spider {
             record.fetchTime = System.currentTimeMillis();
             handle(record, context);
             record.status = Constants.URL_STATUS_SUCCESS;
+            logger.info("fetch success for url: {}", record.url);
         } catch (Throwable t) {
             record.status = Constants.URL_STATUS_FETCH_FAIL;
             context.put(Constants.DARWIN_DEBUG_MESSAGE, "抓取数据异常");

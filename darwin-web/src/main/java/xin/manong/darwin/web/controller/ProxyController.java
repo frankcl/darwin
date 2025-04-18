@@ -3,16 +3,24 @@ package xin.manong.darwin.web.controller;
 import jakarta.annotation.Resource;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
+import okhttp3.Response;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import xin.manong.darwin.common.model.Pager;
 import xin.manong.darwin.common.model.Proxy;
 import xin.manong.darwin.service.iface.ProxyService;
 import xin.manong.darwin.service.request.ProxySearchRequest;
+import xin.manong.darwin.spider.proxy.SingleProxySelector;
 import xin.manong.darwin.web.component.PermissionSupport;
 import xin.manong.darwin.web.convert.Converter;
 import xin.manong.darwin.web.request.ProxyRequest;
 import xin.manong.darwin.web.request.ProxyUpdateRequest;
+import xin.manong.weapon.base.http.HttpClient;
+import xin.manong.weapon.base.http.HttpClientConfig;
+import xin.manong.weapon.base.http.HttpProxyAuthenticator;
+import xin.manong.weapon.base.http.HttpRequest;
 import xin.manong.weapon.spring.boot.aspect.EnableWebLogAspect;
 
 /**
@@ -27,10 +35,46 @@ import xin.manong.weapon.spring.boot.aspect.EnableWebLogAspect;
 @RequestMapping("/api/proxy")
 public class ProxyController {
 
+    private static final Logger logger = LoggerFactory.getLogger(ProxyController.class);
+
     @Resource
     protected ProxyService proxyService;
     @Resource
     protected PermissionSupport permissionSupport;
+    private final HttpProxyAuthenticator authenticator;
+
+    public ProxyController() {
+        authenticator = new HttpProxyAuthenticator();
+    }
+
+    /**
+     * 检测代理有效性
+     *
+     * @param id 代理ID
+     * @return 有效返回true，否则返回false
+     */
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("check")
+    @GetMapping("check")
+    @EnableWebLogAspect
+    public boolean check(@QueryParam("id") Integer id) {
+        if (id == null) throw new BadRequestException("代理ID缺失");
+        Proxy proxy = proxyService.get(id);
+        if (proxy == null) throw new NotFoundException("代理未找到");
+        String requestURL = "https://darwin.manong.xin/health/check";
+        SingleProxySelector proxySelector = new SingleProxySelector(proxy);
+        HttpClient httpClient = new HttpClient(new HttpClientConfig(), proxySelector, authenticator);
+        HttpRequest httpRequest = HttpRequest.buildGetRequest(requestURL, null);
+        try (Response httpResponse = httpClient.execute(httpRequest)) {
+            if (httpResponse == null || !httpResponse.isSuccessful()) {
+                logger.error("check proxy failed for {}, http code: {}",
+                        proxy, httpResponse == null ? -1 : httpResponse.code());
+                return false;
+            }
+        }
+        return true;
+    }
 
     /**
      * 根据ID获取代理

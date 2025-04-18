@@ -1,7 +1,7 @@
 <script setup>
 import { ref, watch } from 'vue'
 import { ElOption, ElSelect } from 'element-plus'
-import { asyncGetPlanRules } from '@/common/service.js'
+import { asyncGetPlanRules } from '@/common/AsyncRequest'
 
 const props = defineProps({
   planId: { required: true },

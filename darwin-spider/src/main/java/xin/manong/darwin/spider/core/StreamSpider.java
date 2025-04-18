@@ -2,7 +2,6 @@ package xin.manong.darwin.spider.core;
 
 import jakarta.annotation.Resource;
 import org.springframework.stereotype.Component;
-import xin.manong.darwin.common.Constants;
 import xin.manong.darwin.common.model.Proxy;
 import xin.manong.darwin.common.model.URLRecord;
 import xin.manong.darwin.service.iface.ProxyService;

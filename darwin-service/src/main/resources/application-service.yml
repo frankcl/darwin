@@ -15,9 +15,9 @@ spring:
 app:
   service:
     cache:
-      ruleCacheNum: 100
-      ruleExpiredMinutes: 5
-      jobCacheNum: 100
-      jobExpiredMinutes: 5
-      urlCacheNum: 500
-      urlExpiredMinutes: 60
+      rule-cache-num: 100
+      rule-expired-minutes: 5
+      job-cache-num: 100
+      job-expired-minutes: 5
+      url-cache-num: 500
+      url-expired-minutes: 60

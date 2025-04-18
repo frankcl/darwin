@@ -13,7 +13,7 @@ import { dracula } from '@uiw/codemirror-theme-dracula'
 
 const props = defineProps({
   code: { required: true },
-  lang: { default: 'groovy' },
+  lang: { type: String, default: 'groovy' },
   refresh: { type: Number },
   readOnly: { default: false }
 })
@@ -86,11 +86,12 @@ onUnmounted(() => destroyEditor())
 </script>
 
 <template>
-  <div ref="editorRef" class="w100 editor"></div>
+  <div ref="editorRef" class="code-editor"></div>
 </template>
 
 <style scoped>
-.editor {
+.code-editor {
+  width: 100%;
   max-width: 980px;
   max-height: 550px;
   height: 550px;

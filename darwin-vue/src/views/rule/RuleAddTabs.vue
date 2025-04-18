@@ -1,13 +1,13 @@
 <script setup>
 import { ref } from 'vue'
-import {ElDivider, ElTabPane, ElTabs} from 'element-plus'
+import { ElDivider, ElTabPane, ElTabs } from 'element-plus'
 import AddRule from '@/views/rule/AddRule'
 import DebugRule from '@/views/rule/DebugRule'
 
 const props = defineProps(['planId'])
-const currentRule = ref()
+const ruleChanged = ref()
 
-const handleRuleChange = rule => currentRule.value = rule
+const handleRuleChange = rule => ruleChanged.value = rule
 </script>
 
 <template>
@@ -17,7 +17,7 @@ const handleRuleChange = rule => currentRule.value = rule
       <add-rule :plan-id="props.planId" @change="handleRuleChange" />
     </el-tab-pane>
     <el-tab-pane label="调试">
-      <debug-rule v-bind="currentRule" />
+      <debug-rule v-bind="ruleChanged" />
     </el-tab-pane>
   </el-tabs>
 </template>

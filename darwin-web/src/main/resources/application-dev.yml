@@ -7,12 +7,29 @@ hylian:
     guard:
       excludePatterns:
         - api/health/*
-        - api/app/search
         - api/app/get
-        - api/plan/search
-        - api/plan/get
+        - api/app/search
         - api/app_user/getAppUsers
-        - api/user/getAllUsers
+        - api/user/allUsers
+        - api/plan/get
+        - api/plan/search
+        - api/job/get
+        - api/job/progress
+        - api/job/bucketCountGroupByStatus
+        - api/job/search
+        - /api/rule/get
+        - /api/rule/planRules
+        - /api/rule/history/search
+        - /api/rule/history/get
+        - /api/seed/get
+        - /api/seed/search
+        - /api/url/get
+        - /api/url/preview
+        - /api/url/previewHTML
+        - /api/url/search
+        - /api/executor/getList
+        - /api/proxy/search
+        - /api/proxy/get
         - favicon.ico
 
 app:

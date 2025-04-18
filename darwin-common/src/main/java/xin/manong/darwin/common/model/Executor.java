@@ -54,6 +54,14 @@ public class Executor extends BaseModel {
     public String name;
 
     /**
+     * 执行器名称
+     */
+    @TableField(value = "chinese_name")
+    @JSONField(name = "chinese_name")
+    @JsonProperty("chinese_name")
+    public String chineseName;
+
+    /**
      * 执行器状态
      * 停止：0
      * 启动：1

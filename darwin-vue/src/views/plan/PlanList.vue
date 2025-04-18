@@ -1,66 +1,48 @@
 <script setup>
-import { format } from 'date-fns'
 import { reactive, ref, useTemplateRef, watchEffect } from 'vue'
 import { useRouter } from 'vue-router'
-import { ArrowRight, Delete, Timer } from '@element-plus/icons-vue'
+import { Delete, Timer } from '@element-plus/icons-vue'
 import {
-  ElBreadcrumb,
-  ElBreadcrumbItem,
-  ElButton,
-  ElCol,
-  ElForm,
-  ElFormItem,
-  ElIcon,
-  ElInput,
-  ElLink,
-  ElNotification,
-  ElPageHeader,
-  ElPagination,
-  ElRadioButton,
-  ElRadioGroup,
-  ElRow,
-  ElSpace,
-  ElSwitch,
-  ElTable,
-  ElTableColumn,
-  ElTooltip
+  ElButton, ElCol, ElForm, ElFormItem, ElIcon, ElInput,
+  ElPagination, ElRadioButton, ElRadioGroup, ElRow,
+  ElSpace, ElSwitch, ElTable, ElTableColumn, ElTooltip
 } from 'element-plus'
 import { useUserStore } from '@/store'
+import { formatDate } from '@/common/Time'
 import {
-  checkUserLogin, executeAsyncRequest,
-  executeAsyncRequestAfterConfirm, fillSearchQuerySort,
-  searchQueryToRequest,
-} from '@/common/assortment'
+  asyncClosePlan,
+  asyncExecutePlan,
+  asyncOpenPlan,
+  asyncRemovePlan,
+  asyncSearchPlan,
+  changeSearchQuerySort,
+  newSearchQuery,
+  newSearchRequest
+} from '@/common/AsyncRequest'
 import {
-  asyncClosePlan, asyncDeletePlan, asyncExecutePlan,
-  asyncOpenPlan, asyncSearchPlans
-} from '@/common/service'
+  asyncExecuteAfterConfirming,
+  ERROR, showMessage, SUCCESS
+} from '@/common/Feedback'
 import AppSearch from '@/components/app/AppSearch'
 import AddPlan from '@/views/plan/AddPlan'
 
 const router = useRouter()
-const formRef = useTemplateRef('formRef')
-const tableRef = useTemplateRef('tableRef')
 const userStore = useUserStore()
+const filterFormRef = useTemplateRef('filterForm')
 const openAddDialog = ref(false)
+const executing = ref()
 const plans = ref([])
 const total = ref(0)
-const query = reactive({
-  current: 1,
-  size: 10,
-  name: null,
-  app_id: null,
+const query = reactive(newSearchQuery({
   app_ids: 'all',
   category: 'all',
   priority: 'all',
   fetch_method: 'all',
-  status: 'all',
-  sort_field: null,
-  sort_order: null
-})
+  status: 'all'
+}))
 
 const search = async () => {
-  const request = searchQueryToRequest(query)
+  const request = newSearchRequest(query)
   if (query.name) request.name = query.name
   if (query.app_id) request.app_id = query.app_id
   if (query.category && query.category !== 'all') request.category = query.category
@@ -68,38 +50,48 @@ const search = async () => {
   if (query.status && query.status !== 'all') request.status = query.status
   if (query.fetch_method && query.fetch_method !== 'all') request.fetch_method = query.fetch_method
   if (query.app_ids && query.app_ids !== 'all') request.app_ids = query.app_ids
-  const pager = await asyncSearchPlans(request)
+  const pager = await asyncSearchPlan(request)
   total.value = pager.total
   plans.value = pager.records
 }
 
+const edit = id => router.push({ path: '/plan/tabs', query: { id: id }})
+
 const remove = async id => {
-  if (!checkUserLogin()) return
-  const successHandle = () => ElNotification.success('删除计划成功')
-  const failHandle = () => ElNotification.error('删除计划失败')
-  if (!await executeAsyncRequestAfterConfirm(
-    '删除提示', '是否确定删除该计划？', asyncDeletePlan, id, successHandle, failHandle)) return
+  const success = await asyncExecuteAfterConfirming(asyncRemovePlan, id)
+  if (success === undefined) return
+  if (!success) {
+    showMessage('删除计划失败', ERROR)
+    return
+  }
+  showMessage('删除计划成功', SUCCESS)
   await search()
 }
 
-const openClose = async (row, status) => {
-  const exceptionHandle = () => row.status = !status
-  if (status) {
-    const successHandle = () => ElNotification.success('开启计划成功')
-    const failHandle = () => ElNotification.error('开启计划失败')
-    await executeAsyncRequest(asyncOpenPlan, row.plan_id, successHandle, failHandle, exceptionHandle)
-  } else {
-    const successHandle = () => ElNotification.success('关闭计划成功')
-    const failHandle = () => ElNotification.error('关闭计划失败')
-    await executeAsyncRequest(asyncClosePlan, row.plan_id, successHandle, failHandle, exceptionHandle)
+const openClose = async record => {
+  try {
+    const operation = record.status ? '开启' : '关闭'
+    const asyncExecuteFunction = record.status ? asyncOpenPlan : asyncClosePlan
+    if (await asyncExecuteFunction(record.plan_id)) showMessage(`${operation}计划成功`, SUCCESS)
+    else showMessage(`${operation}计划失败`, ERROR)
+  } catch (e) {
+    record.status = !record.status
   }
 }
 
 const execute = async id => {
-  const successHandle = () => ElNotification.success('执行计划成功')
-  const failHandle = () => ElNotification.error('执行计划失败')
-  await executeAsyncRequestAfterConfirm('提示', '执行计划将立即生成爬虫任务，请确实是否继续执行？',
-    asyncExecutePlan, id, successHandle, failHandle)
+  executing.value = id
+  try {
+    const success = await asyncExecuteAfterConfirming(asyncExecutePlan, id)
+    if (success === undefined) return
+    if (!success) {
+      showMessage('执行计划失败', ERROR)
+      return
+    }
+    showMessage('执行计划成功', SUCCESS)
+  } finally {
+    executing.value = undefined
+  }
 }
 
 watchEffect(() => search())
@@ -107,21 +99,7 @@ watchEffect(() => search())
 
 <template>
   <el-space direction="vertical" :size="20" :fill="true" class="w100">
-    <el-page-header @back="router.back()">
-      <template #breadcrumb>
-        <el-breadcrumb :separator-icon="ArrowRight">
-          <el-breadcrumb-item :to="{ name: 'Home' }">首页</el-breadcrumb-item>
-          <el-breadcrumb-item :to="{ name: 'PlanList' }">抓取计划</el-breadcrumb-item>
-        </el-breadcrumb>
-      </template>
-      <template #content>
-        <span class="text-large font-600 mr-3">计划列表</span>
-      </template>
-      <template #extra>
-        <el-button :disabled="!userStore.injected" @click="openAddDialog = true">新增计划</el-button>
-      </template>
-    </el-page-header>
-    <el-form :model="query" ref="formRef" label-width="80px" class="w100">
+    <el-form :model="query" ref="filterForm" label-width="80px" class="w100">
       <el-form-item v-if="userStore.injected" label="计划范围" prop="app_ids">
         <el-radio-group v-model="query.app_ids">
           <el-radio-button value="all">全部</el-radio-button>
@@ -129,7 +107,7 @@ watchEffect(() => search())
         </el-radio-group>
       </el-form-item>
       <el-row>
-        <el-col :span="8">
+        <el-col :span="10">
           <el-form-item label="计划状态" prop="status">
             <el-radio-group v-model="query.status">
               <el-radio-button value="all">全部</el-radio-button>
@@ -138,7 +116,7 @@ watchEffect(() => search())
             </el-radio-group>
           </el-form-item>
         </el-col>
-        <el-col :span="16">
+        <el-col :span="12">
           <el-form-item label="抓取方式" prop="fetch_method">
             <el-radio-group v-model="query.fetch_method">
               <el-radio-button value="all">全部</el-radio-button>
@@ -149,7 +127,7 @@ watchEffect(() => search())
         </el-col>
       </el-row>
       <el-row>
-        <el-col :span="8">
+        <el-col :span="10">
           <el-form-item label="计划类型" prop="category">
             <el-radio-group v-model="query.category">
               <el-radio-button value="all">全部</el-radio-button>
@@ -158,7 +136,7 @@ watchEffect(() => search())
             </el-radio-group>
           </el-form-item>
         </el-col>
-        <el-col :span="16">
+        <el-col :span="12">
           <el-form-item label="优先级" prop="priority">
             <el-radio-group v-model="query.priority">
               <el-radio-button value="all">全部</el-radio-button>
@@ -169,33 +147,42 @@ watchEffect(() => search())
           </el-form-item>
         </el-col>
       </el-row>
-      <el-form-item label="计划搜索">
-        <el-col :span="8">
-          <el-form-item prop="app_id">
-            <app-search v-model="query.app_id" placeholder="根据应用名称搜索" />
+      <el-row>
+        <el-col :span="10">
+          <el-form-item label="所属应用" prop="app_id">
+            <el-col :span="20">
+              <app-search v-model="query.app_id" placeholder="根据应用名搜索" />
+            </el-col>
           </el-form-item>
         </el-col>
-        <el-col :span="1"></el-col>
-        <el-col :span="8">
-          <el-form-item prop="name">
+        <el-col :span="11">
+          <el-form-item label="搜索计划" prop="name">
             <el-input v-model="query.name" clearable placeholder="根据计划名搜索" />
           </el-form-item>
         </el-col>
         <el-col :span="1"></el-col>
         <el-col :span="2">
           <el-tooltip effect="dark" content="清除所有筛选条件" placement="right-end">
-            <el-button @click="formRef.resetFields()" :icon="Delete"></el-button>
+            <el-button @click="filterFormRef.resetFields()" :icon="Delete" />
           </el-tooltip>
         </el-col>
-      </el-form-item>
+      </el-row>
     </el-form>
-    <el-table ref="tableRef" :data="plans" max-height="850" table-layout="auto"
-              stripe @sort-change="event => fillSearchQuerySort(event, query)">
+    <el-row align="middle">
+      <el-col :span="12">
+        <span class="text-xl font-bold ml-2">计划列表</span>
+      </el-col>
+      <el-col :span="12">
+        <el-row justify="end">
+          <el-button type="primary" @click="openAddDialog = true" :disabled="!userStore.injected">新增计划</el-button>
+        </el-row>
+      </el-col>
+    </el-row>
+    <el-table :data="plans" max-height="850" table-layout="auto"
+              stripe @sort-change="event => changeSearchQuerySort(event.prop, event.order, query)">
       <template #empty>暂无计划数据</template>
-      <el-table-column prop="name" label="计划名称" show-overflow-tooltip>
-        <template #default="scope">
-          {{ scope.row.name }}
-        </template>
+      <el-table-column prop="name" label="计划名" show-overflow-tooltip>
+        <template #default="scope">{{ scope.row.name }}</template>
       </el-table-column>
       <el-table-column prop="category" label="类型" width="80" show-overflow-tooltip>
         <template #default="scope">
@@ -205,7 +192,7 @@ watchEffect(() => search())
       </el-table-column>
       <el-table-column prop="status" label="状态" width="80" show-overflow-tooltip>
         <template #default="scope">
-          <el-switch v-model="scope.row.status" @change="v => openClose(scope.row, v)"
+          <el-switch v-model="scope.row.status" @change="openClose(scope.row)"
                      style="--el-switch-on-color: #409eff; --el-switch-off-color: #8b8c8c"
                      inline-prompt size="large" active-text="开启" inactive-text="关闭" />
         </template>
@@ -225,34 +212,21 @@ watchEffect(() => search())
         </template>
       </el-table-column>
       <el-table-column prop="app_name" label="所属应用" show-overflow-tooltip>
-        <template #default="scope">
-          {{ scope.row.app_name }}
-        </template>
+        <template #default="scope">{{ scope.row.app_name }}</template>
       </el-table-column>
-      <el-table-column label="创建时间" prop="create_time" sortable="custom" show-overflow-tooltip>
+      <el-table-column label="创建时间" prop="create_time" sortable="custom" width="200" show-overflow-tooltip>
         <template #default="scope">
           <el-icon><timer /></el-icon>
-          {{ format(new Date(scope.row['create_time']), 'yyyy-MM-dd HH:mm:ss') }}
+          {{ formatDate(scope.row['create_time']) }}
         </template>
       </el-table-column>
-      <el-table-column label="修改时间" prop="update_time" sortable="custom" show-overflow-tooltip>
+      <el-table-column width="250">
+        <template #header>操作</template>
         <template #default="scope">
-          <el-icon><timer /></el-icon>
-          {{ format(new Date(scope.row['update_time']), 'yyyy-MM-dd HH:mm:ss') }}
-        </template>
-      </el-table-column>
-      <el-table-column width="180" fixed="right">
-        <template #header>
-          操作
-        </template>
-        <template #default="scope">
-          <el-link>
-            <RouterLink :to="{ name: 'PlanTabs', query: { id: scope.row.plan_id } }">完善</RouterLink>
-          </el-link>
-          &nbsp;
-          <el-link @click="execute(scope.row.plan_id)">执行</el-link>
-          &nbsp;
-          <el-link @click="remove(scope.row.plan_id)">删除</el-link>
+          <el-button type="primary" @click="edit(scope.row.plan_id)">编辑</el-button>
+          <el-button type="success" @click="execute(scope.row.plan_id)"
+                     :loading="executing === scope.row.plan_id" :disabled="!userStore.injected">执行</el-button>
+          <el-button type="danger" @click="remove(scope.row.plan_id)" :disabled="!userStore.injected">删除</el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -262,7 +236,7 @@ watchEffect(() => search())
       </el-pagination>
     </el-row>
   </el-space>
-  <add-plan v-model="openAddDialog" @close="search()"></add-plan>
+  <add-plan v-model="openAddDialog" @close="search" />
 </template>
 
 <style scoped>

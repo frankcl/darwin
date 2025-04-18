@@ -10,14 +10,19 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import xin.manong.darwin.common.Constants;
 import xin.manong.darwin.common.model.Pager;
 import xin.manong.darwin.common.model.URLRecord;
 import xin.manong.darwin.service.component.ExcelBuilder;
+import xin.manong.darwin.service.iface.OSSService;
 import xin.manong.darwin.service.iface.URLService;
 import xin.manong.darwin.service.request.URLSearchRequest;
+import xin.manong.darwin.service.util.HTMLUtil;
 import xin.manong.weapon.spring.boot.aspect.EnableWebLogAspect;
 
 import java.io.IOException;
+import java.net.URL;
+import java.nio.charset.StandardCharsets;
 
 /**
  * URL控制器
@@ -38,6 +43,8 @@ public class URLController {
     private static final String CONTENT_DISPOSITION_VALUE = "attachment;filename=export.xlsx";
 
     @Resource
+    protected OSSService ossService;
+    @Resource
     protected URLService urlService;
 
     /**
@@ -52,8 +59,62 @@ public class URLController {
     @GetMapping("get")
     @EnableWebLogAspect
     public URLRecord get(@QueryParam("key") String key) {
-        if (StringUtils.isEmpty(key)) throw new BadRequestException("key缺失");
-        return urlService.get(key);
+        if (StringUtils.isEmpty(key)) throw new BadRequestException("数据key缺失");
+        URLRecord record = urlService.get(key);
+        if (record == null) throw new NotFoundException("数据不存在");
+        return record;
+    }
+
+    /**
+     * 预览抓取结果
+     *
+     * @return 预览结果URL
+     */
+    @GET
+    @Produces(MediaType.TEXT_HTML)
+    @Path("previewHTML")
+    @GetMapping("previewHTML")
+    @EnableWebLogAspect
+    public String previewHTML(@QueryParam("key") String key) throws IOException {
+        if (StringUtils.isEmpty(key)) throw new BadRequestException("预览数据key缺失");
+        URLRecord record = urlService.get(key);
+        checkPreviewRecord(record);
+        MediaType mediaType = new MediaType(record.mimeType, record.subMimeType);
+        if ((record.category != Constants.CONTENT_CATEGORY_CONTENT &&
+                record.category != Constants.CONTENT_CATEGORY_LIST) ||
+                mediaType.equals(MediaType.APPLICATION_JSON_TYPE)) {
+            throw new UnsupportedOperationException("抓取结果不是HTML");
+        }
+        byte[] byteArray = ossService.getByURL(record.fetchContentURL);
+        String html = new String(byteArray, StandardCharsets.UTF_8);
+        return HTMLUtil.amendBaseURL(html, new URL(StringUtils.isEmpty(record.redirectURL) ?
+                record.url : record.redirectURL));
+    }
+
+    /**
+     * 预览抓取结果
+     *
+     * @return 预览结果URL
+     */
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("preview")
+    @GetMapping("preview")
+    @EnableWebLogAspect
+    public String preview(@QueryParam("key") String key) throws IOException {
+        if (StringUtils.isEmpty(key)) throw new BadRequestException("预览数据key缺失");
+        URLRecord record = urlService.get(key);
+        checkPreviewRecord(record);
+        if (record.category == Constants.CONTENT_CATEGORY_STREAM ||
+                record.category == Constants.CONTENT_CATEGORY_RESOURCE) {
+            return ossService.signURL(record.fetchContentURL);
+        }
+        MediaType mediaType = new MediaType(record.mimeType, record.subMimeType);
+        if (mediaType.equals(MediaType.APPLICATION_JSON_TYPE)) {
+            byte[] byteArray = ossService.getByURL(record.fetchContentURL);
+            return new String(byteArray, StandardCharsets.UTF_8);
+        }
+        throw new UnsupportedOperationException("HTML数据请调用previewHTML方法");
     }
 
     /**
@@ -94,5 +155,18 @@ public class URLController {
         return Response.ok(output).
                 header(HEADER_CACHE_CONTROL, CACHE_CONTROL_VALUE_NO_CACHE).
                 header(HEADER_CONTENT_DISPOSITION, CONTENT_DISPOSITION_VALUE).build();
+    }
+
+    /**
+     * 检测预览数据
+     *
+     * @param record URL数据
+     */
+    private void checkPreviewRecord(URLRecord record) {
+        if (record == null) throw new NotFoundException("预览数据不存在");
+        if (record.status != Constants.URL_STATUS_SUCCESS ||
+                !ossService.existsByURL(record.fetchContentURL)) {
+            throw new IllegalStateException("数据抓取失败，不支持预览");
+        }
     }
 }

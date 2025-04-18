@@ -82,7 +82,7 @@ public class URLCompleteNotifier implements CompleteNotifier<URLRecord> {
         if (record == null || record.category == Constants.CONTENT_CATEGORY_LIST) return;
         String recordString = JSON.toJSONString(record, SerializerFeature.DisableCircularReferenceDetect);
         RecordMetadata metadata = producer.send(record.key,
-                recordString.getBytes(StandardCharsets.UTF_8), config.topicURL);
+                recordString.getBytes(StandardCharsets.UTF_8), config.mq.topicURL);
         if (metadata == null) {
             context.put(Constants.DARWIN_DEBUG_MESSAGE, "推送消息失败");
             logger.warn("push record finish message failed for key[{}]", record.key);

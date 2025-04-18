@@ -47,7 +47,7 @@ public class HTTPInput extends Input {
         if (!StringUtils.isEmpty(config.userAgent)) httpRequest.headers.put(HEADER_USER_AGENT, config.userAgent);
         if (!StringUtils.isEmpty(record.parentURL)) httpRequest.headers.put(HEADER_REFERER, record.parentURL);
         String host = CommonUtil.getHost(record.url);
-        if (!StringUtils.isEmpty(host) && !CommonUtil.isIP(host)) httpRequest.headers.put(HEADER_HOST, host);
+        if (!StringUtils.isEmpty(host) && !CommonUtil.isValidIP(host)) httpRequest.headers.put(HEADER_HOST, host);
         if (record.headers != null && !record.headers.isEmpty()) httpRequest.headers.putAll(record.headers);
         if (record.timeout != null && record.timeout > 0) {
             httpRequest.connectTimeoutMs = record.timeout;

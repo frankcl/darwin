@@ -1,52 +1,50 @@
 <script setup>
 import { ref, useTemplateRef, watch, watchEffect } from 'vue'
 import {
-  ElButton, ElCol, ElForm, ElFormItem, ElInput, ElNotification, ElOption, ElRow, ElSelect
+  ElButton, ElCol, ElForm, ElFormItem, ElInput, ElOption, ElRow, ElSelect
 } from 'element-plus'
-import { checkUserLogin, executeAsyncRequest, executeAsyncRequestAfterConfirm } from '@/common/assortment'
-import { asyncDeleteRule, asyncGetRule, asyncUpdateRule } from '@/common/service'
+import { useUserStore } from '@/store'
 import CodeEditor from '@/components/data/CodeEditor'
+import { asyncExecuteAfterConfirming, ERROR, showMessage, SUCCESS } from '@/common/Feedback'
+import { asyncGetRule, asyncRemoveRule, asyncUpdateRule } from '@/common/AsyncRequest'
 import { langMap, ruleFormRules } from '@/views/rule/common'
 
-const props = defineProps(['id', 'forceRefresh'])
-const emits = defineEmits(['refresh', 'change', 'remove'])
-const formRef = useTemplateRef('formRef')
+const props = defineProps(['id', 'refresh'])
+const emits = defineEmits(['update', 'change', 'remove'])
+const userStore = useUserStore()
+const ruleFormRef = useTemplateRef('ruleForm')
 const rule = ref()
 const refreshEditor = ref(Date.now())
 
-const update = async formEl => {
-  const updateRule = {
-    id: rule.value.id,
-    name: rule.value.name,
-    regex: rule.value.regex,
-    script: rule.value.script,
-    script_type: rule.value.script_type,
-    change_log: rule.value.change_log
+const update = async formElement => {
+  if (!await formElement.validate(v => v)) return
+  if (!await asyncUpdateRule(rule.value)) {
+    showMessage('编辑规则失败', ERROR)
+    return
   }
-  const successHandle = () => ElNotification.success('编辑规则成功')
-  const failHandle = () => ElNotification.success('编辑规则失败')
-  if (!await executeAsyncRequest(asyncUpdateRule, updateRule, successHandle, failHandle,
-    undefined, formEl)) return
+  showMessage('编辑规则成功', SUCCESS)
   refreshEditor.value = Date.now()
-  emits('refresh')
+  emits('update')
 }
 
 const remove = async id => {
-  if (!checkUserLogin()) return
-  const successHandle = () => ElNotification.success('删除规则成功')
-  const failHandle = () => ElNotification.error('删除规则失败')
-  if (!await executeAsyncRequestAfterConfirm(
-    '删除提示', '是否确定删除该规则？', asyncDeleteRule, id, successHandle, failHandle)) return
+  const success = await asyncExecuteAfterConfirming(asyncRemoveRule, id)
+  if (success === undefined) return
+  if (!success) {
+    showMessage('删除规则失败', ERROR)
+    return
+  }
+  showMessage('删除规则成功', SUCCESS)
   emits('remove')
 }
 
 const handleScriptChange = script => rule.value.script = script
-const handleReset = formEl => {
-  formEl.resetFields()
+const handleReset = formElement => {
+  formElement.resetFields()
   refreshEditor.value = Date.now()
 }
 
-watch(() => [props.id, props.forceRefresh], async () => {
+watch(() => [props.id, props.refresh], async () => {
   if (props.id) {
     rule.value = await asyncGetRule(props.id)
     refreshEditor.value = Date.now()
@@ -56,7 +54,7 @@ watchEffect(() => emits('change', rule.value))
 </script>
 
 <template>
-  <el-form v-if="rule" ref="formRef" :model="rule" :rules="ruleFormRules" label-width="80px" label-position="right">
+  <el-form v-if="rule" ref="ruleForm" :model="rule" :rules="ruleFormRules" label-width="80px" label-position="right">
     <el-row :gutter="20">
       <el-col :span="14">
         <el-form-item label="规则名称" prop="name">
@@ -89,9 +87,9 @@ watchEffect(() => emits('change', rule.value))
       <el-input type="textarea" v-model="rule.change_log" :rows="3" />
     </el-form-item>
     <el-form-item label-position="top">
-      <el-button @click="update(formRef)">编辑</el-button>
-      <el-button @click="remove(rule.id)">删除</el-button>
-      <el-button @click="handleReset(formRef)">重置</el-button>
+      <el-button type="primary" @click="update(ruleFormRef)" :disabled="!userStore.injected">编辑</el-button>
+      <el-button type="info" @click="handleReset(ruleFormRef)">重置</el-button>
+      <el-button type="danger" @click="remove(rule.id)" :disabled="!userStore.injected">删除</el-button>
     </el-form-item>
   </el-form>
 </template>

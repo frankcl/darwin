@@ -1,5 +1,6 @@
 package xin.manong.darwin.spider.input;
 
+import xin.manong.darwin.service.iface.OSSService;
 import xin.manong.weapon.aliyun.oss.OSSClient;
 import xin.manong.weapon.aliyun.oss.OSSMeta;
 
@@ -14,22 +15,22 @@ import java.io.IOException;
 public class OSSInput extends Input {
 
     private final OSSMeta ossMeta;
-    private final OSSClient ossClient;
+    private final OSSService ossService;
 
-    public OSSInput(String ossURL, OSSClient ossClient) {
+    public OSSInput(String ossURL, OSSService ossService) {
         this.ossMeta = OSSClient.parseURL(ossURL);
-        this.ossClient = ossClient;
+        this.ossService = ossService;
         if (ossMeta == null) throw new IllegalArgumentException("invalid input oss url");
     }
 
-    public OSSInput(OSSMeta ossMeta, OSSClient ossClient) {
+    public OSSInput(OSSMeta ossMeta, OSSService ossService) {
         this.ossMeta = ossMeta;
-        this.ossClient = ossClient;
+        this.ossService = ossService;
     }
 
     @Override
     public void open() throws IOException {
         close();
-        inputStream = ossClient.getObjectStream(ossMeta.bucket, ossMeta.key);
+        inputStream = ossService.getObjectStream(ossMeta.bucket, ossMeta.key);
     }
 }

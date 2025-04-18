@@ -5,8 +5,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.ws.rs.BadRequestException;
 import jakarta.xml.bind.annotation.XmlAccessType;
 import jakarta.xml.bind.annotation.XmlAccessorType;
-import org.apache.commons.lang3.StringUtils;
 import xin.manong.darwin.common.Constants;
+import xin.manong.weapon.base.util.CommonUtil;
 
 import java.io.Serial;
 import java.io.Serializable;
@@ -67,7 +67,7 @@ public class ProxyRequest implements Serializable {
      * 无效抛出异常
      */
     public void check() {
-        if (StringUtils.isEmpty(address)) throw new BadRequestException("代理地址为空");
+        if (!CommonUtil.isValidIP(address)) throw new BadRequestException("代理地址非法");
         if (port == null || port <= 0) throw new BadRequestException("代理端口非法");
         if (!Constants.SUPPORT_PROXY_CATEGORIES.containsKey(category)) throw new BadRequestException("不支持代理类型");
     }

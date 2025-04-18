@@ -1,4 +1,4 @@
 app:
   parse:
-    cacheMaxSize: 3000
-    cacheExpiredTimeMinutes: 30
+    cache-max-size: 3000
+    cache-expired-time-minutes: 30

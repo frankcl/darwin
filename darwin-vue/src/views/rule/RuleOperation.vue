@@ -4,7 +4,7 @@ import { ElFormItem, ElRadio, ElRadioGroup } from 'element-plus'
 import RuleAddTabs from '@/views/rule/RuleAddTabs'
 import RuleEditTabs from '@/views/rule/RuleEditTabs'
 
-const props = defineProps(['planId'])
+defineProps(['planId'])
 const operator = ref(true)
 </script>
 

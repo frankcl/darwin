@@ -2,6 +2,7 @@ package xin.manong.darwin.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import jakarta.annotation.Resource;
@@ -40,7 +41,9 @@ public class SeedServiceImpl implements SeedService {
     @Override
     public boolean update(SeedRecord record) {
         if (seedMapper.selectById(record.key) == null) throw new NotFoundException("种子记录不存在");
-        return seedMapper.updateById(record) > 0;
+        LambdaUpdateWrapper<SeedRecord> query = new LambdaUpdateWrapper<SeedRecord>().
+                eq(SeedRecord::getKey, record.key).set(SeedRecord::getScope, record.scope);
+        return seedMapper.update(record, query) > 0;
     }
 
     @Override

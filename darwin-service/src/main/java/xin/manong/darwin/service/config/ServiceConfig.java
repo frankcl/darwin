@@ -15,11 +15,8 @@ import org.springframework.context.annotation.Configuration;
 @ConfigurationProperties(prefix = "app.service")
 public class ServiceConfig {
 
-    public String jobTable;
-    public String jobIndexName;
-    public String urlTable;
-    public String urlIndexName;
-    public String topicJob;
-    public String topicURL;
+    public MQConfig mq;
+    public OTSConfig ots;
+    public OSSConfig oss;
 
 }

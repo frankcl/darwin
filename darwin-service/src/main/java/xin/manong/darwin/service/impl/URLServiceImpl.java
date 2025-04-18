@@ -11,19 +11,21 @@ import jakarta.ws.rs.BadRequestException;
 import jakarta.ws.rs.NotFoundException;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import xin.manong.darwin.common.Constants;
 import xin.manong.darwin.common.model.Pager;
+import xin.manong.darwin.common.model.URLGroupCount;
 import xin.manong.darwin.common.model.URLRecord;
 import xin.manong.darwin.service.config.CacheConfig;
 import xin.manong.darwin.service.convert.Converter;
+import xin.manong.darwin.service.dao.mapper.URLGroupCountMapper;
 import xin.manong.darwin.service.dao.mapper.URLMapper;
 import xin.manong.darwin.service.iface.URLService;
 import xin.manong.darwin.service.request.URLSearchRequest;
 import xin.manong.darwin.service.util.ModelValidator;
+
+import java.util.List;
 
 /**
  * MySQL URL服务实现
@@ -34,10 +36,10 @@ import xin.manong.darwin.service.util.ModelValidator;
 @Service
 public class URLServiceImpl extends URLService {
 
-    private static final Logger logger = LoggerFactory.getLogger(URLServiceImpl.class);
-
     @Resource
     protected URLMapper urlMapper;
+    @Resource
+    protected URLGroupCountMapper URLGroupCountMapper;
 
     @Autowired
     public URLServiceImpl(CacheConfig cacheConfig) {
@@ -130,11 +132,40 @@ public class URLServiceImpl extends URLService {
     public Pager<URLRecord> search(URLSearchRequest searchRequest) {
         searchRequest = prepareSearchRequest(searchRequest);
         ModelValidator.validateOrderBy(URLRecord.class, searchRequest);
-        QueryWrapper<URLRecord> query = new QueryWrapper<>();
+        QueryWrapper<URLRecord> query = buildQueryWrapper(searchRequest);
         searchRequest.prepareOrderBy(query);
+        IPage<URLRecord> page = urlMapper.selectPage(new Page<>(searchRequest.current, searchRequest.size), query);
+        return Converter.convert(page);
+    }
+
+    @Override
+    public long computeCount(URLSearchRequest searchRequest) {
+        searchRequest = prepareSearchRequest(searchRequest);
+        QueryWrapper<URLRecord> query = buildQueryWrapper(searchRequest);
+        return urlMapper.selectCount(query);
+    }
+
+    @Override
+    public List<URLGroupCount> bucketCountGroupByStatus(String jobId) {
+        LambdaQueryWrapper<URLGroupCount> query = new LambdaQueryWrapper<>();
+        query.select(URLGroupCount::getStatus, URLGroupCount::getCount);
+        query.eq(URLGroupCount::getJobId, jobId);
+        query.groupBy(URLGroupCount::getStatus);
+        return URLGroupCountMapper.selectList(query);
+    }
+
+    /**
+     * 根据搜索请求构建SQL查询条件
+     *
+     * @param searchRequest 搜索请求
+     * @return SQL查询条件
+     */
+    private QueryWrapper<URLRecord> buildQueryWrapper(URLSearchRequest searchRequest) {
+        QueryWrapper<URLRecord> query = new QueryWrapper<>();
         if (searchRequest.category != null) query.eq("category", searchRequest.category);
         if (searchRequest.priority != null) query.eq("priority", searchRequest.priority);
         if (searchRequest.fetchMethod != null) query.eq("fetch_method", searchRequest.fetchMethod);
+        if (searchRequest.appId != null) query.eq("app_id", searchRequest.appId);
         if (StringUtils.isNotEmpty(searchRequest.jobId)) query.eq("job_id", searchRequest.jobId);
         if (StringUtils.isNotEmpty(searchRequest.planId)) query.eq("plan_id", searchRequest.planId);
         if (StringUtils.isNotEmpty(searchRequest.url)) query.eq("hash", DigestUtils.md5Hex(searchRequest.url));
@@ -157,7 +188,6 @@ public class URLServiceImpl extends URLService {
             if (searchRequest.createTimeRange.includeUpper) query.le("create_time", searchRequest.createTimeRange.end);
             else query.lt("create_time", searchRequest.createTimeRange.end);
         }
-        IPage<URLRecord> page = urlMapper.selectPage(new Page<>(searchRequest.current, searchRequest.size), query);
-        return Converter.convert(page);
+        return query;
     }
 }

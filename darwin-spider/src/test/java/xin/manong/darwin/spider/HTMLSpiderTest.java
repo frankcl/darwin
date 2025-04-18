@@ -16,12 +16,11 @@ import xin.manong.darwin.common.model.Plan;
 import xin.manong.darwin.common.model.Rule;
 import xin.manong.darwin.common.model.URLRecord;
 import xin.manong.darwin.service.iface.JobService;
+import xin.manong.darwin.service.iface.OSSService;
 import xin.manong.darwin.service.iface.PlanService;
 import xin.manong.darwin.service.iface.RuleService;
 import xin.manong.darwin.spider.core.HTMLSpider;
 import xin.manong.darwin.spider.core.SpiderConfig;
-import xin.manong.weapon.aliyun.oss.OSSClient;
-import xin.manong.weapon.aliyun.oss.OSSMeta;
 import xin.manong.weapon.base.common.Context;
 import xin.manong.weapon.base.util.RandomID;
 
@@ -35,7 +34,7 @@ import xin.manong.weapon.base.util.RandomID;
 public class HTMLSpiderTest {
 
     @Resource
-    protected SpiderConfig config;
+    protected SpiderConfig spiderConfig;
     @Resource
     protected RuleService ruleService;
     @Resource
@@ -43,7 +42,7 @@ public class HTMLSpiderTest {
     @Resource
     protected PlanService planService;
     @Resource
-    protected OSSClient ossClient;
+    protected OSSService ossService;
     @Resource
     protected HTMLSpider spider;
 
@@ -127,19 +126,14 @@ public class HTMLSpiderTest {
             record.appId = 1;
             Context context = new Context();
             spider.process(record, context);
-            String key = String.format("%s/%s/%s.html", config.contentDirectory, "html", record.key);
-            OSSMeta ossMeta = new OSSMeta();
-            ossMeta.region = config.contentRegion;
-            ossMeta.bucket = config.contentBucket;
-            ossMeta.key = key;
+            String key = String.format("%s/%s/%s.html", spiderConfig.ossDirectory, "html", record.key);
             Assert.assertEquals(Constants.URL_STATUS_SUCCESS, record.status.intValue());
-            Assert.assertEquals(OSSClient.buildURL(ossMeta), record.fetchContentURL);
+            Assert.assertEquals(ossService.buildURL(key), record.fetchContentURL);
             Assert.assertTrue(record.fetchTime != null && record.fetchTime > 0L);
             Assert.assertTrue(record.fieldMap != null && !record.fieldMap.isEmpty());
             Assert.assertTrue(record.fieldMap.containsKey("title"));
-            ossMeta = OSSClient.parseURL(record.fetchContentURL);
-            Assert.assertTrue(ossClient.exist(ossMeta.bucket, ossMeta.key));
-            ossClient.deleteObject(ossMeta.bucket, ossMeta.key);
+            Assert.assertTrue(ossService.existsByURL(record.fetchContentURL));
+            ossService.deleteByURL(record.fetchContentURL);
         } finally {
             sweep(plan, job);
         }
@@ -160,20 +154,15 @@ public class HTMLSpiderTest {
             record.appId = 1;
             Context context = new Context();
             spider.process(record, context);
-            String key = String.format("%s/%s/%s.json", config.contentDirectory, "html", record.key);
-            OSSMeta ossMeta = new OSSMeta();
-            ossMeta.region = config.contentRegion;
-            ossMeta.bucket = config.contentBucket;
-            ossMeta.key = key;
+            String key = String.format("%s/%s/%s.json", spiderConfig.ossDirectory, "html", record.key);
             Assert.assertEquals(Constants.URL_STATUS_SUCCESS, record.status.intValue());
-            Assert.assertEquals(OSSClient.buildURL(ossMeta), record.fetchContentURL);
+            Assert.assertEquals(ossService.buildURL(key), record.fetchContentURL);
             Assert.assertTrue(record.fetchTime != null && record.fetchTime > 0L);
             Assert.assertTrue(record.fieldMap != null && !record.fieldMap.isEmpty());
             Assert.assertTrue(record.fieldMap.containsKey("result_size"));
             Assert.assertEquals(10, (int) record.fieldMap.get("result_size"));
-            ossMeta = OSSClient.parseURL(record.fetchContentURL);
-            Assert.assertTrue(ossClient.exist(ossMeta.bucket, ossMeta.key));
-            ossClient.deleteObject(ossMeta.bucket, ossMeta.key);
+            Assert.assertTrue(ossService.existsByKey(key));
+            ossService.deleteByKey(key);
         } finally {
             sweep(plan, job);
         }

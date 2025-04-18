@@ -1,21 +1,4 @@
-weapon:
-  common:
-    etcd:
-      client:
-        username: root
-        password: xmjjyhy28p
-        endpoints:
-          - http://127.0.0.1:2379
-  aliyun:
-    oss:
-      client:
-        endpoint: https://oss-cn-hangzhou.aliyuncs.com
-        socket-timeout-ms: 3000
-        connection-timeout-ms: 3000
-        retry-cnt: 2
 app:
   spider:
-    content-region: cn-hangzhou
-    content-bucket: darwin-spider
-    content-directory: content
+    oss-directory: test/content
     temp-directory: ./temp/

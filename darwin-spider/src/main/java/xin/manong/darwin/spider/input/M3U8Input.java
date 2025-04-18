@@ -88,6 +88,10 @@ public class M3U8Input extends Input {
         }
         commands.add("-i");
         commands.add(record.url);
+        commands.add("-c:v");
+        commands.add("libopenh264");
+        commands.add("-c:a");
+        commands.add("aac");
         commands.add(tempFile);
         return commands;
     }

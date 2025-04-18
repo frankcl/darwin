@@ -85,6 +85,7 @@ public class Proxy extends BaseModel {
     /**
      * 过期时间
      */
+    @TableField(value = "expired_time")
     @JSONField(name = "expired_time")
     @JsonProperty("expired_time")
     public Long expiredTime;

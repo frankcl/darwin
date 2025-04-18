@@ -29,6 +29,7 @@ public class ParseServiceImpl implements ParseService {
     private static final Logger logger = LoggerFactory.getLogger(ParseServiceImpl.class);
 
     private static final String COMPILE_HTML = "<html><head></head><body></body></html>";
+    private static final String COMPILE_URL = "http://www.test.com/";
     private static final int RETRY_COUNT = 3;
 
     @Resource
@@ -40,7 +41,7 @@ public class ParseServiceImpl implements ParseService {
     public CompileResult compile(CompileRequest request) {
         try (Script script = ScriptFactory.make(request.scriptType, request.script)) {
             ParseRequestBuilder builder = new ParseRequestBuilder();
-            ParseRequest parseRequest = builder.html(COMPILE_HTML).build();
+            ParseRequest parseRequest = builder.html(COMPILE_HTML).url(COMPILE_URL).build();
             script.doExecute(parseRequest);
             return CompileResult.success();
         } catch (Exception e) {

@@ -10,10 +10,9 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 import xin.manong.darwin.common.Constants;
 import xin.manong.darwin.common.model.URLRecord;
+import xin.manong.darwin.service.iface.OSSService;
 import xin.manong.darwin.spider.core.SpiderConfig;
 import xin.manong.darwin.spider.core.StreamSpider;
-import xin.manong.weapon.aliyun.oss.OSSClient;
-import xin.manong.weapon.aliyun.oss.OSSMeta;
 import xin.manong.weapon.base.common.Context;
 import xin.manong.weapon.base.util.RandomID;
 
@@ -27,9 +26,9 @@ import xin.manong.weapon.base.util.RandomID;
 public class StreamSpiderTest {
 
     @Resource
-    protected SpiderConfig config;
+    protected SpiderConfig spiderConfig;
     @Resource
-    protected OSSClient ossClient;
+    protected OSSService ossService;
     @Resource
     protected StreamSpider spider;
 
@@ -42,18 +41,13 @@ public class StreamSpiderTest {
         record.appId = 0;
         Context context = new Context();
         spider.process(record, context);
-        String key = String.format("%s/%s/%s.mp4", config.contentDirectory, "stream", record.key);
-        OSSMeta ossMeta = new OSSMeta();
-        ossMeta.region = config.contentRegion;
-        ossMeta.bucket = config.contentBucket;
-        ossMeta.key = key;
+        String key = String.format("%s/%s/%s.mp4", spiderConfig.ossDirectory, "stream", record.key);
         Assert.assertEquals(Constants.URL_STATUS_SUCCESS, record.status.intValue());
-        Assert.assertEquals(OSSClient.buildURL(ossMeta), record.fetchContentURL);
+        Assert.assertEquals(ossService.buildURL(key), record.fetchContentURL);
         Assert.assertTrue(record.fetchTime != null && record.fetchTime > 0L);
         Assert.assertFalse(StringUtils.isEmpty(record.fetchContentURL));
-        ossMeta = OSSClient.parseURL(record.fetchContentURL);
-        Assert.assertTrue(ossClient.exist(ossMeta.bucket, ossMeta.key));
-        ossClient.deleteObject(ossMeta.bucket, ossMeta.key);
+        Assert.assertTrue(ossService.existsByKey(key));
+        ossService.deleteByKey(key);
     }
 
     @Test

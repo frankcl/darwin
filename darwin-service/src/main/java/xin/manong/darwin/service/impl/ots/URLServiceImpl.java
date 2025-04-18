@@ -11,6 +11,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import xin.manong.darwin.common.model.Pager;
+import xin.manong.darwin.common.model.URLGroupCount;
 import xin.manong.darwin.common.model.URLRecord;
 import xin.manong.darwin.service.config.CacheConfig;
 import xin.manong.darwin.service.config.ServiceConfig;
@@ -36,6 +37,7 @@ public class URLServiceImpl extends URLService {
     private static final Logger logger = LoggerFactory.getLogger(URLServiceImpl.class);
 
     private static final String KEY_KEY = "key";
+    private static final String KEY_APP_ID = "app_id";
     private static final String KEY_JOB_ID = "job_id";
     private static final String KEY_PLAN_ID = "plan_id";
     private static final String KEY_HASH = "hash";
@@ -59,10 +61,10 @@ public class URLServiceImpl extends URLService {
     public boolean add(URLRecord record) {
         Map<String, Object> keyMap = new HashMap<>();
         keyMap.put(KEY_KEY, record.key);
-        KVRecord kvRecord = otsClient.get(serviceConfig.urlTable, keyMap);
+        KVRecord kvRecord = otsClient.get(serviceConfig.ots.urlTable, keyMap);
         if (kvRecord != null) throw new IllegalStateException("URL记录已存在");
         kvRecord = OTSConverter.convertJavaObjectToKVRecord(record);
-        return otsClient.put(serviceConfig.urlTable, kvRecord, null) == OTSStatus.SUCCESS;
+        return otsClient.put(serviceConfig.ots.urlTable, kvRecord, null) == OTSStatus.SUCCESS;
     }
 
     @Override
@@ -112,7 +114,7 @@ public class URLServiceImpl extends URLService {
         updateRecord.key = key;
         updateRecord.status = status;
         kvRecord = OTSConverter.convertJavaObjectToKVRecord(updateRecord);
-        return otsClient.update(serviceConfig.urlTable, kvRecord, null) == OTSStatus.SUCCESS;
+        return otsClient.update(serviceConfig.ots.urlTable, kvRecord, null) == OTSStatus.SUCCESS;
     }
 
     @Override
@@ -129,13 +131,49 @@ public class URLServiceImpl extends URLService {
         if (kvRecord == null) throw new NotFoundException("URL记录不存在");
         Map<String, Object> keyMap = new HashMap<>();
         keyMap.put(KEY_KEY, key);
-        return otsClient.delete(serviceConfig.jobTable, keyMap, null) == OTSStatus.SUCCESS;
+        return otsClient.delete(serviceConfig.ots.urlTable, keyMap, null) == OTSStatus.SUCCESS;
     }
 
     @Override
     public Pager<URLRecord> search(URLSearchRequest searchRequest) {
+        OTSSearchResponse response = searchURL(searchRequest);
+        return Converter.convert(response, URLRecord.class, searchRequest.current, searchRequest.size);
+    }
+
+    @Override
+    public long computeCount(URLSearchRequest searchRequest) {
+        return searchURL(searchRequest).totalCount;
+    }
+
+    @Override
+    public List<URLGroupCount> bucketCountGroupByStatus(String jobId) {
+        throw new UnsupportedOperationException("unsupported bucket count group by status");
+    }
+
+    /**
+     * 搜索URL
+     *
+     * @param searchRequest 搜索请求
+     * @return 搜索响应
+     */
+    private OTSSearchResponse searchURL(URLSearchRequest searchRequest) {
         searchRequest = prepareSearchRequest(searchRequest);
         int offset = (searchRequest.current - 1) * searchRequest.size;
+        BoolQuery boolQuery = buildQuery(searchRequest);
+        OTSSearchRequest request = new OTSSearchRequest.Builder().offset(offset).limit(searchRequest.size).
+                tableName(serviceConfig.ots.urlTable).indexName(serviceConfig.ots.urlIndexName).query(boolQuery).build();
+        OTSSearchResponse response = otsClient.search(request);
+        if (!response.status) throw new InternalServerErrorException("搜索URL失败");
+        return response;
+    }
+
+    /**
+     * 根据搜索请求构建OTS查询Query
+     *
+     * @param searchRequest 搜索请求
+     * @return OTS查询Query
+     */
+    private BoolQuery buildQuery(URLSearchRequest searchRequest) {
         BoolQuery boolQuery = new BoolQuery();
         List<Query> queryList = new ArrayList<>();
         if (searchRequest.statusList != null && !searchRequest.statusList.isEmpty()) {
@@ -146,6 +184,9 @@ public class URLServiceImpl extends URLService {
         }
         if (searchRequest.category != null) {
             queryList.add(SearchQueryBuilder.buildTermQuery(KEY_CATEGORY, searchRequest.category));
+        }
+        if (searchRequest.appId != null) {
+            queryList.add(SearchQueryBuilder.buildTermQuery(KEY_APP_ID, searchRequest.appId));
         }
         if (StringUtils.isNotEmpty(searchRequest.jobId)) {
             queryList.add(SearchQueryBuilder.buildTermQuery(KEY_JOB_ID, searchRequest.jobId));
@@ -163,11 +204,7 @@ public class URLServiceImpl extends URLService {
             queryList.add(SearchQueryBuilder.buildRangeQuery(KEY_CREATE_TIME, searchRequest.createTimeRange));
         }
         if (!queryList.isEmpty()) boolQuery.setFilterQueries(queryList);
-        OTSSearchRequest request = new OTSSearchRequest.Builder().offset(offset).limit(searchRequest.size).
-                tableName(serviceConfig.urlTable).indexName(serviceConfig.urlIndexName).query(boolQuery).build();
-        OTSSearchResponse response = otsClient.search(request);
-        if (!response.status) throw new InternalServerErrorException("搜索URL记录失败");
-        return Converter.convert(response, URLRecord.class, searchRequest.current, searchRequest.size);
+        return boolQuery;
     }
 
     /**
@@ -193,7 +230,7 @@ public class URLServiceImpl extends URLService {
      */
     private boolean update(URLRecord record, URLRecord updateRecord) {
         KVRecord kvRecord = OTSConverter.convertJavaObjectToKVRecord(updateRecord);
-        OTSStatus status = otsClient.update(serviceConfig.urlTable, kvRecord, null);
+        OTSStatus status = otsClient.update(serviceConfig.ots.urlTable, kvRecord, null);
         if (status == OTSStatus.SUCCESS && !StringUtils.isEmpty(record.url)) recordCache.invalidate(record.url);
         return status == OTSStatus.SUCCESS;
     }
@@ -207,7 +244,7 @@ public class URLServiceImpl extends URLService {
     private KVRecord getRecord(String key) {
         Map<String, Object> keyMap = new HashMap<>();
         keyMap.put(KEY_KEY, key);
-        KVRecord kvRecord = otsClient.get(serviceConfig.jobTable, keyMap);
+        KVRecord kvRecord = otsClient.get(serviceConfig.ots.urlTable, keyMap);
         if (kvRecord == null) logger.warn("url record is not found for key[{}]", key);
         return kvRecord;
     }

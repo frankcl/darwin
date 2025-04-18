@@ -40,7 +40,8 @@ public class GlobalExecutorRegistry {
             logger.warn("global executor[{}] is not found for starting", name);
             return false;
         }
-        return globalExecuteRunnerMap.get(name).start();
+        globalExecuteRunnerMap.get(name).start();
+        return true;
     }
 
     /**

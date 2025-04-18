@@ -10,6 +10,7 @@ import org.slf4j.LoggerFactory;
 import xin.manong.darwin.common.Constants;
 import xin.manong.darwin.common.model.Pager;
 import xin.manong.darwin.common.model.RangeValue;
+import xin.manong.darwin.common.model.URLGroupCount;
 import xin.manong.darwin.common.model.URLRecord;
 import xin.manong.darwin.service.component.ExcelBuilder;
 import xin.manong.darwin.service.config.CacheConfig;
@@ -69,7 +70,7 @@ public abstract class URLService {
      * @param notification 移除通知
      */
     private void onRemoval(RemovalNotification<String, Optional<URLRecord>> notification) {
-        assert notification.getValue() != null;
+        Objects.requireNonNull(notification.getValue());
         if (notification.getValue().isEmpty()) return;
         logger.info("url record[{}] is removed from cache", notification.getValue().get().url);
     }
@@ -161,6 +162,22 @@ public abstract class URLService {
      * @return 搜索列表
      */
     public abstract Pager<URLRecord> search(URLSearchRequest searchRequest);
+
+    /**
+     * 计算数量
+     *
+     * @param searchRequest 搜索请求
+     * @return 数量
+     */
+    public abstract long computeCount(URLSearchRequest searchRequest);
+
+    /**
+     * 根据分组统计任务抓取的数据状态
+     *
+     * @param jobId 任务ID
+     * @return 统计结果
+     */
+    public abstract List<URLGroupCount> bucketCountGroupByStatus(String jobId);
 
     /**
      * 准备搜索请求
