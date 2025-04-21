@@ -9,6 +9,7 @@ import xin.manong.darwin.common.Constants;
 import xin.manong.darwin.common.computer.ConcurrentUnitComputer;
 import xin.manong.darwin.common.model.Job;
 import xin.manong.darwin.common.model.URLRecord;
+import xin.manong.darwin.common.util.DarwinUtil;
 import xin.manong.darwin.queue.ConcurrencyControl;
 import xin.manong.darwin.queue.ConcurrencyQueue;
 import xin.manong.darwin.queue.PushResult;
@@ -183,6 +184,7 @@ public abstract class Spider {
     private boolean limitByConcurrency(URLRecord record) throws Exception {
         String concurrentUnit = ConcurrentUnitComputer.compute(record);
         if (concurrencyControl.allowFetching(concurrentUnit)) return false;
+        logger.info("concurrency limit for url:{}", record.url);
         if (concurrencyQueue.push(record) != PushResult.SUCCESS || !urlService.updateQueueTime(record)) {
             logger.warn("push back:{} failed for concurrency limit", record.url);
             throw new Exception("push back failed for concurrency limit");
@@ -217,10 +219,14 @@ public abstract class Spider {
             logger.error("fetch failed for url: {}", record.url);
             logger.error(t.getMessage(), t);
         } finally {
-            if (!concurrencyLimit) {
-                context.put(Constants.DARWIN_PROCESS_TIME, System.currentTimeMillis() - startTime);
+            context.put(Constants.DARWIN_PROCESS_TIME, System.currentTimeMillis() - startTime);
+            if (concurrencyLimit) {
+                DarwinUtil.putContext(context, record);
+                if (aspectLogger != null) aspectLogger.commit(context.getFeatureMap());
+            } else {
                 concurrencyControl.removeConnection(concurrentUnit, record.key);
-                if (!urlService.updateContent(record)) logger.warn("update fetching content failed for url:{}", record.url);
+                if (!urlService.updateContent(record))
+                    logger.warn("update fetching content failed for url:{}", record.url);
                 urlEventListener.onComplete(record.key, context);
                 jobEventListener.onComplete(record.jobId, new Context());
             }
