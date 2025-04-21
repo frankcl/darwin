@@ -4,8 +4,8 @@ import AppList from '@/views/app/AppList'
 import PlanList from '@/views/plan/PlanList'
 import PlanTabs from '@/views/plan/PlanTabs'
 import RecordList from '@/views/record/RecordList'
-import ExecutorList from '@/views/executor/ExecutorList'
 import ProxyList from '@/views/proxy/ProxyList'
+import RunnerTabs from '@/views/runner/RunnerTabs'
 
 const routes = [
   {
@@ -34,9 +34,9 @@ const routes = [
     component: RecordList
   },
   {
-    path: '/executor/getList',
-    name: 'ExecutorList',
-    component: ExecutorList
+    path: '/runner/tabs',
+    name: 'RunnerTabs',
+    component: RunnerTabs
   },
   {
     path: '/proxy/search',

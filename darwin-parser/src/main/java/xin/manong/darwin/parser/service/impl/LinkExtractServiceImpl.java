@@ -39,9 +39,9 @@ public class LinkExtractServiceImpl implements LinkExtractService {
         String parentURL = StringUtils.isEmpty(request.redirectURL) ? request.url : request.redirectURL;
         Document document = Jsoup.parse(request.html, parentURL);
         Element body = document.body();
-        List<URLRecord> childURLs = new ArrayList<>();
-        scopeExtract(body, parentURL, request.linkScope, childURLs);
-        return ParseResponse.buildOK(null, childURLs, null);
+        List<URLRecord> children = new ArrayList<>();
+        scopeExtract(body, parentURL, request.linkScope, children);
+        return ParseResponse.buildOK(null, children, null);
     }
 
     /**
@@ -50,25 +50,25 @@ public class LinkExtractServiceImpl implements LinkExtractService {
      * @param element 元素
      * @param parentURL 父URL
      * @param scope 抽链范围
-     * @param childURLs 抽链结果
+     * @param children 抽链结果
      */
     private void scopeExtract(Element element, String parentURL, int scope,
-                              List<URLRecord> childURLs) {
+                              List<URLRecord> children) {
         if (!isVisible(element)) return;
         if (element.tagName().equals(TAG_NAME_A)) {
             if (!element.hasAttr(ATTR_NAME_HREF)) return;
-            String childURL = element.absUrl(ATTR_NAME_HREF);
-            if (!supportExtract(childURL, scope, parentURL)) return;
+            String child = element.absUrl(ATTR_NAME_HREF);
+            if (!supportExtract(child, scope, parentURL)) return;
             try {
-                new URL(childURL);
-                childURLs.add(new URLRecord(childURL));
+                new URL(child);
+                children.add(URLRecord.buildScopeLink(child, scope));
             } catch (Exception e) {
-                logger.warn("invalid child URL[{}]", childURL);
+                logger.warn("invalid child URL[{}]", child);
             }
             return;
         }
-        Elements children = element.children();
-        for (Element child : children) scopeExtract(child, parentURL, scope, childURLs);
+        Elements elements = element.children();
+        for (Element child : elements) scopeExtract(child, parentURL, scope, children);
     }
 
     /**

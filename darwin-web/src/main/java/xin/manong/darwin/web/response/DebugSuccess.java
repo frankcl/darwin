@@ -35,14 +35,14 @@ public class DebugSuccess extends DebugResponse {
     /**
      * 抽链列表
      */
-    @JsonProperty("child_urls")
-    public List<URLRecord> childURLs;
+    @JsonProperty("children")
+    public List<URLRecord> children;
 
-    public DebugSuccess(Map<String, Object> fieldMap, List<URLRecord> childURLs,
+    public DebugSuccess(Map<String, Object> fieldMap, List<URLRecord> children,
                         Map<String, Object> userDefinedMap) {
         super(true);
         this.fieldMap = fieldMap;
-        this.childURLs = childURLs;
+        this.children = children;
         this.userDefinedMap = userDefinedMap;
     }
 }

@@ -55,9 +55,11 @@ public class RuleServiceImpl extends RuleService {
         if (prevRule == null) throw new NotFoundException("规则不存在");
         if (!addHistory(new RuleHistory(prevRule))) throw new IllegalStateException("添加规则历史失败");
         rule.version = prevRule.version + 1;
-        int n = ruleMapper.updateById(rule);
-        if (n > 0) ruleCache.invalidate(rule.id);
-        return n > 0;
+        if (ruleMapper.updateById(rule) > 0) {
+            ruleCache.invalidate(rule.id);
+            return true;
+        }
+        return false;
     }
 
     @Override
@@ -65,10 +67,12 @@ public class RuleServiceImpl extends RuleService {
     public boolean delete(Integer id) {
         Rule rule = ruleMapper.selectById(id);
         if (rule == null) throw new NotFoundException("规则不存在");
-        if (!removeAllHistory(id)) throw new IllegalStateException("删除规则历史失败");
-        int n = ruleMapper.deleteById(id);
-        if (n > 0) ruleCache.invalidate(id);
-        return n > 0;
+        if (!removeHistoryList(id)) throw new IllegalStateException("删除规则历史失败");
+        if (ruleMapper.deleteById(id) > 0) {
+            ruleCache.invalidate(id);
+            return true;
+        }
+        return false;
     }
 
     @Override
@@ -129,7 +133,7 @@ public class RuleServiceImpl extends RuleService {
     }
 
     @Override
-    public boolean removeAllHistory(Integer ruleId) {
+    public boolean removeHistoryList(Integer ruleId) {
         LambdaQueryWrapper<RuleHistory> query = new LambdaQueryWrapper<>();
         query.eq(RuleHistory::getRuleId, ruleId);
         if (ruleHistoryMapper.selectCount(query) == 0) return true;
@@ -137,7 +141,7 @@ public class RuleServiceImpl extends RuleService {
     }
 
     @Override
-    public RuleHistory getRuleHistory(Integer id) {
+    public RuleHistory getHistory(Integer id) {
         return ruleHistoryMapper.selectById(id);
     }
 
@@ -155,7 +159,7 @@ public class RuleServiceImpl extends RuleService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public boolean rollback(Integer ruleId, Integer ruleHistoryId, String modifier) {
-        RuleHistory ruleHistory = getRuleHistory(ruleHistoryId);
+        RuleHistory ruleHistory = getHistory(ruleHistoryId);
         if (ruleHistory == null) throw new NotFoundException("规则历史不存在");
         if (!ruleHistory.ruleId.equals(ruleId)) throw new IllegalStateException("变更历史不属于此规则");
         Rule rule = new Rule();

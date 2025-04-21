@@ -71,7 +71,7 @@ public class JobServiceImpl extends JobService {
                 tableName(serviceConfig.ots.jobIndexName).query(boolQuery).build();
         OTSSearchResponse response = otsClient.search(request);
         if (!response.status) throw new InternalServerErrorException("搜索OTS异常");
-        if (response.records.getRecordCount() > 0) throw new IllegalStateException("同名任务存在");
+        if (response.records.getRecordCount() > 0) throw new IllegalStateException("任务已存在");
         KVRecord kvRecord = OTSConverter.convertJavaObjectToKVRecord(job);
         return otsClient.put(serviceConfig.ots.jobTable, kvRecord, null) == OTSStatus.SUCCESS;
     }
@@ -87,6 +87,14 @@ public class JobServiceImpl extends JobService {
         OTSStatus status = otsClient.update(serviceConfig.ots.jobTable, kvRecord, null);
         if (status == OTSStatus.SUCCESS) jobCache.invalidate(job.jobId);
         return status == OTSStatus.SUCCESS;
+    }
+
+    @Override
+    public void complete(String jobId) {
+        Job job = new Job();
+        job.jobId = jobId;
+        job.status = false;
+        if (update(job)) jobCache.invalidate(jobId);
     }
 
     @Override

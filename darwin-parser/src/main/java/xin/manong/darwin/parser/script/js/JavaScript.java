@@ -108,9 +108,9 @@ public class JavaScript extends Script {
         Map<String, Object> map = (Map<String, Object>) convertScriptObjectMirror(scriptObject);
         if (map == null) return ParseResponse.buildError("解析响应为空");
         ParseResponse response = JSON.toJavaObject(new JSONObject(map), ParseResponse.class);
-        if (response.status && response.childURLs != null) {
-            for (URLRecord childURL : response.childURLs) {
-                if (childURL.url != null) childURL.hash = DigestUtils.md5Hex(childURL.url);
+        if (response.status && response.children != null) {
+            for (URLRecord child : response.children) {
+                if (child.url != null) child.hash = DigestUtils.md5Hex(child.url);
             }
         }
         return response;

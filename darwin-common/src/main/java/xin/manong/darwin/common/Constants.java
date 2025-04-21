@@ -36,13 +36,14 @@ public class Constants {
      */
     public static final int URL_STATUS_SUCCESS = 0;                 //成功
     public static final int URL_STATUS_CREATED = 1;                 //创建
-    public static final int URL_STATUS_QUEUING_REFUSED = 2;         //排队拒绝
+    public static final int URL_STATUS_QUEUE_FULL = 2;              //队列满
     public static final int URL_STATUS_QUEUING = 3;                 //排队中
     public static final int URL_STATUS_FETCHING = 4;                //抓取中
     public static final int URL_STATUS_INVALID = 5;                 //URL非法
     public static final int URL_STATUS_TIMEOUT = 6;                 //超时
     public static final int URL_STATUS_FETCH_FAIL = 7;              //抓取失败
     public static final int URL_STATUS_OVERFLOW = 8;                //溢出
+    public static final int URL_STATUS_ERROR = 9;                   //错误
     public static final Map<Integer, String> SUPPORT_URL_STATUSES = new HashMap<>() {
         @Serial
         private static final long serialVersionUID = -897638930689419495L;
@@ -50,13 +51,14 @@ public class Constants {
         {
         put(URL_STATUS_SUCCESS, "成功");
         put(URL_STATUS_CREATED, "创建");
-        put(URL_STATUS_QUEUING_REFUSED, "排队拒绝");
+        put(URL_STATUS_QUEUE_FULL, "队列满");
         put(URL_STATUS_QUEUING, "排队中");
         put(URL_STATUS_FETCHING, "抓取中");
         put(URL_STATUS_INVALID, "非法状态");
         put(URL_STATUS_TIMEOUT, "超时");
         put(URL_STATUS_FETCH_FAIL, "抓取失败");
         put(URL_STATUS_OVERFLOW, "溢出");
+        put(URL_STATUS_ERROR, "错误");
     }};
 
     /**
@@ -175,22 +177,6 @@ public class Constants {
     }};
 
     /**
-     * 执行器状态
-     */
-    public static final int EXECUTOR_STATUS_STOPPED = 0;
-    public static final int EXECUTOR_STATUS_RUNNING = 1;
-    public static final int EXECUTOR_STATUS_ERROR = 2;
-    public static final Map<Integer, String> SUPPORT_EXECUTOR_STATUSES = new HashMap<>() {
-        @Serial
-        private static final long serialVersionUID = 1999022686678355828L;
-
-        {
-            put(EXECUTOR_STATUS_STOPPED, "停止");
-            put(EXECUTOR_STATUS_RUNNING, "运行");
-            put(EXECUTOR_STATUS_ERROR, "错误");
-        }};
-
-    /**
      * 数据记录类型
      */
     public static final String RECORD_TYPE_URL = "URL";
@@ -257,9 +243,9 @@ public class Constants {
     public static final String SCHEDULE_STATUS = "schedule_status";
     public static final String SCHEDULE_STATUS_SUCCESS = "SUCCESS";
     public static final String SCHEDULE_STATUS_FAIL = "FAIL";
-    public static final String APPLIED_CONNECTION_NUM = "applied_connection_num";
-    public static final String ACQUIRED_CONNECTION_NUM = "acquired_connection_num";
-    public static final String OVERFLOW_CONNECTION_NUM = "overflow_connection_num";
+    public static final String APPLY_RECORD_NUM = "apply_record_num";
+    public static final String ALLOCATE_RECORD_NUM = "allocate_record_num";
+    public static final String OVERFLOW_RECORD_NUM = "overflow_record_num";
 
     /**
      * 切面日志字段定义

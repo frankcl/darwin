@@ -5,7 +5,7 @@ import {
   ElPopover, ElRow, ElSpace, ElTable, ElTableColumn, ElText
 } from 'element-plus'
 import { useUserStore } from '@/store'
-import {CopyDocument, DocumentCopy, Download} from '@element-plus/icons-vue'
+import { CopyDocument, DocumentCopy } from '@element-plus/icons-vue'
 import { writeClipboard } from '@/common/Clipboard'
 import {
   asyncExecuteAfterConfirming,

@@ -79,7 +79,7 @@ const debug = async formElement => {
       termOutput.value += '抓取和解析成功\n'
       if (response.field_map) parseResult.field_map = response.field_map
       if (response.user_defined_map) parseResult.user_defined_map = response.user_defined_map
-      if (response.child_urls) parseResult.children = response.child_urls
+      if (response.children) parseResult.children = response.children
       return
     }
     termOutput.value += '发生错误 -> ' + response.message + '\n'

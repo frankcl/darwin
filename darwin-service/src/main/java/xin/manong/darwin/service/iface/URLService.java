@@ -14,6 +14,7 @@ import xin.manong.darwin.common.model.URLGroupCount;
 import xin.manong.darwin.common.model.URLRecord;
 import xin.manong.darwin.service.component.ExcelBuilder;
 import xin.manong.darwin.service.config.CacheConfig;
+import xin.manong.darwin.service.request.OrderByRequest;
 import xin.manong.darwin.service.request.URLSearchRequest;
 import xin.manong.darwin.service.util.ModelValidator;
 
@@ -34,6 +35,7 @@ public abstract class URLService {
     private static final Logger logger = LoggerFactory.getLogger(URLService.class);
 
     protected CacheConfig cacheConfig;
+    protected Cache<String, Optional<String>> keyCache;
     protected Cache<String, Optional<URLRecord>> recordCache;
     protected static List<String> EXPORT_COLUMNS = new ArrayList<>() {
         @Serial
@@ -55,52 +57,67 @@ public abstract class URLService {
 
     public URLService(CacheConfig cacheConfig) {
         this.cacheConfig = cacheConfig;
-        CacheBuilder<String, Optional<URLRecord>> builder = CacheBuilder.newBuilder()
+        keyCache = CacheBuilder.newBuilder()
                 .recordStats()
                 .concurrencyLevel(1)
                 .maximumSize(cacheConfig.urlCacheNum)
                 .expireAfterWrite(cacheConfig.urlExpiredMinutes, TimeUnit.MINUTES)
-                .removalListener(this::onRemoval);
-        recordCache = builder.build();
+                .removalListener(this::onKeyRemoval).build();
+        recordCache = CacheBuilder.newBuilder()
+                .recordStats()
+                .concurrencyLevel(1)
+                .maximumSize(cacheConfig.urlCacheNum)
+                .expireAfterWrite(cacheConfig.urlExpiredMinutes, TimeUnit.MINUTES)
+                .removalListener(this::onRecordRemoval).build();
     }
 
     /**
-     * 缓存移除通知
+     * URL数据缓存移除通知
      *
      * @param notification 移除通知
      */
-    private void onRemoval(RemovalNotification<String, Optional<URLRecord>> notification) {
+    private void onRecordRemoval(RemovalNotification<String, Optional<URLRecord>> notification) {
         Objects.requireNonNull(notification.getValue());
         if (notification.getValue().isEmpty()) return;
-        logger.info("url record[{}] is removed from cache", notification.getValue().get().url);
+        logger.info("record:{} is removed from cache", notification.getValue().get().url);
     }
 
     /**
-     * 从cache获取URL记录
+     * key缓存移除通知
+     *
+     * @param notification 移除通知
+     */
+    private void onKeyRemoval(RemovalNotification<String, Optional<String>> notification) {
+        Objects.requireNonNull(notification.getValue());
+        if (notification.getValue().isEmpty()) return;
+        logger.info("key:{} is removed from cache", notification.getValue().get());
+    }
+
+    /**
+     * 根据URL从cache获取记录
      *
      * @param url URL
-     * @return URL记录，如果不存在返回null
+     * @return 数据记录，如果不存在返回null
      */
-    public URLRecord getCache(String url) {
+    public URLRecord getCacheByURL(String url) {
         try {
             String hash = DigestUtils.md5Hex(url);
-            Optional<URLRecord> optional = recordCache.get(hash, () -> {
-                URLSearchRequest searchRequest = new URLSearchRequest();
-                searchRequest.url = url;
-                searchRequest.statusList = new ArrayList<>();
-                searchRequest.statusList.add(Constants.URL_STATUS_SUCCESS);
-                searchRequest.fetchTimeRange = new RangeValue<>();
-                searchRequest.fetchTimeRange.start = System.currentTimeMillis() - 86400000L;
-                searchRequest.current = 1;
-                searchRequest.size = 1;
-                Pager<URLRecord> pager = search(searchRequest);
-                return Optional.ofNullable(!pager.records.isEmpty() ? pager.records.get(0) : null);
+            Optional<String> keyOptional = keyCache.get(hash, () -> {
+                URLRecord record = getLatestByURL(url, System.currentTimeMillis() - 86400000L);
+                return Optional.ofNullable(record == null ? null : record.key);
             });
-            if (optional.isEmpty()) {
-                recordCache.invalidate(hash);
+            if (keyOptional.isEmpty()) {
+                keyCache.invalidate(hash);
                 return null;
             }
-            return optional.get();
+            String key = keyOptional.get();
+            Optional<URLRecord> recordOptional = recordCache.get(key, () -> Optional.ofNullable(get(key)));
+            if (recordOptional.isEmpty()) {
+                recordCache.invalidate(key);
+                keyCache.invalidate(hash);
+                return null;
+            }
+            return recordOptional.get();
         } catch (ExecutionException e) {
             throw new RuntimeException(e);
         }
@@ -164,12 +181,12 @@ public abstract class URLService {
     public abstract Pager<URLRecord> search(URLSearchRequest searchRequest);
 
     /**
-     * 计算数量
+     * 获取数量
      *
      * @param searchRequest 搜索请求
      * @return 数量
      */
-    public abstract long computeCount(URLSearchRequest searchRequest);
+    public abstract long selectCount(URLSearchRequest searchRequest);
 
     /**
      * 根据分组统计任务抓取的数据状态
@@ -199,26 +216,52 @@ public abstract class URLService {
     }
 
     /**
-     * 获取指定任务URL创建时间小于等于before的URL记录
+     * 根据URL获取在afterTime之后的最新抓取成功记录
+     *
+     * @param url URL
+     * @param afterTime 起始时间
+     * @return 成功返回数据记录，否则返回null
+     */
+    public URLRecord getLatestByURL(String url, long afterTime) {
+        OrderByRequest orderByRequest = new OrderByRequest("fetch_time", false);
+        URLSearchRequest searchRequest = new URLSearchRequest();
+        searchRequest.url = url;
+        searchRequest.statusList = new ArrayList<>();
+        searchRequest.statusList.add(Constants.URL_STATUS_SUCCESS);
+        searchRequest.fetchTimeRange = new RangeValue<>();
+        searchRequest.fetchTimeRange.includeLower = true;
+        searchRequest.fetchTimeRange.start = afterTime;
+        searchRequest.orderByRequests = new ArrayList<>();
+        searchRequest.orderByRequests.add(orderByRequest);
+        searchRequest.current = searchRequest.size = 1;
+        Pager<URLRecord> pager = search(searchRequest);
+        if (pager == null || pager.records.isEmpty()) return null;
+        return pager.records.get(0);
+    }
+
+    /**
+     * 获取指定任务的创建时间小于等于beforeTime的URL记录
      *
      * @param jobId 任务ID
-     * @param before 最小创建时间
+     * @param beforeTime 最小创建时间
      * @param size 数量
      * @return URL列表
      */
-    public List<URLRecord> getJobExpiredRecords(String jobId, Long before, int size) {
+    public List<URLRecord> getExpiredRecords(String jobId, long beforeTime, int size) {
         URLSearchRequest searchRequest = new URLSearchRequest();
         searchRequest.current = 1;
         searchRequest.size = size <= 0 ? Constants.DEFAULT_PAGE_SIZE : size;
         searchRequest.statusList = new ArrayList<>();
         searchRequest.statusList.add(Constants.URL_STATUS_CREATED);
+        searchRequest.statusList.add(Constants.URL_STATUS_QUEUING);
         searchRequest.statusList.add(Constants.URL_STATUS_FETCHING);
         searchRequest.createTimeRange = new RangeValue<>();
-        searchRequest.createTimeRange.end = before;
+        searchRequest.createTimeRange.end = beforeTime;
         searchRequest.createTimeRange.includeUpper = true;
         searchRequest.jobId = jobId;
         Pager<URLRecord> pager = search(searchRequest);
-        return pager == null || pager.records == null ? new ArrayList<>() : pager.records;
+        if (pager == null || pager.records.isEmpty()) return new ArrayList<>();
+        return pager.records;
     }
 
     /**

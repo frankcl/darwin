@@ -28,7 +28,7 @@ const navigate = path => router.push({ path: path })
     </el-menu-item>
     <el-menu-item index="5">
       <el-icon><Guide /></el-icon>
-      <el-link class="ml-1" @click="navigate('/executor/getList')">进程</el-link>
+      <el-link class="ml-1" @click="navigate('/runner/tabs')">进程</el-link>
     </el-menu-item>
     <el-menu-item index="6">
       <el-icon><Link /></el-icon>

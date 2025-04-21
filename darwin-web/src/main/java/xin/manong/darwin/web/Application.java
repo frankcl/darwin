@@ -10,6 +10,7 @@ import xin.manong.weapon.spring.boot.annotation.EnableKafkaProducer;
 import xin.manong.weapon.spring.boot.annotation.EnableOSSClient;
 import xin.manong.weapon.spring.boot.annotation.EnableRedisClient;
 import xin.manong.weapon.spring.boot.aspect.EnableWebLogAspect;
+import xin.manong.weapon.spring.boot.etcd.EnableWatchValueBeanProcessor;
 
 /**
  * 应用程序入口
@@ -23,6 +24,7 @@ import xin.manong.weapon.spring.boot.aspect.EnableWebLogAspect;
 @EnableJettySupportSSL
 @EnableKafkaProducer
 @EnableOSSClient
+@EnableWatchValueBeanProcessor
 @EnableWebLogAspect
 @EnableHylianGuard
 @EnableCORSFilter

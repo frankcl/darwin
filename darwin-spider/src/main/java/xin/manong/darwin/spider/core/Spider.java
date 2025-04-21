@@ -6,16 +6,17 @@ import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import xin.manong.darwin.common.Constants;
+import xin.manong.darwin.common.computer.ConcurrentUnitComputer;
 import xin.manong.darwin.common.model.Job;
-import xin.manong.darwin.common.model.Pager;
-import xin.manong.darwin.common.model.RangeValue;
 import xin.manong.darwin.common.model.URLRecord;
+import xin.manong.darwin.queue.ConcurrencyControl;
+import xin.manong.darwin.queue.ConcurrencyQueue;
+import xin.manong.darwin.queue.PushResult;
+import xin.manong.darwin.service.event.URLEventListener;
 import xin.manong.darwin.service.iface.JobService;
 import xin.manong.darwin.service.iface.OSSService;
 import xin.manong.darwin.service.iface.URLService;
-import xin.manong.darwin.service.notify.JobCompleteNotifier;
-import xin.manong.darwin.service.notify.URLCompleteNotifier;
-import xin.manong.darwin.service.request.URLSearchRequest;
+import xin.manong.darwin.service.event.JobEventListener;
 import xin.manong.darwin.service.util.HTMLUtil;
 import xin.manong.darwin.spider.input.HTTPInput;
 import xin.manong.darwin.spider.input.Input;
@@ -26,7 +27,6 @@ import xin.manong.weapon.base.log.JSONLogger;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
 
 /**
  * 爬虫抽象实现
@@ -57,11 +57,15 @@ public abstract class Spider {
     @Resource
     protected JobService jobService;
     @Resource
+    protected ConcurrencyControl concurrencyControl;
+    @Resource
+    protected ConcurrencyQueue concurrencyQueue;
+    @Resource
     protected HttpClientFactory httpClientFactory;
     @Resource
-    protected URLCompleteNotifier urlCompleteNotifier;
+    protected URLEventListener urlEventListener;
     @Resource
-    protected JobCompleteNotifier jobCompleteNotifier;
+    protected JobEventListener jobEventListener;
 
     public Spider(String category) {
         this.category = category;
@@ -141,17 +145,8 @@ public abstract class Spider {
     private URLRecord search(URLRecord record, Context context) {
         if (context == null) return null;
         if (context.contains(Constants.ALLOW_REPEAT) && !(boolean) context.get(Constants.ALLOW_REPEAT)) return null;
-        URLSearchRequest searchRequest = new URLSearchRequest();
-        searchRequest.statusList = new ArrayList<>();
-        searchRequest.statusList.add(Constants.URL_STATUS_SUCCESS);
-        searchRequest.url = record.url;
-        searchRequest.fetchTimeRange = new RangeValue<>();
-        searchRequest.fetchTimeRange.start = System.currentTimeMillis() - config.maxRepeatFetchTimeIntervalMs;
-        searchRequest.fetchTimeRange.includeLower = true;
-        searchRequest.current = 1;
-        searchRequest.size = 1;
-        Pager<URLRecord> pager = urlService.search(searchRequest);
-        return pager == null || pager.records == null || pager.records.isEmpty() ? null : pager.records.get(0);
+        long afterTime = System.currentTimeMillis() - config.maxRepeatFetchTimeIntervalMs;
+        return urlService.getLatestByURL(record.url, afterTime);
     }
 
     /**
@@ -179,6 +174,23 @@ public abstract class Spider {
     }
 
     /**
+     * 并发限制检测
+     *
+     * @param record 数据
+     * @return 遭遇并发限制返回true，否则返回false
+     * @throws Exception 异常
+     */
+    private boolean limitByConcurrency(URLRecord record) throws Exception {
+        String concurrentUnit = ConcurrentUnitComputer.compute(record);
+        if (concurrencyControl.allowFetching(concurrentUnit)) return false;
+        if (concurrencyQueue.push(record) != PushResult.SUCCESS || !urlService.updateQueueTime(record)) {
+            logger.warn("push back:{} failed for concurrency limit", record.url);
+            throw new Exception("push back failed for concurrency limit");
+        }
+        return true;
+    }
+
+    /**
      * 处理抓取数据
      *
      * @param record URL记录
@@ -186,7 +198,12 @@ public abstract class Spider {
      */
     public void process(URLRecord record, Context context) {
         long startTime = System.currentTimeMillis();
+        boolean concurrencyLimit = false;
+        String concurrentUnit = ConcurrentUnitComputer.compute(record);
         try {
+            concurrencyLimit = limitByConcurrency(record);
+            if (concurrencyLimit) return;
+            concurrencyControl.putConnection(concurrentUnit, record.key);
             Job job = jobService.getCache(record.jobId);
             if (job != null && job.allowRepeat != null) context.put(Constants.ALLOW_REPEAT, job.allowRepeat);
             record.fetchTime = System.currentTimeMillis();
@@ -200,9 +217,13 @@ public abstract class Spider {
             logger.error("fetch failed for url: {}", record.url);
             logger.error(t.getMessage(), t);
         } finally {
-            context.put(Constants.DARWIN_PROCESS_TIME, System.currentTimeMillis() - startTime);
-            urlCompleteNotifier.onComplete(record, context);
-            if (jobService.finish(record.jobId)) jobCompleteNotifier.onComplete(record.jobId, new Context());
+            if (!concurrencyLimit) {
+                context.put(Constants.DARWIN_PROCESS_TIME, System.currentTimeMillis() - startTime);
+                concurrencyControl.removeConnection(concurrentUnit, record.key);
+                if (!urlService.updateContent(record)) logger.warn("update fetching content failed for url:{}", record.url);
+                urlEventListener.onComplete(record.key, context);
+                jobEventListener.onComplete(record.jobId, new Context());
+            }
         }
     }
 

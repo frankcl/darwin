@@ -68,10 +68,7 @@ public abstract class JobService {
      */
     public Job getCache(String jobId) {
         try {
-            Optional<Job> optional = jobCache.get(jobId, () -> {
-                Job job = get(jobId);
-                return Optional.ofNullable(job);
-            });
+            Optional<Job> optional = jobCache.get(jobId, () -> Optional.ofNullable(get(jobId)));
             if (optional.isEmpty()) {
                 jobCache.invalidate(jobId);
                 return null;
@@ -122,6 +119,13 @@ public abstract class JobService {
     public abstract boolean update(Job job);
 
     /**
+     * 更新任务完成状态
+     *
+     * @param jobId 任务ID
+     */
+    public abstract void complete(String jobId);
+
+    /**
      * 删除任务
      *
      * @param jobId 任务ID
@@ -138,8 +142,8 @@ public abstract class JobService {
     public abstract Pager<Job> search(JobSearchRequest searchRequest);
 
     /**
-     * 判断任务是否结束
-     * 任务存在且任务URL不存在以下状态则任务结束
+     * 判断任务是否完成
+     * 任务存在且任务URL不存在以下状态则任务完成
      * 1. URL_STATUS_CREATED：1
      * 2. URL_STATUS_QUEUING：3
      * 3. URL_STATUS_FETCHING：4
@@ -147,12 +151,9 @@ public abstract class JobService {
      * @param jobId 任务ID
      * @return 结束返回true，否则返回false
      */
-    public boolean finish(String jobId) {
+    public boolean isComplete(String jobId) {
         Job job = get(jobId);
-        if (job == null) {
-            logger.warn("job[{}] is not found", jobId);
-            return false;
-        }
+        if (job == null) return false;
         if (job.status != null && !job.status) return true;
         URLSearchRequest searchRequest = new URLSearchRequest();
         searchRequest.statusList = new ArrayList<>();
@@ -165,21 +166,22 @@ public abstract class JobService {
     }
 
     /**
-     * 获取创建时间在before之前的运行任务
+     * 获取创建时间在beforeTime之前的运行任务
      *
-     * @param before 创建时间
+     * @param beforeTime 创建时间
      * @param size 任务数量
      * @return 任务列表
      */
-    public List<Job> getRunningJobs(Long before, int size) {
+    public List<Job> getRunningJobs(long beforeTime, int size) {
         JobSearchRequest searchRequest = new JobSearchRequest();
         searchRequest.current = 1;
         searchRequest.size = size <= 0 ? Constants.DEFAULT_PAGE_SIZE : size;
         searchRequest.createTimeRange = new RangeValue<>();
-        searchRequest.createTimeRange.end = before;
+        searchRequest.createTimeRange.end = beforeTime;
         searchRequest.createTimeRange.includeUpper = true;
         searchRequest.status = true;
         Pager<Job> pager = search(searchRequest);
-        return pager == null || pager.records == null ? new ArrayList<>() : pager.records;
+        if (pager == null || pager.records == null) return new ArrayList<>();
+        return pager.records;
     }
 }

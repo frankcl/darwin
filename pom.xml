@@ -15,7 +15,7 @@
         <module>darwin-service</module>
         <module>darwin-queue</module>
         <module>darwin-parser</module>
-        <module>darwin-executor</module>
+        <module>darwin-runner</module>
         <module>darwin-spider</module>
         <module>darwin-spider-boot</module>
         <module>darwin-web</module>

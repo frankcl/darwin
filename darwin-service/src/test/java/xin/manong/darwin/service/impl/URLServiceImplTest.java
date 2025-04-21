@@ -75,8 +75,8 @@ public class URLServiceImplTest {
         Assert.assertEquals("abc", l.get(0));
         Assert.assertEquals("xyz", l.get(1));
 
-        Assert.assertNull(urlService.getCache("http://www.unknonwn.com/"));
-        Assert.assertNull(urlService.getCache("http://www.sina.com.cn/"));
+        Assert.assertNull(urlService.getCacheByURL("http://www.unknonwn.com/"));
+        Assert.assertNull(urlService.getCacheByURL("http://www.sina.com.cn/"));
 
         Assert.assertTrue(urlService.updateStatus(record.key, Constants.URL_STATUS_SUCCESS));
 
@@ -96,7 +96,7 @@ public class URLServiceImplTest {
         fetchRecord.fieldMap.put("AAA", 123);
         Assert.assertTrue(urlService.updateContent(fetchRecord));
 
-        recordInDB = urlService.getCache("http://www.sina.com.cn/");
+        recordInDB = urlService.getCacheByURL("http://www.sina.com.cn/");
         Assert.assertNotNull(recordInDB);
         Assert.assertEquals(record.key, recordInDB.key);
         Assert.assertEquals(record.url, recordInDB.url);

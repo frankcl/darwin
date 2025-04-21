@@ -1,6 +1,5 @@
 <script setup>
 import { reactive, ref, watchEffect } from 'vue'
-import { useRouter } from 'vue-router'
 import { Timer } from '@element-plus/icons-vue'
 import {
   ElButton, ElCol, ElForm, ElFormItem,
@@ -26,7 +25,6 @@ import AppUser from '@/views/app/AppUser'
 import EditApp from '@/views/app/EditApp'
 
 
-const router = useRouter()
 const userStore = useUserStore()
 const apps = ref([])
 const total = ref(0)
@@ -38,7 +36,7 @@ const app = reactive({})
 const query = reactive(newSearchQuery({ app_ids: 'all' }))
 
 const refresh = async () => {
-  await asyncResetUserApps();
+  await asyncResetUserApps()
   await search()
 }
 
@@ -121,7 +119,7 @@ watchEffect(() => search())
         <template #header>操作</template>
         <template #default="scope">
           <el-button type="primary" @click="update(scope.row.id)" :disabled="!userStore.injected">编辑</el-button>
-          <el-button type="primary" @click="updateAppUser(scope.row)">成员</el-button>
+          <el-button type="primary" plain @click="updateAppUser(scope.row)">成员</el-button>
           <el-button type="danger" @click="remove(scope.row.id)" :disabled="!userStore.injected">删除</el-button>
         </template>
       </el-table-column>

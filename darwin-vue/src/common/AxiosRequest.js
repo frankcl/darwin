@@ -5,14 +5,14 @@ import { checkPermission } from '@/common/Permission'
 import { ERROR, showMessage, WARNING } from '@/common/Feedback'
 
 const axiosRequestMap = new Map()
-const abortController = new AbortController();
+const abortController = new AbortController()
 
 const isJsonStr = str => {
   if (typeof str !== 'string') return false
   try {
     const o = JSON.parse(str)
     return typeof o === 'object' && o
-  } catch (e) {
+  } catch {
     return false
   }
 }

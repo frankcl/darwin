@@ -5,7 +5,7 @@ import {
 } from 'element-plus'
 import { Minus, Plus, Right } from '@element-plus/icons-vue'
 
-const props = defineProps({
+defineProps({
   title: {
     type: String,
     required: true

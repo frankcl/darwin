@@ -2,6 +2,7 @@ package xin.manong.darwin.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import jakarta.annotation.Resource;
@@ -56,9 +57,22 @@ public class JobServiceImpl extends JobService {
     @Override
     public boolean update(Job job) {
         if (jobMapper.selectById(job.jobId) == null) throw new NotFoundException("任务不存在");
-        int n = jobMapper.updateById(job);
-        if (n > 0) jobCache.invalidate(job.jobId);
-        return n > 0;
+        if (jobMapper.updateById(job) > 0) {
+            jobCache.invalidate(job.jobId);
+            return true;
+        }
+        return false;
+    }
+
+    @Override
+    public void complete(String jobId) {
+        if (jobMapper.selectById(jobId) == null) throw new NotFoundException("任务不存在");
+        LambdaUpdateWrapper<Job> updateWrapper = new LambdaUpdateWrapper<>();
+        updateWrapper.eq(Job::getJobId, jobId);
+        updateWrapper.set(Job::getStatus, false);
+        if (jobMapper.update(updateWrapper) > 0) {
+            jobCache.invalidate(jobId);
+        }
     }
 
     @Override
@@ -68,9 +82,11 @@ public class JobServiceImpl extends JobService {
         searchRequest.jobId = jobId;
         Pager<URLRecord> pager = urlService.search(searchRequest);
         if (pager.total > 0) throw new ForbiddenException("任务URL记录不为空");
-        int n = jobMapper.deleteById(jobId);
-        if (n > 0) jobCache.invalidate(jobId);
-        return n > 0;
+        if (jobMapper.deleteById(jobId) > 0) {
+            jobCache.invalidate(jobId);
+            return true;
+        }
+        return false;
     }
 
     @Override

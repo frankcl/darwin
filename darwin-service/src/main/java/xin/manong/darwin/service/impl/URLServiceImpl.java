@@ -48,69 +48,81 @@ public class URLServiceImpl extends URLService {
 
     @Override
     public boolean add(URLRecord record) {
-        LambdaQueryWrapper<URLRecord> query = new LambdaQueryWrapper<>();
-        query.eq(URLRecord::getKey, record.key);
-        if (urlMapper.selectCount(query) > 0) throw new IllegalStateException("URL记录已存在");
-        return urlMapper.insert(record) > 0;
+        if (get(record.key) != null) throw new IllegalStateException("URL记录已存在");
+        if (urlMapper.insert(record) > 0) {
+            keyCache.invalidate(record.hash);
+            return true;
+        }
+        return false;
     }
 
     @Override
-    public boolean updateContent(URLRecord contentRecord) {
-        if (contentRecord == null || StringUtils.isEmpty(contentRecord.key)) {
-            throw new BadRequestException("抓取结果为空或key缺失");
+    public boolean updateContent(URLRecord record) {
+        if (StringUtils.isEmpty(record.key)) throw new BadRequestException("key缺失");
+        URLRecord prevRecord = get(record.key);
+        if (prevRecord == null) return false;
+        LambdaUpdateWrapper<URLRecord> updateWrapper = new LambdaUpdateWrapper<>();
+        updateWrapper.eq(URLRecord::getKey, record.key);
+        updateWrapper.set(URLRecord::getUpdateTime, System.currentTimeMillis());
+        if (record.fetchTime != null) updateWrapper.set(URLRecord::getFetchTime, record.fetchTime);
+        if (record.status != null) updateWrapper.set(URLRecord::getStatus, record.status);
+        if (record.httpCode != null) updateWrapper.set(URLRecord::getHttpCode, record.httpCode);
+        if (StringUtils.isNotEmpty(record.mimeType)) {
+            updateWrapper.set(URLRecord::getMimeType, record.mimeType);
         }
-        URLRecord record = get(contentRecord.key);
-        if (record == null) return false;
-        LambdaUpdateWrapper<URLRecord> wrapper = new LambdaUpdateWrapper<>();
-        wrapper.eq(URLRecord::getKey, contentRecord.key);
-        wrapper.set(URLRecord::getUpdateTime, System.currentTimeMillis());
-        if (contentRecord.fetchTime != null) wrapper.set(URLRecord::getFetchTime, contentRecord.fetchTime);
-        if (contentRecord.status != null) wrapper.set(URLRecord::getStatus, contentRecord.status);
-        if (contentRecord.httpCode != null) wrapper.set(URLRecord::getHttpCode, contentRecord.httpCode);
-        if (StringUtils.isNotEmpty(contentRecord.mimeType)) {
-            wrapper.set(URLRecord::getMimeType, contentRecord.mimeType);
+        if (StringUtils.isNotEmpty(record.subMimeType)) {
+            updateWrapper.set(URLRecord::getSubMimeType, record.subMimeType);
         }
-        if (StringUtils.isNotEmpty(contentRecord.subMimeType)) {
-            wrapper.set(URLRecord::getSubMimeType, contentRecord.subMimeType);
+        if (StringUtils.isNotEmpty(record.fetchContentURL)) {
+            updateWrapper.set(URLRecord::getFetchContentURL, record.fetchContentURL);
         }
-        if (StringUtils.isNotEmpty(contentRecord.fetchContentURL)) {
-            wrapper.set(URLRecord::getFetchContentURL, contentRecord.fetchContentURL);
+        if (record.fieldMap != null && !record.fieldMap.isEmpty()) {
+            updateWrapper.set(URLRecord::getFieldMap, JSON.toJSONString(record.fieldMap));
         }
-        if (contentRecord.fieldMap != null && !contentRecord.fieldMap.isEmpty()) {
-            wrapper.set(URLRecord::getFieldMap, JSON.toJSONString(contentRecord.fieldMap));
+        if (record.userDefinedMap != null && !record.userDefinedMap.isEmpty()) {
+            updateWrapper.set(URLRecord::getUserDefinedMap, JSON.toJSONString(record.userDefinedMap));
         }
-        if (contentRecord.userDefinedMap != null && !contentRecord.userDefinedMap.isEmpty()) {
-            wrapper.set(URLRecord::getUserDefinedMap, JSON.toJSONString(contentRecord.userDefinedMap));
+        int n = urlMapper.update(null, updateWrapper);
+        if (n > 0) {
+            recordCache.invalidate(record.key);
+            keyCache.invalidate(prevRecord.hash);
         }
-        int n = urlMapper.update(null, wrapper);
-        if (n > 0 && !StringUtils.isEmpty(record.url)) recordCache.invalidate(record.url);
         return n > 0;
     }
 
     @Override
     public boolean updateQueueTime(URLRecord record) {
-        if (record == null || StringUtils.isEmpty(record.key)) throw new BadRequestException("抓取结果为空或key缺失");
-        LambdaUpdateWrapper<URLRecord> wrapper = new LambdaUpdateWrapper<>();
-        wrapper.eq(URLRecord::getKey, record.key);
-        wrapper.set(URLRecord::getUpdateTime, System.currentTimeMillis());
-        if (record.status != null) wrapper.set(URLRecord::getStatus, record.status);
-        if (record.pushTime != null) wrapper.set(URLRecord::getPushTime, record.pushTime);
-        if (record.popTime != null) wrapper.set(URLRecord::getPopTime, record.popTime);
-        int n = urlMapper.update(null, wrapper);
-        if (n > 0 && !StringUtils.isEmpty(record.url)) recordCache.invalidate(record.url);
+        if (StringUtils.isEmpty(record.key)) throw new BadRequestException("key缺失");
+        URLRecord prevRecord = get(record.key);
+        if (prevRecord == null) return false;
+        LambdaUpdateWrapper<URLRecord> updateWrapper = new LambdaUpdateWrapper<>();
+        updateWrapper.set(URLRecord::getUpdateTime, System.currentTimeMillis());
+        updateWrapper.eq(URLRecord::getKey, record.key);
+        if (record.status != null) updateWrapper.set(URLRecord::getStatus, record.status);
+        if (record.pushTime != null) updateWrapper.set(URLRecord::getPushTime, record.pushTime);
+        if (record.popTime != null) updateWrapper.set(URLRecord::getPopTime, record.popTime);
+        int n = urlMapper.update(null, updateWrapper);
+        if (n > 0) {
+            recordCache.invalidate(record.key);
+            keyCache.invalidate(prevRecord.hash);
+        }
         return n > 0;
     }
 
     @Override
     public boolean updateStatus(String key, int status) {
-        if (!Constants.SUPPORT_URL_STATUSES.containsKey(status)) throw new BadRequestException("不支持URL状态");
+        if (!Constants.SUPPORT_URL_STATUSES.containsKey(status)) throw new BadRequestException("URL状态非法");
         URLRecord record = get(key);
         if (record == null) return false;
-        LambdaUpdateWrapper<URLRecord> wrapper = new LambdaUpdateWrapper<>();
-        wrapper.eq(URLRecord::getKey, key).set(URLRecord::getStatus, status).
+        LambdaUpdateWrapper<URLRecord> updateWrapper = new LambdaUpdateWrapper<>();
+        updateWrapper.eq(URLRecord::getKey, key).
+                set(URLRecord::getStatus, status).
                 set(URLRecord::getUpdateTime, System.currentTimeMillis());
-        int n = urlMapper.update(null, wrapper);
-        if (n > 0 && !StringUtils.isEmpty(record.url)) recordCache.invalidate(record.url);
+        int n = urlMapper.update(null, updateWrapper);
+        if (n > 0) {
+            recordCache.invalidate(key);
+            keyCache.invalidate(record.hash);
+        }
         return n > 0;
     }
 
@@ -124,7 +136,10 @@ public class URLServiceImpl extends URLService {
         URLRecord record = urlMapper.selectById(key);
         if (record == null) throw new NotFoundException("URL记录不存在");
         int n = urlMapper.deleteById(key);
-        if (n > 0 && !StringUtils.isEmpty(record.url)) recordCache.invalidate(record.url);
+        if (n > 0) {
+            recordCache.invalidate(key);
+            keyCache.invalidate(record.hash);
+        }
         return n > 0;
     }
 
@@ -139,7 +154,7 @@ public class URLServiceImpl extends URLService {
     }
 
     @Override
-    public long computeCount(URLSearchRequest searchRequest) {
+    public long selectCount(URLSearchRequest searchRequest) {
         searchRequest = prepareSearchRequest(searchRequest);
         QueryWrapper<URLRecord> query = buildQueryWrapper(searchRequest);
         return urlMapper.selectCount(query);

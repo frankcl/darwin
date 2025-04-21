@@ -69,13 +69,13 @@ public class JobController {
         if (StringUtils.isEmpty(id)) throw new BadRequestException("任务ID缺失");
         URLSearchRequest searchRequest = new URLSearchRequest();
         searchRequest.jobId = id;
-        long total = urlService.computeCount(searchRequest);
+        long total = urlService.selectCount(searchRequest);
         searchRequest.statusList = new ArrayList<>();
         searchRequest.statusList.add(Constants.URL_STATUS_CREATED);
         searchRequest.statusList.add(Constants.URL_STATUS_QUEUING);
         searchRequest.statusList.add(Constants.URL_STATUS_FETCHING);
-        long notFinishCount = urlService.computeCount(searchRequest);
-        double rate = total == 0d ? 0d : (total - notFinishCount) * 1.0d / total;
+        long notCompletedCount = urlService.selectCount(searchRequest);
+        double rate = total == 0d ? 0d : (total - notCompletedCount) * 1.0d / total;
         return Double.parseDouble(String.format("%.2f", rate));
     }
 

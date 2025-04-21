@@ -82,7 +82,7 @@
         </dependency>
         <dependency>
             <groupId>xin.manong</groupId>
-            <artifactId>darwin-executor</artifactId>
+            <artifactId>darwin-runner</artifactId>
             <version>${darwin.version}</version>
         </dependency>
     </dependencies>

@@ -32,4 +32,10 @@ public class OrderByRequest implements Serializable {
      */
     @JsonProperty("asc")
     public Boolean asc = true;
+
+    public OrderByRequest() {}
+    public OrderByRequest(String field, Boolean asc) {
+        this.field = field;
+        this.asc = asc;
+    }
 }

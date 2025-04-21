@@ -7,14 +7,9 @@ weapon:
 
 app:
   queue:
-    multi:
-      max-queue-size: 5000
-      max-concurrent-unit-expired-time-seconds: 600
-      max-used-memory-ratio: 0.95
-    concurrent:
-      max-concurrent-connection-num: 50
+    concurrencyQueue:
+      max-queue-capacity: 5000
+      danger-memory-used-ratio: 0.95
+      waring-memory-used-ratio: 0.90
+    concurrencyControl:
       concurrent-connection-ttl-second: 3600
-      concurrent-unit-max-connection-map:
-        sina.com.cn: 20
-        sohu.com: 3
-        news.cn: 1

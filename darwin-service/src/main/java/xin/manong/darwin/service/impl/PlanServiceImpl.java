@@ -20,8 +20,8 @@ import org.springframework.transaction.interceptor.TransactionAspectSupport;
 import xin.manong.darwin.common.Constants;
 import xin.manong.darwin.common.model.*;
 import xin.manong.darwin.common.util.DarwinUtil;
-import xin.manong.darwin.queue.multi.MultiQueue;
-import xin.manong.darwin.queue.multi.MultiQueueStatus;
+import xin.manong.darwin.queue.ConcurrencyQueue;
+import xin.manong.darwin.queue.PushResult;
 import xin.manong.darwin.service.convert.Converter;
 import xin.manong.darwin.service.dao.mapper.PlanMapper;
 import xin.manong.darwin.service.iface.*;
@@ -65,7 +65,7 @@ public class PlanServiceImpl implements PlanService {
     protected SeedService seedService;
     @Resource
     @Lazy
-    protected MultiQueue multiQueue;
+    protected ConcurrencyQueue concurrencyQueue;
     @Resource(name = "urlAspectLogger")
     protected JSONLogger aspectLogger;
 
@@ -98,17 +98,16 @@ public class PlanServiceImpl implements PlanService {
 
     @Override
     public void updateNextTime(Plan plan, Long baseTime) {
-        if (plan.category != Constants.PLAN_CATEGORY_PERIOD) {
-            throw new IllegalStateException("单次型计划不支持设置下次调度时间");
-        }
+        if (plan.category != Constants.PLAN_CATEGORY_PERIOD) throw new IllegalStateException("单次型计划不支持设置下次调度时间");
         try {
             long currentTime = System.currentTimeMillis();
             Date date = new Date(baseTime == null ? currentTime : baseTime);
             long nextTime = new CronExpression(plan.crontabExpression).getNextValidTimeAfter(date).getTime();
             LambdaUpdateWrapper<Plan> updateWrapper = new LambdaUpdateWrapper<>();
-            updateWrapper.eq(Plan::getPlanId, plan.planId).set(Plan::getUpdateTime, currentTime).
+            updateWrapper.eq(Plan::getPlanId, plan.planId).
+                    set(Plan::getUpdateTime, currentTime).
                     set(Plan::getNextTime, nextTime);
-            if (planMapper.update(updateWrapper) <= 0) logger.warn("update next time failed for plan[{}]", plan.planId);
+            if (planMapper.update(updateWrapper) <= 0) logger.warn("update next time failed for plan:{}", plan.planId);
         } catch (ParseException e) {
             throw new IllegalStateException(e);
         }
@@ -155,56 +154,82 @@ public class PlanServiceImpl implements PlanService {
     }
 
     @Override
+    public List<Plan> getOpenPlanList(int pageNum, int pageSize) {
+        PlanSearchRequest searchRequest = new PlanSearchRequest();
+        searchRequest.category = Constants.PLAN_CATEGORY_PERIOD;
+        searchRequest.status = true;
+        searchRequest.current = pageNum;
+        searchRequest.size = pageSize;
+        Pager<Plan> pager = search(searchRequest);
+        if (pager == null || pager.records == null) return new ArrayList<>();
+        return pager.records;
+    }
+
+    @Override
     @Transactional(rollbackFor = Exception.class)
     public boolean execute(Plan plan) {
         if (plan.status == null || !plan.status) {
-            logger.warn("plan[{}] is not opened", plan.planId);
+            logger.warn("plan:{} is not opened", plan.planId);
             return false;
         }
         Job job = Converter.convert(plan);
-        List<URLRecord> databaseRecords = new ArrayList<>();
-        List<URLRecord> queueRecords = new ArrayList<>();
+        List<URLRecord> pushRecords = new ArrayList<>(), commitRecords = new ArrayList<>();
         try {
             if (!jobService.add(job)) throw new RuntimeException("添加任务失败");
-            List<SeedRecord> seedRecords = seedService.getList(plan.planId);
-            for (SeedRecord seedRecord : seedRecords) {
-                URLRecord record = Converter.convert(seedRecord);
-                record.appId = plan.appId;
-                record.jobId = job.jobId;
-                if (record.fetchMethod == null) record.fetchMethod = job.fetchMethod;
-                if (record.concurrentLevel == null) record.concurrentLevel = Constants.CONCURRENT_LEVEL_DOMAIN;
-                if (record.priority == null) record.priority = job.priority == null ? Constants.PRIORITY_NORMAL : job.priority;
-                pushQueue(record, databaseRecords, queueRecords);
-                commitAspectLog(record);
-            }
+            handleSeeds(plan, job, pushRecords, commitRecords);
             if (plan.category != Constants.PLAN_CATEGORY_PERIOD) return true;
             updateNextTime(plan, System.currentTimeMillis());
             return true;
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
             TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
-            rollbackJob(queueRecords, databaseRecords, job.jobId);
+            rollbackJob(job.jobId, pushRecords, commitRecords);
             return false;
         }
     }
 
     /**
-     * 推送任务种子数据
+     * 处理任务种子
      *
-     * @param record 种子数据
-     * @param databaseRecords 推送数据库成功数据列表
-     * @param queueRecords 推送队列成功数据列表
+     * @param plan 计划
+     * @param job 任务
+     * @param pushRecords 成功推送多级队列数据
+     * @param commitRecords 成功提交数据库数据
      */
-    private void pushQueue(URLRecord record, List<URLRecord> databaseRecords, List<URLRecord> queueRecords) {
-        MultiQueueStatus status = multiQueue.push(record, 3);
-        if (status != MultiQueueStatus.OK) {
-            logger.error("push record[{}] into queue failed, status[{}]", record.url,
-                    Constants.SUPPORT_URL_STATUSES.get(record.status));
-            throw new IllegalStateException("添加任务种子到队列失败");
+    private void handleSeeds(Plan plan, Job job,
+                             List<URLRecord> pushRecords,
+                             List<URLRecord> commitRecords) {
+        List<SeedRecord> seedRecords = seedService.getList(plan.planId);
+        for (SeedRecord seedRecord : seedRecords) {
+            URLRecord record = Converter.convert(seedRecord);
+            record.appId = plan.appId;
+            record.jobId = job.jobId;
+            if (record.fetchMethod == null) record.fetchMethod = job.fetchMethod;
+            if (record.concurrentLevel == null) record.concurrentLevel = Constants.CONCURRENT_LEVEL_DOMAIN;
+            if (record.priority == null) {
+                record.priority = job.priority == null ? Constants.PRIORITY_NORMAL : job.priority;
+            }
+            pushRecord(record, commitRecords, pushRecords);
+            commitAspectLog(record);
         }
-        queueRecords.add(record);
-        if (!urlService.add(new URLRecord(record))) throw new IllegalStateException("添加任务种子到数据库失败");
-        databaseRecords.add(record);
+    }
+    /**
+     * 推送任务种子
+     *
+     * @param record 种子
+     * @param commitRecords 成功提交数据库数据
+     * @param pushRecords 成功推送多级队列数据
+     */
+    private void pushRecord(URLRecord record, List<URLRecord> commitRecords, List<URLRecord> pushRecords) {
+        PushResult pushResult = concurrencyQueue.push(record, 3);
+        if (pushResult != PushResult.SUCCESS) {
+            logger.error("push record:{} failed, record status is {}", record.url,
+                    Constants.SUPPORT_URL_STATUSES.get(record.status));
+            throw new IllegalStateException("添加种子到多级队列失败");
+        }
+        pushRecords.add(record);
+        if (!urlService.add(new URLRecord(record))) throw new IllegalStateException("添加种子到数据库失败");
+        commitRecords.add(record);
     }
 
     /**
@@ -213,13 +238,15 @@ public class PlanServiceImpl implements PlanService {
      * 2. 回滚添加到数据库数据
      * 3. 回滚添加任务
      *
-     * @param queueRecords 推送队列成功数据列表
-     * @param databaseRecords 推送数据库成功数据列表
      * @param jobId 任务ID
+     * @param pushRecords 成功推送多级队列数据
+     * @param commitRecords 成功提交数据库数据
      */
-    private void rollbackJob(List<URLRecord> queueRecords, List<URLRecord> databaseRecords, String jobId) {
-        for (URLRecord record : queueRecords) multiQueue.remove(record);
-        if (urlService instanceof URLServiceImpl) for (URLRecord record : databaseRecords) urlService.delete(record.key);
+    private void rollbackJob(String jobId, List<URLRecord> pushRecords, List<URLRecord> commitRecords) {
+        for (URLRecord pushRecord : pushRecords) concurrencyQueue.remove(pushRecord);
+        if (urlService instanceof URLServiceImpl) {
+            for (URLRecord commitRecord : commitRecords) urlService.delete(commitRecord.key);
+        }
         if (jobService instanceof JobServiceImpl) jobService.delete(jobId);
     }
 

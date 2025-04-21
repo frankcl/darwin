@@ -113,7 +113,7 @@ public class ProxyServiceImpl implements ProxyService {
     public Proxy get(String address, int port) {
         LambdaQueryWrapper<Proxy> query = new LambdaQueryWrapper<>();
         query.eq(Proxy::getAddress, address).eq(Proxy::getPort, port);
-        Proxy proxy = proxyMapper.selectOne(query);
+        Proxy proxy = proxyMapper.selectOne(query, false);
         refreshCache(proxy);
         return proxy;
     }

@@ -1,7 +1,9 @@
 package xin.manong.darwin.service;
 
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import xin.manong.weapon.spring.boot.annotation.EnableEtcdClient;
 import xin.manong.weapon.spring.boot.annotation.EnableKafkaProducer;
+import xin.manong.weapon.spring.boot.annotation.EnableOSSClient;
 import xin.manong.weapon.spring.boot.annotation.EnableRedisClient;
 
 /**
@@ -12,6 +14,8 @@ import xin.manong.weapon.spring.boot.annotation.EnableRedisClient;
  */
 @EnableRedisClient
 @EnableKafkaProducer
+@EnableOSSClient
+@EnableEtcdClient
 @SpringBootApplication(scanBasePackages = { "xin.manong.darwin.service", "xin.manong.darwin.queue", "xin.manong.darwin.log" })
 public class ApplicationTest {
 }

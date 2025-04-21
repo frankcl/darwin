@@ -74,7 +74,7 @@ const openClose = async record => {
     const asyncExecuteFunction = record.status ? asyncOpenPlan : asyncClosePlan
     if (await asyncExecuteFunction(record.plan_id)) showMessage(`${operation}计划成功`, SUCCESS)
     else showMessage(`${operation}计划失败`, ERROR)
-  } catch (e) {
+  } catch {
     record.status = !record.status
   }
 }

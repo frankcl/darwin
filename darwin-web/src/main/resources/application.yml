@@ -7,8 +7,8 @@ spring:
     import:
       - classpath:application-spider.yml
       - classpath:application-spider-@profileActive@.yml
-      - classpath:application-executor.yml
-      - classpath:application-executor-@profileActive@.yml
+      - classpath:application-runner.yml
+      - classpath:application-runner-@profileActive@.yml
       - classpath:application-service.yml
       - classpath:application-service-@profileActive@.yml
       - classpath:application-queue.yml
@@ -36,4 +36,4 @@ app:
   web:
     name: darwin-web
     ignore-check-permission: false
-    connection-expired-time-ms: 300000
+    max-connection-expired-interval-ms: 300000

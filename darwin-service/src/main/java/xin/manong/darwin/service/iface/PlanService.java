@@ -4,6 +4,8 @@ import xin.manong.darwin.common.model.Pager;
 import xin.manong.darwin.common.model.Plan;
 import xin.manong.darwin.service.request.PlanSearchRequest;
 
+import java.util.List;
+
 /**
  * 计划服务接口定义
  *
@@ -67,6 +69,15 @@ public interface PlanService {
      * @return 搜索列表
      */
     Pager<Plan> search(PlanSearchRequest searchRequest);
+
+    /**
+     * 获取开启状态计划列表
+     *
+     * @param pageNum 页码
+     * @param pageSize 分页数量
+     * @return 计划列表
+     */
+    List<Plan> getOpenPlanList(int pageNum, int pageSize);
 
     /**
      * 执行计划

@@ -22,8 +22,8 @@ public class JavaScriptTest {
         ParseResponse response = javaScript.execute(request);
         Assert.assertTrue(response.status);
         Assert.assertNull(response.fieldMap);
-        Assert.assertEquals(1, response.childURLs.size());
-        Assert.assertEquals("http://www.sohu.com/", response.childURLs.get(0).url);
+        Assert.assertEquals(1, response.children.size());
+        Assert.assertEquals("http://www.sohu.com/", response.children.get(0).url);
         Assert.assertTrue(response.userDefinedMap != null && response.userDefinedMap.containsKey("url"));
         Assert.assertEquals("http://www.sina.com.cn/", response.userDefinedMap.get("url"));
         javaScript.close();

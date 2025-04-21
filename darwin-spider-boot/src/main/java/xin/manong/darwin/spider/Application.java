@@ -3,6 +3,7 @@ package xin.manong.darwin.spider;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import xin.manong.weapon.spring.boot.annotation.*;
+import xin.manong.weapon.spring.boot.etcd.EnableWatchValueBeanProcessor;
 
 /**
  * 应用程序入口
@@ -16,6 +17,7 @@ import xin.manong.weapon.spring.boot.annotation.*;
 @EnableKafkaProducer
 @EnableKafkaConsumer
 @EnableRedisClient
+@EnableWatchValueBeanProcessor
 @SpringBootApplication(scanBasePackages = {"xin.manong.darwin"})
 public class Application {
 

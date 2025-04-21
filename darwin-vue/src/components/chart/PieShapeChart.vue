@@ -89,7 +89,7 @@ const init = () => {
   if (!containerRef.value) return
   dispose()
   containerRef.value.removeAttribute('_echarts_instance_')
-  chartRef.value = echarts.init(containerRef.value, null, { width: props.width, height: props.height });
+  chartRef.value = echarts.init(containerRef.value, null, { width: props.width, height: props.height })
   chartRef.value.setOption(initOption())
 }
 const dispose = () => {

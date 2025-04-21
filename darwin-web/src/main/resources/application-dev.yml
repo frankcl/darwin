@@ -27,7 +27,9 @@ hylian:
         - /api/url/preview
         - /api/url/previewHTML
         - /api/url/search
-        - /api/executor/getList
+        - /api/runner/getList
+        - /api/runner/isRunning
+        - /api/runner/messageCount
         - /api/proxy/search
         - /api/proxy/get
         - favicon.ico

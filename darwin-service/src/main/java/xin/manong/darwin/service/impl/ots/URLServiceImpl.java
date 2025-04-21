@@ -64,62 +64,62 @@ public class URLServiceImpl extends URLService {
         KVRecord kvRecord = otsClient.get(serviceConfig.ots.urlTable, keyMap);
         if (kvRecord != null) throw new IllegalStateException("URL记录已存在");
         kvRecord = OTSConverter.convertJavaObjectToKVRecord(record);
-        return otsClient.put(serviceConfig.ots.urlTable, kvRecord, null) == OTSStatus.SUCCESS;
+        if (otsClient.put(serviceConfig.ots.urlTable, kvRecord, null) == OTSStatus.SUCCESS) {
+            keyCache.invalidate(record.hash);
+            return true;
+        }
+        return false;
     }
 
     @Override
-    public boolean updateContent(URLRecord contentRecord) {
-        KVRecord kvRecord = getRecord(contentRecord.key);
-        if (kvRecord == null) return false;
-        URLRecord updateRecord = new URLRecord();
-        initRecord(updateRecord);
+    public boolean updateContent(URLRecord record) {
+        URLRecord prevRecord = get(record.key);
+        if (prevRecord == null) return false;
+        URLRecord updateRecord = newUpdateRecord();
         updateRecord.updateTime = System.currentTimeMillis();
-        updateRecord.key = contentRecord.key;
-        updateRecord.status = contentRecord.status;
-        updateRecord.mimeType = contentRecord.mimeType;
-        updateRecord.subMimeType = contentRecord.subMimeType;
-        updateRecord.fetchTime = contentRecord.fetchTime;
-        updateRecord.fetchContentURL = contentRecord.fetchContentURL;
-        updateRecord.httpCode = contentRecord.httpCode;
-        if (contentRecord.fieldMap != null && !contentRecord.fieldMap.isEmpty()) {
-            updateRecord.fieldMap = contentRecord.fieldMap;
+        updateRecord.key = record.key;
+        updateRecord.status = record.status;
+        updateRecord.mimeType = record.mimeType;
+        updateRecord.subMimeType = record.subMimeType;
+        updateRecord.fetchTime = record.fetchTime;
+        updateRecord.fetchContentURL = record.fetchContentURL;
+        updateRecord.httpCode = record.httpCode;
+        if (record.fieldMap != null && !record.fieldMap.isEmpty()) {
+            updateRecord.fieldMap = record.fieldMap;
         }
-        if (contentRecord.userDefinedMap != null && !contentRecord.userDefinedMap.isEmpty()) {
-            updateRecord.userDefinedMap = contentRecord.userDefinedMap;
+        if (record.userDefinedMap != null && !record.userDefinedMap.isEmpty()) {
+            updateRecord.userDefinedMap = record.userDefinedMap;
         }
-        return update(contentRecord, updateRecord);
+        return update(prevRecord.hash, updateRecord);
     }
 
     @Override
     public boolean updateQueueTime(URLRecord record) {
-        KVRecord kvRecord = getRecord(record.key);
-        if (kvRecord == null) return false;
-        URLRecord updateRecord = new URLRecord();
-        initRecord(updateRecord);
+        URLRecord prevRecord = get(record.key);
+        if (prevRecord == null) return false;
+        URLRecord updateRecord = newUpdateRecord();
         updateRecord.updateTime = System.currentTimeMillis();
         updateRecord.key = record.key;
         updateRecord.pushTime = record.pushTime;
         updateRecord.popTime = record.popTime;
         updateRecord.status = record.status;
-        return update(record, updateRecord);
+        return update(prevRecord.hash, updateRecord);
     }
 
     @Override
     public boolean updateStatus(String key, int status) {
-        KVRecord kvRecord = getRecord(key);
-        if (kvRecord == null) return false;
-        URLRecord updateRecord = new URLRecord();
-        initRecord(updateRecord);
+        URLRecord prevRecord = get(key);
+        if (prevRecord == null) return false;
+        URLRecord updateRecord = newUpdateRecord();
         updateRecord.updateTime = System.currentTimeMillis();
         updateRecord.key = key;
         updateRecord.status = status;
-        kvRecord = OTSConverter.convertJavaObjectToKVRecord(updateRecord);
-        return otsClient.update(serviceConfig.ots.urlTable, kvRecord, null) == OTSStatus.SUCCESS;
+        return update(prevRecord.hash, updateRecord);
     }
 
     @Override
     public URLRecord get(String key) {
-        if (StringUtils.isEmpty(key)) throw new IllegalArgumentException("URL记录key为空");
+        if (StringUtils.isEmpty(key)) throw new IllegalArgumentException("key为空");
         KVRecord kvRecord = getRecord(key);
         if (kvRecord == null) return null;
         return OTSConverter.convertKVRecordToJavaObject(kvRecord, URLRecord.class);
@@ -127,11 +127,16 @@ public class URLServiceImpl extends URLService {
 
     @Override
     public boolean delete(String key) {
-        KVRecord kvRecord = getRecord(key);
-        if (kvRecord == null) throw new NotFoundException("URL记录不存在");
+        URLRecord prevRecord = get(key);
+        if (prevRecord == null) throw new NotFoundException("URL记录不存在");
         Map<String, Object> keyMap = new HashMap<>();
         keyMap.put(KEY_KEY, key);
-        return otsClient.delete(serviceConfig.ots.urlTable, keyMap, null) == OTSStatus.SUCCESS;
+        OTSStatus status = otsClient.delete(serviceConfig.ots.urlTable, keyMap, null);
+        if (status == OTSStatus.SUCCESS) {
+            recordCache.invalidate(key);
+            keyCache.invalidate(prevRecord.hash);
+        }
+        return status == OTSStatus.SUCCESS;
     }
 
     @Override
@@ -141,7 +146,7 @@ public class URLServiceImpl extends URLService {
     }
 
     @Override
-    public long computeCount(URLSearchRequest searchRequest) {
+    public long selectCount(URLSearchRequest searchRequest) {
         return searchURL(searchRequest).totalCount;
     }
 
@@ -208,30 +213,35 @@ public class URLServiceImpl extends URLService {
     }
 
     /**
-     * 初始化更新URL记录
+     * 新建更新记录
      * 设置不需要更新字段为null
      *
-     * @param record 更新URL记录
+     * @return 更新URL记录
      */
-    private void initRecord(URLRecord record) {
+    private URLRecord newUpdateRecord() {
+        URLRecord record = new URLRecord();
         record.createTime = null;
         record.userDefinedMap = null;
         record.fieldMap = null;
         record.headers = null;
         record.depth = null;
+        return record;
     }
 
     /**
      * 更新数据
      *
-     * @param record 原始数据
-     * @param updateRecord 更新数据
+     * @param hash URL hash
+     * @param record 更新数据
      * @return 更新成功返回true，否则返回false
      */
-    private boolean update(URLRecord record, URLRecord updateRecord) {
-        KVRecord kvRecord = OTSConverter.convertJavaObjectToKVRecord(updateRecord);
+    private boolean update(String hash, URLRecord record) {
+        KVRecord kvRecord = OTSConverter.convertJavaObjectToKVRecord(record);
         OTSStatus status = otsClient.update(serviceConfig.ots.urlTable, kvRecord, null);
-        if (status == OTSStatus.SUCCESS && !StringUtils.isEmpty(record.url)) recordCache.invalidate(record.url);
+        if (status == OTSStatus.SUCCESS) {
+            recordCache.invalidate(record.key);
+            keyCache.invalidate(hash);
+        }
         return status == OTSStatus.SUCCESS;
     }
 

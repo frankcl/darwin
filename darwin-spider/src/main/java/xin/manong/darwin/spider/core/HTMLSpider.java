@@ -13,8 +13,7 @@ import xin.manong.darwin.parser.sdk.ParseResponse;
 import xin.manong.darwin.parser.service.ParseService;
 import xin.manong.darwin.parser.service.request.ScriptParseRequest;
 import xin.manong.darwin.parser.service.request.ScriptParseRequestBuilder;
-import xin.manong.darwin.queue.multi.MultiQueue;
-import xin.manong.darwin.queue.multi.MultiQueueStatus;
+import xin.manong.darwin.queue.PushResult;
 import xin.manong.darwin.service.iface.RuleService;
 import xin.manong.darwin.spider.input.ByteArrayInput;
 import xin.manong.darwin.spider.input.HTTPInput;
@@ -51,8 +50,6 @@ public class HTMLSpider extends Spider {
     protected ParseService parseService;
     @Resource
     protected HttpClientFactory httpClientFactory;
-    @Resource
-    protected MultiQueue multiQueue;
 
     public HTMLSpider() {
         super(CATEGORY);
@@ -141,7 +138,7 @@ public class HTMLSpider extends Spider {
                 if (record.userDefinedMap == null) record.userDefinedMap = new HashMap<>();
                 record.userDefinedMap.putAll(response.userDefinedMap);
             }
-            push(response.childURLs, record, context);
+            push(response.children, record, context);
         } finally {
             context.put(Constants.DARWIN_PARSE_TIME, System.currentTimeMillis() - startTime);
         }
@@ -207,8 +204,8 @@ public class HTMLSpider extends Spider {
                 logger.warn("add child[{}] failed for parent[{}]", child.url, parent.url);
                 return false;
             }
-            MultiQueueStatus status = multiQueue.push(child, 3);
-            if (status != MultiQueueStatus.OK) {
+            PushResult status = concurrencyQueue.push(child, 3);
+            if (status != PushResult.SUCCESS) {
                 context.put(Constants.DARWIN_DEBUG_MESSAGE, String.format("子链入队失败: %s", status.name()));
                 logger.warn("push child[{}] failed for parent[{}], queue status[{}]",
                         child.url, parent.url, status.name());

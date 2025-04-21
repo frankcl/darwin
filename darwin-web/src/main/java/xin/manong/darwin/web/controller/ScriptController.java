@@ -82,7 +82,7 @@ public class ScriptController {
                 return debugError;
             }
             DebugSuccess debugSuccess = new DebugSuccess(parseResponse.fieldMap,
-                    parseResponse.childURLs, parseResponse.userDefinedMap);
+                    parseResponse.children, parseResponse.userDefinedMap);
             debugSuccess.debugLog = parseResponse.debugLog;
             return debugSuccess;
         } catch (Exception e) {

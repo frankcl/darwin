@@ -18,7 +18,7 @@ import xin.manong.weapon.base.log.JSONLogger;
 public class WebConfig {
 
     public boolean ignoreCheckPermission = false;
-    public Long connectionExpiredTimeMs;
+    public Long maxConnectionExpiredIntervalMs;
     public String name;
     public String aspectLogFile;
 

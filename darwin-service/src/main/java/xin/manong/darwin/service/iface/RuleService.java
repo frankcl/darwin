@@ -49,7 +49,7 @@ public abstract class RuleService {
     private void onRemoval(RemovalNotification<Integer, Optional<Rule>> notification) {
         Objects.requireNonNull(notification.getValue());
         if (notification.getValue().isEmpty()) return;
-        logger.info("rule[{}] is removed from cache", notification.getValue().get().id);
+        logger.info("Rule:{} is removed from cache", notification.getValue().get().id);
     }
 
     /**
@@ -60,10 +60,7 @@ public abstract class RuleService {
      */
     public Rule getCache(Integer ruleId) {
         try {
-            Optional<Rule> optional = ruleCache.get(ruleId, () -> {
-                Rule rule = get(ruleId);
-                return Optional.ofNullable(rule);
-            });
+            Optional<Rule> optional = ruleCache.get(ruleId, () -> Optional.ofNullable(get(ruleId)));
             if (optional.isEmpty()) {
                 ruleCache.invalidate(ruleId);
                 return null;
@@ -160,7 +157,7 @@ public abstract class RuleService {
      * @param ruleId 规则ID
      * @return 成功返回true，否则返回false
      */
-    public abstract boolean removeAllHistory(Integer ruleId);
+    public abstract boolean removeHistoryList(Integer ruleId);
 
     /**
      * 获取规则历史
@@ -168,7 +165,7 @@ public abstract class RuleService {
      * @param id 规则历史ID
      * @return 成功返回规则历史信息，否则返回null
      */
-    public abstract RuleHistory getRuleHistory(Integer id);
+    public abstract RuleHistory getHistory(Integer id);
 
     /**
      * 列表规则历史

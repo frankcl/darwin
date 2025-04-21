@@ -178,7 +178,7 @@ public class RuleController {
     @EnableWebLogAspect
     public RuleHistory getHistory(@QueryParam("id") Integer id) {
         if (id == null) throw new BadRequestException("规则历史ID缺失");
-        return ruleService.getRuleHistory(id);
+        return ruleService.getHistory(id);
     }
 
     /**
@@ -194,7 +194,7 @@ public class RuleController {
     @EnableWebLogAspect
     public Boolean deleteHistory(@QueryParam("id") Integer id) {
         if (id == null) throw new BadRequestException("规则历史ID为空");
-        RuleHistory ruleHistory = ruleService.getRuleHistory(id);
+        RuleHistory ruleHistory = ruleService.getHistory(id);
         if (ruleHistory == null) throw new NotFoundException("规则历史不存在");
         Rule rule = ruleService.get(ruleHistory.ruleId);
         if (rule == null) throw new NotFoundException("规则不存在");

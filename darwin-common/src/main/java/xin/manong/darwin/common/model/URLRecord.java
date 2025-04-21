@@ -210,6 +210,16 @@ public class URLRecord extends SeedRecord {
     }
 
     /**
+     * 判断是否为溢出数据
+     *
+     * @param maxOverflowIntervalMs 最大溢出时间间隔
+     * @return 溢出返回true，否则返回false
+     */
+    public boolean isOverflow(long maxOverflowIntervalMs) {
+        return pushTime == null || System.currentTimeMillis() - pushTime > maxOverflowIntervalMs;
+    }
+
+    /**
      * 检测有效性
      *
      * @return 有效返回true，否则返回false
@@ -231,5 +241,65 @@ public class URLRecord extends SeedRecord {
             return false;
         }
         return true;
+    }
+
+    /**
+     * 构建内容页链接
+     *
+     * @param url URL
+     * @return 数据
+     */
+    public static URLRecord buildContentLink(String url) {
+        URLRecord record = new URLRecord(url);
+        record.category = Constants.CONTENT_CATEGORY_CONTENT;
+        return record;
+    }
+
+    /**
+     * 构建列表页链接
+     *
+     * @param url URL
+     * @return 数据
+     */
+    public static URLRecord buildListLink(String url) {
+        URLRecord record = new URLRecord(url);
+        record.category = Constants.CONTENT_CATEGORY_LIST;
+        return record;
+    }
+
+    /**
+     * 构建视频图片资源链接
+     *
+     * @param url URL
+     * @return 数据
+     */
+    public static URLRecord buildResourceLink(String url) {
+        URLRecord record = new URLRecord(url);
+        record.category = Constants.CONTENT_CATEGORY_RESOURCE;
+        return record;
+    }
+
+    /**
+     * 构建视频流链接
+     *
+     * @param url URL
+     * @return 数据
+     */
+    public static URLRecord buildStreamLink(String url) {
+        URLRecord record = new URLRecord(url);
+        record.category = Constants.CONTENT_CATEGORY_STREAM;
+        return record;
+    }
+
+    /**
+     * 构建全局抽链链接
+     *
+     * @param url URL
+     * @return 数据
+     */
+    public static URLRecord buildScopeLink(String url, int scope) {
+        URLRecord record = buildContentLink(url);
+        record.scope = scope;
+        return record;
     }
 }

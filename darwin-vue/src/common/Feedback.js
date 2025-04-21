@@ -17,17 +17,16 @@ export const showMessage = (message, type = INFO) => {
   }
 }
 
-export const asyncExecuteAfterConfirming = async (asyncRequestFunction, args,
-                                                  message = '是否确定执行此操作？',
-                                                  title = '警告') => {
-  return ElMessageBox.confirm(
-    message,
-    title,
-    {
-      confirmButtonText: '确认',
-      cancelButtonText: '取消',
-      icon: markRaw(Warning),
-      type: 'warning',
-    }
-  ).then(async () => await asyncRequestFunction(args)).catch(() => {})
-}
+export const asyncExecuteAfterConfirming =
+  async (asyncRequestFunction, args, message = '是否确定执行此操作？', title = '警告') => {
+    return ElMessageBox.confirm(
+      message,
+      title,
+      {
+        confirmButtonText: '确认',
+        cancelButtonText: '取消',
+        icon: markRaw(Warning),
+        type: 'warning',
+      }
+    ).then(async () => await asyncRequestFunction(args)).catch(() => {})
+  }
