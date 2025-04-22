@@ -8,6 +8,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import xin.manong.darwin.common.Constants;
 import xin.manong.darwin.common.model.*;
+import xin.manong.darwin.service.component.PlanExecutor;
 import xin.manong.darwin.service.iface.*;
 import xin.manong.darwin.service.request.PlanSearchRequest;
 import xin.manong.darwin.web.convert.Converter;
@@ -41,6 +42,8 @@ public class PlanController {
     protected RuleService ruleService;
     @Resource
     protected SeedService seedService;
+    @Resource
+    protected PlanExecutor planExecutor;
     @Resource
     protected PermissionSupport permissionSupport;
 
@@ -188,7 +191,8 @@ public class PlanController {
         permissionSupport.checkAppPermission(plan.appId);
         if (plan.status == null || !plan.status) throw new IllegalStateException("计划处于关闭状态");
         checkBeforeOpenExecute(plan.planId);
-        if (!planService.execute(plan)) throw new InternalServerErrorException("执行计划失败");
+        if (!planExecutor.checkBeforeExecute()) throw new IllegalStateException("并发队列内存处于危险状态");
+        if (!planExecutor.execute(plan)) throw new InternalServerErrorException("执行计划失败");
         return true;
     }
 
@@ -221,7 +225,7 @@ public class PlanController {
     private void checkBeforeOpenExecute(String planId) {
         List<SeedRecord> seedRecords = seedService.getList(planId);
         if (seedRecords == null || seedRecords.isEmpty()) throw new IllegalStateException("尚未配置种子URL，请完善计划");
-        List<Rule> rules = ruleService.getPlanRules(planId);
+        List<Rule> rules = ruleService.getRules(planId);
         for (SeedRecord seedRecord : seedRecords) {
             if (seedRecord.category == null) throw new IllegalStateException("种子URL缺失类型，请完善计划");
             if (seedRecord.category == Constants.CONTENT_CATEGORY_RESOURCE) continue;

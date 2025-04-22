@@ -132,7 +132,7 @@ public abstract class Spider {
         String charset = HTMLCharsetParser.parse(byteArray);
         if (StringUtils.isEmpty(charset)) charset = CharsetSpeculator.speculate(byteArray, 0, 1024);
         if (StringUtils.isNotEmpty(charset)) return charset;
-        logger.warn("speculate charset failed, using UTF-8 charset for url: {}", record.url);
+        logger.warn("Speculate charset failed, using UTF-8 charset for url: {}", record.url);
         return CHARSET_UTF8;
     }
 
@@ -184,10 +184,10 @@ public abstract class Spider {
     private boolean limitByConcurrency(URLRecord record) throws Exception {
         String concurrentUnit = ConcurrentUnitComputer.compute(record);
         if (concurrencyControl.allowFetching(concurrentUnit)) return false;
-        logger.info("concurrency limit for url:{}", record.url);
+        logger.info("Concurrency limit for url:{}", record.url);
         if (concurrencyQueue.push(record) != PushResult.SUCCESS || !urlService.updateQueueTime(record)) {
-            logger.warn("push back:{} failed for concurrency limit", record.url);
-            throw new Exception("push back failed for concurrency limit");
+            logger.warn("Push back:{} failed for concurrency limit", record.url);
+            throw new Exception("Push back failed for concurrency limit");
         }
         return true;
     }
@@ -211,12 +211,12 @@ public abstract class Spider {
             record.fetchTime = System.currentTimeMillis();
             handle(record, context);
             record.status = Constants.URL_STATUS_SUCCESS;
-            logger.info("fetch success for url: {}", record.url);
+            logger.info("Fetch success for url: {}", record.url);
         } catch (Throwable t) {
             record.status = Constants.URL_STATUS_FETCH_FAIL;
             context.put(Constants.DARWIN_DEBUG_MESSAGE, "抓取数据异常");
             context.put(Constants.DARWIN_STACK_TRACE, ExceptionUtils.getStackTrace(t));
-            logger.error("fetch failed for url: {}", record.url);
+            logger.error("Fetch failed for url: {}", record.url);
             logger.error(t.getMessage(), t);
         } finally {
             context.put(Constants.DARWIN_PROCESS_TIME, System.currentTimeMillis() - startTime);
@@ -225,8 +225,9 @@ public abstract class Spider {
                 if (aspectLogger != null) aspectLogger.commit(context.getFeatureMap());
             } else {
                 concurrencyControl.removeConnection(concurrentUnit, record.key);
-                if (!urlService.updateContent(record))
-                    logger.warn("update fetching content failed for url:{}", record.url);
+                if (!urlService.updateContent(record)) {
+                    logger.warn("Update fetching content failed for url:{}", record.url);
+                }
                 urlEventListener.onComplete(record.key, context);
                 jobEventListener.onComplete(record.jobId, new Context());
             }

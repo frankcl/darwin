@@ -136,7 +136,7 @@ public class ConcurrencyQueueMonitor extends ExecuteRunner {
         Context context = new Context();
         context.put(Constants.DARWIN_STAGE, Constants.STAGE_MONITOR);
         if (!urlService.updateStatus(record.key, Constants.URL_STATUS_TIMEOUT)) {
-            logger.warn("update timeout status failed for url:{}", record.url);
+            logger.warn("Update timeout status failed for url:{}", record.url);
         }
         urlEventListener.onComplete(record.key, context);
     }

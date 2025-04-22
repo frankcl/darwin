@@ -8,8 +8,6 @@ import jakarta.xml.bind.annotation.XmlAccessorType;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import xin.manong.hylian.model.User;
 
 import java.io.Serial;
@@ -29,7 +27,6 @@ import java.util.List;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class BatchAppUserRequest implements Serializable {
 
-    private static final Logger logger = LoggerFactory.getLogger(BatchAppUserRequest.class);
     @Serial
     private static final long serialVersionUID = -2191171353518144138L;
 
@@ -48,9 +45,6 @@ public class BatchAppUserRequest implements Serializable {
      * 检测有效性，无效请求抛出异常
      */
     public void check() {
-        if (appId == null) {
-            logger.error("app id is null");
-            throw new BadRequestException("应用ID为空");
-        }
+        if (appId == null) throw new BadRequestException("应用ID为空");
     }
 }

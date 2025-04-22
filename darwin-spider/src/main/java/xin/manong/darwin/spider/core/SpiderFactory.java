@@ -1,6 +1,7 @@
 package xin.manong.darwin.spider.core;
 
 import jakarta.annotation.Resource;
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
@@ -31,11 +32,7 @@ public class SpiderFactory {
      * @param record URL记录
      * @return 爬虫实例
      */
-    public Spider build(URLRecord record) {
-        if (record == null) {
-            logger.error("url record is null");
-            throw new RuntimeException("URL记录为空");
-        }
+    public Spider build(@NotNull URLRecord record) {
         if (record.category == null || record.category == Constants.CONTENT_CATEGORY_CONTENT ||
             record.category == Constants.CONTENT_CATEGORY_LIST) {
             return htmlSpider;
@@ -44,7 +41,7 @@ public class SpiderFactory {
         } else if (record.category == Constants.CONTENT_CATEGORY_STREAM) {
             return streamSpider;
         }
-        logger.error("unsupported spider for category[{}]", record.category);
-        throw new IllegalArgumentException(String.format("根据URL类型[%d]未找到对应爬虫实例", record.category));
+        logger.error("Unsupported spider for category:{}", record.category);
+        throw new IllegalArgumentException("爬虫类型不支持");
     }
 }

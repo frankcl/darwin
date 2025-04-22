@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.RestController;
 import xin.manong.darwin.common.Constants;
 import xin.manong.darwin.common.model.Pager;
 import xin.manong.darwin.common.model.URLRecord;
-import xin.manong.darwin.service.component.ExcelBuilder;
+import xin.manong.darwin.service.component.ExcelDocumentExporter;
 import xin.manong.darwin.service.iface.OSSService;
 import xin.manong.darwin.service.iface.URLService;
 import xin.manong.darwin.service.request.URLSearchRequest;
@@ -146,10 +146,10 @@ public class URLController {
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
     @Consumes(MediaType.APPLICATION_JSON)
     public Response export(@BeanParam URLSearchRequest request) throws IOException {
-        ExcelBuilder builder = urlService.export(request);
-        if (builder == null) throw new InternalServerErrorException("导出数据失败");
+        ExcelDocumentExporter exporter = urlService.export(request);
+        if (exporter == null) throw new InternalServerErrorException("导出数据失败");
         StreamingOutput output = outputStream -> {
-            builder.export(outputStream);
+            exporter.export(outputStream);
             outputStream.flush();
         };
         return Response.ok(output).

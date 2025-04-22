@@ -36,7 +36,7 @@ public class OSSServiceImpl implements OSSService {
     public boolean existsByURL(String ossURL) {
         OSSMeta ossMeta = OSSClient.parseURL(ossURL);
         if (ossMeta == null) {
-            logger.warn("invalid exists oss url: {}", ossURL);
+            logger.warn("Invalid exists oss url: {}", ossURL);
             return false;
         }
         return existsByKey(ossMeta.key);
@@ -51,7 +51,7 @@ public class OSSServiceImpl implements OSSService {
     public void deleteByURL(String ossURL) {
         OSSMeta ossMeta = OSSClient.parseURL(ossURL);
         if (ossMeta == null) {
-            logger.warn("invalid deleting oss url: {}", ossURL);
+            logger.warn("Invalid deleting oss url: {}", ossURL);
             return;
         }
         ossClient.deleteObject(ossMeta.bucket, ossMeta.key);
@@ -70,7 +70,7 @@ public class OSSServiceImpl implements OSSService {
     @Override
     public byte[] getByURL(String ossURL) {
         OSSMeta ossMeta = OSSClient.parseURL(ossURL);
-        if (ossMeta == null) throw new IllegalArgumentException(String.format("invalid oss url: %s", ossURL));
+        if (ossMeta == null) throw new IllegalArgumentException(String.format("Invalid oss url: %s", ossURL));
         return ossClient.getObject(ossMeta.bucket, ossMeta.key);
     }
 
@@ -82,7 +82,7 @@ public class OSSServiceImpl implements OSSService {
     @Override
     public InputStream getObjectStream(String ossURL) {
         OSSMeta ossMeta = OSSClient.parseURL(ossURL);
-        if (ossMeta == null) throw new IllegalArgumentException(String.format("invalid oss url: %s", ossURL));
+        if (ossMeta == null) throw new IllegalArgumentException(String.format("Invalid oss url: %s", ossURL));
         return ossClient.getObjectStream(ossMeta.bucket, ossMeta.key);
     }
 
@@ -101,7 +101,7 @@ public class OSSServiceImpl implements OSSService {
     public String signURL(String ossURL) {
         OSSMeta ossMeta = OSSClient.parseURL(ossURL);
         if (ossMeta == null) {
-            logger.warn("invalid sign oss url: {}", ossURL);
+            logger.warn("Invalid sign oss url: {}", ossURL);
             return ossURL;
         }
         return ossClient.sign(ossMeta.bucket, ossMeta.key);

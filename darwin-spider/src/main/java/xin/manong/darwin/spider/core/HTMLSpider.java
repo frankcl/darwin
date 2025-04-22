@@ -59,7 +59,7 @@ public class HTMLSpider extends Spider {
     protected void handle(URLRecord record, Context context) throws Exception {
         boolean scopeExtract = record.isScopeExtract();
         Rule rule = scopeExtract ? null : findMatchRule(record);
-        if (!scopeExtract && rule == null) throw new IllegalStateException("no matched rule");
+        if (!scopeExtract && rule == null) throw new IllegalStateException("No matched rule");
         Input input = buildInput(record, context);
         if (input instanceof HTTPInput) {
             record.html = fetch(record, (HTTPInput) input, context);
@@ -131,7 +131,7 @@ public class HTMLSpider extends Spider {
             ScriptParseRequest request = builder.build();
             ParseResponse response = parseService.parse(request);
             if (!response.status) {
-                throw new IllegalStateException(String.format("parse HTML failed for url: %s", record.url));
+                throw new IllegalStateException(String.format("Parse HTML failed for url: %s", record.url));
             }
             if (response.fieldMap != null && !response.fieldMap.isEmpty()) record.fieldMap = response.fieldMap;
             if (response.userDefinedMap != null && !response.userDefinedMap.isEmpty()) {
@@ -151,7 +151,7 @@ public class HTMLSpider extends Spider {
      * @return 匹配规则
      */
     private Rule findMatchRule(URLRecord record) {
-        List<Integer> ruleIds = ruleService.getPlanRuleIds(record.planId);
+        List<Integer> ruleIds = ruleService.getRuleIds(record.planId);
         List<Rule> rules = new ArrayList<>();
         for (Integer ruleId : ruleIds) {
             Rule rule = ruleService.getCache(ruleId);
@@ -159,7 +159,7 @@ public class HTMLSpider extends Spider {
             rules.add(rule);
         }
         if (rules.size() != 1) {
-            logger.error("match rule num[{}] is unexpected", rules.size());
+            logger.error("Match rule num:{} is unexpected", rules.size());
             throw new IllegalStateException("存在多条匹配规则");
         }
         return rules.get(0);
@@ -195,25 +195,25 @@ public class HTMLSpider extends Spider {
             context.put(Constants.DARWIN_STAGE, Constants.STAGE_EXTRACT);
             fillChild(child, parent);
             if (!child.check()) {
-                context.put(Constants.DARWIN_DEBUG_MESSAGE, "子链非法");
-                logger.warn("child[{}] is invalid for parent[{}]", child.url, parent.url);
+                context.put(Constants.DARWIN_DEBUG_MESSAGE, "链接非法");
+                logger.warn("Child:{} is invalid for parent:{}", child.url, parent.url);
                 return false;
             }
             if (!urlService.add(child)) {
-                context.put(Constants.DARWIN_DEBUG_MESSAGE, "子链入库失败");
-                logger.warn("add child[{}] failed for parent[{}]", child.url, parent.url);
+                context.put(Constants.DARWIN_DEBUG_MESSAGE, "添加数据库失败");
+                logger.warn("Add child:{} failed for parent:{}", child.url, parent.url);
                 return false;
             }
-            PushResult status = concurrencyQueue.push(child, 3);
-            if (status != PushResult.SUCCESS) {
-                context.put(Constants.DARWIN_DEBUG_MESSAGE, String.format("子链入队失败: %s", status.name()));
-                logger.warn("push child[{}] failed for parent[{}], queue status[{}]",
-                        child.url, parent.url, status.name());
+            PushResult pushResult = concurrencyQueue.push(child, 3);
+            if (pushResult != PushResult.SUCCESS) {
+                context.put(Constants.DARWIN_DEBUG_MESSAGE, "推送并发队列失败");
+                logger.warn("Push child:{} failed for parent:{}, push result is {}",
+                        child.url, parent.url, pushResult.name());
                 return false;
             }
             return true;
         } catch (Exception e) {
-            context.put(Constants.DARWIN_DEBUG_MESSAGE, "处理子链异常");
+            context.put(Constants.DARWIN_DEBUG_MESSAGE, "处理异常");
             context.put(Constants.DARWIN_STACK_TRACE, ExceptionUtils.getStackTrace(e));
             logger.error(e.getMessage(), e);
             return false;

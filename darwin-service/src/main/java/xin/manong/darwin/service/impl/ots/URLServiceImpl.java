@@ -152,7 +152,7 @@ public class URLServiceImpl extends URLService {
 
     @Override
     public List<URLGroupCount> bucketCountGroupByStatus(String jobId) {
-        throw new UnsupportedOperationException("unsupported bucket count group by status");
+        throw new UnsupportedOperationException("Unsupported bucket count group by status");
     }
 
     /**
@@ -255,7 +255,7 @@ public class URLServiceImpl extends URLService {
         Map<String, Object> keyMap = new HashMap<>();
         keyMap.put(KEY_KEY, key);
         KVRecord kvRecord = otsClient.get(serviceConfig.ots.urlTable, keyMap);
-        if (kvRecord == null) logger.warn("url record is not found for key[{}]", key);
+        if (kvRecord == null) logger.warn("record is not found for key:{}", key);
         return kvRecord;
     }
 }

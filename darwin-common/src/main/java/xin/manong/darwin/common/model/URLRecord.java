@@ -227,17 +227,17 @@ public class URLRecord extends SeedRecord {
     public boolean check() {
         if (!super.check()) return false;
         if (StringUtils.isEmpty(jobId)) {
-            logger.error("job id is empty");
+            logger.error("Job id is empty");
             return false;
         }
         if (appId == null) {
-            logger.error("app id is null");
+            logger.error("App id is null");
             return false;
         }
         if (depth == null || depth < 0) depth = 0;
         if (status == null) status = Constants.URL_STATUS_CREATED;
         if (!Constants.SUPPORT_URL_STATUSES.containsKey(status)) {
-            logger.error("not support url status[{}]", status);
+            logger.error("Not support url status:{}", status);
             return false;
         }
         return true;

@@ -42,11 +42,11 @@ public class ParseRequest {
      */
     public boolean check() {
         if (StringUtils.isEmpty(url)) {
-            logger.error("url is empty");
+            logger.error("Url is empty");
             return false;
         }
         if (StringUtils.isEmpty(html)) {
-            logger.error("html is empty");
+            logger.error("Html is empty");
             return false;
         }
         return true;

@@ -66,7 +66,7 @@ public class StreamSpider extends Spider {
             String content = new String(byteArray, charset);
             if (!content.contains(LIVE_STREAM_FINISH_TAG)) {
                 record.httpCode = HTTP_CODE_NOT_ACCEPTABLE;
-                throw new IOException(String.format("unsupported live stream url: %s", record.url));
+                throw new IOException("Unsupported live stream");
             }
         }
     }

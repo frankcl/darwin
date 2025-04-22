@@ -7,7 +7,7 @@ import org.slf4j.LoggerFactory;
 import xin.manong.darwin.common.Constants;
 import xin.manong.darwin.common.model.Plan;
 import xin.manong.darwin.queue.ConcurrencyQueue;
-import xin.manong.darwin.queue.ConcurrencyConstants;
+import xin.manong.darwin.service.component.PlanExecutor;
 import xin.manong.darwin.service.iface.PlanService;
 import xin.manong.weapon.base.common.Context;
 
@@ -19,22 +19,22 @@ import java.util.*;
  * @author frankcl
  * @date 2023-03-22 16:25:08
  */
-public class PlanExecutor extends AspectLogSupport {
+public class PlanRunner extends AspectLogSupport {
 
-    private static final Logger logger = LoggerFactory.getLogger(PlanExecutor.class);
-    public static final String ID = "plan_scheduler";
-
-    private int memoryWaterLevel = ConcurrencyConstants.MEMORY_WATER_LEVEL_UNKNOWN;
+    private static final Logger logger = LoggerFactory.getLogger(PlanRunner.class);
+    public static final String ID = "plan_runner";
 
     @Resource
-    protected PlanService planService;
+    private PlanService planService;
     @Resource
-    protected ConcurrencyQueue concurrencyQueue;
+    private PlanExecutor planExecutor;
+    @Resource
+    private ConcurrencyQueue concurrencyQueue;
 
-    public PlanExecutor(Long executeIntervalMs) {
+    public PlanRunner(Long executeIntervalMs) {
         super(ID, executeIntervalMs);
-        this.setName("周期型计划调度器");
-        this.setDescription("负责调度周期型计划，生成数据抓取任务和推送种子链接到多级队列");
+        this.setName("周期型计划运行器");
+        this.setDescription("负责调度周期型计划，生成数据抓取任务和推送种子链接到并发队列");
     }
 
     @Override
@@ -47,13 +47,15 @@ public class PlanExecutor extends AspectLogSupport {
             int pageNum = 1, pageSize = 100;
             Set<String> planIds = new HashSet<>();
             while (true) {
-                memoryWaterLevel = ConcurrencyConstants.MEMORY_WATER_LEVEL_UNKNOWN;
                 List<Plan> plans = planService.getOpenPlanList(pageNum++, pageSize);
                 if (plans == null || plans.isEmpty()) break;
+                boolean checkQueue = false;
                 for (Plan plan : plans) {
+                    if (plan.nextTime != null && plan.nextTime > System.currentTimeMillis()) continue;
+                    if (!checkQueue && !(checkQueue = planExecutor.checkBeforeExecute())) continue;
                     if (planIds.contains(plan.planId)) continue;
                     planIds.add(plan.planId);
-                    execute(plan);
+                    run(plan);
                 }
                 if (plans.size() < pageSize) break;
             }
@@ -63,28 +65,20 @@ public class PlanExecutor extends AspectLogSupport {
     }
 
     /**
-     * 执行周期型计划
+     * 运行周期型计划
      *
      * @param plan 周期性计划
      */
-    private void execute(Plan plan) {
-        if (plan.nextTime != null && plan.nextTime > System.currentTimeMillis()) return;
-        if (memoryWaterLevel == ConcurrencyConstants.MEMORY_WATER_LEVEL_UNKNOWN ||
-                memoryWaterLevel >= ConcurrencyConstants.MEMORY_WATER_LEVEL_WARNING) {
-            memoryWaterLevel = concurrencyQueue.getMemoryWaterLevel();
-            if (memoryWaterLevel == ConcurrencyConstants.MEMORY_WATER_LEVEL_DANGER) {
-                logger.warn("Redis memory water level is in danger, can't push");
-                return;
-            }
-        }
+    private void run(Plan plan) {
         Context context = new Context();
         try {
-            if (!planService.execute(plan)) {
+            if (!planExecutor.execute(plan)) {
                 context.put(Constants.BUILD_STATUS, Constants.BUILD_STATUS_FAIL);
                 context.put(Constants.DARWIN_DEBUG_MESSAGE, "执行周期型计划失败");
                 logger.error("Execute plan failed for plan id:{}", plan.planId);
                 return;
             }
+            planService.updateNextTime(plan, System.currentTimeMillis());
             context.put(Constants.BUILD_STATUS, Constants.BUILD_STATUS_SUCCESS);
             logger.info("Execute plan success for plan id:{}", plan.planId);
         } catch (Exception e) {

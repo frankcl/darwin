@@ -101,7 +101,7 @@ public abstract class RuleService {
      * @param planId 计划ID
      * @return 成功返回true，否则返回false
      */
-    public abstract boolean deletePlanRules(String planId);
+    public abstract boolean deleteRules(String planId);
 
     /**
      * 根据ID获取规则
@@ -117,7 +117,7 @@ public abstract class RuleService {
      * @param planId 计划ID
      * @return 规则列表
      */
-    public abstract List<Rule> getPlanRules(String planId);
+    public abstract List<Rule> getRules(String planId);
 
     /**
      * 获取计划相关规则ID列表
@@ -125,7 +125,7 @@ public abstract class RuleService {
      * @param planId 计划ID
      * @return 规则ID列表
      */
-    public abstract List<Integer> getPlanRuleIds(String planId);
+    public abstract List<Integer> getRuleIds(String planId);
 
     /**
      * 搜索规则列表

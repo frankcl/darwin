@@ -63,7 +63,7 @@ public class LinkExtractServiceImpl implements LinkExtractService {
                 new URL(child);
                 children.add(URLRecord.buildScopeLink(child, scope));
             } catch (Exception e) {
-                logger.warn("invalid child URL[{}]", child);
+                logger.warn("Invalid child URL:{}", child);
             }
             return;
         }

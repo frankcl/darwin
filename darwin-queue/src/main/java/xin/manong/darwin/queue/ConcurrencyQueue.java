@@ -52,7 +52,7 @@ public class ConcurrencyQueue {
     private double calculateRedisMemoryUseRatio() {
         RedisMemory redisMemory = redisClient.getMemoryInfo();
         if (redisMemory == null) {
-            logger.warn("not support to get redis memory");
+            logger.warn("Not support to get redis memory");
             return 0d;
         }
         long maxMemoryBytes = redisMemory.maxMemoryBytes == 0L ?
@@ -250,7 +250,7 @@ public class ConcurrencyQueue {
         for (Object response : responses) if (response != null && (Integer) response > 0) return false;
         RSetCache<String> concurrentUnits = concurrentUnits();
         concurrentUnits.remove(concurrentUnit);
-        logger.info("remove concurrent unit:{} success", concurrentUnit);
+        logger.info("Remove concurrent unit:{} success", concurrentUnit);
         return true;
     }
 
@@ -347,7 +347,7 @@ public class ConcurrencyQueue {
                 getBlockingQueue(concurrentQueueKey, codec);
         int queueSize = queue.size();
         if (config.maxQueueCapacity > 0 && queueSize >= config.maxQueueCapacity) {
-            logger.warn("queue is full for concurrent unit:{}", concurrentUnit);
+            logger.warn("Queue is full for concurrent unit:{}", concurrentUnit);
             record.status = Constants.URL_STATUS_QUEUE_FULL;
             return PushResult.FULL;
         }

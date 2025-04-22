@@ -76,9 +76,9 @@ public class RuleController {
     @Path("planRules")
     @GetMapping("planRules")
     @EnableWebLogAspect
-    public List<Rule> getPlanRules(@QueryParam("plan_id") String planId) {
+    public List<Rule> getRules(@QueryParam("plan_id") String planId) {
         if (StringUtils.isEmpty(planId)) throw new BadRequestException("计划ID为空");
-        return ruleService.getPlanRules(planId);
+        return ruleService.getRules(planId);
     }
 
     /**

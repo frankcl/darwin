@@ -68,7 +68,7 @@ public class ProxyController {
         HttpRequest httpRequest = HttpRequest.buildGetRequest(requestURL, null);
         try (Response httpResponse = httpClient.execute(httpRequest)) {
             if (httpResponse == null || !httpResponse.isSuccessful()) {
-                logger.error("check proxy failed for {}, http code: {}",
+                logger.error("Check proxy failed for {}, http code:{}",
                         proxy, httpResponse == null ? -1 : httpResponse.code());
                 return false;
             }

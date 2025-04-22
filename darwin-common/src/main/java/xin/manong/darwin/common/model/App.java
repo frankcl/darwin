@@ -89,7 +89,7 @@ public class App extends BaseModel {
      */
     public boolean check() {
         if (StringUtils.isEmpty(name)) {
-            logger.error("app name is empty");
+            logger.error("App name is empty");
             return false;
         }
         return true;

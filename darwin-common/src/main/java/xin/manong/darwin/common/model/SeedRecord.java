@@ -177,38 +177,38 @@ public class SeedRecord extends BaseModel {
      */
     public boolean check() {
         if (StringUtils.isEmpty(key)) {
-            logger.error("key is empty");
+            logger.error("Key is empty");
             return false;
         }
         if (StringUtils.isEmpty(hash)) {
-            logger.error("hash is empty");
+            logger.error("Hash is empty");
             return false;
         }
         if (StringUtils.isEmpty(url)) {
-            logger.error("url is empty");
+            logger.error("Url is empty");
             return false;
         }
         if (StringUtils.isEmpty(planId)) {
-            logger.error("plan id is empty");
+            logger.error("Plan id is empty");
             return false;
         }
         if (priority == null) priority = Constants.PRIORITY_NORMAL;
         if (concurrentLevel == null) concurrentLevel = Constants.CONCURRENT_LEVEL_DOMAIN;
         if (fetchMethod == null) fetchMethod = Constants.FETCH_METHOD_COMMON;
         if (!Constants.SUPPORT_CONTENT_CATEGORIES.containsKey(category)) {
-            logger.error("not support URL category[{}]", category);
+            logger.error("Not support URL category:{}", category);
             return false;
         }
         if (!Constants.SUPPORT_FETCH_METHODS.containsKey(fetchMethod)) {
-            logger.error("not support fetch method[{}]", fetchMethod);
+            logger.error("Not support fetch method:{}", fetchMethod);
             return false;
         }
         if (!Constants.SUPPORT_CONCURRENT_LEVELS.containsKey(concurrentLevel)) {
-            logger.error("not support concurrent level[{}]", concurrentLevel);
+            logger.error("Not support concurrent level:{}", concurrentLevel);
             return false;
         }
         if (priority > Constants.PRIORITY_LOW || priority < Constants.PRIORITY_HIGH) {
-            logger.error("not support priority[{}]", priority);
+            logger.error("Not support priority:{}", priority);
             return false;
         }
         return true;

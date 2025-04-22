@@ -55,13 +55,13 @@ public class JavaScript extends Script {
         ByteArrayOutputStream outputStream = null;
         try {
             inputStream = JavaScript.class.getResourceAsStream(JAVASCRIPT_UTILS_FILE);
-            if (inputStream == null) throw new IllegalStateException("load javascript utils file failed");
+            if (inputStream == null) throw new IllegalStateException("Load javascript utils file failed");
             outputStream = new ByteArrayOutputStream(bufferSize);
             byte[] buffer = new byte[bufferSize];
             while ((n = inputStream.read(buffer)) != -1) outputStream.write(buffer, 0, n);
             return outputStream.toString(StandardCharsets.UTF_8);
         } catch (Exception e) {
-            logger.error("load java script utils failed, cause[{}]", e.getMessage());
+            logger.error("Load java script utils failed, cause:{}", e.getMessage());
             throw new RuntimeException(e);
         } finally {
             try {
@@ -94,7 +94,7 @@ public class JavaScript extends Script {
             scriptEngine.eval(String.format("%s\n%s", JAVASCRIPT_UTILS, scriptCode));
             function = (Invocable) scriptEngine;
         } catch (Exception e) {
-            logger.error("build JavaScript parse script failed for key[{}]", key);
+            logger.error("Build JavaScript script failed for key:{}", key);
             logger.error(e.getMessage(), e);
             throw new CompileException(e.getMessage(), e);
         }

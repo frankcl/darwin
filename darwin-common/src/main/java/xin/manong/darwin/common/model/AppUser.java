@@ -85,15 +85,15 @@ public class AppUser extends BaseModel {
      */
     public boolean check() {
         if (StringUtils.isEmpty(userId)) {
-            logger.error("user id is empty");
+            logger.error("User id is empty");
             return false;
         }
         if (StringUtils.isEmpty(nickName)) {
-            logger.error("nick name is empty");
+            logger.error("Nick name is empty");
             return false;
         }
         if (appId == null) {
-            logger.error("app id is null");
+            logger.error("App id is null");
             return false;
         }
         return true;

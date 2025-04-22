@@ -20,7 +20,7 @@ public class OSSInput extends Input {
     public OSSInput(String ossURL, OSSService ossService) {
         this.ossMeta = OSSClient.parseURL(ossURL);
         this.ossService = ossService;
-        if (ossMeta == null) throw new IllegalArgumentException("invalid input oss url");
+        if (ossMeta == null) throw new IllegalArgumentException("Invalid input oss url");
     }
 
     public OSSInput(OSSMeta ossMeta, OSSService ossService) {

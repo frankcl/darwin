@@ -127,23 +127,23 @@ public class Job extends BaseModel {
      */
     public boolean check() {
         if (appId == null) {
-            logger.error("app id is null");
+            logger.error("App id is null");
             return false;
         }
         if (StringUtils.isEmpty(planId)) {
-            logger.error("plan id is empty");
+            logger.error("Plan id is empty");
             return false;
         }
         if (StringUtils.isEmpty(jobId)) {
-            logger.error("job id is empty");
+            logger.error("Job id is empty");
             return false;
         }
         if (StringUtils.isEmpty(name)) {
-            logger.error("job name is empty");
+            logger.error("Job name is empty");
             return false;
         }
         if (fetchMethod != null && !Constants.SUPPORT_FETCH_METHODS.containsKey(fetchMethod)) {
-            logger.error("not supported fetch method[{}]", fetchMethod);
+            logger.error("Not supported fetch method:{}", fetchMethod);
             return false;
         }
         if (status == null) status = true;

@@ -18,10 +18,10 @@ public class CharsetSpeculator {
 
     public static String speculate(byte[] byteArray, int offset, int length) {
         if (byteArray == null || byteArray.length == 0) {
-            throw new IllegalArgumentException("bytes are not allowed to be empty");
+            throw new IllegalArgumentException("Bytes are not allowed to be empty");
         }
         if (offset < 0 || offset + length > byteArray.length) {
-            throw new IllegalArgumentException("offset or length out of bounds of array");
+            throw new IllegalArgumentException("Offset or length out of bounds of array");
         }
         UniversalDetector detector = new UniversalDetector(null);
         try {

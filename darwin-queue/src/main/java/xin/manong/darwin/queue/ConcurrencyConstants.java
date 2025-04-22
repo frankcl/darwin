@@ -11,7 +11,6 @@ public class ConcurrencyConstants {
     /**
      * 内存水位等级定义
      */
-    public static final int MEMORY_WATER_LEVEL_UNKNOWN = -1;
     public static final int MEMORY_WATER_LEVEL_NORMAL = 0;
     public static final int MEMORY_WATER_LEVEL_WARNING = 1;
     public static final int MEMORY_WATER_LEVEL_DANGER = 2;

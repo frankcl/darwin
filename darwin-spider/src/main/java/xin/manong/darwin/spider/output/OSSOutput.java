@@ -24,7 +24,7 @@ public class OSSOutput extends Output {
     @Override
     public void sink(InputStream inputStream) throws IOException {
         if (!ossService.put(key, inputStream)) {
-            throw new IOException(String.format("put oss object failed for key: %s", key));
+            throw new IOException(String.format("Put oss object failed for key: %s", key));
         }
     }
 }

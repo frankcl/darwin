@@ -9,7 +9,7 @@ import xin.manong.darwin.common.model.Message;
 import xin.manong.darwin.runner.monitor.ConcurrencyQueueMonitor;
 import xin.manong.darwin.runner.monitor.ProxyMonitor;
 import xin.manong.darwin.runner.core.Allocator;
-import xin.manong.darwin.runner.core.PlanExecutor;
+import xin.manong.darwin.runner.core.PlanRunner;
 import xin.manong.darwin.service.iface.MessageService;
 import xin.manong.weapon.base.etcd.EtcdClient;
 import xin.manong.weapon.base.etcd.LockApproval;
@@ -41,7 +41,7 @@ public class ExecuteRunnerShell implements EventListener {
     public static final int RUNNER_TYPE_CORE = 1;
     public static final int RUNNER_TYPE_MONITOR = 2;
 
-    public static final String LOCK_KEY_PLAN_EXECUTOR = LOCK_KEY_PREFIX + PlanExecutor.ID;
+    public static final String LOCK_KEY_PLAN_RUNNER = LOCK_KEY_PREFIX + PlanRunner.ID;
     public static final String LOCK_KEY_ALLOCATOR = LOCK_KEY_PREFIX + Allocator.ID;
     public static final String LOCK_KEY_CONCURRENCY_QUEUE_MONITOR = LOCK_KEY_PREFIX + ConcurrencyQueueMonitor.ID;
     public static final String LOCK_KEY_PROXY_MONITOR = LOCK_KEY_PREFIX + ProxyMonitor.KEY;
@@ -80,7 +80,7 @@ public class ExecuteRunnerShell implements EventListener {
      */
     public void start() {
         if (runner.isRunning()) {
-            logger.warn("Execute runner:{} has been started", runner.getId());
+            logger.warn("Runner:{} has been started", runner.getId());
             throw new IllegalStateException("当前已是运行状态");
         }
         LockRequest request = new LockRequest(lockKey, LEASE_TTL, observer);
@@ -115,7 +115,7 @@ public class ExecuteRunnerShell implements EventListener {
     public void stop() {
         try {
             if (!runner.isRunning()) {
-                logger.warn("Execute runner:{} is not running", runner.getId());
+                logger.warn("Runner:{} is not running", runner.getId());
                 throw new IllegalStateException("当前已是停止状态");
             }
             if (runner.isRunning()) runner.stop();

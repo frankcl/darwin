@@ -66,7 +66,7 @@ public class ExecuteRunnerRegistry {
      */
     public boolean start(String key) {
         if (!executeRunnerMap.containsKey(key)) {
-            logger.warn("executor[{}] is not found for starting", key);
+            logger.warn("Runner[{}] is not found for starting", key);
             return false;
         }
         executeRunnerMap.get(key).start();
@@ -81,7 +81,7 @@ public class ExecuteRunnerRegistry {
      */
     public boolean stop(String key) {
         if (!executeRunnerMap.containsKey(key)) {
-            logger.warn("executor[{}] is not found for stopping", key);
+            logger.warn("Runner[{}] is not found for stopping", key);
             return false;
         }
         executeRunnerMap.get(key).stop();
@@ -96,7 +96,7 @@ public class ExecuteRunnerRegistry {
      */
     public boolean isRunning(String key) {
         if (!executeRunnerMap.containsKey(key)) {
-            logger.warn("executor[{}] is not found for getting status", key);
+            logger.warn("Runner[{}] is not found for getting status", key);
             return false;
         }
         return executeRunnerMap.get(key).isRunning();

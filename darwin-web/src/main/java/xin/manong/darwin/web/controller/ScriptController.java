@@ -76,7 +76,7 @@ public class ScriptController {
             if (!StringUtils.isEmpty(record.redirectURL)) builder.redirectURL(record.redirectURL);
             ParseResponse parseResponse = script.doExecute(builder.build());
             if (!parseResponse.status) {
-                logger.error("parse failed for url[{}]", request.url);
+                logger.error("Parse failed for url:{}", request.url);
                 DebugError debugError = new DebugError(parseResponse.message, null);
                 debugError.debugLog = parseResponse.debugLog;
                 return debugError;
@@ -86,7 +86,7 @@ public class ScriptController {
             debugSuccess.debugLog = parseResponse.debugLog;
             return debugSuccess;
         } catch (Exception e) {
-            logger.error("exception occurred when debugging url[{}]", request.url);
+            logger.error("Exception occurred when debugging url:{}", request.url);
             logger.error(e.getMessage(), e);
             return new DebugError(e.getMessage(), ExceptionUtils.getStackTrace(e));
         }

@@ -81,11 +81,11 @@ public class Message extends BaseModel {
      */
     public boolean check() {
         if (StringUtils.isEmpty(sourceKey)) {
-            logger.error("source key is empty");
+            logger.error("Source key is empty");
             return false;
         }
         if (sourceType == null) {
-            logger.error("source type is null");
+            logger.error("Source type is null");
             return false;
         }
         return true;

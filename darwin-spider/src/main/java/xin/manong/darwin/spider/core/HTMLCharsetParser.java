@@ -48,7 +48,7 @@ public class HTMLCharsetParser {
                 Charset.forName(charset);
                 return charset;
             } catch (UnsupportedCharsetException e) {
-                logger.warn("unsupported charset: {}", charset);
+                logger.warn("Unsupported charset: {}", charset);
             }
         }
         return null;

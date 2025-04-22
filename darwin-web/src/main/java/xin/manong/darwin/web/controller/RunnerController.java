@@ -11,6 +11,7 @@ import xin.manong.darwin.common.model.Message;
 import xin.manong.darwin.runner.manage.ExecuteRunnerMeta;
 import xin.manong.darwin.runner.manage.ExecuteRunnerRegistry;
 import xin.manong.darwin.service.iface.MessageService;
+import xin.manong.darwin.web.component.PermissionSupport;
 import xin.manong.weapon.spring.boot.aspect.EnableWebLogAspect;
 
 import java.util.List;
@@ -31,6 +32,8 @@ public class RunnerController {
     protected MessageService messageService;
     @Resource
     protected ExecuteRunnerRegistry executeRunnerRegistry;
+    @Resource
+    protected PermissionSupport permissionSupport;
 
     /**
      * 获取执行器列表
@@ -74,6 +77,7 @@ public class RunnerController {
     @GetMapping("popMessage")
     @EnableWebLogAspect
     public Message popMessage(@QueryParam("key") String key) {
+        permissionSupport.checkAdmin();
         Message message = messageService.pop(key, Message.SOURCE_TYPE_RUNNER);
         if (message == null) throw new NotFoundException("未发现消息");
         return message;
@@ -106,6 +110,7 @@ public class RunnerController {
     @GetMapping("start")
     @EnableWebLogAspect
     public boolean start(@QueryParam("key") String key) {
+        permissionSupport.checkAdmin();
         return executeRunnerRegistry.start(key);
     }
 
@@ -121,6 +126,7 @@ public class RunnerController {
     @GetMapping("stop")
     @EnableWebLogAspect
     public boolean stop(@QueryParam("key") String key) {
+        permissionSupport.checkAdmin();
         return executeRunnerRegistry.stop(key);
     }
 }

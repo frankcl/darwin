@@ -1,12 +1,12 @@
 package xin.manong.darwin.service.component;
 
-import org.apache.commons.lang3.StringUtils;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.streaming.SXSSFSheet;
 import org.apache.poi.xssf.streaming.SXSSFWorkbook;
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -17,20 +17,20 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Excel文件构建器
+ * Excel文档导出
  *
  * @author frankcl
  * @date 2023-12-22 15:16:00
  */
-public class ExcelBuilder {
+public class ExcelDocumentExporter {
 
-    private static final Logger logger = LoggerFactory.getLogger(ExcelBuilder.class);
+    private static final Logger logger = LoggerFactory.getLogger(ExcelDocumentExporter.class);
 
     private Workbook workbook;
     private Map<String, Sheet> sheetMap;
     private Map<String, List<String>> sheetColumnsMap;
 
-    public ExcelBuilder() throws IOException {
+    public ExcelDocumentExporter() throws IOException {
         init();
     }
 
@@ -44,25 +44,25 @@ public class ExcelBuilder {
         this.workbook = new SXSSFWorkbook();
         this.sheetMap = new HashMap<>();
         this.sheetColumnsMap = new HashMap<>();
-        logger.info("init excel builder success");
+        logger.info("Init excel document exporter success");
     }
 
     /**
      * 导出数据
      *
-     * @param outputStream 导出目标流
+     * @param output 导出目标流
      * @throws IOException I/O异常
      */
-    public void export(OutputStream outputStream) throws IOException {
+    public void export(OutputStream output) throws IOException {
         assert workbook != null;
         try {
             for (Map.Entry<String, Sheet> entry : sheetMap.entrySet()) {
                 String name = entry.getKey();
                 Sheet sheet = entry.getValue();
-                logger.info("export rows[{}] for sheet[{}]", sheet.getPhysicalNumberOfRows(), name);
+                logger.info("Export rows num:{} for sheet:{}", sheet.getPhysicalNumberOfRows(), name);
             }
-            workbook.write(outputStream);
-            logger.info("export excel success");
+            workbook.write(output);
+            logger.info("Export Excel document success");
         } finally {
             workbook.close();
             workbook = null;
@@ -70,37 +70,36 @@ public class ExcelBuilder {
     }
 
     /**
-     * 创建sheet
-     * 如果同名sheet存在则创建失败
+     * 构建表单
+     * 如果同名表单存在则构建失败
      *
-     * @param name sheet名称
+     * @param sheetName 表单名称
      * @param columns 列名列表
      * @return 成功返回true，否则返回false
      */
-    public boolean createSheet(String name, List<String> columns) {
+    public boolean buildSheet(@NotNull String sheetName, List<String> columns) {
         assert workbook != null;
-        if (sheetMap.containsKey(name)) {
-            logger.error("sheet[{}] has existed", name);
+        if (sheetMap.containsKey(sheetName)) {
+            logger.error("Sheet:{} has existed", sheetName);
             return false;
         }
-        if (StringUtils.isEmpty(name)) name = "unknown";
-        Sheet sheet = workbook.createSheet(name);
+        Sheet sheet = workbook.createSheet(sheetName);
         Row row = sheet.createRow(sheet.getPhysicalNumberOfRows());
         for (int i = 0; i < columns.size(); i++) {
             Cell cell = row.createCell(i);
             cell.setCellValue(columns.get(i));
         }
-        sheetMap.put(name, sheet);
-        sheetColumnsMap.put(name, columns);
-        logger.info("create sheet[{}] success", name);
+        sheetMap.put(sheetName, sheet);
+        sheetColumnsMap.put(sheetName, columns);
+        logger.info("Build sheet:{} success", sheetName);
         return true;
     }
 
     /**
      * 添加数据
-     * sheet不存在则添加失败
+     * 如果表单不存在则添加失败
      *
-     * @param sheetName sheet名称
+     * @param sheetName 表单名称
      * @param data 数据
      * @return 成功返回true，否则返回false
      * @throws IOException I/O异常
@@ -110,7 +109,7 @@ public class ExcelBuilder {
         Sheet sheet = sheetMap.getOrDefault(sheetName, null);
         List<String> columns = sheetColumnsMap.getOrDefault(sheetName, null);
         if (sheet == null || columns == null) {
-            logger.error("sheet[{}] is not found", sheetName);
+            logger.error("Sheet:{} is not found", sheetName);
             return false;
         }
         Row row = sheet.createRow(sheet.getPhysicalNumberOfRows());
@@ -123,7 +122,7 @@ public class ExcelBuilder {
         int writeRows = sheet.getPhysicalNumberOfRows();
         if (writeRows > 0 && writeRows % 200 == 0) {
             ((SXSSFSheet) sheet).flushRows();
-            logger.info("add rows[{}] for sheet[{}]", writeRows, sheetName);
+            logger.info("Flush rows num:{} for sheet:{}", writeRows, sheetName);
         }
         return true;
     }

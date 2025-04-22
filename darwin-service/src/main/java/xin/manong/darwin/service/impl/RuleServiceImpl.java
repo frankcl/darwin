@@ -77,8 +77,8 @@ public class RuleServiceImpl extends RuleService {
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public boolean deletePlanRules(String planId) {
-        List<Rule> rules = getPlanRules(planId);
+    public boolean deleteRules(String planId) {
+        List<Rule> rules = getRules(planId);
         if (rules == null || rules.isEmpty()) return true;
         for (Rule rule : rules) {
             if (!delete(rule.id)) throw new IllegalStateException("删除规则失败");
@@ -92,14 +92,14 @@ public class RuleServiceImpl extends RuleService {
     }
 
     @Override
-    public List<Rule> getPlanRules(String planId) {
+    public List<Rule> getRules(String planId) {
         QueryWrapper<Rule> query = new QueryWrapper<Rule>().select("id", "name", "regex");
         query.eq("plan_id", planId);
         return ruleMapper.selectList(query);
     }
 
     @Override
-    public List<Integer> getPlanRuleIds(String planId) {
+    public List<Integer> getRuleIds(String planId) {
         QueryWrapper<Rule> query = new QueryWrapper<Rule>().select("id");
         query.eq("plan_id", planId);
         return ruleMapper.selectList(query).stream().map(rule -> rule.id).collect(Collectors.toList());

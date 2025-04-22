@@ -30,7 +30,7 @@ public class PushBackPolicy implements RejectedExecutionHandler {
         try {
             recordQueue.put(spiderTask.spiderRecord);
         } catch (Exception e) {
-            logger.error("push back record[{}] failed", spiderTask.spiderRecord.record.key);
+            logger.error("Push back record failed for key:{}", spiderTask.spiderRecord.record.key);
             logger.error(e.getMessage(), e);
         }
     }

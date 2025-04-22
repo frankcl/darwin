@@ -119,15 +119,15 @@ public class Proxy extends BaseModel {
      */
     public boolean check() {
         if (StringUtils.isEmpty(address)) {
-            logger.error("proxy address is empty");
+            logger.error("Proxy address is empty");
             return false;
         }
         if (port == null || port <= 0) {
-            logger.error("proxy port[{}] is invalid", port == null ? - 1 : port);
+            logger.error("Proxy port:{} is invalid", port == null ? - 1 : port);
             return false;
         }
         if (!Constants.SUPPORT_PROXY_CATEGORIES.containsKey(category)) {
-            logger.error("unsupported proxy category[{}]", category);
+            logger.error("Unsupported proxy category:{}", category);
             return false;
         }
         return true;

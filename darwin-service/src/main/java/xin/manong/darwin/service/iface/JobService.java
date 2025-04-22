@@ -57,7 +57,7 @@ public abstract class JobService {
     private void onRemoval(RemovalNotification<String, Optional<Job>> notification) {
         Objects.requireNonNull(notification.getValue());
         if (notification.getValue().isEmpty()) return;
-        logger.info("job[{}] is removed from cache", notification.getValue().get().jobId);
+        logger.info("Job:{} is removed from cache", notification.getValue().get().jobId);
     }
 
     /**

@@ -53,7 +53,7 @@ public class M3U8Input extends Input {
                 inputStream = new FileInputStream(tempFile);
                 return;
             }
-            throw new IllegalStateException(String.format("fetch M3U8 stream failed for %s, code is %d",
+            throw new IllegalStateException(String.format("Fetch M3U8 stream failed for %s, code is %d",
                     record.url, code));
         } catch (Exception e) {
             throw new IOException(e);
@@ -66,7 +66,7 @@ public class M3U8Input extends Input {
     public void close() throws IOException {
         super.close();
         if (tempFile != null && tempFile.exists()) {
-            if (!tempFile.delete()) logger.warn("delete temp file: {} failed", tempFile.getAbsolutePath());
+            if (!tempFile.delete()) logger.warn("Delete temp file: {} failed", tempFile.getAbsolutePath());
         }
     }
 
@@ -102,6 +102,6 @@ public class M3U8Input extends Input {
     private void createTempDirectory() {
         File directory = new File(config.tempDirectory);
         if (directory.exists()) return;
-        if (directory.mkdirs()) logger.info("create temp directory[{}] success", config.tempDirectory);
+        if (directory.mkdirs()) logger.info("Create temp directory:{} success", config.tempDirectory);
     }
 }

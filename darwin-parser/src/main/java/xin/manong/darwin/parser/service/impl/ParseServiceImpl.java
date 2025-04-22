@@ -45,7 +45,7 @@ public class ParseServiceImpl implements ParseService {
             script.doExecute(parseRequest);
             return CompileResult.success();
         } catch (Exception e) {
-            logger.error("compile failed");
+            logger.error("Compile failed");
             logger.error(e.getMessage(), e);
             return CompileResult.error(e.getMessage(), ExceptionUtils.getStackTrace(e));
         }
@@ -54,7 +54,7 @@ public class ParseServiceImpl implements ParseService {
     @Override
     public ParseResponse parse(ScriptParseRequest request) {
         if (request == null || !request.check()) {
-            logger.error("parse request is invalid");
+            logger.error("Parse request is invalid");
             return ParseResponse.buildError("解析请求非法");
         }
         if (request.isScopeExtract()) return linkExtractService.extract(request);
@@ -68,7 +68,7 @@ public class ParseServiceImpl implements ParseService {
             try {
                 return script.execute(request);
             } catch (ConcurrentException e) {
-                logger.warn("script concurrent exception occurred");
+                logger.warn("Script concurrent exception occurred");
             } finally {
                 if (script.currentReferenceCount() <= 0 && scriptCache.get(key) == null) script.close();
             }

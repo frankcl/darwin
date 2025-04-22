@@ -40,8 +40,7 @@ public class ScriptCache {
         if (script != null && script.currentReferenceCount() <= 0) script.close();
         RemovalCause cause = notification.getCause();
         assert script != null;
-        logger.info("{}[{}] is removed, cause[{}]", script.getClass().getSimpleName(),
-                notification.getKey(), cause.name());
+        logger.info("Script is removed for key:{}, cause is {}", notification.getKey(), cause.name());
     }
 
     /**
@@ -52,7 +51,7 @@ public class ScriptCache {
      */
     public void put(Script script) {
         if (script == null) {
-            logger.warn("script is null for putting cache");
+            logger.warn("Script is null for putting cache");
             return;
         }
         try {
@@ -63,7 +62,7 @@ public class ScriptCache {
                 prevScript.close();
             }
         } catch (Exception e) {
-            logger.error("put script into cache failed");
+            logger.error("Put script into cache failed");
             logger.error(e.getMessage(), e);
         }
     }

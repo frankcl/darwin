@@ -16,22 +16,14 @@ import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.transaction.interceptor.TransactionAspectSupport;
 import xin.manong.darwin.common.Constants;
 import xin.manong.darwin.common.model.*;
-import xin.manong.darwin.common.util.DarwinUtil;
-import xin.manong.darwin.queue.ConcurrencyQueue;
-import xin.manong.darwin.queue.PushResult;
 import xin.manong.darwin.service.convert.Converter;
 import xin.manong.darwin.service.dao.mapper.PlanMapper;
 import xin.manong.darwin.service.iface.*;
-import xin.manong.darwin.service.impl.ots.JobServiceImpl;
-import xin.manong.darwin.service.impl.ots.URLServiceImpl;
 import xin.manong.darwin.service.request.JobSearchRequest;
 import xin.manong.darwin.service.request.PlanSearchRequest;
 import xin.manong.darwin.service.util.ModelValidator;
-import xin.manong.weapon.base.common.Context;
-import xin.manong.weapon.base.log.JSONLogger;
 
 import java.text.ParseException;
 import java.util.ArrayList;
@@ -60,14 +52,6 @@ public class PlanServiceImpl implements PlanService {
     @Resource
     @Lazy
     protected URLService urlService;
-    @Resource
-    @Lazy
-    protected SeedService seedService;
-    @Resource
-    @Lazy
-    protected ConcurrencyQueue concurrencyQueue;
-    @Resource(name = "urlAspectLogger")
-    protected JSONLogger aspectLogger;
 
     @Override
     public Plan get(String planId) {
@@ -107,7 +91,7 @@ public class PlanServiceImpl implements PlanService {
             updateWrapper.eq(Plan::getPlanId, plan.planId).
                     set(Plan::getUpdateTime, currentTime).
                     set(Plan::getNextTime, nextTime);
-            if (planMapper.update(updateWrapper) <= 0) logger.warn("update next time failed for plan:{}", plan.planId);
+            if (planMapper.update(updateWrapper) <= 0) logger.warn("Update next time failed for plan:{}", plan.planId);
         } catch (ParseException e) {
             throw new IllegalStateException(e);
         }
@@ -129,7 +113,7 @@ public class PlanServiceImpl implements PlanService {
         searchRequest.planId = planId;
         Pager<Job> pager = jobService.search(searchRequest);
         if (pager.total > 0) throw new ForbiddenException("计划任务不为空");
-        if (!ruleService.deletePlanRules(planId)) throw new IllegalStateException("删除规则失败");
+        if (!ruleService.deleteRules(planId)) throw new IllegalStateException("删除规则失败");
         return planMapper.deleteById(planId) > 0;
     }
 
@@ -163,103 +147,5 @@ public class PlanServiceImpl implements PlanService {
         Pager<Plan> pager = search(searchRequest);
         if (pager == null || pager.records == null) return new ArrayList<>();
         return pager.records;
-    }
-
-    @Override
-    @Transactional(rollbackFor = Exception.class)
-    public boolean execute(Plan plan) {
-        if (plan.status == null || !plan.status) {
-            logger.warn("plan:{} is not opened", plan.planId);
-            return false;
-        }
-        Job job = Converter.convert(plan);
-        List<URLRecord> pushRecords = new ArrayList<>(), commitRecords = new ArrayList<>();
-        try {
-            if (!jobService.add(job)) throw new RuntimeException("添加任务失败");
-            handleSeeds(plan, job, pushRecords, commitRecords);
-            if (plan.category != Constants.PLAN_CATEGORY_PERIOD) return true;
-            updateNextTime(plan, System.currentTimeMillis());
-            return true;
-        } catch (Exception e) {
-            logger.error(e.getMessage(), e);
-            TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
-            rollbackJob(job.jobId, pushRecords, commitRecords);
-            return false;
-        }
-    }
-
-    /**
-     * 处理任务种子
-     *
-     * @param plan 计划
-     * @param job 任务
-     * @param pushRecords 成功推送多级队列数据
-     * @param commitRecords 成功提交数据库数据
-     */
-    private void handleSeeds(Plan plan, Job job,
-                             List<URLRecord> pushRecords,
-                             List<URLRecord> commitRecords) {
-        List<SeedRecord> seedRecords = seedService.getList(plan.planId);
-        for (SeedRecord seedRecord : seedRecords) {
-            URLRecord record = Converter.convert(seedRecord);
-            record.appId = plan.appId;
-            record.jobId = job.jobId;
-            if (record.fetchMethod == null) record.fetchMethod = job.fetchMethod;
-            if (record.concurrentLevel == null) record.concurrentLevel = Constants.CONCURRENT_LEVEL_DOMAIN;
-            if (record.priority == null) {
-                record.priority = job.priority == null ? Constants.PRIORITY_NORMAL : job.priority;
-            }
-            pushRecord(record, commitRecords, pushRecords);
-            commitAspectLog(record);
-        }
-    }
-    /**
-     * 推送任务种子
-     *
-     * @param record 种子
-     * @param commitRecords 成功提交数据库数据
-     * @param pushRecords 成功推送多级队列数据
-     */
-    private void pushRecord(URLRecord record, List<URLRecord> commitRecords, List<URLRecord> pushRecords) {
-        PushResult pushResult = concurrencyQueue.push(record, 3);
-        if (pushResult != PushResult.SUCCESS) {
-            logger.error("push record:{} failed, record status is {}", record.url,
-                    Constants.SUPPORT_URL_STATUSES.get(record.status));
-            throw new IllegalStateException("添加种子到多级队列失败");
-        }
-        pushRecords.add(record);
-        if (!urlService.add(new URLRecord(record))) throw new IllegalStateException("添加种子到数据库失败");
-        commitRecords.add(record);
-    }
-
-    /**
-     * 回滚任务
-     * 1. 回滚添加到MultiQueue数据
-     * 2. 回滚添加到数据库数据
-     * 3. 回滚添加任务
-     *
-     * @param jobId 任务ID
-     * @param pushRecords 成功推送多级队列数据
-     * @param commitRecords 成功提交数据库数据
-     */
-    private void rollbackJob(String jobId, List<URLRecord> pushRecords, List<URLRecord> commitRecords) {
-        for (URLRecord pushRecord : pushRecords) concurrencyQueue.remove(pushRecord);
-        if (urlService instanceof URLServiceImpl) {
-            for (URLRecord commitRecord : commitRecords) urlService.delete(commitRecord.key);
-        }
-        if (jobService instanceof JobServiceImpl) jobService.delete(jobId);
-    }
-
-    /**
-     * 提交URL记录切面日志
-     *
-     * @param record URL记录
-     */
-    private void commitAspectLog(URLRecord record) {
-        if (record == null || aspectLogger == null) return;
-        Context context = new Context();
-        context.put(Constants.DARWIN_STAGE, Constants.STAGE_PUSH);
-        DarwinUtil.putContext(context, record);
-        aspectLogger.commit(context.getFeatureMap());
     }
 }

@@ -12,7 +12,7 @@ import xin.manong.darwin.common.model.Pager;
 import xin.manong.darwin.common.model.RangeValue;
 import xin.manong.darwin.common.model.URLGroupCount;
 import xin.manong.darwin.common.model.URLRecord;
-import xin.manong.darwin.service.component.ExcelBuilder;
+import xin.manong.darwin.service.component.ExcelDocumentExporter;
 import xin.manong.darwin.service.config.CacheConfig;
 import xin.manong.darwin.service.request.OrderByRequest;
 import xin.manong.darwin.service.request.URLSearchRequest;
@@ -46,6 +46,7 @@ public abstract class URLService {
         add("url");
         add("redirect_url");
         add("parent_url");
+        add("fetch_content_url");
         add("job_id");
         add("plan_id");
         add("fetch_time");
@@ -79,7 +80,7 @@ public abstract class URLService {
     private void onRecordRemoval(RemovalNotification<String, Optional<URLRecord>> notification) {
         Objects.requireNonNull(notification.getValue());
         if (notification.getValue().isEmpty()) return;
-        logger.info("record:{} is removed from cache", notification.getValue().get().url);
+        logger.info("Record:{} is removed from cache", notification.getValue().get().url);
     }
 
     /**
@@ -90,7 +91,7 @@ public abstract class URLService {
     private void onKeyRemoval(RemovalNotification<String, Optional<String>> notification) {
         Objects.requireNonNull(notification.getValue());
         if (notification.getValue().isEmpty()) return;
-        logger.info("key:{} is removed from cache", notification.getValue().get());
+        logger.info("Key:{} is removed from cache", notification.getValue().get());
     }
 
     /**
@@ -269,28 +270,28 @@ public abstract class URLService {
      * 最多导出10000条记录
      *
      * @param searchRequest 搜索请求
-     * @return 成功返回ExcelBuilder，否则返回null
+     * @return 成功返回ExcelDocumentExporter实例，否则返回null
      * @throws IOException I/O异常
      */
-    public ExcelBuilder export(URLSearchRequest searchRequest) throws IOException {
-        int current = 1, size = 100;
+    public ExcelDocumentExporter export(URLSearchRequest searchRequest) throws IOException {
+        int pageSize = 100;
         if (searchRequest == null) searchRequest = new URLSearchRequest();
-        searchRequest.current = current;
-        searchRequest.size = size;
-        ExcelBuilder builder = new ExcelBuilder();
-        String sheetName = "URL";
-        builder.createSheet(sheetName, EXPORT_COLUMNS);
+        searchRequest.current = 1;
+        searchRequest.size = pageSize;
+        ExcelDocumentExporter exporter = new ExcelDocumentExporter();
+        String sheetName = "下载数据";
+        exporter.buildSheet(sheetName, EXPORT_COLUMNS);
         int exportCount = 0;
         while (true) {
             Pager<URLRecord> pager = search(searchRequest);
             for (URLRecord record : pager.records) {
                 Map<String, Object> data = JSON.parseObject(JSON.toJSONString(record));
-                builder.add(sheetName, data);
+                exporter.add(sheetName, data);
                 if (++exportCount >= 10000) break;
             }
-            if (pager.records.size() < size) break;
+            if (pager.records.size() < pageSize) break;
             searchRequest.current++;
         }
-        return builder;
+        return exporter;
     }
 }

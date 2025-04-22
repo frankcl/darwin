@@ -49,7 +49,7 @@ public class HTMLSpiderTest {
     private void sweep(Plan plan, Job job) {
         Assert.assertTrue(jobService.delete(job.jobId));
         Assert.assertTrue(planService.delete(plan.planId));
-        Assert.assertTrue(ruleService.deletePlanRules(plan.planId));
+        Assert.assertTrue(ruleService.deleteRules(plan.planId));
     }
 
     private Plan preparePlan() {

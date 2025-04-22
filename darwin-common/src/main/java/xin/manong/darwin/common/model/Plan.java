@@ -154,32 +154,32 @@ public class Plan extends BaseModel {
      */
     public boolean check() {
         if (appId == null) {
-            logger.error("app id is null");
+            logger.error("App id is null");
             return false;
         }
         if (StringUtils.isEmpty(planId)) {
-            logger.error("plan id is empty");
+            logger.error("Plan id is empty");
             return false;
         }
         if (StringUtils.isEmpty(appName)) {
-            logger.error("app name is empty");
+            logger.error("App name is empty");
             return false;
         }
         if (StringUtils.isEmpty(name)) {
-            logger.error("plan name is empty");
+            logger.error("Plan name is empty");
             return false;
         }
         if (!Constants.SUPPORT_PLAN_CATEGORIES.containsKey(category)) {
-            logger.error("not supported plan category[{}]", category);
+            logger.error("Not supported plan category:{}", category);
             return false;
         }
         if (fetchMethod != null && !Constants.SUPPORT_FETCH_METHODS.containsKey(fetchMethod)) {
-            logger.error("not supported fetch method[{}]", fetchMethod);
+            logger.error("Not supported fetch method:{}", fetchMethod);
             return false;
         }
         if (category == Constants.PLAN_CATEGORY_PERIOD && (StringUtils.isEmpty(crontabExpression) ||
                 !CronExpression.isValidExpression(crontabExpression))) {
-            logger.error("crontab expression[{}] is invalid", crontabExpression);
+            logger.error("Crontab expression:{} is invalid", crontabExpression);
             return false;
         }
         if (status == null) status = false;

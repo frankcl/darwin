@@ -55,17 +55,17 @@ public class GroovyScript extends Script {
         try {
             groovyClass = classLoader.parseClass(scriptCode, key);
             if (!HTMLParser.class.isAssignableFrom(groovyClass)) {
-                logger.error("must inherit from xin.manong.darwin.parser.sdk.HTMLParser");
+                logger.error("Must inherit from xin.manong.darwin.parser.sdk.HTMLParser");
                 throw new CompileException("解析类必须继承xin.manong.darwin.parser.sdk.HTMLParser");
             }
             groovyClass.getMethod(METHOD_EXECUTE, ParseRequest.class);
             this.groovyObject = (GroovyObject) groovyClass.getDeclaredConstructor().newInstance();
         } catch (NoSuchMethodException e) {
-            logger.error("parse method[{}] is not found for parser[{}]", METHOD_EXECUTE, groovyClass.getName());
+            logger.error("Parse method:{} is not found for parser:{}", METHOD_EXECUTE, groovyClass.getName());
             logger.error(e.getMessage(), e);
             throw new CompileException(String.format("解析类必须实现方法%s", METHOD_EXECUTE), e);
         } catch (Exception e) {
-            logger.error("build groovy script failed for id[{}]", key);
+            logger.error("Build groovy script failed for key:{}", key);
             logger.error(e.getMessage(), e);
             throw new CompileException(e.getMessage(), e);
         }

@@ -1,6 +1,6 @@
 app:
   runner:
-    plan-executor-execute-interval-ms: 60000
+    plan-runner-execute-interval-ms: 60000
     allocator-execute-interval-ms: 10000
     proxy-execute-time-interval-ms: 30000
     concurrency-queue-execute-time-interval-ms: 300000

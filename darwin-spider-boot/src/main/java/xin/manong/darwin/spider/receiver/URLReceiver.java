@@ -56,7 +56,7 @@ public class URLReceiver implements MessageListener, KafkaRecordProcessor {
             record = JSON.parseObject(new String(body,
                     StandardCharsets.UTF_8), URLRecord.class);
             if (record == null || !record.check()) {
-                logger.error("url record is invalid");
+                logger.error("record is invalid");
                 context.put(Constants.DARWIN_DEBUG_MESSAGE, "URL记录非法");
                 return;
             }

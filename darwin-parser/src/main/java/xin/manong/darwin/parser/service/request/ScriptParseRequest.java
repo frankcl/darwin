@@ -43,11 +43,11 @@ public class ScriptParseRequest extends ParseRequest {
         if (!super.check()) return false;
         if (isScopeExtract()) return true;
         if (StringUtils.isEmpty(scriptCode)) {
-            logger.error("script code is empty");
+            logger.error("Script is empty");
             return false;
         }
         if (!Constants.SUPPORT_SCRIPT_TYPES.containsKey(scriptType)) {
-            logger.error("unsupported script type[{}]", scriptType);
+            logger.error("Unsupported script type:{}", scriptType);
             return false;
         }
         return true;

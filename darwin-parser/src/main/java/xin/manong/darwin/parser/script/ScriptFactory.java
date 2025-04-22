@@ -27,11 +27,11 @@ public class ScriptFactory {
      */
     public static Script make(int scriptType, String scriptCode) throws CompileException {
         if (StringUtils.isEmpty(scriptCode)) {
-            logger.error("script code is empty");
+            logger.error("Script is empty");
             throw new CompileException("脚本代码为空");
         }
         if (!Constants.SUPPORT_SCRIPT_TYPES.containsKey(scriptType)) {
-            logger.error("unsupported script type[{}]", scriptType);
+            logger.error("Unsupported script type:{}", scriptType);
             throw new CompileException("脚本类型不支持");
         }
         if (scriptType == Constants.SCRIPT_TYPE_GROOVY) return new GroovyScript(scriptCode);

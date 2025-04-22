@@ -140,7 +140,7 @@ public class ProxyCache {
         List<Proxy> newProxies = new ArrayList<>(proxies);
         Map<Integer, Proxy> newProxyMap = new HashMap<>();
         for (Proxy proxy : proxies) newProxyMap.put(proxy.id, proxy);
-        logger.info("rebuild proxy cache success, proxy count:{}, previous count:{}",
+        logger.info("Rebuild proxy cache success, proxy count:{}, previous count:{}",
                 newProxies.size(), this.proxies.size());
         this.proxies = newProxies;
         this.proxyMap = newProxyMap;

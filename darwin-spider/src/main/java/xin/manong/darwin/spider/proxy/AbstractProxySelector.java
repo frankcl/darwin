@@ -20,7 +20,7 @@ public abstract class AbstractProxySelector extends ProxySelector {
 
     @Override
     public void connectFailed(URI uri, SocketAddress sa, IOException ioe) {
-        logger.warn("connect URL:{} failed", uri.toString());
+        logger.warn("Connect URL:{} failed", uri.toString());
     }
 
     /**

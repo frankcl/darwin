@@ -30,7 +30,7 @@ public class SpiderProxySelector extends AbstractProxySelector {
     @Override
     public List<Proxy> select(URI uri) {
         HttpProxy httpProxy = buildHttpProxy(proxyService.randomGet(category));
-        if (httpProxy != null) logger.info("fetch URI[{}] for using proxy[{}]",
+        if (httpProxy != null) logger.info("Fetch URI:{} for using proxy:{}",
                 uri.toString(), httpProxy.address().toString());
         return Collections.singletonList(httpProxy == null ? Proxy.NO_PROXY : httpProxy);
     }

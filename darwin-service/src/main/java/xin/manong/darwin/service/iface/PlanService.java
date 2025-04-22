@@ -78,16 +78,4 @@ public interface PlanService {
      * @return 计划列表
      */
     List<Plan> getOpenPlanList(int pageNum, int pageSize);
-
-    /**
-     * 执行计划
-     * 1. 根据计划生成任务，将任务添加到任务表
-     * 2. 将任务种子URL添加到URL记录表
-     * 3. 将任务种子URL添加到MultiQueue
-     * 4. 更新周期计划下次执行时间
-     *
-     * @param plan 计划
-     * @return 成功返回true，否则返回false
-     */
-    boolean execute(Plan plan);
 }
