@@ -19,11 +19,11 @@ import xin.manong.hylian.model.User;
 public class PermissionSupport {
 
     @Resource
-    protected WebConfig webConfig;
+    private WebConfig webConfig;
     @Resource
-    protected AppUserService appUserService;
+    private AppUserService appUserService;
     @Resource
-    protected UserServiceSupport userServiceSupport;
+    private UserServiceSupport userServiceSupport;
 
     /**
      * 当前用户是否具备操作应用权限

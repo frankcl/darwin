@@ -1,50 +1,72 @@
 package xin.manong.darwin.service.util;
 
-import org.apache.commons.lang3.StringUtils;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
-import xin.manong.darwin.common.Constants;
-import xin.manong.darwin.common.model.URLRecord;
 
 import java.net.URL;
 
 /**
- * HTML工具
+ * HTML修正：用于预览HTML修正
  *
  * @author frankcl
  * @date 2025-04-14 16:50:41
  */
-public class HTMLUtil {
+public class HTMLMender {
 
     private static final String HTTP_PROTOCOL = "http://";
     private static final String HTTPS_PROTOCOL = "https://";
 
     private static final String ELEMENT_NAME_BASE = "base";
+    private static final String ELEMENT_NAME_META = "meta";
     private static final String ATTR_NAME_HREF = "href";
-
-    private static final String MIME_TYPE_TEXT = "text";
-    private static final String MIME_TYPE_APPLICATION = "application";
-    private static final String SUB_MIME_TYPE_PDF = "pdf";
-    private static final String SUB_MIME_TYPE_JSON = "json";
-    private static final String SUB_MIME_TYPE_HTML = "html";
+    private static final String ATTR_NAME_HTTP_EQUIV = "http-equiv";
+    private static final String ATTR_NAME_NAME = "name";
+    private static final String ATTR_NAME_CONTENT = "content";
+    private static final String ATTR_VALUE_REFERRER = "referrer";
+    private static final String ATTR_VALUE_CONTENT_TYPE = "Content-Type";
+    private static final String ATTR_VALUE_NO_REFERRER = "no-referrer";
+    private static final String ATTR_VALUE_TEXT_HTML_UTF8 = "text/html; charset=utf-8";
 
     /**
-     * 根据资源mimeType构建资源文件后缀
+     * 修复Content-Type为text/html; charset-utf8
      *
-     * @param record URL记录
-     * @return 成功返回资源文件后缀，否则返回null
+     * @param html HTML字符串
+     * @return 修正后HTML
      */
-    public static String generateSuffixUsingMimeType(URLRecord record) {
-        if (!Constants.SUPPORT_MIME_TYPES.contains(record.mimeType)) return null;
-        if (StringUtils.isEmpty(record.subMimeType)) return null;
-        if (record.mimeType.equalsIgnoreCase(MIME_TYPE_TEXT) &&
-                !record.subMimeType.equalsIgnoreCase(SUB_MIME_TYPE_HTML)) return null;
-        if (record.mimeType.equalsIgnoreCase(MIME_TYPE_APPLICATION) &&
-                !record.subMimeType.equalsIgnoreCase(SUB_MIME_TYPE_PDF) &&
-                !record.subMimeType.equalsIgnoreCase(SUB_MIME_TYPE_JSON)) return null;
-        return record.subMimeType.toLowerCase();
+    public static String amendContentType(String html) {
+        Document document = Jsoup.parse(html);
+        Element head = document.head();
+        Elements elements = head.selectXpath(ELEMENT_NAME_META);
+        for (Element element : elements) {
+            if (!element.attr(ATTR_NAME_HTTP_EQUIV).equals(ATTR_VALUE_CONTENT_TYPE)) continue;
+            element.remove();
+        }
+        Element element = head.appendElement(ELEMENT_NAME_META);
+        element.attr(ATTR_NAME_HTTP_EQUIV, ATTR_VALUE_CONTENT_TYPE);
+        element.attr(ATTR_NAME_CONTENT, ATTR_VALUE_TEXT_HTML_UTF8);
+        return document.html();
+    }
+
+    /**
+     * 修正referrer策略为no-referrer
+     *
+     * @param html HTML字符串
+     * @return 修正后HTML
+     */
+    public static String amendReferrer(String html) {
+        Document document = Jsoup.parse(html);
+        Element head = document.head();
+        Elements elements = head.selectXpath(ELEMENT_NAME_META);
+        for (Element element : elements) {
+            if (!element.attr(ATTR_NAME_NAME).equals(ATTR_VALUE_REFERRER)) continue;
+            element.remove();
+        }
+        Element element = head.appendElement(ELEMENT_NAME_META);
+        element.attr(ATTR_NAME_NAME, ATTR_VALUE_REFERRER);
+        element.attr(ATTR_NAME_CONTENT, ATTR_VALUE_NO_REFERRER);
+        return document.html();
     }
 
     /**

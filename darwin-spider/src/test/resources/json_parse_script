@@ -8,7 +8,7 @@ class GroovyParser extends HTMLParser {
     @Override
     public ParseResponse parse(ParseRequest request) {
         Map<String, Object> fieldMap = new HashMap<>();
-        JSONObject body = JSONObject.parseObject(request.html);
+        JSONObject body = JSONObject.parseObject(request.text);
         if (!body.containsKey("result")) {
             logger.error("parse json failed");
             return ParseResponse.buildError("JSON解析失败");

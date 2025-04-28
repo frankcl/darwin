@@ -126,8 +126,8 @@ watchEffect(() => search())
     </el-table>
     <el-row justify="center" align="middle">
       <el-pagination background layout="prev, pager, next" :total="total"
-                     v-model:page-size="query.size"
-                     v-model:current-page="query.current" />
+                     v-model:page-size="query.page_size"
+                     v-model:current-page="query.page_num" />
     </el-row>
   </el-space>
   <add-app v-model="openAddDialog" @close="refresh" />

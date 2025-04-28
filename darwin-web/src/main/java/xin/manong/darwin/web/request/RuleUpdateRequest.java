@@ -8,8 +8,6 @@ import jakarta.xml.bind.annotation.XmlAccessorType;
 import org.apache.commons.lang3.StringUtils;
 import xin.manong.darwin.common.Constants;
 
-import java.io.Serial;
-
 /**
  * 规则更新请求
  *
@@ -19,9 +17,6 @@ import java.io.Serial;
 @XmlAccessorType(XmlAccessType.FIELD)
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class RuleUpdateRequest extends RuleRequest {
-
-    @Serial
-    private static final long serialVersionUID = -7108663098373497661L;
 
     /**
      * 规则ID

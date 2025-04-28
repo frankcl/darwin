@@ -42,13 +42,13 @@ public class URLServiceImplTest {
         record.jobId = "test_job_id";
         record.planId = "test_plan_id";
         record.appId = 1;
-        record.status = Constants.URL_STATUS_CREATED;
-        record.category = Constants.CONTENT_CATEGORY_LIST;
+        record.status = Constants.URL_STATUS_QUEUING;
+        record.category = Constants.CONTENT_CATEGORY_PAGE;
         record.fetchTime = System.currentTimeMillis();
-        record.userDefinedMap = new HashMap<>();
-        record.userDefinedMap.put("k1", "v1");
-        record.userDefinedMap.put("k2", 123L);
-        record.userDefinedMap.put("k3", list);
+        record.customMap = new HashMap<>();
+        record.customMap.put("k1", "v1");
+        record.customMap.put("k2", 123L);
+        record.customMap.put("k3", list);
         Assert.assertTrue(record.check());
         Assert.assertTrue(urlService.add(record));
 
@@ -60,25 +60,22 @@ public class URLServiceImplTest {
         Assert.assertEquals("test_job_id", recordInDB.jobId);
         Assert.assertEquals("test_plan_id", recordInDB.planId);
         Assert.assertEquals(1, recordInDB.getAppId().intValue());
-        Assert.assertEquals(Constants.URL_STATUS_CREATED, recordInDB.status.intValue());
-        Assert.assertEquals(Constants.CONTENT_CATEGORY_LIST, recordInDB.category.intValue());
+        Assert.assertEquals(Constants.URL_STATUS_QUEUING, recordInDB.status.intValue());
+        Assert.assertEquals(Constants.CONTENT_CATEGORY_PAGE, recordInDB.category.intValue());
         Assert.assertEquals(Constants.PRIORITY_NORMAL, recordInDB.priority.intValue());
         Assert.assertEquals(record.createTime.longValue(), recordInDB.createTime.longValue());
-        Assert.assertEquals(3, recordInDB.userDefinedMap.size());
-        Assert.assertTrue(recordInDB.userDefinedMap.containsKey("k1"));
-        Assert.assertTrue(recordInDB.userDefinedMap.containsKey("k2"));
-        Assert.assertTrue(recordInDB.userDefinedMap.containsKey("k3"));
-        Assert.assertEquals("v1", recordInDB.userDefinedMap.get("k1"));
-        Assert.assertEquals(123, (int) recordInDB.userDefinedMap.get("k2"));
-        List<String> l = (List<String>) recordInDB.userDefinedMap.get("k3");
+        Assert.assertEquals(3, recordInDB.customMap.size());
+        Assert.assertTrue(recordInDB.customMap.containsKey("k1"));
+        Assert.assertTrue(recordInDB.customMap.containsKey("k2"));
+        Assert.assertTrue(recordInDB.customMap.containsKey("k3"));
+        Assert.assertEquals("v1", recordInDB.customMap.get("k1"));
+        Assert.assertEquals(123, (int) recordInDB.customMap.get("k2"));
+        List<String> l = (List<String>) recordInDB.customMap.get("k3");
         Assert.assertEquals(2, l.size());
         Assert.assertEquals("abc", l.get(0));
         Assert.assertEquals("xyz", l.get(1));
 
-        Assert.assertNull(urlService.getCacheByURL("http://www.unknonwn.com/"));
-        Assert.assertNull(urlService.getCacheByURL("http://www.sina.com.cn/"));
-
-        Assert.assertTrue(urlService.updateStatus(record.key, Constants.URL_STATUS_SUCCESS));
+        Assert.assertTrue(urlService.updateStatus(record.key, Constants.URL_STATUS_FETCH_SUCCESS));
 
         URLRecord updateRecord = new URLRecord();
         updateRecord.status = null;
@@ -96,16 +93,15 @@ public class URLServiceImplTest {
         fetchRecord.fieldMap.put("AAA", 123);
         Assert.assertTrue(urlService.updateContent(fetchRecord));
 
-        recordInDB = urlService.getCacheByURL("http://www.sina.com.cn/");
-        Assert.assertNotNull(recordInDB);
-        Assert.assertEquals(record.key, recordInDB.key);
-        Assert.assertEquals(record.url, recordInDB.url);
-        Assert.assertEquals(record.hash, recordInDB.hash);
-        Assert.assertEquals(Constants.URL_STATUS_SUCCESS, recordInDB.status.intValue());
+        recordInDB = urlService.get(record.key);
+        Assert.assertEquals(Constants.URL_STATUS_FETCH_SUCCESS, recordInDB.status.intValue());
         Assert.assertEquals(123L, recordInDB.pushTime.longValue());
         Assert.assertEquals(1123L, recordInDB.popTime.longValue());
-        Assert.assertNull(recordInDB.parentURL);
+        Assert.assertEquals("http://www.sohu.com", recordInDB.parentURL);
         Assert.assertEquals("http://www.sohu.com/123.html", recordInDB.fetchContentURL);
+        Assert.assertEquals(1, recordInDB.fieldMap.size());
+        Assert.assertTrue(recordInDB.fieldMap.containsKey("AAA"));
+        Assert.assertEquals(123, (int) recordInDB.fieldMap.get("AAA"));
 
         Assert.assertTrue(urlService.delete(record.key));
     }

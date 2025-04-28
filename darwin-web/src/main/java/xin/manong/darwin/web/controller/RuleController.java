@@ -41,13 +41,13 @@ import java.util.List;
 public class RuleController {
 
     @Resource
-    protected RuleService ruleService;
+    private RuleService ruleService;
     @Resource
-    protected PlanService planService;
+    private PlanService planService;
     @Resource
-    protected ParseService parseService;
+    private ParseService parseService;
     @Resource
-    protected PermissionSupport permissionSupport;
+    private PermissionSupport permissionSupport;
 
     /**
      * 根据ID获取规则
@@ -206,8 +206,8 @@ public class RuleController {
      * 搜索规则历史
      *
      * @param ruleId 规则ID
-     * @param current 页码，从1开始
-     * @param size 分页数量
+     * @param pageNum 页码，从1开始
+     * @param pageSize 分页数量
      * @return 规则历史分页列表
      */
     @GET
@@ -216,12 +216,12 @@ public class RuleController {
     @GetMapping("history/search")
     @EnableWebLogAspect
     public Pager<RuleHistory> searchHistory(@QueryParam("rule_id") Integer ruleId,
-                                            @QueryParam("current") Integer current,
-                                            @QueryParam("size") Integer size) {
+                                            @QueryParam("page_num") Integer pageNum,
+                                            @QueryParam("page_size") Integer pageSize) {
         if (ruleId == null) throw new BadRequestException("规则ID为空");
-        current = current == null || current < 1 ? Constants.DEFAULT_CURRENT : current;
-        size = size == null || size <= 0 ? Constants.DEFAULT_PAGE_SIZE : size;
-        return ruleService.getHistoryList(ruleId, current, size);
+        pageNum = pageNum == null || pageNum < 1 ? Constants.DEFAULT_PAGE_NUM : pageNum;
+        pageSize = pageSize == null || pageSize <= 0 ? Constants.DEFAULT_PAGE_SIZE : pageSize;
+        return ruleService.getHistoryList(ruleId, pageNum, pageSize);
     }
 
     /**

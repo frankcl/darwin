@@ -8,8 +8,6 @@ import jakarta.xml.bind.annotation.XmlAccessorType;
 import org.apache.commons.lang3.StringUtils;
 import xin.manong.darwin.parser.service.request.CompileRequest;
 
-import java.io.Serial;
-
 /**
  * 脚本调试请求
  *
@@ -19,9 +17,6 @@ import java.io.Serial;
 @XmlAccessorType(XmlAccessType.FIELD)
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class DebugRequest extends CompileRequest {
-
-    @Serial
-    private static final long serialVersionUID = -4795530848006054219L;
 
     /**
      * 调试URL

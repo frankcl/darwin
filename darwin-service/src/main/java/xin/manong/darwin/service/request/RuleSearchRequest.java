@@ -6,8 +6,6 @@ import jakarta.ws.rs.QueryParam;
 import jakarta.xml.bind.annotation.XmlAccessType;
 import jakarta.xml.bind.annotation.XmlAccessorType;
 
-import java.io.Serial;
-
 /**
  * 规则搜索请求
  *
@@ -18,8 +16,6 @@ import java.io.Serial;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class RuleSearchRequest extends SearchRequest {
 
-    @Serial
-    private static final long serialVersionUID = 8912289493345350010L;
     /**
      * 脚本类型：Groovy脚本1，JavaScript脚本2
      */

@@ -37,7 +37,7 @@ public class LinkExtractServiceImpl implements LinkExtractService {
     @Override
     public ParseResponse extract(ScriptParseRequest request) {
         String parentURL = StringUtils.isEmpty(request.redirectURL) ? request.url : request.redirectURL;
-        Document document = Jsoup.parse(request.html, parentURL);
+        Document document = Jsoup.parse(request.text, parentURL);
         Element body = document.body();
         List<URLRecord> children = new ArrayList<>();
         scopeExtract(body, parentURL, request.linkScope, children);
@@ -61,7 +61,7 @@ public class LinkExtractServiceImpl implements LinkExtractService {
             if (!supportExtract(child, scope, parentURL)) return;
             try {
                 new URL(child);
-                children.add(URLRecord.buildScopeLink(child, scope));
+                children.add(URLRecord.scopeLink(child, scope));
             } catch (Exception e) {
                 logger.warn("Invalid child URL:{}", child);
             }

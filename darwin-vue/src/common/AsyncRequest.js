@@ -23,7 +23,8 @@ export const asyncExecutePlan = async id => await AxiosRequest.get('/api/plan/ex
 export const asyncGetJob = async id => await AxiosRequest.get('/api/job/get', {params: {id: id}})
 export const asyncSearchJob = async request => await AxiosRequest.get('/api/job/search', {params: request})
 export const asyncJobProgress = async id => await AxiosRequest.get('/api/job/progress', {params: {id: id}})
-export const asyncBucketCountGroupByStatus = async id => await AxiosRequest.get('/api/job/bucketCountGroupByStatus', {params: {id: id}})
+export const asyncCountGroupByStatus = async id => await AxiosRequest.get('/api/job/countGroupByStatus', {params: {id: id}})
+export const asyncCountGroupByCategory = async id => await AxiosRequest.get('/api/job/countGroupByCategory', {params: {id: id}})
 export const asyncGetPlanRules = async plan_id => await AxiosRequest.get('/api/rule/planRules', {params: {plan_id: plan_id}})
 export const asyncGetRule = async id => await AxiosRequest.get('/api/rule/get', {params: {id: id}})
 export const asyncAddRule = async rule => await AxiosRequest.put('/api/rule/add', rule)
@@ -41,7 +42,7 @@ export const asyncAddSeed = async seed => await AxiosRequest.put('/api/seed/add'
 export const asyncUpdateSeed = async seed => await AxiosRequest.post('/api/seed/update', seed)
 export const asyncRemoveSeed = async key => await AxiosRequest.delete('/api/seed/delete', {params: {key : key}})
 export const asyncGetURL = async key => await AxiosRequest.get('/api/url/get', {params: {key: key}})
-export const asyncPreviewURL = async key => await AxiosRequest.get('/api/url/preview', {params: {key: key}})
+export const asyncPreview = async key => await AxiosRequest.get('/api/url/preview', {params: {key: key}})
 export const asyncSearchURL = async request => await AxiosRequest.get('/api/url/search', {params: request})
 export const asyncGetRunners = async type => await AxiosRequest.get('/api/runner/getList', {params: {type: type}})
 export const asyncRunnerRunning = async key => await AxiosRequest.get('/api/runner/isRunning', {params: {key: key}})
@@ -55,6 +56,19 @@ export const asyncRemoveProxy = async id => await AxiosRequest.delete('/api/prox
 export const asyncAddProxy = async proxy => await AxiosRequest.put('/api/proxy/add', proxy)
 export const asyncUpdateProxy = async proxy => await AxiosRequest.post('/api/proxy/update', proxy)
 export const asyncSearchProxy = async request => await AxiosRequest.get('/api/proxy/search', {params: request})
+export const asyncGetConcurrencyUnit = async unit => await AxiosRequest.get('/api/concurrency/getConcurrencyUnit', {params: {unit: unit}})
+export const asyncConcurrencyQueueMemory = async () => await AxiosRequest.get('/api/concurrency/concurrencyQueueMemory')
+export const asyncTopConcurrencyUnits = async n => await AxiosRequest.get('/api/concurrency/topConcurrencyUnits', {params: {n: n}})
+export const asyncDefaultConcurrency = async () => await AxiosRequest.get('/api/concurrency/getDefaultConcurrency')
+export const asyncConcurrencyConnectionMap = async () => await AxiosRequest.get('/api/concurrency/getConcurrencyConnectionMap')
+export const asyncUpdateDefaultConcurrency = async request => await AxiosRequest.post('/api/concurrency/updateDefaultConcurrency', request)
+export const asyncUpdateConcurrencyConnectionMap = async request => await AxiosRequest.post('/api/concurrency/updateConcurrencyConnectionMap', request)
+export const asyncTotalTrend = async () => await AxiosRequest.get('/api/dashboard/totalTrend')
+export const asyncStatusTrend = async () => await AxiosRequest.get('/api/dashboard/statusTrend')
+export const asyncContentTrend = async () => await AxiosRequest.get('/api/dashboard/contentTrend')
+export const asyncPercentage = async () => await AxiosRequest.get('/api/dashboard/percentage')
+export const asyncAverageContentLength = async () => await AxiosRequest.get('/api/dashboard/averageContentLength')
+export const asyncTopHosts = async () => await AxiosRequest.get('/api/dashboard/topHosts')
 
 export const asyncResetUserApps = async () => {
   const userStore = useUserStore()
@@ -65,8 +79,8 @@ export const asyncResetUserApps = async () => {
 
 export const newSearchQuery = searchQuery => {
   const rawSearchQuery = {
-    current: 1,
-    size: 10,
+    page_num: 1,
+    page_size: 10,
     sort_field: null,
     sort_order: null,
   }
@@ -75,8 +89,8 @@ export const newSearchQuery = searchQuery => {
 
 export const newSearchRequest = searchQuery => {
   const searchRequest = {
-    current: searchQuery.current || 1,
-    size: searchQuery.size || 10
+    page_num: searchQuery.page_num || 1,
+    page_size: searchQuery.page_size || 10
   }
   if (searchQuery.sort_field && searchQuery.sort_order) {
     searchRequest.order_by = JSON.stringify([{

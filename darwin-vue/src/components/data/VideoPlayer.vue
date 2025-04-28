@@ -54,7 +54,7 @@ onUnmounted(() => close())
 <style scoped>
 .video-container {
   width: 100%;
-  max-width: 800px;
+  max-width: 1200px;
   margin: 0 auto;
 }
 </style>

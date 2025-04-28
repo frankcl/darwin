@@ -1,8 +1,8 @@
 function parse(request) {
-    var userDefinedMap = {};
-    userDefinedMap.url = request.url;
+    var customMap = {};
+    customMap.url = request.url;
     var child = buildChild("http://www.sohu.com/", 3);
     var children = new Array();
     children[0] = child;
-    return buildOK(undefined, children, userDefinedMap);
+    return buildOK(undefined, children, customMap);
 }

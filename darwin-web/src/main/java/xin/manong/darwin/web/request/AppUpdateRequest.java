@@ -7,7 +7,6 @@ import jakarta.xml.bind.annotation.XmlAccessType;
 import jakarta.xml.bind.annotation.XmlAccessorType;
 import org.apache.commons.lang3.StringUtils;
 
-import java.io.Serial;
 import java.io.Serializable;
 
 /**
@@ -19,9 +18,6 @@ import java.io.Serializable;
 @XmlAccessorType(XmlAccessType.FIELD)
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class AppUpdateRequest implements Serializable {
-
-    @Serial
-    private static final long serialVersionUID = 8762461642422307260L;
 
     /**
      * 应用ID

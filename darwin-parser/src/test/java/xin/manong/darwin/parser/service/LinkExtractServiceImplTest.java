@@ -29,7 +29,7 @@ public class LinkExtractServiceImplTest {
         String url = "http://www.sina.com.cn";
         ScriptParseRequest request = new ScriptParseRequest();
         request.url = url;
-        request.html = "<html><body></body</html>";
+        request.text = "<html><body></body</html>";
         request.linkScope = Constants.LINK_SCOPE_HOST;
         ParseResponse response = linkExtractService.extract(request);
         Assert.assertTrue(response != null && response.status);

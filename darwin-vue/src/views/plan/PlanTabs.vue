@@ -19,28 +19,28 @@ const route = useRoute()
     <el-tab-pane>
       <template #label>
         <el-icon><document /></el-icon>
-        <el-text class="ml-2">计划</el-text>
+        <el-text class="ml-2">计划详情</el-text>
       </template>
       <edit-plan :id="route.query.id" />
     </el-tab-pane>
     <el-tab-pane>
       <template #label>
         <el-icon><edit /></el-icon>
-        <el-text class="ml-2">规则</el-text>
+        <el-text class="ml-2">规则脚本</el-text>
       </template>
       <rule-operation :plan-id="route.query.id" />
     </el-tab-pane>
     <el-tab-pane>
       <template #label>
         <el-icon><Link /></el-icon>
-        <el-text class="ml-2">种子</el-text>
+        <el-text class="ml-2">种子列表</el-text>
       </template>
       <seed-list :plan-id="route.query.id" />
     </el-tab-pane>
     <el-tab-pane>
       <template #label>
         <el-icon><document-copy /></el-icon>
-        <el-text class="ml-2">任务</el-text>
+        <el-text class="ml-2">爬虫任务</el-text>
       </template>
       <job-list :plan-id="route.query.id" />
     </el-tab-pane>

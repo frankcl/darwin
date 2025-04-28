@@ -12,8 +12,6 @@ import lombok.Setter;
 import lombok.experimental.Accessors;
 import xin.manong.weapon.aliyun.ots.annotation.Column;
 
-import java.io.Serial;
-
 /**
  * 基础模型
  *
@@ -26,9 +24,6 @@ import java.io.Serial;
 @XmlAccessorType(XmlAccessType.FIELD)
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class BaseModel extends Model<BaseModel> {
-
-    @Serial
-    private static final long serialVersionUID = -6833811158486854297L;
 
     /**
      * 创建时间

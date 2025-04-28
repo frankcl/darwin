@@ -20,7 +20,7 @@ public class CharsetSpeculator {
         if (byteArray == null || byteArray.length == 0) {
             throw new IllegalArgumentException("Bytes are not allowed to be empty");
         }
-        if (offset < 0 || offset + length > byteArray.length) {
+        if (offset < 0 || offset > byteArray.length) {
             throw new IllegalArgumentException("Offset or length out of bounds of array");
         }
         UniversalDetector detector = new UniversalDetector(null);

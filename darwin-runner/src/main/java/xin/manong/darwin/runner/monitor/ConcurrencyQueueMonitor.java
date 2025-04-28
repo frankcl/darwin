@@ -6,6 +6,7 @@ import org.slf4j.LoggerFactory;
 import xin.manong.darwin.common.Constants;
 import xin.manong.darwin.common.model.Job;
 import xin.manong.darwin.common.model.URLRecord;
+import xin.manong.darwin.log.core.AspectLogSupport;
 import xin.manong.darwin.queue.ConcurrencyControl;
 import xin.manong.darwin.queue.ConcurrencyQueue;
 import xin.manong.darwin.service.event.JobEventListener;
@@ -35,17 +36,19 @@ public class ConcurrencyQueueMonitor extends ExecuteRunner {
 
     private final long expiredTimeIntervalMs;
     @Resource
-    protected URLService urlService;
+    private URLService urlService;
     @Resource
-    protected JobService jobService;
+    private JobService jobService;
     @Resource
-    protected ConcurrencyQueue concurrencyQueue;
+    private ConcurrencyQueue concurrencyQueue;
     @Resource
-    protected ConcurrencyControl concurrencyControl;
+    private ConcurrencyControl concurrencyControl;
     @Resource
-    protected URLEventListener urlEventListener;
+    private URLEventListener urlEventListener;
     @Resource
-    protected JobEventListener jobEventListener;
+    private JobEventListener jobEventListener;
+    @Resource
+    private AspectLogSupport aspectLogSupport;
 
     public ConcurrencyQueueMonitor(long executeTimeIntervalMs, long expiredTimeIntervalMs) {
         super(ID, executeTimeIntervalMs);
@@ -58,7 +61,7 @@ public class ConcurrencyQueueMonitor extends ExecuteRunner {
     public void execute() throws Exception {
         sweepExpiredJobs();
         sweepExpiredConnections();
-        sweepExpiredConcurrentUnits();
+        sweepExpiredConcurrencyUnits();
     }
 
     /**
@@ -66,25 +69,25 @@ public class ConcurrencyQueueMonitor extends ExecuteRunner {
      */
     private void sweepExpiredConnections() {
         int releaseConnections = 0;
-        Set<String> concurrentUnits = concurrencyQueue.concurrentUnitsSnapshots();
-        for (String concurrentUnit : concurrentUnits) {
-            releaseConnections += releaseExpiredConnections(concurrentUnit);
+        Set<String> concurrencyUnits = concurrencyQueue.concurrencyUnitsSnapshots();
+        for (String concurrencyUnit : concurrencyUnits) {
+            releaseConnections += releaseExpiredConnections(concurrencyUnit);
         }
-        logger.info("Scanning concurrent unit num:{}, releasing connection num:{}",
-                concurrentUnits.size(), releaseConnections);
+        logger.info("Scanning concurrency unit num:{}, releasing connection num:{}",
+                concurrencyUnits.size(), releaseConnections);
     }
 
     /**
      * 清理过期并发单元
      */
-    private void sweepExpiredConcurrentUnits() {
-        Set<String> concurrentUnits = concurrencyQueue.concurrentUnitsSnapshots();
-        int sweepConcurrentUnitCount = 0;
-        for (String concurrentUnit : concurrentUnits) {
-            if (concurrencyQueue.removeConcurrentUnit(concurrentUnit)) sweepConcurrentUnitCount++;
+    private void sweepExpiredConcurrencyUnits() {
+        Set<String> concurrencyUnits = concurrencyQueue.concurrencyUnitsSnapshots();
+        int sweepConcurrencyUnitCount = 0;
+        for (String concurrencyUnit : concurrencyUnits) {
+            if (concurrencyQueue.removeConcurrencyUnit(concurrencyUnit)) sweepConcurrencyUnitCount++;
         }
-        logger.info("Scanning concurrent unit num:{}, sweeping concurrent unit num:{}",
-                concurrentUnits.size(), sweepConcurrentUnitCount);
+        logger.info("Scanning concurrency unit num:{}, sweeping concurrency unit num:{}",
+                concurrencyUnits.size(), sweepConcurrencyUnitCount);
     }
 
     /**
@@ -98,7 +101,7 @@ public class ConcurrencyQueueMonitor extends ExecuteRunner {
             List<URLRecord> records = urlService.getExpiredRecords(job.jobId, minExpiredTime, BATCH_GET_SIZE);
             sweepCount += records.size();
             for (URLRecord record : records) handleExpiredRecord(record);
-            jobEventListener.onComplete(job.jobId, new Context());
+            jobEventListener.onComplete(job.jobId, null);
         }
         logger.info("Scanning job num:{}, sweeping record num:{}", jobs.size(), sweepCount);
     }
@@ -106,13 +109,13 @@ public class ConcurrencyQueueMonitor extends ExecuteRunner {
     /**
      * 释放并发单元的过期连接
      *
-     * @param concurrentUnit 并发单元
+     * @param concurrencyUnit 并发单元
      * @return 释放连接数
      */
-    private int releaseExpiredConnections(String concurrentUnit) {
+    private int releaseExpiredConnections(String concurrencyUnit) {
         int releaseConnections = 0;
-        Map<String, Long> concurrentRecordMap = concurrencyControl.getConcurrentRecordMap(concurrentUnit);
-        Iterator<Map.Entry<String, Long>> iterator = concurrentRecordMap.entrySet().iterator();
+        Map<String, Long> concurrencyRecordMap = concurrencyControl.getConcurrencyRecordMap(concurrencyUnit);
+        Iterator<Map.Entry<String, Long>> iterator = concurrencyRecordMap.entrySet().iterator();
         while (iterator.hasNext()) {
             Map.Entry<String, Long> entry = iterator.next();
             String recordKey = entry.getKey();
@@ -122,7 +125,7 @@ public class ConcurrencyQueueMonitor extends ExecuteRunner {
             if (timeInterval < expiredTimeIntervalMs) continue;
             iterator.remove();
             releaseConnections++;
-            logger.info("Release expired connection:{} for concurrent unit:{}", recordKey, concurrentUnit);
+            logger.info("Release expired connection:{} for concurrency unit:{}", recordKey, concurrencyUnit);
         }
         return releaseConnections;
     }
@@ -134,10 +137,15 @@ public class ConcurrencyQueueMonitor extends ExecuteRunner {
      */
     private void handleExpiredRecord(URLRecord record) {
         Context context = new Context();
-        context.put(Constants.DARWIN_STAGE, Constants.STAGE_MONITOR);
-        if (!urlService.updateStatus(record.key, Constants.URL_STATUS_TIMEOUT)) {
-            logger.warn("Update timeout status failed for url:{}", record.url);
+        try {
+            context.put(Constants.DARWIN_STAGE, Constants.PROCESS_STAGE_MONITOR);
+            if (!urlService.updateStatus(record.key, Constants.URL_STATUS_TIMEOUT)) {
+                logger.warn("Update timeout status failed for url:{}", record.url);
+            }
+            record.status = Constants.URL_STATUS_TIMEOUT;
+            urlEventListener.onComplete(record.key, context);
+        } finally {
+            aspectLogSupport.commitAspectLog(context, record);
         }
-        urlEventListener.onComplete(record.key, context);
     }
 }

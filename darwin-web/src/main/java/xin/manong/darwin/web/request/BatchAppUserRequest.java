@@ -10,7 +10,6 @@ import lombok.Setter;
 import lombok.experimental.Accessors;
 import xin.manong.hylian.model.User;
 
-import java.io.Serial;
 import java.io.Serializable;
 import java.util.List;
 
@@ -26,9 +25,6 @@ import java.util.List;
 @XmlAccessorType(XmlAccessType.FIELD)
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class BatchAppUserRequest implements Serializable {
-
-    @Serial
-    private static final long serialVersionUID = -2191171353518144138L;
 
     /**
      * 用户列表

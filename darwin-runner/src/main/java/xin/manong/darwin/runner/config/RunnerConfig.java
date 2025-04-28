@@ -6,6 +6,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import xin.manong.darwin.runner.core.Allocator;
+import xin.manong.darwin.runner.core.DashboardRunner;
 import xin.manong.darwin.runner.core.PlanRunner;
 import xin.manong.darwin.runner.manage.ExecuteRunnerRegistry;
 import xin.manong.darwin.runner.manage.ExecuteRunnerShell;
@@ -28,6 +29,7 @@ public class RunnerConfig {
     private static final Long DEFAULT_MAX_OVERFLOW_INTERVAL_MS = 7200000L;
     private static final Long DEFAULT_ALLOCATOR_EXECUTE_INTERVAL_MS = 10000L;
     private static final Long DEFAULT_PLAN_RUNNER_EXECUTE_INTERVAL_MS = 60000L;
+    private static final Long DEFAULT_DASHBOARD_RUNNER_EXECUTE_INTERVAL_MS = 600000L;
     private static final long DEFAULT_CONCURRENCY_QUEUE_EXECUTE_TIME_INTERVAL_MS = 300000;
     private static final long DEFAULT_CONCURRENCY_QUEUE_EXPIRED_TIME_INTERVAL_MS = 600000;
     private static final long DEFAULT_PROXY_EXECUTE_TIME_INTERVAL_MS = 300000L;
@@ -35,6 +37,7 @@ public class RunnerConfig {
     public Long maxOverflowIntervalMs = DEFAULT_MAX_OVERFLOW_INTERVAL_MS;
     public Long planRunnerExecuteIntervalMs = DEFAULT_PLAN_RUNNER_EXECUTE_INTERVAL_MS;
     public Long allocatorExecuteIntervalMs = DEFAULT_ALLOCATOR_EXECUTE_INTERVAL_MS;
+    public Long dashboardRunnerExecuteIntervalMs = DEFAULT_DASHBOARD_RUNNER_EXECUTE_INTERVAL_MS;
     public long concurrencyQueueExecuteTimeIntervalMs = DEFAULT_CONCURRENCY_QUEUE_EXECUTE_TIME_INTERVAL_MS;
     public long concurrencyQueueExpiredTimeIntervalMs = DEFAULT_CONCURRENCY_QUEUE_EXPIRED_TIME_INTERVAL_MS;
     public long proxyExecuteTimeIntervalMs = DEFAULT_PROXY_EXECUTE_TIME_INTERVAL_MS;
@@ -68,12 +71,27 @@ public class RunnerConfig {
      */
     @Bean
     public Allocator buildAllocator() {
-        Allocator scheduler = new Allocator(topicURL, allocatorExecuteIntervalMs, maxOverflowIntervalMs);
+        Allocator allocator = new Allocator(topicURL, allocatorExecuteIntervalMs, maxOverflowIntervalMs);
         registry.register(new ExecuteRunnerShell(
                 ExecuteRunnerShell.LOCK_KEY_ALLOCATOR,
-                scheduler, ExecuteRunnerShell.RUNNER_TYPE_CORE,
+                allocator, ExecuteRunnerShell.RUNNER_TYPE_CORE,
                 messageService, etcdClient));
-        return scheduler;
+        return allocator;
+    }
+
+    /**
+     * 构建首页数据大盘运行器
+     *
+     * @return 首页数据大盘运行器
+     */
+    @Bean
+    public DashboardRunner buildDashboardRunner() {
+        DashboardRunner runner = new DashboardRunner(dashboardRunnerExecuteIntervalMs);
+        registry.register(new ExecuteRunnerShell(
+                ExecuteRunnerShell.LOCK_KEY_DASHBOARD_RUNNER,
+                runner, ExecuteRunnerShell.RUNNER_TYPE_CORE,
+                messageService, etcdClient));
+        return runner;
     }
 
     /**

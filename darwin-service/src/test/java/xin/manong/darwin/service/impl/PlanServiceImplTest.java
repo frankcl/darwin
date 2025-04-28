@@ -74,7 +74,7 @@ public class PlanServiceImplTest {
         PlanSearchRequest searchRequest = new PlanSearchRequest();
         searchRequest.name = "测试计划";
         Pager<Plan> pager = planService.search(searchRequest);
-        Assert.assertEquals(1L, pager.current.longValue());
+        Assert.assertEquals(1L, pager.pageNum.longValue());
         Assert.assertEquals(1L, pager.total.longValue());
         Assert.assertEquals(1, pager.records.size());
 

@@ -17,10 +17,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import xin.manong.darwin.common.Constants;
 
-import java.io.Serial;
-
 /**
- * 任务计划：用于生成爬虫任务
+ * 任务计划：生成爬虫任务
  *
  * @author frankcl
  * @date 2023-03-06 15:08:20
@@ -34,9 +32,6 @@ import java.io.Serial;
 public class Plan extends BaseModel {
 
     private static final Logger logger = LoggerFactory.getLogger(Plan.class);
-
-    @Serial
-    private static final long serialVersionUID = -2706430539910683801L;
 
     /**
      * 允许重复抓取
@@ -148,7 +143,6 @@ public class Plan extends BaseModel {
      * 1. 计划类型不能为空；如果是周期性计划，crontabExpression必须合法
      * 2. 应用ID和应用名不能为空
      * 3. 计划ID和计划名不能为空
-     * 4. 种子列表不能为空
      *
      * @return 如果有效返回true，否则返回false
      */

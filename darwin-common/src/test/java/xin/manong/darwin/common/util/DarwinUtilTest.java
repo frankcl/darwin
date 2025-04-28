@@ -21,8 +21,8 @@ public class DarwinUtilTest {
         record.parentURL = "http://www.people.com.cn";
         record.appId = 1;
         record.jobId = "xxx";
-        record.category = Constants.CONTENT_CATEGORY_LIST;
-        record.concurrentLevel = Constants.CONCURRENT_LEVEL_HOST;
+        record.category = Constants.CONTENT_CATEGORY_PAGE;
+        record.concurrencyLevel = Constants.CONCURRENCY_LEVEL_HOST;
         record.priority = Constants.PRIORITY_HIGH;
         DarwinUtil.putContext(context, record);
 
@@ -34,7 +34,7 @@ public class DarwinUtilTest {
         Assert.assertTrue(context.contains(Constants.PARENT_URL));
         Assert.assertTrue(context.contains(Constants.STATUS));
         Assert.assertTrue(context.contains(Constants.CATEGORY));
-        Assert.assertTrue(context.contains(Constants.CONCURRENT_LEVEL));
+        Assert.assertTrue(context.contains(Constants.CONCURRENCY_LEVEL));
         Assert.assertTrue(context.contains(Constants.DARWIN_RECORD_TYPE));
 
         Assert.assertEquals(Constants.RECORD_TYPE_URL, context.get(Constants.DARWIN_RECORD_TYPE));
@@ -43,9 +43,9 @@ public class DarwinUtilTest {
         Assert.assertEquals(record.hash, context.get(Constants.HASH));
         Assert.assertEquals(record.parentURL, context.get(Constants.PARENT_URL));
         Assert.assertEquals("xxx", context.get(Constants.JOB_ID));
-        Assert.assertEquals(Constants.SUPPORT_URL_STATUSES.get(Constants.URL_STATUS_CREATED), context.get(Constants.STATUS));
-        Assert.assertEquals(Constants.SUPPORT_CONTENT_CATEGORIES.get(Constants.CONTENT_CATEGORY_LIST), context.get(Constants.CATEGORY));
-        Assert.assertEquals(Constants.SUPPORT_CONCURRENT_LEVELS.get(Constants.CONCURRENT_LEVEL_HOST), context.get(Constants.CONCURRENT_LEVEL));
+        Assert.assertEquals(Constants.SUPPORT_URL_STATUSES.get(Constants.URL_STATUS_UNKNOWN), context.get(Constants.STATUS));
+        Assert.assertEquals(Constants.SUPPORT_CONTENT_CATEGORIES.get(Constants.CONTENT_CATEGORY_PAGE), context.get(Constants.CATEGORY));
+        Assert.assertEquals(Constants.SUPPORT_CONCURRENCY_LEVELS.get(Constants.CONCURRENCY_LEVEL_HOST), context.get(Constants.CONCURRENCY_LEVEL));
         Assert.assertEquals(1, (int) context.get(Constants.APP_ID));
         Assert.assertEquals(Constants.PRIORITY_HIGH, (int) context.get(Constants.PRIORITY));
     }

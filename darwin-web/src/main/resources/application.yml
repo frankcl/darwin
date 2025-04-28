@@ -36,4 +36,3 @@ app:
   web:
     name: darwin-web
     ignore-check-permission: false
-    max-connection-expired-interval-ms: 300000

@@ -23,7 +23,7 @@ const parseResult = reactive({})
 
 const resetParseResult = () => {
   delete parseResult.field_map
-  delete parseResult.user_defined_map
+  delete parseResult.custom_map
   delete parseResult.children
 }
 
@@ -78,7 +78,7 @@ const debug = async formElement => {
     if (response.success) {
       termOutput.value += '抓取和解析成功\n'
       if (response.field_map) parseResult.field_map = response.field_map
-      if (response.user_defined_map) parseResult.user_defined_map = response.user_defined_map
+      if (response.custom_map) parseResult.custom_map = response.custom_map
       if (response.children) parseResult.children = response.children
       return
     }
@@ -151,9 +151,9 @@ onUnmounted(() => destroyTerm())
                   label="结构化数据" label-position="top">
       <json-viewer class="w100" :value="parseResult.field_map" :expand-depth=0 boxed sort />
     </el-form-item>
-    <el-form-item v-if="parseResult.user_defined_map && Object.keys(parseResult.user_defined_map).length > 0"
+    <el-form-item v-if="parseResult.custom_map && Object.keys(parseResult.custom_map).length > 0"
                   label="自定义数据" label-position="top">
-      <json-viewer class="w100" :value="parseResult.user_defined_map" :expand-depth=0 boxed sort />
+      <json-viewer class="w100" :value="parseResult.custom_map" :expand-depth=0 boxed sort />
     </el-form-item>
   </el-form>
 </template>

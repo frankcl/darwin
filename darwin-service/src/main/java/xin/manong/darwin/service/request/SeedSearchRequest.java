@@ -6,8 +6,6 @@ import jakarta.ws.rs.QueryParam;
 import jakarta.xml.bind.annotation.XmlAccessType;
 import jakarta.xml.bind.annotation.XmlAccessorType;
 
-import java.io.Serial;
-
 /**
  * 种子URL搜索请求
  *
@@ -17,9 +15,6 @@ import java.io.Serial;
 @XmlAccessorType(XmlAccessType.FIELD)
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class SeedSearchRequest extends SearchRequest {
-
-    @Serial
-    private static final long serialVersionUID = -7037469437530155769L;
 
     /**
      * URL地址

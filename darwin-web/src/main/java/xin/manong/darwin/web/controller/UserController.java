@@ -27,9 +27,9 @@ import java.util.List;
 public class UserController {
 
     @Resource
-    protected OSSService ossService;
+    private OSSService ossService;
     @Resource
-    protected UserServiceSupport userServiceSupport;
+    private UserServiceSupport userServiceSupport;
 
     /**
      * 获取当前用户

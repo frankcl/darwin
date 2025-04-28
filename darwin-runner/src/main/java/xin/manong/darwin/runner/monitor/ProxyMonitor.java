@@ -27,7 +27,7 @@ public class ProxyMonitor extends ExecuteRunner {
     public static final String KEY = "ProxyMonitor";
 
     @Resource
-    protected ProxyService proxyService;
+    private ProxyService proxyService;
 
     public ProxyMonitor(long executeTimeIntervalMs) {
         super(KEY, executeTimeIntervalMs);

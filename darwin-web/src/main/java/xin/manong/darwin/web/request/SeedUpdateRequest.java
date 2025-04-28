@@ -8,7 +8,6 @@ import jakarta.xml.bind.annotation.XmlAccessorType;
 import org.apache.commons.lang3.StringUtils;
 import xin.manong.darwin.common.Constants;
 
-import java.io.Serial;
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
@@ -22,9 +21,6 @@ import java.util.Map;
 @XmlAccessorType(XmlAccessType.FIELD)
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class SeedUpdateRequest implements Serializable {
-
-    @Serial
-    private static final long serialVersionUID = 5727200756828988838L;
 
     /**
      * 超时时间（毫秒）
@@ -52,31 +48,13 @@ public class SeedUpdateRequest implements Serializable {
     public Integer fetchMethod;
 
     /**
-     * 抓取URL类型
-     * 内容页：0
-     * 列表页：1
-     * 图片视频资源：2
-     * 视频流：3
-     */
-    @JsonProperty("category")
-    public Integer category;
-
-    /**
-     * 抓取并发级别
-     * domain:0
-     * host:1
-     */
-    @JsonProperty("concurrent_level")
-    public Integer concurrentLevel;
-
-    /**
-     * 全局抽链范围
+     * 抽链范围
      * 所有：1
      * 域domain：2
      * 站点host：3
      */
-    @JsonProperty("scope")
-    public Integer scope;
+    @JsonProperty("link_scope")
+    public Integer linkScope;
 
     /**
      * 种子URL
@@ -91,6 +69,12 @@ public class SeedUpdateRequest implements Serializable {
     public String key;
 
     /**
+     * 允许分发
+     */
+    @JsonProperty("allow_dispatch")
+    public Boolean allowDispatch;
+
+    /**
      * HTTP header信息
      */
     @JsonProperty("headers")
@@ -99,30 +83,24 @@ public class SeedUpdateRequest implements Serializable {
     /**
      * 用户自定义字段，用于透传数据
      */
-    @JsonProperty("user_defined_map")
-    public Map<String, Object> userDefinedMap = new HashMap<>();
+    @JsonProperty("custom_map")
+    public Map<String, Object> customMap = new HashMap<>();
 
     /**
      * 检测有效性
      * 无效抛出异常
      */
     public void check() {
-        if (StringUtils.isEmpty(key)) throw new BadRequestException("种子URL key为空");
-        if (StringUtils.isEmpty(url) && category == null && fetchMethod == null && priority == null &&
-                concurrentLevel == null && timeout == null && scope == null &&
-                headers.isEmpty() && userDefinedMap.isEmpty()) {
+        if (StringUtils.isEmpty(key)) throw new BadRequestException("种子key为空");
+        if (StringUtils.isEmpty(url) && fetchMethod == null && priority == null &&
+                timeout == null && linkScope == null && allowDispatch == null &&
+                headers.isEmpty() && customMap.isEmpty()) {
             throw new BadRequestException("种子更新信息为空");
-        }
-        if (category != null && !Constants.SUPPORT_CONTENT_CATEGORIES.containsKey(category)) {
-            throw new BadRequestException("不支持的URL类型");
         }
         if (fetchMethod != null && !Constants.SUPPORT_FETCH_METHODS.containsKey(fetchMethod)) {
             throw new BadRequestException("不支持的抓取方式");
         }
-        if (concurrentLevel != null && !Constants.SUPPORT_CONCURRENT_LEVELS.containsKey(concurrentLevel)) {
-            throw new BadRequestException("不支持的并发级别");
-        }
-        if (scope != null && !Constants.SUPPORT_LINK_SCOPES.containsKey(scope)) {
+        if (linkScope != null && !Constants.SUPPORT_LINK_SCOPES.containsKey(linkScope)) {
             throw new BadRequestException("不支持的抽链类型");
         }
         if (priority != null && (priority > Constants.PRIORITY_LOW || priority < Constants.PRIORITY_HIGH)) {

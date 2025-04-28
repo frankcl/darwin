@@ -8,7 +8,6 @@ import jakarta.xml.bind.annotation.XmlAccessorType;
 import org.apache.commons.lang3.StringUtils;
 import xin.manong.darwin.common.Constants;
 
-import java.io.Serial;
 import java.io.Serializable;
 
 /**
@@ -20,9 +19,6 @@ import java.io.Serializable;
 @XmlAccessorType(XmlAccessType.FIELD)
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class RuleRequest implements Serializable {
-
-    @Serial
-    private static final long serialVersionUID = 1174994354945230603L;
 
     /**
      * 规则名称

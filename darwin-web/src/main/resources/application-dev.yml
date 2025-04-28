@@ -15,7 +15,8 @@ hylian:
         - api/plan/search
         - api/job/get
         - api/job/progress
-        - api/job/bucketCountGroupByStatus
+        - api/job/countGroupByStatus
+        - api/job/countGroupByCategory
         - api/job/search
         - /api/rule/get
         - /api/rule/planRules
@@ -26,14 +27,22 @@ hylian:
         - /api/url/get
         - /api/url/preview
         - /api/url/previewHTML
+        - /api/url/previewPDF
         - /api/url/search
         - /api/runner/getList
         - /api/runner/isRunning
         - /api/runner/messageCount
         - /api/proxy/search
         - /api/proxy/get
+        - /api/concurrency/getConcurrencyUnit
+        - /api/concurrency/topConcurrencyUnits
+        - /api/concurrency/concurrencyQueueMemory
+        - /api/concurrency/getDefaultConcurrency
+        - /api/concurrency/getConcurrencyConnectionMap
+        - /api/dashboard/totalTrend
+        - /api/dashboard/statusTrend
+        - /api/dashboard/contentTrend
+        - /api/dashboard/averageContentLength
+        - /api/dashboard/percentage
+        - /api/dashboard/topHosts
         - favicon.ico
-
-app:
-  web:
-    aspect-log-file: ./log/aspect/web.log

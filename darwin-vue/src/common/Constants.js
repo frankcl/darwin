@@ -1,13 +1,12 @@
 export const statusMap = {
-  0: '成功',
-  1: '创建完成',
-  2: '排队失败',
-  3: '排队中',
-  4: '抓取中',
-  5: '状态非法',
-  6: '抓取超时',
-  7: '抓取失败',
-  8: '溢出'
+  0: '抓取成功',
+  1: '抓取失败',
+  2: '排队中',
+  3: '抓取中',
+  4: '抓取超时',
+  5: '过期',
+  6: '错误',
+  7: '溢出'
 }
 
 export const priorityMap = {
@@ -22,10 +21,9 @@ export const fetchMethodMap = {
 }
 
 export const categoryMap = {
-  1: '内容页',
-  2: '列表页',
-  3: '图片视频',
-  4: '视频流'
+  1: '网页',
+  2: '资源',
+  3: '视频流'
 }
 
 export const concurrentLevelMap = {
@@ -33,21 +31,13 @@ export const concurrentLevelMap = {
   1: 'HOST'
 }
 
-export const executorStatusMap = {
-  0: '停止',
-  1: '运行',
-  2: '错误'
-}
-
-export const proxyCategoryMap = {
-  1: '长期代理',
-  2: '短期代理'
-}
-
 export const previewTitleMap = {
   'html': '网页预览',
+  'xhtml': '网页预览',
   'json': 'JSON预览',
   'image': '图片预览',
   'video': '视频预览',
-  'pdf': '文档预览'
+  'pdf': 'PDF预览',
+  'txt': '文本预览',
+  'xml': 'XML预览',
 }

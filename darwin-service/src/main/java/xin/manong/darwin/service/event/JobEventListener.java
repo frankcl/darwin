@@ -10,12 +10,11 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import xin.manong.darwin.common.Constants;
 import xin.manong.darwin.common.model.Job;
-import xin.manong.darwin.common.util.DarwinUtil;
+import xin.manong.darwin.log.core.AspectLogSupport;
 import xin.manong.darwin.service.config.ServiceConfig;
 import xin.manong.darwin.service.iface.JobService;
 import xin.manong.weapon.base.common.Context;
 import xin.manong.weapon.base.kafka.KafkaProducer;
-import xin.manong.weapon.base.log.JSONLogger;
 
 import java.nio.charset.StandardCharsets;
 
@@ -31,18 +30,19 @@ public class JobEventListener implements EventListener<String> {
     private static final Logger logger = LoggerFactory.getLogger(JobEventListener.class);
 
     @Resource
-    protected ServiceConfig config;
+    private ServiceConfig serviceConfig;
     @Resource
-    protected JobService jobService;
+    private JobService jobService;
     @Resource
-    protected KafkaProducer producer;
-    @Resource(name = "jobAspectLogger")
-    protected JSONLogger aspectLogger;
+    private KafkaProducer producer;
+    @Resource
+    private AspectLogSupport aspectLogSupport;
 
     @Override
     public void onComplete(String jobId, Context context) {
         if (!jobService.isComplete(jobId)) return;
         Job job = null;
+        context = context == null ? new Context() : context;
         try {
             jobService.complete(jobId);
             job = jobService.get(jobId);
@@ -53,8 +53,7 @@ public class JobEventListener implements EventListener<String> {
             logger.error("Exception occurred when handling completed job:{}", jobId);
             logger.error(e.getMessage(), e);
         } finally {
-            DarwinUtil.putContext(context, job);
-            if (aspectLogger != null) aspectLogger.commit(context.getFeatureMap());
+            aspectLogSupport.commitAspectLog(context, job);
         }
     }
 
@@ -65,9 +64,10 @@ public class JobEventListener implements EventListener<String> {
      * @param context 上下文
      */
     private void pushMessage(Job job, Context context) {
+        if (!serviceConfig.dispatch) return;
         String jobString = JSON.toJSONString(job, SerializerFeature.DisableCircularReferenceDetect);
         RecordMetadata metadata = producer.send(job.jobId,
-                jobString.getBytes(StandardCharsets.UTF_8), config.mq.topicJob);
+                jobString.getBytes(StandardCharsets.UTF_8), serviceConfig.mq.topicJob);
         if (metadata == null) {
             context.put(Constants.DARWIN_DEBUG_MESSAGE, "推送消息失败");
             logger.warn("Push completed job message failed for id:{}", job.jobId);

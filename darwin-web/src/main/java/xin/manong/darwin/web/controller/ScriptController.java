@@ -21,7 +21,7 @@ import xin.manong.darwin.parser.sdk.ParseResponse;
 import xin.manong.darwin.parser.service.ParseService;
 import xin.manong.darwin.parser.service.request.CompileRequest;
 import xin.manong.darwin.parser.service.response.CompileResult;
-import xin.manong.darwin.spider.core.HTMLSpider;
+import xin.manong.darwin.spider.core.TextSpider;
 import xin.manong.darwin.web.request.DebugRequest;
 import xin.manong.darwin.web.response.*;
 
@@ -40,9 +40,9 @@ public class ScriptController {
     private static final Logger logger = LoggerFactory.getLogger(ScriptController.class);
 
     @Resource
-    protected HTMLSpider htmlSpider;
+    private TextSpider textSpider;
     @Resource
-    protected ParseService parseService;
+    private ParseService parseService;
 
     /**
      * 编译脚本：检测脚本有效性
@@ -70,9 +70,9 @@ public class ScriptController {
         if (request == null) throw new BadRequestException("脚本调试请求为空");
         request.check();
         try (Script script = ScriptFactory.make(request.scriptType, request.script)) {
-            URLRecord record = htmlSpider.fetch(request.url);
+            URLRecord record = textSpider.fetch(request.url);
             ParseRequestBuilder builder = new ParseRequestBuilder();
-            builder.url(request.url).html(record.html);
+            builder.url(request.url).text(record.text);
             if (!StringUtils.isEmpty(record.redirectURL)) builder.redirectURL(record.redirectURL);
             ParseResponse parseResponse = script.doExecute(builder.build());
             if (!parseResponse.status) {
@@ -82,7 +82,7 @@ public class ScriptController {
                 return debugError;
             }
             DebugSuccess debugSuccess = new DebugSuccess(parseResponse.fieldMap,
-                    parseResponse.children, parseResponse.userDefinedMap);
+                    parseResponse.children, parseResponse.customMap);
             debugSuccess.debugLog = parseResponse.debugLog;
             return debugSuccess;
         } catch (Exception e) {

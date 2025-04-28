@@ -17,8 +17,8 @@ import org.springframework.context.annotation.Configuration;
 public class ConcurrencyQueueConfig {
 
     private static final int DEFAULT_MAX_QUEUE_CAPACITY = 5000;
-    private static final int DEFAULT_MAX_CONCURRENT_UNIT_EXPIRED_TIME_SECONDS = 600;
-    private static final double DEFAULT_WARNING_MEMORY_USED_RATIO = 0.9d;
+    private static final int DEFAULT_MAX_CONCURRENCY_UNIT_EXPIRED_TIME_SECONDS = 600;
+    private static final double DEFAULT_WARNING_MEMORY_USED_RATIO = 0.85d;
     private static final double DEFAULT_DANGER_MEMORY_USED_RATIO = 0.95d;
 
     public int maxQueueCapacity = DEFAULT_MAX_QUEUE_CAPACITY;
@@ -26,7 +26,7 @@ public class ConcurrencyQueueConfig {
     public double waringMemoryUsedRatio = DEFAULT_WARNING_MEMORY_USED_RATIO;
 
     @Bean
-    public ConcurrencyQueue buildMultiQueue() {
+    public ConcurrencyQueue buildConcurrencyQueue() {
         return new ConcurrencyQueue(this);
     }
 }

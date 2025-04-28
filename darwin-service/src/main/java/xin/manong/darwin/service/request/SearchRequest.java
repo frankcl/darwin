@@ -8,7 +8,6 @@ import jakarta.xml.bind.annotation.XmlAccessType;
 import jakarta.xml.bind.annotation.XmlAccessorType;
 import xin.manong.darwin.common.Constants;
 
-import java.io.Serial;
 import java.io.Serializable;
 import java.util.List;
 
@@ -22,20 +21,18 @@ import java.util.List;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class SearchRequest implements Serializable {
 
-    @Serial
-    private static final long serialVersionUID = -765188428623537616L;
     /**
      * 页码，从1开始
      */
-    @JsonProperty("current")
-    @QueryParam("current")
-    public Integer current = Constants.DEFAULT_CURRENT;
+    @JsonProperty("page_num")
+    @QueryParam("page_num")
+    public Integer pageNum = Constants.DEFAULT_PAGE_NUM;
     /**
      * 分页大小，默认20
      */
-    @JsonProperty("size")
-    @QueryParam("size")
-    public Integer size = Constants.DEFAULT_PAGE_SIZE;
+    @JsonProperty("page_size")
+    @QueryParam("page_size")
+    public Integer pageSize = Constants.DEFAULT_PAGE_SIZE;
     /**
      * 排序方式
      */

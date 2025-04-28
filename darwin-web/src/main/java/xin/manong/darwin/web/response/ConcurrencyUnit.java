@@ -5,7 +5,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.xml.bind.annotation.XmlAccessType;
 import jakarta.xml.bind.annotation.XmlAccessorType;
 
-import java.io.Serial;
 import java.io.Serializable;
 
 /**
@@ -17,9 +16,6 @@ import java.io.Serializable;
 @XmlAccessorType(XmlAccessType.FIELD)
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class ConcurrencyUnit implements Serializable {
-
-    @Serial
-    private static final long serialVersionUID = 2085942654869013790L;
 
     /**
      * 抓取队列容量

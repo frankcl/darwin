@@ -13,8 +13,6 @@ public class URLRecordTest {
     @Test
     public void testCheckOK() {
         URLRecord record = new URLRecord("http://www.sina.com.cn");
-        record.category = Constants.CONTENT_CATEGORY_LIST;
-        record.concurrentLevel = Constants.CONCURRENT_LEVEL_DOMAIN;
         record.priority = Constants.PRIORITY_HIGH;
         record.appId = 1;
         record.jobId = "xxx";
@@ -25,8 +23,6 @@ public class URLRecordTest {
     @Test
     public void testCheckError() {
         URLRecord record = new URLRecord("http://www.sina.com.cn");
-        record.category = Constants.CONTENT_CATEGORY_LIST;
-        record.concurrentLevel = Constants.CONCURRENT_LEVEL_DOMAIN;
         record.priority = Constants.PRIORITY_HIGH;
         record.jobId = "xxx";
         Assert.assertFalse(record.check());

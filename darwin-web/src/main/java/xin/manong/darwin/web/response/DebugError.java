@@ -5,8 +5,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.xml.bind.annotation.XmlAccessType;
 import jakarta.xml.bind.annotation.XmlAccessorType;
 
-import java.io.Serial;
-
 /**
  * 调试错误信息
  *
@@ -17,8 +15,6 @@ import java.io.Serial;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class DebugError extends DebugResponse {
 
-    @Serial
-    private static final long serialVersionUID = -8601831605209873672L;
     /**
      * 错误信息
      */

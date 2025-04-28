@@ -223,7 +223,7 @@ watchEffect(() => search())
       <el-table-column width="250">
         <template #header>操作</template>
         <template #default="scope">
-          <el-button type="primary" @click="edit(scope.row.plan_id)">编辑</el-button>
+          <el-button @click="edit(scope.row.plan_id)">查看</el-button>
           <el-button type="success" @click="execute(scope.row.plan_id)"
                      :loading="executing === scope.row.plan_id" :disabled="!userStore.injected">执行</el-button>
           <el-button type="danger" @click="remove(scope.row.plan_id)" :disabled="!userStore.injected">删除</el-button>
@@ -232,7 +232,7 @@ watchEffect(() => search())
     </el-table>
     <el-row justify="center" align="middle">
       <el-pagination background layout="prev, pager, next" :total="total"
-                     v-model:page-size="query.size" v-model:current-page="query.current">
+                     v-model:page-size="query.page_size" v-model:current-page="query.page_num">
       </el-pagination>
     </el-row>
   </el-space>

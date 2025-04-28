@@ -24,6 +24,11 @@ const NO_PERMISSION_REQUESTS = [
   '/api/proxy/update',
   '/api/proxy/delete',
   '/api/proxy/check',
+  '/api/runner/start',
+  '/api/runner/stop',
+  '/api/runner/popMessage',
+  '/api/concurrency/updateDefaultMaxConcurrency',
+  '/api/concurrency/updateConcurrencyConnectionMap',
 ]
 
 export const checkLogin = () => useUserStore().injected

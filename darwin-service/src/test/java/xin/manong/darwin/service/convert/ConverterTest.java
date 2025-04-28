@@ -32,8 +32,8 @@ public class ConverterTest {
 
         Pager<URLRecord> pager = Converter.convert(page);
         Assert.assertNotNull(pager);
-        Assert.assertEquals(1, pager.current.intValue());
-        Assert.assertEquals(1, pager.size.intValue());
+        Assert.assertEquals(1, pager.pageNum.intValue());
+        Assert.assertEquals(1, pager.pageSize.intValue());
         Assert.assertEquals(1L, pager.total.longValue());
         Assert.assertEquals(1, pager.records.size());
         Assert.assertEquals("http://www.sina.com.cn", pager.records.get(0).url);
@@ -59,8 +59,8 @@ public class ConverterTest {
         OTSSearchResponse response = OTSSearchResponse.buildOK(kvRecords, 1L);
         Pager<URLRecord> pager = Converter.convert(response, URLRecord.class, 1, 1);
         Assert.assertNotNull(pager);
-        Assert.assertEquals(1, pager.current.intValue());
-        Assert.assertEquals(1, pager.size.intValue());
+        Assert.assertEquals(1, pager.pageNum.intValue());
+        Assert.assertEquals(1, pager.pageSize.intValue());
         Assert.assertEquals(1L, pager.total.longValue());
         Assert.assertEquals(1, pager.records.size());
         Assert.assertEquals("http://www.sina.com.cn", pager.records.get(0).url);

@@ -20,7 +20,7 @@ public class SpiderProxySelector extends AbstractProxySelector {
     private static final Logger logger = LoggerFactory.getLogger(SpiderProxySelector.class);
 
     private final int category;
-    protected ProxyService proxyService;
+    private final ProxyService proxyService;
 
     public SpiderProxySelector(int category, ProxyService proxyService) {
         this.category = category;

@@ -1,31 +1,31 @@
 package xin.manong.darwin.spider.core;
 
-import org.springframework.stereotype.Component;
+import xin.manong.darwin.common.Constants;
 import xin.manong.darwin.common.model.URLRecord;
 import xin.manong.darwin.spider.input.Input;
 import xin.manong.weapon.base.common.Context;
 
+import java.io.IOException;
+import java.util.List;
+
 /**
  * 资源爬虫
- * 1. 文档
- * 2. 图片
- * 3. 视频
  *
  * @author frankcl
- * @date 2023-03-24 16:22:15
+ * @date 2025-04-27 21:15:45
  */
-@Component
 public class ResourceSpider extends Spider {
 
-    private static final String CATEGORY = "resource";
-
-    public ResourceSpider() {
-        super(CATEGORY);
+    @Override
+    public MediaType handle(URLRecord record, Input input, Context context) throws IOException {
+        assert input != null;
+        record.category = Constants.CONTENT_CATEGORY_RESOURCE;
+        writer.write(record, input, context);
+        return MediaType.UNKNOWN;
     }
 
     @Override
-    protected void handle(URLRecord record, Context context) throws Exception {
-        Input input = buildInput(record, context);
-        write(record, input, context);
+    public List<MediaType> supportedMediaTypes() {
+        return List.of(MediaType.IMAGE, MediaType.VIDEO, MediaType.AUDIO, MediaType.PDF);
     }
 }

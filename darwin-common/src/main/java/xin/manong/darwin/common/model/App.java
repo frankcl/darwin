@@ -13,8 +13,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.Serial;
-
 /**
  * 应用信息
  *
@@ -30,8 +28,6 @@ import java.io.Serial;
 public class App extends BaseModel {
 
     private static final Logger logger = LoggerFactory.getLogger(App.class);
-    @Serial
-    private static final long serialVersionUID = 6333115720821294547L;
 
     /**
      * 应用ID

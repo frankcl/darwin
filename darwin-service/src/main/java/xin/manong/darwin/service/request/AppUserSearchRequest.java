@@ -6,8 +6,6 @@ import jakarta.ws.rs.QueryParam;
 import jakarta.xml.bind.annotation.XmlAccessType;
 import jakarta.xml.bind.annotation.XmlAccessorType;
 
-import java.io.Serial;
-
 /**
  * 应用用户关系搜索请求
  *
@@ -18,8 +16,6 @@ import java.io.Serial;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class AppUserSearchRequest extends SearchRequest {
 
-    @Serial
-    private static final long serialVersionUID = 1742507625468143611L;
     /**
      * 计划ID
      */

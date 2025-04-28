@@ -33,7 +33,7 @@ public class ParseResponse {
     /**
      * 用户透传数据
      */
-    public Map<String, Object> userDefinedMap;
+    public Map<String, Object> customMap;
     /**
      * 抽链列表
      */
@@ -57,17 +57,17 @@ public class ParseResponse {
      *
      * @param fieldMap 结构化数据
      * @param children 抽链列表
-     * @param userDefinedMap 用户自定义数据
+     * @param customMap 用户自定义数据
      * @return 成功解析响应
      */
     public static ParseResponse buildOK(Map<String, Object> fieldMap,
                                         List<URLRecord> children,
-                                        Map<String, Object> userDefinedMap) {
+                                        Map<String, Object> customMap) {
         ParseResponse response = new ParseResponse();
         response.status = true;
         response.fieldMap = fieldMap;
         response.children = children;
-        response.userDefinedMap = userDefinedMap;
+        response.customMap = customMap;
         return response;
     }
 }

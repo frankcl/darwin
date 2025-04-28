@@ -19,7 +19,7 @@ import xin.manong.darwin.service.iface.JobService;
 import xin.manong.darwin.service.iface.OSSService;
 import xin.manong.darwin.service.iface.PlanService;
 import xin.manong.darwin.service.iface.RuleService;
-import xin.manong.darwin.spider.core.HTMLSpider;
+import xin.manong.darwin.spider.core.Router;
 import xin.manong.darwin.spider.core.SpiderConfig;
 import xin.manong.weapon.base.common.Context;
 import xin.manong.weapon.base.util.RandomID;
@@ -31,20 +31,20 @@ import xin.manong.weapon.base.util.RandomID;
 @RunWith(SpringRunner.class)
 @ActiveProfiles(value = { "spider", "spider-dev", "service", "service-dev", "parse", "parse-dev", "queue", "queue-dev", "log", "log-dev" })
 @SpringBootTest(classes = { ApplicationTest.class })
-public class HTMLSpiderTest {
+public class TextSpiderTest {
 
     @Resource
-    protected SpiderConfig spiderConfig;
+    private SpiderConfig spiderConfig;
     @Resource
-    protected RuleService ruleService;
+    private RuleService ruleService;
     @Resource
-    protected JobService jobService;
+    private JobService jobService;
     @Resource
-    protected PlanService planService;
+    private PlanService planService;
     @Resource
-    protected OSSService ossService;
+    private OSSService ossService;
     @Resource
-    protected HTMLSpider spider;
+    private Router router;
 
     private void sweep(Plan plan, Job job) {
         Assert.assertTrue(jobService.delete(job.jobId));
@@ -66,7 +66,7 @@ public class HTMLSpiderTest {
         return plan;
     }
 
-    private Job prepareJobAndHTMLRule(Plan plan) throws Exception {
+    private void prepareHTMLRule(Plan plan) throws Exception {
         String scriptCode = ApplicationTest.readScript("/html_parse_script");
         Rule rule = new Rule();
         rule.name = "人民网结构化规则";
@@ -75,20 +75,9 @@ public class HTMLSpiderTest {
         rule.script = scriptCode;
         rule.planId = plan.planId;
         Assert.assertTrue(ruleService.add(rule));
-
-        Job job = new Job();
-        job.jobId = "aaa";
-        job.name = "测试任务";
-        job.priority = Constants.PRIORITY_NORMAL;
-        job.planId = plan.planId;
-        job.appId = 1;
-        job.status = true;
-        job.allowRepeat = false;
-        Assert.assertTrue(jobService.add(job));
-        return job;
     }
 
-    private Job prepareJobAndJSONRule(Plan plan) throws Exception {
+    private void prepareJSONRule(Plan plan) throws Exception {
         String scriptCode = ApplicationTest.readScript("/json_parse_script");
         Rule rule = new Rule();
         rule.name = "JSON解析规则";
@@ -97,7 +86,9 @@ public class HTMLSpiderTest {
         rule.script = scriptCode;
         rule.planId = plan.planId;
         Assert.assertTrue(ruleService.add(rule));
+    }
 
+    private Job prepareJob(Plan plan) throws Exception {
         Job job = new Job();
         job.jobId = "aaa";
         job.name = "测试任务";
@@ -115,19 +106,20 @@ public class HTMLSpiderTest {
     @Transactional
     public void testFetchHTML() throws Exception {
         Plan plan = preparePlan();
-        Job job = prepareJobAndHTMLRule(plan);
+        prepareHTMLRule(plan);
+        Job job = prepareJob(plan);
         try {
             String url = "http://politics.people.com.cn/n1/2023/0406/c1001-32658085.html";
             URLRecord record = new URLRecord(url);
-            record.category = Constants.CONTENT_CATEGORY_CONTENT;
             record.fetchMethod = Constants.FETCH_METHOD_LONG_PROXY;
             record.jobId = "aaa";
             record.planId = plan.planId;
             record.appId = 1;
             Context context = new Context();
-            spider.process(record, context);
-            String key = String.format("%s/%s/%s.html", spiderConfig.ossDirectory, "html", record.key);
-            Assert.assertEquals(Constants.URL_STATUS_SUCCESS, record.status.intValue());
+            router.route(record, context);
+            String key = String.format("%s/%s/%s.html", spiderConfig.ossDirectory, "text", record.key);
+            Assert.assertEquals(Constants.URL_STATUS_FETCH_SUCCESS, record.status.intValue());
+            Assert.assertEquals(Constants.CONTENT_CATEGORY_PAGE, record.category.intValue());
             Assert.assertEquals(ossService.buildURL(key), record.fetchContentURL);
             Assert.assertTrue(record.fetchTime != null && record.fetchTime > 0L);
             Assert.assertTrue(record.fieldMap != null && !record.fieldMap.isEmpty());
@@ -144,18 +136,19 @@ public class HTMLSpiderTest {
     @Transactional
     public void testFetchJSON() throws Exception {
         Plan plan = preparePlan();
-        Job job = prepareJobAndJSONRule(plan);
+        prepareJSONRule(plan);
+        Job job = prepareJob(plan);
         try {
             String url = "https://www.sina.com.cn/api/hotword.json";
             URLRecord record = new URLRecord(url);
-            record.category = Constants.CONTENT_CATEGORY_CONTENT;
             record.jobId = "aaa";
             record.planId = plan.planId;
             record.appId = 1;
             Context context = new Context();
-            spider.process(record, context);
-            String key = String.format("%s/%s/%s.json", spiderConfig.ossDirectory, "html", record.key);
-            Assert.assertEquals(Constants.URL_STATUS_SUCCESS, record.status.intValue());
+            router.route(record, context);
+            String key = String.format("%s/%s/%s.json", spiderConfig.ossDirectory, "text", record.key);
+            Assert.assertEquals(Constants.URL_STATUS_FETCH_SUCCESS, record.status.intValue());
+            Assert.assertEquals(Constants.CONTENT_CATEGORY_PAGE, record.category.intValue());
             Assert.assertEquals(ossService.buildURL(key), record.fetchContentURL);
             Assert.assertTrue(record.fetchTime != null && record.fetchTime > 0L);
             Assert.assertTrue(record.fieldMap != null && !record.fieldMap.isEmpty());
@@ -173,16 +166,17 @@ public class HTMLSpiderTest {
     @Transactional
     public void testFetchFail() throws Exception {
         Plan plan = preparePlan();
-        Job job = prepareJobAndHTMLRule(plan);
+        prepareHTMLRule(plan);
+        Job job = prepareJob(plan);
         try {
             String url = "http://politics.people.com.cn/n1/2023/0406/c1001-32658085111.html";
             URLRecord record = new URLRecord(url);
-            record.category = Constants.CONTENT_CATEGORY_CONTENT;
             record.jobId = "aaa";
             record.planId = plan.planId;
             record.appId = 1;
             Context context = new Context();
-            spider.process(record, context);
+            router.route(record, context);
+            Assert.assertNull(record.category);
             Assert.assertEquals(Constants.URL_STATUS_FETCH_FAIL, record.status.intValue());
             Assert.assertTrue(record.fetchTime != null && record.fetchTime > 0L);
             Assert.assertTrue(StringUtils.isEmpty(record.fetchContentURL));

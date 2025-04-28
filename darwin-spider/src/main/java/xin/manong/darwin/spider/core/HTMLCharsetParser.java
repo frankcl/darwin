@@ -23,7 +23,7 @@ public class HTMLCharsetParser {
 
     private static final Logger logger = LoggerFactory.getLogger(HTMLCharsetParser.class);
 
-    private static final String QUERY = "meta[http-equiv=content-type]";
+    private static final String CSS_QUERY = "meta[http-equiv=content-type]";
     private static final String ATTR_CONTENT = "content";
     private static final String KEY_CHARSET = "charset=";
 
@@ -36,7 +36,7 @@ public class HTMLCharsetParser {
     public static String parse(byte[] byteArray) {
         Document document = Jsoup.parse(new String(byteArray, StandardCharsets.UTF_8));
         Element head = document.head();
-        Elements elements = head.select(QUERY);
+        Elements elements = head.select(CSS_QUERY);
         for (Element element : elements) {
             if (!element.hasAttr(ATTR_CONTENT)) continue;
             String content = element.attr(ATTR_CONTENT);

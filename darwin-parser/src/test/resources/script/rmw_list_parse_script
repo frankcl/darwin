@@ -24,7 +24,7 @@ public class GroovyParser extends HTMLParser {
             if (child == null) continue;
             children.add(child);
         }
-        return ParseResponse.buildOK(null, children, request.userDefinedMap);
+        return ParseResponse.buildOK(null, children, request.customMap);
     }
 
     /**
@@ -40,7 +40,7 @@ public class GroovyParser extends HTMLParser {
         if (!e.hasAttr("href")) return null;
         URLRecord child = new URLRecord(e.absUrl("href"));
         String title = e.text().trim();
-        if (!StringUtils.isEmpty(title)) child.userDefinedMap.put("title", title);
+        if (!StringUtils.isEmpty(title)) child.customMap.put("title", title);
         return child;
     }
 }

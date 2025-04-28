@@ -14,18 +14,16 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import xin.manong.darwin.common.Constants;
 import xin.manong.darwin.common.model.URLRecord;
-import xin.manong.darwin.common.util.DarwinUtil;
-import xin.manong.darwin.spider.core.Spider;
-import xin.manong.darwin.spider.core.SpiderFactory;
+import xin.manong.darwin.log.core.AspectLogSupport;
+import xin.manong.darwin.spider.core.Router;
 import xin.manong.weapon.base.common.Context;
 import xin.manong.weapon.base.kafka.KafkaRecordProcessor;
-import xin.manong.weapon.base.log.JSONLogger;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Set;
 
 /**
- * URL接收器
+ * URL接收器：支持kafka和阿里云ONS
  *
  * @author frankcl
  * @date 2023-03-24 10:28:37
@@ -34,49 +32,46 @@ public class URLReceiver implements MessageListener, KafkaRecordProcessor {
 
     private static final Logger logger = LoggerFactory.getLogger(URLReceiver.class);
 
-    protected final Set<String> supportedCategory;
-    protected final SpiderFactory spiderFactory;
-    protected final JSONLogger aspectLogger;
+    private final Set<String> supportedCategory;
+    private final Router router;
+    private final AspectLogSupport aspectLogSupport;
 
-    public URLReceiver(SpiderFactory spiderFactory, JSONLogger aspectLogger, Set<String> supportedCategory) {
-        this.spiderFactory = spiderFactory;
-        this.aspectLogger = aspectLogger;
+    public URLReceiver(Router router, AspectLogSupport aspectLogSupport, Set<String> supportedCategory) {
+        this.router = router;
+        this.aspectLogSupport = aspectLogSupport;
         this.supportedCategory = supportedCategory;
     }
 
     private void handle(byte[] body, Context context) {
         URLRecord record = null;
-        Spider spider;
         try {
             if (body == null || body.length == 0) {
-                logger.error("message body is empty");
+                logger.error("Message is empty");
                 context.put(Constants.DARWIN_DEBUG_MESSAGE, "消息体为空");
                 return;
             }
             record = JSON.parseObject(new String(body,
                     StandardCharsets.UTF_8), URLRecord.class);
             if (record == null || !record.check()) {
-                logger.error("record is invalid");
-                context.put(Constants.DARWIN_DEBUG_MESSAGE, "URL记录非法");
+                logger.error("Record is invalid");
+                context.put(Constants.DARWIN_DEBUG_MESSAGE, "URL非法");
                 return;
             }
-            spider = spiderFactory.build(record);
+            router.route(record, context);
         } catch (Throwable t) {
-            context.put(Constants.STATUS, Constants.SUPPORT_URL_STATUSES.get(Constants.URL_STATUS_INVALID));
+            context.put(Constants.STATUS, Constants.SUPPORT_URL_STATUSES.get(Constants.URL_STATUS_ERROR));
             context.put(Constants.DARWIN_DEBUG_MESSAGE, t.getMessage());
             context.put(Constants.DARWIN_STACK_TRACE, ExceptionUtils.getStackTrace(t));
             logger.error(t.getMessage(), t);
-            DarwinUtil.putContext(context, record);
-            if (aspectLogger != null) aspectLogger.commit(context.getFeatureMap());
-            throw new RuntimeException(t);
+            aspectLogSupport.commitAspectLog(context, record);
+            throw new IllegalStateException(t);
         }
-        spider.process(record, context);
     }
 
     @Override
     public Action consume(Message message, ConsumeContext consumeContext) {
         Context context = new Context();
-        context.put(Constants.DARWIN_STAGE, Constants.STAGE_FETCH);
+        context.put(Constants.DARWIN_STAGE, Constants.PROCESS_STAGE_FETCH);
         if (!StringUtils.isEmpty(message.getMsgID())) context.put(Constants.DARWIN_MESSAGE_ID, message.getMsgID());
         if (!StringUtils.isEmpty(message.getKey())) context.put(Constants.DARWIN_MESSAGE_KEY, message.getKey());
         if (!StringUtils.isEmpty(message.getTopic())) context.put(Constants.DARWIN_MESSAGE_TOPIC, message.getTopic());
@@ -98,7 +93,7 @@ public class URLReceiver implements MessageListener, KafkaRecordProcessor {
         if (header == null || supportedCategory == null ||
                 !supportedCategory.contains(new String(header.value(), StandardCharsets.UTF_8))) return;
         Context context = new Context();
-        context.put(Constants.DARWIN_STAGE, Constants.STAGE_FETCH);
+        context.put(Constants.DARWIN_STAGE, Constants.PROCESS_STAGE_FETCH);
         if (consumerRecord.key() != null) {
             context.put(Constants.DARWIN_MESSAGE_KEY, new String(consumerRecord.key(), StandardCharsets.UTF_8));
         }

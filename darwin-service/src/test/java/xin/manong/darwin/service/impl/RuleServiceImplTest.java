@@ -75,8 +75,8 @@ public class RuleServiceImplTest {
         RuleSearchRequest request = new RuleSearchRequest();
         request.scriptType = Constants.SCRIPT_TYPE_GROOVY;
         request.name = "test rule";
-        request.current = 1;
-        request.size = 10;
+        request.pageNum = 1;
+        request.pageSize = 10;
         Pager<Rule> pager = ruleService.search(request);
         Assert.assertEquals(1, pager.total.intValue());
         Assert.assertEquals(1, pager.records.size());

@@ -41,9 +41,9 @@ public class JobServiceImpl extends JobService {
     private static final String KEY_CREATE_TIME = "create_time";
 
     @Resource
-    protected ServiceConfig serviceConfig;
+    private ServiceConfig serviceConfig;
     @Resource
-    protected OTSClient otsClient;
+    private OTSClient otsClient;
 
     @Autowired
     public JobServiceImpl(CacheConfig cacheConfig) {
@@ -115,7 +115,7 @@ public class JobServiceImpl extends JobService {
     @Override
     public Pager<Job> search(JobSearchRequest searchRequest) {
         searchRequest = prepareSearchRequest(searchRequest);
-        int offset = (searchRequest.current - 1) * searchRequest.size;
+        int offset = (searchRequest.pageNum - 1) * searchRequest.pageSize;
         BoolQuery boolQuery = new BoolQuery();
         List<Query> queryList = new ArrayList<>();
         if (searchRequest.status != null) queryList.add(SearchQueryBuilder.buildTermQuery(KEY_STATUS, searchRequest.status));
@@ -124,10 +124,10 @@ public class JobServiceImpl extends JobService {
         if (!StringUtils.isEmpty(searchRequest.name)) queryList.add(SearchQueryBuilder.buildMatchPhraseQuery(KEY_NAME, searchRequest.name));
         if (searchRequest.createTimeRange != null) queryList.add(SearchQueryBuilder.buildRangeQuery(KEY_CREATE_TIME, searchRequest.createTimeRange));
         if (!queryList.isEmpty()) boolQuery.setFilterQueries(queryList);
-        OTSSearchRequest request = new OTSSearchRequest.Builder().offset(offset).limit(searchRequest.size).
+        OTSSearchRequest request = new OTSSearchRequest.Builder().offset(offset).limit(searchRequest.pageSize).
                 tableName(serviceConfig.ots.jobTable).indexName(serviceConfig.ots.jobIndexName).query(boolQuery).build();
         OTSSearchResponse response = otsClient.search(request);
         if (!response.status) throw new InternalServerErrorException("搜索OTS失败");
-        return Converter.convert(response, Job.class, searchRequest.current, searchRequest.size);
+        return Converter.convert(response, Job.class, searchRequest.pageNum, searchRequest.pageSize);
     }
 }

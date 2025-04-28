@@ -133,13 +133,12 @@ public class Converter {
         SeedRecord record = new SeedRecord(request.url);
         record.planId = request.planId;
         record.fetchMethod = request.fetchMethod;
-        record.scope = request.scope;
-        record.category = request.category;
-        record.concurrentLevel = request.concurrentLevel;
+        record.linkScope = request.linkScope;
         record.priority = request.priority;
+        record.allowDispatch = request.allowDispatch;
         record.timeout = request.timeout != null && request.timeout <= 0 ? null : request.timeout;
         record.headers = request.headers == null ? new HashMap<>() : new HashMap<>(request.headers);
-        record.userDefinedMap = request.userDefinedMap == null ? new HashMap<>() : new HashMap<>(request.userDefinedMap);
+        record.customMap = request.customMap == null ? new HashMap<>() : new HashMap<>(request.customMap);
         return record;
     }
 
@@ -154,13 +153,12 @@ public class Converter {
         SeedRecord record = new SeedRecord(request.url);
         record.key = request.key;
         record.fetchMethod = request.fetchMethod;
-        record.scope = request.scope;
-        record.category = request.category;
-        record.concurrentLevel = request.concurrentLevel;
+        record.linkScope = request.linkScope;
         record.priority = request.priority;
         record.timeout = request.timeout;
+        record.allowDispatch = request.allowDispatch;
         record.headers = request.headers == null ? new HashMap<>() : new HashMap<>(request.headers);
-        record.userDefinedMap = request.userDefinedMap == null ? new HashMap<>() : new HashMap<>(request.userDefinedMap);
+        record.customMap = request.customMap == null ? new HashMap<>() : new HashMap<>(request.customMap);
         record.createTime = null;
         return record;
     }

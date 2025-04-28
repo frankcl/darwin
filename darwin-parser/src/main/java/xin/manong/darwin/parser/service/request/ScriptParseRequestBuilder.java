@@ -41,11 +41,11 @@ public class ScriptParseRequestBuilder {
     /**
      * 设置待解析内容
      *
-     * @param html 待解析HTML
+     * @param text 待解析文本
      * @return 构建器
      */
-    public ScriptParseRequestBuilder html(String html) {
-        delegate.html = html;
+    public ScriptParseRequestBuilder text(String text) {
+        delegate.text = text;
         return this;
     }
 
@@ -85,11 +85,11 @@ public class ScriptParseRequestBuilder {
     /**
      * 设置用户自定义数据
      *
-     * @param userDefinedMap 用户自定义数据
+     * @param customMap 用户自定义数据
      * @return 构建器
      */
-    public ScriptParseRequestBuilder userDefinedMap(Map<String, Object> userDefinedMap) {
-        delegate.userDefinedMap = userDefinedMap;
+    public ScriptParseRequestBuilder customMap(Map<String, Object> customMap) {
+        delegate.customMap = customMap;
         return this;
     }
 
@@ -100,11 +100,11 @@ public class ScriptParseRequestBuilder {
      */
     public ScriptParseRequest build() {
         ScriptParseRequest request = new ScriptParseRequest();
-        request.html = delegate.html;
+        request.text = delegate.text;
         request.url = delegate.url;
         request.linkScope = delegate.linkScope;
         request.redirectURL = delegate.redirectURL;
-        request.userDefinedMap = delegate.userDefinedMap;
+        request.customMap = delegate.customMap;
         request.scriptType = delegate.scriptType;
         request.scriptCode = delegate.scriptCode;
         return request;

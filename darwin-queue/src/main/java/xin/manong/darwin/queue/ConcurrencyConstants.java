@@ -18,12 +18,12 @@ public class ConcurrencyConstants {
     /**
      * Redis键常量定义
      */
-    public static final String CONCURRENT_PREFIX = "DARWIN_CONCURRENT";
-    public static final String CONCURRENT_CONTROL = "DARWIN_CONTROL";
-    public static final String CONCURRENT_PUSH_LOCK = String.format("%s_PUSH_LOCK", CONCURRENT_PREFIX);
-    public static final String CONCURRENT_POP_LOCK = String.format("%s_POP_LOCK", CONCURRENT_PREFIX);
-    public static final String CONCURRENT_HIGH_PRIORITY = String.format("%s_HIGH_PRIORITY_", CONCURRENT_PREFIX);
-    public static final String CONCURRENT_NORMAL_PRIORITY = String.format("%s_NORMAL_PRIORITY_", CONCURRENT_PREFIX);
-    public static final String CONCURRENT_LOW_PRIORITY = String.format("%s_LOW_PRIORITY_", CONCURRENT_PREFIX);
-    public static final String CONCURRENT_UNITS = String.format("%s_UNITS", CONCURRENT_PREFIX);
+    public static final String CONCURRENCY_PREFIX = "DARWIN_CONCURRENCY";
+    public static final String CONCURRENCY_CONTROL = "DARWIN_CONTROL";
+    public static final String CONCURRENCY_PUSH_LOCK = String.format("%s_PUSH_LOCK", CONCURRENCY_PREFIX);
+    public static final String CONCURRENCY_POP_LOCK = String.format("%s_POP_LOCK", CONCURRENCY_PREFIX);
+    public static final String CONCURRENCY_HIGH_PRIORITY = String.format("%s_HIGH_PRIORITY_", CONCURRENCY_PREFIX);
+    public static final String CONCURRENCY_NORMAL_PRIORITY = String.format("%s_NORMAL_PRIORITY_", CONCURRENCY_PREFIX);
+    public static final String CONCURRENCY_LOW_PRIORITY = String.format("%s_LOW_PRIORITY_", CONCURRENCY_PREFIX);
+    public static final String CONCURRENCY_UNITS = String.format("%s_UNITS", CONCURRENCY_PREFIX);
 }

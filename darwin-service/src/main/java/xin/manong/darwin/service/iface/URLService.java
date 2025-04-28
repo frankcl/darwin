@@ -1,19 +1,12 @@
 package xin.manong.darwin.service.iface;
 
 import com.alibaba.fastjson.JSON;
-import com.google.common.cache.Cache;
-import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.RemovalNotification;
-import org.apache.commons.codec.digest.DigestUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import xin.manong.darwin.common.Constants;
 import xin.manong.darwin.common.model.Pager;
 import xin.manong.darwin.common.model.RangeValue;
 import xin.manong.darwin.common.model.URLGroupCount;
 import xin.manong.darwin.common.model.URLRecord;
 import xin.manong.darwin.service.component.ExcelDocumentExporter;
-import xin.manong.darwin.service.config.CacheConfig;
 import xin.manong.darwin.service.request.OrderByRequest;
 import xin.manong.darwin.service.request.URLSearchRequest;
 import xin.manong.darwin.service.util.ModelValidator;
@@ -21,8 +14,6 @@ import xin.manong.darwin.service.util.ModelValidator;
 import java.io.IOException;
 import java.io.Serial;
 import java.util.*;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
 
 /**
  * URL服务接口定义
@@ -32,11 +23,6 @@ import java.util.concurrent.TimeUnit;
  */
 public abstract class URLService {
 
-    private static final Logger logger = LoggerFactory.getLogger(URLService.class);
-
-    protected CacheConfig cacheConfig;
-    protected Cache<String, Optional<String>> keyCache;
-    protected Cache<String, Optional<URLRecord>> recordCache;
     protected static List<String> EXPORT_COLUMNS = new ArrayList<>() {
         @Serial
         private static final long serialVersionUID = 3442274479484811098L;
@@ -52,77 +38,9 @@ public abstract class URLService {
         add("fetch_time");
         add("status");
         add("http_code");
-        add("user_defined_map");
+        add("custom_map");
         add("field_map");
     }};
-
-    public URLService(CacheConfig cacheConfig) {
-        this.cacheConfig = cacheConfig;
-        keyCache = CacheBuilder.newBuilder()
-                .recordStats()
-                .concurrencyLevel(1)
-                .maximumSize(cacheConfig.urlCacheNum)
-                .expireAfterWrite(cacheConfig.urlExpiredMinutes, TimeUnit.MINUTES)
-                .removalListener(this::onKeyRemoval).build();
-        recordCache = CacheBuilder.newBuilder()
-                .recordStats()
-                .concurrencyLevel(1)
-                .maximumSize(cacheConfig.urlCacheNum)
-                .expireAfterWrite(cacheConfig.urlExpiredMinutes, TimeUnit.MINUTES)
-                .removalListener(this::onRecordRemoval).build();
-    }
-
-    /**
-     * URL数据缓存移除通知
-     *
-     * @param notification 移除通知
-     */
-    private void onRecordRemoval(RemovalNotification<String, Optional<URLRecord>> notification) {
-        Objects.requireNonNull(notification.getValue());
-        if (notification.getValue().isEmpty()) return;
-        logger.info("Record:{} is removed from cache", notification.getValue().get().url);
-    }
-
-    /**
-     * key缓存移除通知
-     *
-     * @param notification 移除通知
-     */
-    private void onKeyRemoval(RemovalNotification<String, Optional<String>> notification) {
-        Objects.requireNonNull(notification.getValue());
-        if (notification.getValue().isEmpty()) return;
-        logger.info("Key:{} is removed from cache", notification.getValue().get());
-    }
-
-    /**
-     * 根据URL从cache获取记录
-     *
-     * @param url URL
-     * @return 数据记录，如果不存在返回null
-     */
-    public URLRecord getCacheByURL(String url) {
-        try {
-            String hash = DigestUtils.md5Hex(url);
-            Optional<String> keyOptional = keyCache.get(hash, () -> {
-                URLRecord record = getLatestByURL(url, System.currentTimeMillis() - 86400000L);
-                return Optional.ofNullable(record == null ? null : record.key);
-            });
-            if (keyOptional.isEmpty()) {
-                keyCache.invalidate(hash);
-                return null;
-            }
-            String key = keyOptional.get();
-            Optional<URLRecord> recordOptional = recordCache.get(key, () -> Optional.ofNullable(get(key)));
-            if (recordOptional.isEmpty()) {
-                recordCache.invalidate(key);
-                keyCache.invalidate(hash);
-                return null;
-            }
-            return recordOptional.get();
-        } catch (ExecutionException e) {
-            throw new RuntimeException(e);
-        }
-    }
 
     /**
      * 添加URL记录
@@ -190,12 +108,72 @@ public abstract class URLService {
     public abstract long selectCount(URLSearchRequest searchRequest);
 
     /**
-     * 根据分组统计任务抓取的数据状态
+     * 根据URL状态分组计数
      *
      * @param jobId 任务ID
+     * @param timeRange 时间范围
      * @return 统计结果
      */
-    public abstract List<URLGroupCount> bucketCountGroupByStatus(String jobId);
+    public abstract List<URLGroupCount> countGroupByStatus(String jobId, RangeValue<Long> timeRange);
+
+    /**
+     * 根据内容类型分组计数
+     *
+     * @param jobId 任务ID
+     * @param timeRange 时间范围
+     * @return 统计结果
+     */
+    public abstract List<URLGroupCount> countGroupByCategory(String jobId, RangeValue<Long> timeRange);
+
+    /**
+     * 统计排队抓取top的并发单元
+     *
+     * @param top top数量
+     * @return 统计结果
+     */
+    public abstract List<URLGroupCount> topConcurrencyUnits(int top);
+
+    /**
+     * 统计时间范围内抓取量top的站点
+     *
+     * @param timeRange 时间范围
+     * @param top top数量
+     * @return 统计结果
+     */
+    public abstract List<URLGroupCount> topHosts(RangeValue<Long> timeRange, int top);
+
+    /**
+     * 统计时间范围内抓取URL数量
+     *
+     * @param timeRange 时间范围
+     * @return URL数量
+     */
+    public abstract int urlCount(RangeValue<Long> timeRange);
+
+    /**
+     * 统计时间范围内抓取host数量
+     *
+     * @param timeRange 时间范围
+     * @return host数量
+     */
+    public abstract int hostCount(RangeValue<Long> timeRange);
+
+    /**
+     * 统计时间范围内抓取domain数量
+     *
+     * @param timeRange 时间范围
+     * @return domain数量
+     */
+    public abstract int domainCount(RangeValue<Long> timeRange);
+
+    /**
+     * 平均内容长度
+     *
+     * @param timeRange 时间范围
+     * @param category 内容类型
+     * @return 平均内容长度
+     */
+    public abstract long avgContentLength(Integer category, RangeValue<Long> timeRange);
 
     /**
      * 准备搜索请求
@@ -205,8 +183,8 @@ public abstract class URLService {
      */
     protected URLSearchRequest prepareSearchRequest(URLSearchRequest searchRequest) {
         if (searchRequest == null) searchRequest = new URLSearchRequest();
-        if (searchRequest.current == null || searchRequest.current < 1) searchRequest.current = Constants.DEFAULT_CURRENT;
-        if (searchRequest.size == null || searchRequest.size <= 0) searchRequest.size = Constants.DEFAULT_PAGE_SIZE;
+        if (searchRequest.pageNum == null || searchRequest.pageNum < 1) searchRequest.pageNum = Constants.DEFAULT_PAGE_NUM;
+        if (searchRequest.pageSize == null || searchRequest.pageSize <= 0) searchRequest.pageSize = Constants.DEFAULT_PAGE_SIZE;
         List<Integer> statusList = ModelValidator.validateListField(searchRequest.status, Integer.class);
         if (statusList != null && !statusList.isEmpty()) searchRequest.statusList = statusList;
         RangeValue<Long> rangeValue = ModelValidator.validateRangeValue(searchRequest.fetchTime, Long.class);
@@ -217,47 +195,63 @@ public abstract class URLService {
     }
 
     /**
-     * 根据URL获取在afterTime之后的最新抓取成功记录
+     * 根据URL获取在startTime之后的最新的抓取成功记录
      *
      * @param url URL
-     * @param afterTime 起始时间
+     * @param startTime 起始时间
      * @return 成功返回数据记录，否则返回null
      */
-    public URLRecord getLatestByURL(String url, long afterTime) {
+    public URLRecord getFetchedByURL(String url, long startTime) {
         OrderByRequest orderByRequest = new OrderByRequest("fetch_time", false);
         URLSearchRequest searchRequest = new URLSearchRequest();
         searchRequest.url = url;
         searchRequest.statusList = new ArrayList<>();
-        searchRequest.statusList.add(Constants.URL_STATUS_SUCCESS);
+        searchRequest.statusList.add(Constants.URL_STATUS_FETCH_SUCCESS);
         searchRequest.fetchTimeRange = new RangeValue<>();
         searchRequest.fetchTimeRange.includeLower = true;
-        searchRequest.fetchTimeRange.start = afterTime;
+        searchRequest.fetchTimeRange.start = startTime;
         searchRequest.orderByRequests = new ArrayList<>();
         searchRequest.orderByRequests.add(orderByRequest);
-        searchRequest.current = searchRequest.size = 1;
+        searchRequest.pageNum = searchRequest.pageSize = 1;
         Pager<URLRecord> pager = search(searchRequest);
         if (pager == null || pager.records.isEmpty()) return null;
         return pager.records.get(0);
     }
 
     /**
-     * 获取指定任务的创建时间小于等于beforeTime的URL记录
+     * 判断计划是否抓取过URL
+     *
+     * @param url URL
+     * @param planId 计划ID
+     * @return 如果抓取过返回true，否则返回false
+     */
+    public boolean isFetched(String url, String planId) {
+        URLSearchRequest searchRequest = new URLSearchRequest();
+        searchRequest.url = url;
+        searchRequest.planId = planId;
+        searchRequest.statusList = new ArrayList<>();
+        searchRequest.statusList.add(Constants.URL_STATUS_FETCH_SUCCESS);
+        searchRequest.pageNum = searchRequest.pageSize = 1;
+        return selectCount(searchRequest) > 0;
+    }
+
+    /**
+     * 获取指定任务的创建时间小于等于endTime的URL记录
      *
      * @param jobId 任务ID
-     * @param beforeTime 最小创建时间
+     * @param endTime 最小创建时间
      * @param size 数量
      * @return URL列表
      */
-    public List<URLRecord> getExpiredRecords(String jobId, long beforeTime, int size) {
+    public List<URLRecord> getExpiredRecords(String jobId, long endTime, int size) {
         URLSearchRequest searchRequest = new URLSearchRequest();
-        searchRequest.current = 1;
-        searchRequest.size = size <= 0 ? Constants.DEFAULT_PAGE_SIZE : size;
+        searchRequest.pageNum = 1;
+        searchRequest.pageSize = size <= 0 ? Constants.DEFAULT_PAGE_SIZE : size;
         searchRequest.statusList = new ArrayList<>();
-        searchRequest.statusList.add(Constants.URL_STATUS_CREATED);
         searchRequest.statusList.add(Constants.URL_STATUS_QUEUING);
         searchRequest.statusList.add(Constants.URL_STATUS_FETCHING);
         searchRequest.createTimeRange = new RangeValue<>();
-        searchRequest.createTimeRange.end = beforeTime;
+        searchRequest.createTimeRange.end = endTime;
         searchRequest.createTimeRange.includeUpper = true;
         searchRequest.jobId = jobId;
         Pager<URLRecord> pager = search(searchRequest);
@@ -276,8 +270,8 @@ public abstract class URLService {
     public ExcelDocumentExporter export(URLSearchRequest searchRequest) throws IOException {
         int pageSize = 100;
         if (searchRequest == null) searchRequest = new URLSearchRequest();
-        searchRequest.current = 1;
-        searchRequest.size = pageSize;
+        searchRequest.pageNum = 1;
+        searchRequest.pageSize = pageSize;
         ExcelDocumentExporter exporter = new ExcelDocumentExporter();
         String sheetName = "下载数据";
         exporter.buildSheet(sheetName, EXPORT_COLUMNS);
@@ -290,7 +284,7 @@ public abstract class URLService {
                 if (++exportCount >= 10000) break;
             }
             if (pager.records.size() < pageSize) break;
-            searchRequest.current++;
+            searchRequest.pageNum++;
         }
         return exporter;
     }

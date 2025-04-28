@@ -10,6 +10,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import xin.manong.darwin.common.Constants;
 import xin.manong.darwin.common.model.URLRecord;
+import xin.manong.darwin.log.core.AspectLogSupport;
 import xin.manong.darwin.queue.ConcurrencyControl;
 import xin.manong.darwin.queue.ConcurrencyQueue;
 import xin.manong.darwin.service.event.URLEventListener;
@@ -17,6 +18,7 @@ import xin.manong.darwin.service.iface.URLService;
 import xin.manong.darwin.service.event.JobEventListener;
 import xin.manong.weapon.base.common.Context;
 import xin.manong.weapon.base.event.ErrorEvent;
+import xin.manong.weapon.base.executor.ExecuteRunner;
 import xin.manong.weapon.base.kafka.KafkaProducer;
 
 import java.nio.charset.StandardCharsets;
@@ -29,7 +31,7 @@ import java.util.Set;
  * @author frankcl
  * @date 2023-03-22 17:33:16
  */
-public class Allocator extends AspectLogSupport {
+public class Allocator extends ExecuteRunner {
 
     private static final Logger logger = LoggerFactory.getLogger(Allocator.class);
 
@@ -38,17 +40,19 @@ public class Allocator extends AspectLogSupport {
     private final long maxOverflowIntervalMs;
     private final String topic;
     @Resource
-    protected URLService urlService;
+    private URLService urlService;
     @Resource
-    protected ConcurrencyQueue concurrencyQueue;
+    private ConcurrencyQueue concurrencyQueue;
     @Resource
-    protected ConcurrencyControl concurrencyControl;
+    private ConcurrencyControl concurrencyControl;
     @Resource
-    protected URLEventListener urlEventListener;
+    private URLEventListener urlEventListener;
     @Resource
-    protected JobEventListener jobEventListener;
+    private JobEventListener jobEventListener;
     @Resource
-    protected KafkaProducer producer;
+    private KafkaProducer producer;
+    @Resource
+    private AspectLogSupport aspectLogSupport;
 
     public Allocator(String topic, Long executeIntervalMs, Long maxOverflowIntervalMs) {
         super(ID, executeIntervalMs);
@@ -65,8 +69,8 @@ public class Allocator extends AspectLogSupport {
             return;
         }
         try {
-            Set<String> concurrentUnits = concurrencyQueue.concurrentUnitsSnapshots();
-            for (String concurrentUnit : concurrentUnits) allocate(concurrentUnit);
+            Set<String> concurrencyUnits = concurrencyQueue.concurrencyUnitsSnapshots();
+            for (String concurrencyUnit : concurrencyUnits) allocate(concurrencyUnit);
         } finally {
             concurrencyQueue.releasePopLock();
         }
@@ -75,23 +79,23 @@ public class Allocator extends AspectLogSupport {
     /**
      * 并发单元链接分配
      *
-     * @param concurrentUnit 并发单元
+     * @param concurrencyUnit 并发单元
      */
-    private void allocate(String concurrentUnit) {
+    private void allocate(String concurrencyUnit) {
         int applyRecordNum = 0, allocateRecordNum = 0, overflowRecordNum = 0;
         Context context = new Context();
         try {
-            applyRecordNum = concurrencyControl.getAvailableConnections(concurrentUnit);
+            applyRecordNum = concurrencyControl.getAvailableConnections(concurrencyUnit);
             if (applyRecordNum <= 0) {
                 context.put(Constants.SCHEDULE_STATUS, Constants.SCHEDULE_STATUS_FAIL);
                 context.put(Constants.DARWIN_DEBUG_MESSAGE, "没有可用连接");
-                logger.warn("No available connections for concurrent unit:{}", concurrentUnit);
+                logger.warn("No available connections for concurrency unit:{}", concurrencyUnit);
                 return;
             }
             context.put(Constants.SCHEDULE_STATUS, Constants.SCHEDULE_STATUS_SUCCESS);
             int n = applyRecordNum;
             while (n > 0) {
-                List<URLRecord> records = concurrencyQueue.pop(concurrentUnit, n);
+                List<URLRecord> records = concurrencyQueue.pop(concurrencyUnit, n);
                 for (URLRecord record : records) {
                     if (record.isOverflow(maxOverflowIntervalMs)) {
                         handleOverflow(record);
@@ -104,17 +108,18 @@ public class Allocator extends AspectLogSupport {
                 if (records.size() < n) break;
                 n = applyRecordNum - allocateRecordNum;
             }
-            logger.info("Handle concurrent unit:{} success, allocate num:{}, overflow num:{}",
-                    concurrentUnit, allocateRecordNum, overflowRecordNum);
+            logger.info("Handle concurrency unit:{} success, allocate num:{}, overflow num:{}",
+                    concurrencyUnit, allocateRecordNum, overflowRecordNum);
         } catch (Exception e) {
             context.put(Constants.SCHEDULE_STATUS, Constants.SCHEDULE_STATUS_FAIL);
             context.put(Constants.DARWIN_DEBUG_MESSAGE, e.getMessage());
             context.put(Constants.DARWIN_STACK_TRACE, ExceptionUtils.getStackTrace(e));
-            logger.error("Handle concurrent unit:{} failed", concurrentUnit);
+            logger.error("Handle concurrency unit:{} failed", concurrencyUnit);
             logger.error(e.getMessage(), e);
             notifyErrorEvent(new ErrorEvent(e.getMessage(), e));
         } finally {
-            commitAspectLog(context, concurrentUnit, applyRecordNum, allocateRecordNum, overflowRecordNum);
+            aspectLogSupport.commitAspectLog(context, concurrencyUnit, applyRecordNum,
+                    allocateRecordNum, overflowRecordNum);
         }
     }
 
@@ -125,12 +130,17 @@ public class Allocator extends AspectLogSupport {
      */
     private void handleOverflow(URLRecord record) {
         Context context = new Context();
-        context.put(Constants.DARWIN_STAGE, Constants.STAGE_POP);
-        if (!urlService.updateStatus(record.key, Constants.URL_STATUS_OVERFLOW)) {
-            logger.warn("Update overflow status failed for url:{}", record.url);
+        context.put(Constants.DARWIN_STAGE, Constants.PROCESS_STAGE_POP);
+        try {
+            if (!urlService.updateStatus(record.key, Constants.URL_STATUS_OVERFLOW)) {
+                logger.warn("Update overflow status failed for url:{}", record.url);
+            }
+            record.status = Constants.URL_STATUS_OVERFLOW;
+            urlEventListener.onComplete(record.key, context);
+            jobEventListener.onComplete(record.jobId, null);
+        } finally {
+            aspectLogSupport.commitAspectLog(context, record);
         }
-        urlEventListener.onComplete(record.key, context);
-        jobEventListener.onComplete(record.jobId, new Context());
     }
 
     /**
@@ -142,7 +152,7 @@ public class Allocator extends AspectLogSupport {
      */
     private void handleNormal(URLRecord record) {
         Context context = new Context();
-        context.put(Constants.DARWIN_STAGE, Constants.STAGE_POP);
+        context.put(Constants.DARWIN_STAGE, Constants.PROCESS_STAGE_POP);
         try {
             record.status = Constants.URL_STATUS_FETCHING;
             record.popTime = System.currentTimeMillis();
@@ -156,7 +166,7 @@ public class Allocator extends AspectLogSupport {
             logger.error("Handle record failed for key:{}", record.key);
             logger.error(e.getMessage(), e);
         } finally {
-            commitAspectLog(context, record);
+            aspectLogSupport.commitAspectLog(context, record);
         }
     }
 
@@ -170,7 +180,7 @@ public class Allocator extends AspectLogSupport {
         byte[] bytes = JSON.toJSONString(record, SerializerFeature.DisableCircularReferenceDetect).
                 getBytes(StandardCharsets.UTF_8);
         byte[] category = String.format("%d", record.category == null ?
-                Constants.CONTENT_CATEGORY_CONTENT : record.category).getBytes(StandardCharsets.UTF_8);
+                Constants.CONTENT_CATEGORY_PAGE : record.category).getBytes(StandardCharsets.UTF_8);
         RecordHeaders headers = new RecordHeaders();
         headers.add(Constants.CATEGORY, category);
         RecordMetadata metadata = producer.send(record.key, bytes, topic, headers);

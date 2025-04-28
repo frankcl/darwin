@@ -29,11 +29,11 @@ import java.util.List;
 public class RunnerController {
 
     @Resource
-    protected MessageService messageService;
+    private MessageService messageService;
     @Resource
-    protected ExecuteRunnerRegistry executeRunnerRegistry;
+    private ExecuteRunnerRegistry executeRunnerRegistry;
     @Resource
-    protected PermissionSupport permissionSupport;
+    private PermissionSupport permissionSupport;
 
     /**
      * 获取执行器列表

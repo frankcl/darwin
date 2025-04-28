@@ -10,7 +10,7 @@ import xin.manong.darwin.common.model.Job;
 import xin.manong.darwin.common.model.Plan;
 import xin.manong.darwin.common.model.SeedRecord;
 import xin.manong.darwin.common.model.URLRecord;
-import xin.manong.darwin.common.util.DarwinUtil;
+import xin.manong.darwin.log.core.AspectLogSupport;
 import xin.manong.darwin.queue.ConcurrencyConstants;
 import xin.manong.darwin.queue.ConcurrencyQueue;
 import xin.manong.darwin.queue.PushResult;
@@ -19,7 +19,6 @@ import xin.manong.darwin.service.iface.JobService;
 import xin.manong.darwin.service.iface.SeedService;
 import xin.manong.darwin.service.iface.URLService;
 import xin.manong.weapon.base.common.Context;
-import xin.manong.weapon.base.log.JSONLogger;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -42,9 +41,11 @@ public class PlanExecutor {
     @Resource
     private SeedService seedService;
     @Resource
+    private ConcurrencyComputer concurrencyComputer;
+    @Resource
     private ConcurrencyQueue concurrencyQueue;
-    @Resource(name = "urlAspectLogger")
-    protected JSONLogger aspectLogger;
+    @Resource
+    private AspectLogSupport aspectLogSupport;
 
     /**
      * 执行前检测
@@ -92,16 +93,21 @@ public class PlanExecutor {
                              List<URLRecord> commitRecords) {
         List<SeedRecord> seedRecords = seedService.getList(plan.planId);
         for (SeedRecord seedRecord : seedRecords) {
+            Context context = new Context();
+            context.put(Constants.DARWIN_STAGE, Constants.PROCESS_STAGE_PUSH);
             URLRecord record = Converter.convert(seedRecord);
-            record.appId = plan.appId;
-            record.jobId = job.jobId;
-            if (record.fetchMethod == null) record.fetchMethod = job.fetchMethod;
-            if (record.concurrentLevel == null) record.concurrentLevel = Constants.CONCURRENT_LEVEL_DOMAIN;
-            if (record.priority == null) {
-                record.priority = job.priority == null ? Constants.PRIORITY_NORMAL : job.priority;
+            try {
+                concurrencyComputer.compute(record);
+                record.appId = plan.appId;
+                record.jobId = job.jobId;
+                if (record.fetchMethod == null) record.fetchMethod = job.fetchMethod;
+                if (record.priority == null) {
+                    record.priority = job.priority == null ? Constants.PRIORITY_NORMAL : job.priority;
+                }
+                pushRecord(record, commitRecords, pushRecords);
+            } finally {
+                aspectLogSupport.commitAspectLog(context, record);
             }
-            pushRecord(record, commitRecords, pushRecords);
-            commitAspectLog(record);
         }
     }
 
@@ -141,18 +147,5 @@ public class PlanExecutor {
         for (URLRecord pushRecord : pushRecords) concurrencyQueue.remove(pushRecord);
         for (URLRecord commitRecord : commitRecords) urlService.delete(commitRecord.key);
         jobService.delete(jobId);
-    }
-
-    /**
-     * 提交URL切面日志
-     *
-     * @param record URL记录
-     */
-    private void commitAspectLog(URLRecord record) {
-        if (record == null || aspectLogger == null) return;
-        Context context = new Context();
-        context.put(Constants.DARWIN_STAGE, Constants.STAGE_PUSH);
-        DarwinUtil.putContext(context, record);
-        aspectLogger.commit(context.getFeatureMap());
     }
 }

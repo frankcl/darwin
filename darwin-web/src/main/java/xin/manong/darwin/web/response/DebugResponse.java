@@ -5,7 +5,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.xml.bind.annotation.XmlAccessType;
 import jakarta.xml.bind.annotation.XmlAccessorType;
 
-import java.io.Serial;
 import java.io.Serializable;
 
 /**
@@ -18,8 +17,6 @@ import java.io.Serializable;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class DebugResponse implements Serializable {
 
-    @Serial
-    private static final long serialVersionUID = -6474593265113659642L;
     /**
      * 是否成功
      */

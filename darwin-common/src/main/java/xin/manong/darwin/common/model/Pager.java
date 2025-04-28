@@ -5,7 +5,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.xml.bind.annotation.XmlAccessType;
 import jakarta.xml.bind.annotation.XmlAccessorType;
 
-import java.io.Serial;
 import java.io.Serializable;
 import java.util.List;
 
@@ -19,18 +18,16 @@ import java.util.List;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class Pager<T> implements Serializable {
 
-    @Serial
-    private static final long serialVersionUID = -8803034913332652744L;
     /**
      * 页码：从1开始
      */
-    @JsonProperty("current")
-    public Long current;
+    @JsonProperty("page_num")
+    public Long pageNum;
     /**
      * 分页数量
      */
-    @JsonProperty("size")
-    public Long size;
+    @JsonProperty("page_size")
+    public Long pageSize;
     /**
      * 总数
      */

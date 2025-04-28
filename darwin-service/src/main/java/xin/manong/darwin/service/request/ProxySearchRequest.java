@@ -6,8 +6,6 @@ import jakarta.ws.rs.QueryParam;
 import jakarta.xml.bind.annotation.XmlAccessType;
 import jakarta.xml.bind.annotation.XmlAccessorType;
 
-import java.io.Serial;
-
 /**
  * 代理搜索请求
  *
@@ -18,8 +16,6 @@ import java.io.Serial;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class ProxySearchRequest extends SearchRequest {
 
-    @Serial
-    private static final long serialVersionUID = 6070461746875106946L;
     /**
      * 是否过期
      * true：过期

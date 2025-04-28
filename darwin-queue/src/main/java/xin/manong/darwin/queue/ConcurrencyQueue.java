@@ -9,7 +9,6 @@ import org.redisson.codec.SnappyCodecV2;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import xin.manong.darwin.common.Constants;
-import xin.manong.darwin.common.computer.ConcurrentUnitComputer;
 import xin.manong.darwin.common.model.URLRecord;
 import xin.manong.weapon.base.redis.RedisClient;
 import xin.manong.weapon.base.redis.RedisMemory;
@@ -30,14 +29,14 @@ public class ConcurrencyQueue {
     private static final Logger logger = LoggerFactory.getLogger(ConcurrencyQueue.class);
 
     private final ConcurrencyQueueConfig config;
-    private RSetCache<String> concurrentUnits;
+    private RSetCache<String> concurrencyUnits;
 
     /**
      * 使用snappy压缩节省URLRecord内存占用空间
      */
-    protected Codec codec;
+    private final Codec codec;
     @Resource
-    protected RedisClient redisClient;
+    private RedisClient redisClient;
 
     public ConcurrencyQueue(ConcurrencyQueueConfig config) {
         this.config = config;
@@ -65,28 +64,28 @@ public class ConcurrencyQueue {
      *
      * @return 并发单元(host或domain)集合
      */
-    private RSetCache<String> concurrentUnits() {
-        if (concurrentUnits != null) return concurrentUnits;
-        concurrentUnits = redisClient.getRedissonClient().getSetCache(
-                ConcurrencyConstants.CONCURRENT_UNITS);
-        return concurrentUnits;
+    private RSetCache<String> concurrencyUnits() {
+        if (concurrencyUnits != null) return concurrencyUnits;
+        concurrencyUnits = redisClient.getRedissonClient().getSetCache(
+                ConcurrencyConstants.CONCURRENCY_UNITS);
+        return concurrencyUnits;
     }
 
     /**
      * 构建并发队列key列表，包含高中低3个优先级队列
      *
-     * @param concurrentUnit 并发单元(host或domain)
+     * @param concurrencyUnit 并发单元(host或domain)
      * @return 并发队列key列表
      */
-    private List<String> buildConcurrentQueueKeys(String concurrentUnit) {
-        List<String> concurrentQueueKeys = new ArrayList<>();
-        concurrentQueueKeys.add(String.format("%s%s",
-                ConcurrencyConstants.CONCURRENT_HIGH_PRIORITY, concurrentUnit));
-        concurrentQueueKeys.add(String.format("%s%s",
-                ConcurrencyConstants.CONCURRENT_NORMAL_PRIORITY, concurrentUnit));
-        concurrentQueueKeys.add(String.format("%s%s",
-                ConcurrencyConstants.CONCURRENT_LOW_PRIORITY, concurrentUnit));
-        return concurrentQueueKeys;
+    private List<String> buildConcurrencyQueueKeys(String concurrencyUnit) {
+        List<String> concurrencyQueueKeys = new ArrayList<>();
+        concurrencyQueueKeys.add(String.format("%s%s",
+                ConcurrencyConstants.CONCURRENCY_HIGH_PRIORITY, concurrencyUnit));
+        concurrencyQueueKeys.add(String.format("%s%s",
+                ConcurrencyConstants.CONCURRENCY_NORMAL_PRIORITY, concurrencyUnit));
+        concurrencyQueueKeys.add(String.format("%s%s",
+                ConcurrencyConstants.CONCURRENCY_LOW_PRIORITY, concurrencyUnit));
+        return concurrencyQueueKeys;
     }
 
     /**
@@ -95,16 +94,15 @@ public class ConcurrencyQueue {
      * @param record URL记录
      * @return 并发队列key
      */
-    private String buildConcurrentQueueKey(URLRecord record) {
-        String concurrentUnit = ConcurrentUnitComputer.compute(record);
+    private String buildConcurrencyQueueKey(URLRecord record) {
         String concurrentQueueKey = String.format("%s%s",
-                ConcurrencyConstants.CONCURRENT_NORMAL_PRIORITY, concurrentUnit);
+                ConcurrencyConstants.CONCURRENCY_NORMAL_PRIORITY, record.concurrencyUnit);
         if (record.priority != null && record.priority == Constants.PRIORITY_HIGH) {
             concurrentQueueKey = String.format("%s%s",
-                    ConcurrencyConstants.CONCURRENT_HIGH_PRIORITY, concurrentUnit);
+                    ConcurrencyConstants.CONCURRENCY_HIGH_PRIORITY, record.concurrencyUnit);
         } else if (record.priority != null && record.priority == Constants.PRIORITY_LOW) {
             concurrentQueueKey = String.format("%s%s",
-                    ConcurrencyConstants.CONCURRENT_LOW_PRIORITY, concurrentUnit);
+                    ConcurrencyConstants.CONCURRENCY_LOW_PRIORITY, record.concurrencyUnit);
         }
         return concurrentQueueKey;
     }
@@ -131,13 +129,13 @@ public class ConcurrencyQueue {
     /**
      * 删除URL数据以回滚push操作
      *
-     * @param concurrentQueueKey 并发队列key
+     * @param concurrencyQueueKey 并发队列key
      * @param record URL记录
      */
-    private void rollback(String concurrentQueueKey, URLRecord record) {
+    private void rollback(String concurrencyQueueKey, URLRecord record) {
         BatchOptions batchOptions = buildBatchOptions(true);
         RBatch batch = redisClient.getRedissonClient().createBatch(batchOptions);
-        batch.getBlockingQueue(concurrentQueueKey, codec).removeAsync(record);
+        batch.getBlockingQueue(concurrencyQueueKey, codec).removeAsync(record);
         batch.execute();
     }
 
@@ -195,14 +193,14 @@ public class ConcurrencyQueue {
      * @return 获取成功返回true，否则返回false
      */
     public boolean acquirePushLock() {
-        return redisClient.tryLock(ConcurrencyConstants.CONCURRENT_PUSH_LOCK, null);
+        return redisClient.tryLock(ConcurrencyConstants.CONCURRENCY_PUSH_LOCK, null);
     }
 
     /**
      * 释放多级队列插入数据锁
      */
     public void releasePushLock() {
-        redisClient.unlock(ConcurrencyConstants.CONCURRENT_PUSH_LOCK);
+        redisClient.unlock(ConcurrencyConstants.CONCURRENCY_PUSH_LOCK);
     }
 
     /**
@@ -211,14 +209,14 @@ public class ConcurrencyQueue {
      * @return 获取成功返回true，否则返回false
      */
     public boolean acquirePopLock() {
-        return redisClient.tryLock(ConcurrencyConstants.CONCURRENT_POP_LOCK, null);
+        return redisClient.tryLock(ConcurrencyConstants.CONCURRENCY_POP_LOCK, null);
     }
 
     /**
      * 释放多级队列弹出数据锁
      */
     public void releasePopLock() {
-        redisClient.unlock(ConcurrencyConstants.CONCURRENT_POP_LOCK);
+        redisClient.unlock(ConcurrencyConstants.CONCURRENCY_POP_LOCK);
     }
 
     /**
@@ -226,8 +224,8 @@ public class ConcurrencyQueue {
      *
      * @return 当前并发单元集合快照
      */
-    public Set<String> concurrentUnitsSnapshots() {
-        RSetCache<String> concurrentUnits = concurrentUnits();
+    public Set<String> concurrencyUnitsSnapshots() {
+        RSetCache<String> concurrentUnits = concurrencyUnits();
         return new HashSet<>(concurrentUnits);
     }
 
@@ -235,11 +233,11 @@ public class ConcurrencyQueue {
      * 移除并发单元
      * 如果并发队列中存在记录则不能移除并发单元
      *
-     * @param concurrentUnit 并发单元(host或domain)
+     * @param concurrencyUnit 并发单元(host或domain)
      * @return 成功返回true，否则返回false
      */
-    public boolean removeConcurrentUnit(String concurrentUnit) {
-        List<String> concurrentQueueKeys = buildConcurrentQueueKeys(concurrentUnit);
+    public boolean removeConcurrencyUnit(String concurrencyUnit) {
+        List<String> concurrentQueueKeys = buildConcurrencyQueueKeys(concurrencyUnit);
         BatchOptions batchOptions = buildBatchOptions(false);
         RBatch batch = redisClient.getRedissonClient().createBatch(batchOptions);
         for (String concurrentQueueKey : concurrentQueueKeys) {
@@ -248,25 +246,25 @@ public class ConcurrencyQueue {
         BatchResult<?> result = batch.execute();
         List<?> responses = result.getResponses();
         for (Object response : responses) if (response != null && (Integer) response > 0) return false;
-        RSetCache<String> concurrentUnits = concurrentUnits();
-        concurrentUnits.remove(concurrentUnit);
-        logger.info("Remove concurrent unit:{} success", concurrentUnit);
+        RSetCache<String> concurrencyUnits = concurrencyUnits();
+        concurrencyUnits.remove(concurrencyUnit);
+        logger.info("Remove concurrency unit:{} success", concurrencyUnit);
         return true;
     }
 
     /**
      * 获取并发单元排队URL数量
      *
-     * @param concurrentUnit 并发单元
+     * @param concurrencyUnit 并发单元
      * @return 排队URL数量
      */
-    public int queuingRecordSize(String concurrentUnit) {
+    public int queuingRecordSize(String concurrencyUnit) {
         int total = 0;
-        if (StringUtils.isEmpty(concurrentUnit)) return total;
-        List<String> concurrentQueueKeys = buildConcurrentQueueKeys(concurrentUnit);
-        for (String concurrentQueueKey : concurrentQueueKeys) {
+        if (StringUtils.isEmpty(concurrencyUnit)) return total;
+        List<String> concurrencyQueueKeys = buildConcurrencyQueueKeys(concurrencyUnit);
+        for (String concurrencyQueueKey : concurrencyQueueKeys) {
             RBlockingQueue<URLRecord> queue = redisClient.getRedissonClient().
-                    getBlockingQueue(concurrentQueueKey, codec);
+                    getBlockingQueue(concurrencyQueueKey, codec);
             total += queue.size();
         }
         return total;
@@ -278,7 +276,7 @@ public class ConcurrencyQueue {
      * @param record URL记录
      */
     public void remove(URLRecord record) {
-        String concurrentQueueKey = buildConcurrentQueueKey(record);
+        String concurrentQueueKey = buildConcurrencyQueueKey(record);
         RBlockingQueue<URLRecord> queue = redisClient.getRedissonClient().
                 getBlockingQueue(concurrentQueueKey, codec);
         if (queue == null) return;
@@ -288,17 +286,17 @@ public class ConcurrencyQueue {
     /**
      * 从并发队列中获取指定数量URL记录
      *
-     * @param concurrentUnit 并发单元(host或domain)
+     * @param concurrencyUnit 并发单元(host或domain)
      * @param n 弹出数量
      * @return URL记录列表
      */
-    public List<URLRecord> pop(String concurrentUnit, int n) {
+    public List<URLRecord> pop(String concurrencyUnit, int n) {
         List<URLRecord> records = new ArrayList<>();
-        if (StringUtils.isEmpty(concurrentUnit)) return records;
-        List<String> concurrentQueueKeys = buildConcurrentQueueKeys(concurrentUnit);
-        for (String concurrentQueueKey : concurrentQueueKeys) {
+        if (StringUtils.isEmpty(concurrencyUnit)) return records;
+        List<String> concurrencyQueueKeys = buildConcurrencyQueueKeys(concurrencyUnit);
+        for (String concurrencyQueueKey : concurrencyQueueKeys) {
             RBlockingQueue<URLRecord> queue = redisClient.getRedissonClient().
-                    getBlockingQueue(concurrentQueueKey, codec);
+                    getBlockingQueue(concurrencyQueueKey, codec);
             records.addAll(pop(queue, n - records.size()));
             if (records.size() >= n) break;
         }
@@ -340,33 +338,30 @@ public class ConcurrencyQueue {
      * @return 结果
      */
     public PushResult push(@NotNull URLRecord record) {
-        String concurrentUnit = ConcurrentUnitComputer.compute(record);
         record.pushTime = System.currentTimeMillis();
-        String concurrentQueueKey = buildConcurrentQueueKey(record);
+        String concurrencyQueueKey = buildConcurrencyQueueKey(record);
         RBlockingQueue<URLRecord> queue = redisClient.getRedissonClient().
-                getBlockingQueue(concurrentQueueKey, codec);
+                getBlockingQueue(concurrencyQueueKey, codec);
         int queueSize = queue.size();
         if (config.maxQueueCapacity > 0 && queueSize >= config.maxQueueCapacity) {
-            logger.warn("Queue is full for concurrent unit:{}", concurrentUnit);
-            record.status = Constants.URL_STATUS_QUEUE_FULL;
+            logger.warn("Queue is full for concurrency unit:{}", record.concurrencyUnit);
             return PushResult.FULL;
         }
         BatchOptions batchOptions = buildBatchOptions(false);
         RBatch batch = redisClient.getRedissonClient().createBatch(batchOptions);
         try {
             record.status = Constants.URL_STATUS_QUEUING;
-            batch.getBlockingQueue(concurrentQueueKey, codec).offerAsync(record);
-            batch.getSetCache(ConcurrencyConstants.CONCURRENT_UNITS).addAsync(
-                    concurrentUnit, 0, TimeUnit.SECONDS);
+            batch.getBlockingQueue(concurrencyQueueKey, codec).offerAsync(record);
+            batch.getSetCache(ConcurrencyConstants.CONCURRENCY_UNITS).addAsync(
+                    record.concurrencyUnit, 0, TimeUnit.SECONDS);
             BatchResult<?> result = batch.execute();
             List<?> responses = result.getResponses();
-            if (responses.size() != 2 || !((Boolean) responses.get(0))) throw new IllegalStateException("push failed");
+            if (responses.size() != 2 || !((Boolean) responses.get(0))) throw new IllegalStateException("Push failed");
             return PushResult.SUCCESS;
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
-            rollback(concurrentQueueKey, record);
+            rollback(concurrencyQueueKey, record);
             record.pushTime = null;
-            record.status = Constants.URL_STATUS_ERROR;
             return PushResult.ERROR;
         }
     }

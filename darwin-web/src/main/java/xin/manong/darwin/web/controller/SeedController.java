@@ -33,11 +33,11 @@ import java.util.List;
 public class SeedController {
 
     @Resource
-    protected SeedService seedService;
+    private SeedService seedService;
     @Resource
-    protected PlanService planService;
+    private PlanService planService;
     @Resource
-    protected PermissionSupport permissionSupport;
+    private PermissionSupport permissionSupport;
 
     /**
      * 根据key获取种子URL记录

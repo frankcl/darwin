@@ -16,8 +16,6 @@ import xin.manong.darwin.common.Constants;
 import xin.manong.weapon.aliyun.ots.annotation.Column;
 import xin.manong.weapon.aliyun.ots.annotation.PrimaryKey;
 
-import java.io.Serial;
-
 /**
  * 抓取任务
  *
@@ -33,8 +31,6 @@ import java.io.Serial;
 public class Job extends BaseModel {
 
     private static final Logger logger = LoggerFactory.getLogger(Job.class);
-    @Serial
-    private static final long serialVersionUID = 4580876044819518502L;
 
     /**
      * 允许重复抓取
@@ -108,20 +104,11 @@ public class Job extends BaseModel {
     @JsonProperty("name")
     public String name;
 
-    public Job() {
-    }
-
-    public Job(String jobId, Integer appId) {
-        this.jobId = jobId;
-        this.appId = appId;
-    }
-
     /**
      * 检测任务有效性
      * 1. 计划ID不能为空
      * 2. 任务ID不能为空
      * 3. 任务名不能为空
-     * 4. 种子URL列表不能为空
      *
      * @return 如果有效返回true，否则返回false
      */

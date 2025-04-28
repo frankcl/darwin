@@ -9,11 +9,10 @@ import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import xin.manong.darwin.common.model.Pager;
+import xin.manong.darwin.common.model.RangeValue;
 import xin.manong.darwin.common.model.URLGroupCount;
 import xin.manong.darwin.common.model.URLRecord;
-import xin.manong.darwin.service.config.CacheConfig;
 import xin.manong.darwin.service.config.ServiceConfig;
 import xin.manong.darwin.service.convert.Converter;
 import xin.manong.darwin.service.iface.URLService;
@@ -41,21 +40,19 @@ public class URLServiceImpl extends URLService {
     private static final String KEY_JOB_ID = "job_id";
     private static final String KEY_PLAN_ID = "plan_id";
     private static final String KEY_HASH = "hash";
+    private static final String KEY_HOST = "host";
+    private static final String KEY_DOMAIN = "domain";
     private static final String KEY_STATUS = "status";
     private static final String KEY_PRIORITY = "priority";
     private static final String KEY_CATEGORY = "category";
+    private static final String KEY_MEDIA_TYPE = "media_type";
     private static final String KEY_FETCH_TIME = "fetch_time";
     private static final String KEY_CREATE_TIME = "create_time";
 
     @Resource
-    protected ServiceConfig serviceConfig;
+    private ServiceConfig serviceConfig;
     @Resource
-    protected OTSClient otsClient;
-
-    @Autowired
-    public URLServiceImpl(CacheConfig cacheConfig) {
-        super(cacheConfig);
-    }
+    private OTSClient otsClient;
 
     @Override
     public boolean add(URLRecord record) {
@@ -64,11 +61,7 @@ public class URLServiceImpl extends URLService {
         KVRecord kvRecord = otsClient.get(serviceConfig.ots.urlTable, keyMap);
         if (kvRecord != null) throw new IllegalStateException("URL记录已存在");
         kvRecord = OTSConverter.convertJavaObjectToKVRecord(record);
-        if (otsClient.put(serviceConfig.ots.urlTable, kvRecord, null) == OTSStatus.SUCCESS) {
-            keyCache.invalidate(record.hash);
-            return true;
-        }
-        return false;
+        return otsClient.put(serviceConfig.ots.urlTable, kvRecord, null) == OTSStatus.SUCCESS;
     }
 
     @Override
@@ -81,14 +74,21 @@ public class URLServiceImpl extends URLService {
         updateRecord.status = record.status;
         updateRecord.mimeType = record.mimeType;
         updateRecord.subMimeType = record.subMimeType;
+        updateRecord.mediaType = record.mediaType;
+        updateRecord.primitiveCharset = record.primitiveCharset;
+        updateRecord.charset = record.charset;
+        updateRecord.fetched = record.fetched;
         updateRecord.fetchTime = record.fetchTime;
         updateRecord.fetchContentURL = record.fetchContentURL;
+        updateRecord.redirectURL = record.redirectURL;
+        updateRecord.parentURL = record.parentURL;
         updateRecord.httpCode = record.httpCode;
+        updateRecord.contentLength = record.contentLength;
         if (record.fieldMap != null && !record.fieldMap.isEmpty()) {
             updateRecord.fieldMap = record.fieldMap;
         }
-        if (record.userDefinedMap != null && !record.userDefinedMap.isEmpty()) {
-            updateRecord.userDefinedMap = record.userDefinedMap;
+        if (record.customMap != null && !record.customMap.isEmpty()) {
+            updateRecord.customMap = record.customMap;
         }
         return update(prevRecord.hash, updateRecord);
     }
@@ -132,17 +132,13 @@ public class URLServiceImpl extends URLService {
         Map<String, Object> keyMap = new HashMap<>();
         keyMap.put(KEY_KEY, key);
         OTSStatus status = otsClient.delete(serviceConfig.ots.urlTable, keyMap, null);
-        if (status == OTSStatus.SUCCESS) {
-            recordCache.invalidate(key);
-            keyCache.invalidate(prevRecord.hash);
-        }
         return status == OTSStatus.SUCCESS;
     }
 
     @Override
     public Pager<URLRecord> search(URLSearchRequest searchRequest) {
         OTSSearchResponse response = searchURL(searchRequest);
-        return Converter.convert(response, URLRecord.class, searchRequest.current, searchRequest.size);
+        return Converter.convert(response, URLRecord.class, searchRequest.pageNum, searchRequest.pageSize);
     }
 
     @Override
@@ -151,8 +147,43 @@ public class URLServiceImpl extends URLService {
     }
 
     @Override
-    public List<URLGroupCount> bucketCountGroupByStatus(String jobId) {
-        throw new UnsupportedOperationException("Unsupported bucket count group by status");
+    public List<URLGroupCount> countGroupByStatus(String jobId, RangeValue<Long> timeRange) {
+        throw new UnsupportedOperationException("Unsupported this method");
+    }
+
+    @Override
+    public List<URLGroupCount> countGroupByCategory(String jobId, RangeValue<Long> timeRange) {
+        throw new UnsupportedOperationException("Unsupported this method");
+    }
+
+    @Override
+    public int urlCount(RangeValue<Long> timeRange) {
+        throw new UnsupportedOperationException("Unsupported this method");
+    }
+
+    @Override
+    public int hostCount(RangeValue<Long> timeRange) {
+        throw new UnsupportedOperationException("Unsupported this method");
+    }
+
+    @Override
+    public int domainCount(RangeValue<Long> timeRange) {
+        throw new UnsupportedOperationException("Unsupported this method");
+    }
+
+    @Override
+    public long avgContentLength(Integer category, RangeValue<Long> timeRange) {
+        throw new UnsupportedOperationException("Unsupported this method");
+    }
+
+    @Override
+    public List<URLGroupCount> topConcurrencyUnits(int top) {
+        throw new UnsupportedOperationException("Unsupported this method");
+    }
+
+    @Override
+    public List<URLGroupCount> topHosts(RangeValue<Long> timeRange, int top) {
+        throw new UnsupportedOperationException("Unsupported this method");
     }
 
     /**
@@ -163,9 +194,9 @@ public class URLServiceImpl extends URLService {
      */
     private OTSSearchResponse searchURL(URLSearchRequest searchRequest) {
         searchRequest = prepareSearchRequest(searchRequest);
-        int offset = (searchRequest.current - 1) * searchRequest.size;
+        int offset = (searchRequest.pageNum - 1) * searchRequest.pageSize;
         BoolQuery boolQuery = buildQuery(searchRequest);
-        OTSSearchRequest request = new OTSSearchRequest.Builder().offset(offset).limit(searchRequest.size).
+        OTSSearchRequest request = new OTSSearchRequest.Builder().offset(offset).limit(searchRequest.pageSize).
                 tableName(serviceConfig.ots.urlTable).indexName(serviceConfig.ots.urlIndexName).query(boolQuery).build();
         OTSSearchResponse response = otsClient.search(request);
         if (!response.status) throw new InternalServerErrorException("搜索URL失败");
@@ -190,6 +221,9 @@ public class URLServiceImpl extends URLService {
         if (searchRequest.category != null) {
             queryList.add(SearchQueryBuilder.buildTermQuery(KEY_CATEGORY, searchRequest.category));
         }
+        if (searchRequest.mediaType != null) {
+            queryList.add(SearchQueryBuilder.buildTermQuery(KEY_MEDIA_TYPE, searchRequest.mediaType));
+        }
         if (searchRequest.appId != null) {
             queryList.add(SearchQueryBuilder.buildTermQuery(KEY_APP_ID, searchRequest.appId));
         }
@@ -198,6 +232,12 @@ public class URLServiceImpl extends URLService {
         }
         if (StringUtils.isNotEmpty(searchRequest.planId)) {
             queryList.add(SearchQueryBuilder.buildTermQuery(KEY_PLAN_ID, searchRequest.planId));
+        }
+        if (StringUtils.isNotEmpty(searchRequest.host)) {
+            queryList.add(SearchQueryBuilder.buildTermQuery(KEY_HOST, searchRequest.host));
+        }
+        if (StringUtils.isNotEmpty(searchRequest.domain)) {
+            queryList.add(SearchQueryBuilder.buildTermQuery(KEY_DOMAIN, searchRequest.domain));
         }
         if (StringUtils.isNotEmpty(searchRequest.url)) {
             queryList.add(SearchQueryBuilder.buildTermQuery(KEY_HASH, DigestUtils.md5Hex(searchRequest.url)));
@@ -221,7 +261,7 @@ public class URLServiceImpl extends URLService {
     private URLRecord newUpdateRecord() {
         URLRecord record = new URLRecord();
         record.createTime = null;
-        record.userDefinedMap = null;
+        record.customMap = null;
         record.fieldMap = null;
         record.headers = null;
         record.depth = null;
@@ -238,10 +278,6 @@ public class URLServiceImpl extends URLService {
     private boolean update(String hash, URLRecord record) {
         KVRecord kvRecord = OTSConverter.convertJavaObjectToKVRecord(record);
         OTSStatus status = otsClient.update(serviceConfig.ots.urlTable, kvRecord, null);
-        if (status == OTSStatus.SUCCESS) {
-            recordCache.invalidate(record.key);
-            keyCache.invalidate(hash);
-        }
         return status == OTSStatus.SUCCESS;
     }
 

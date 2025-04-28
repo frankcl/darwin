@@ -13,7 +13,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.Serial;
 import java.util.Objects;
 
 /**
@@ -31,8 +30,6 @@ import java.util.Objects;
 public class AppUser extends BaseModel {
 
     private static final Logger logger = LoggerFactory.getLogger(AppUser.class);
-    @Serial
-    private static final long serialVersionUID = 3378312092564161584L;
 
     /**
      * 自增ID

@@ -1,12 +1,11 @@
 package xin.manong.darwin.spider.receiver;
 
-import jakarta.annotation.Resource;
 import lombok.Data;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import xin.manong.darwin.common.Constants;
-import xin.manong.darwin.spider.core.SpiderFactory;
-import xin.manong.weapon.base.log.JSONLogger;
+import xin.manong.darwin.log.core.AspectLogSupport;
+import xin.manong.darwin.spider.core.Router;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -21,34 +20,32 @@ import java.util.Set;
 @Configuration
 public class URLReceiverConfig {
 
-    @Resource(name = "urlAspectLogger")
-    protected JSONLogger aspectLogger;
-
     /**
-     * 构建HTML URL接收器
+     * 构建网页数据接收器
      *
-     * @param spiderFactory 爬虫工厂
-     * @return HTML URL接收器
+     * @param router 爬虫路由
+     * @param aspectLogSupport 切面日志支持
+     * @return 网页数据接收器
      */
-    @Bean(name = "htmlURLReceiver")
-    public URLReceiver buildHTMLURLReceiver(SpiderFactory spiderFactory) {
+    @Bean(name = "pageReceiver")
+    public URLReceiver buildPageReceiver(Router router, AspectLogSupport aspectLogSupport) {
         Set<String> supportedCategory = new HashSet<>();
-        supportedCategory.add(String.valueOf(Constants.CONTENT_CATEGORY_CONTENT));
-        supportedCategory.add(String.valueOf(Constants.CONTENT_CATEGORY_LIST));
-        return new URLReceiver(spiderFactory, aspectLogger, supportedCategory);
+        supportedCategory.add(String.valueOf(Constants.CONTENT_CATEGORY_PAGE));
+        return new URLReceiver(router, aspectLogSupport, supportedCategory);
     }
 
     /**
-     * 构建资源URL接收器
+     * 构建资源数据接收器
      *
-     * @param spiderFactory 爬虫工厂
-     * @return 资源URL接收器
+     * @param router 爬虫路由
+     * @param aspectLogSupport 切面日志支持
+     * @return 资源数据接收器
      */
-    @Bean(name = "resourceURLReceiver")
-    public URLReceiver buildResourceURLReceiver(SpiderFactory spiderFactory) {
+    @Bean(name = "resourceReceiver")
+    public URLReceiver buildResourceReceiver(Router router, AspectLogSupport aspectLogSupport) {
         Set<String> supportedCategory = new HashSet<>();
         supportedCategory.add(String.valueOf(Constants.CONTENT_CATEGORY_RESOURCE));
         supportedCategory.add(String.valueOf(Constants.CONTENT_CATEGORY_STREAM));
-        return new URLReceiver(spiderFactory, aspectLogger, supportedCategory);
+        return new URLReceiver(router, aspectLogSupport, supportedCategory);
     }
 }

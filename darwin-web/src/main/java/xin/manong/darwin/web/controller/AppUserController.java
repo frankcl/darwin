@@ -35,9 +35,9 @@ import java.util.stream.Collectors;
 public class AppUserController {
 
     @Resource
-    protected AppUserService appUserService;
+    private AppUserService appUserService;
     @Resource
-    protected PermissionSupport permissionSupport;
+    private PermissionSupport permissionSupport;
 
     /**
      * 获取应用用户列表

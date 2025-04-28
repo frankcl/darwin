@@ -12,7 +12,6 @@ import lombok.Setter;
 import lombok.experimental.Accessors;
 import org.apache.commons.lang3.StringUtils;
 
-import java.io.Serial;
 import java.util.regex.Pattern;
 
 /**
@@ -28,9 +27,6 @@ import java.util.regex.Pattern;
 @TableName(value = "rule", autoResultMap = true)
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class Rule extends RuleCommon {
-
-    @Serial
-    private static final long serialVersionUID = -5208851620714996259L;
 
     /**
      * 规则名称

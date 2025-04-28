@@ -14,5 +14,4 @@ import xin.manong.darwin.common.model.URLRecord;
  */
 @Mapper
 public interface URLMapper extends BaseMapper<URLRecord> {
-
 }

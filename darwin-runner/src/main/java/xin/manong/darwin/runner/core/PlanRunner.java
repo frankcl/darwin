@@ -6,10 +6,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import xin.manong.darwin.common.Constants;
 import xin.manong.darwin.common.model.Plan;
+import xin.manong.darwin.log.core.AspectLogSupport;
 import xin.manong.darwin.queue.ConcurrencyQueue;
 import xin.manong.darwin.service.component.PlanExecutor;
 import xin.manong.darwin.service.iface.PlanService;
 import xin.manong.weapon.base.common.Context;
+import xin.manong.weapon.base.executor.ExecuteRunner;
 
 import java.util.*;
 
@@ -19,7 +21,7 @@ import java.util.*;
  * @author frankcl
  * @date 2023-03-22 16:25:08
  */
-public class PlanRunner extends AspectLogSupport {
+public class PlanRunner extends ExecuteRunner {
 
     private static final Logger logger = LoggerFactory.getLogger(PlanRunner.class);
     public static final String ID = "plan_runner";
@@ -30,6 +32,8 @@ public class PlanRunner extends AspectLogSupport {
     private PlanExecutor planExecutor;
     @Resource
     private ConcurrencyQueue concurrencyQueue;
+    @Resource
+    private AspectLogSupport aspectLogSupport;
 
     public PlanRunner(Long executeIntervalMs) {
         super(ID, executeIntervalMs);
@@ -88,7 +92,7 @@ public class PlanRunner extends AspectLogSupport {
             logger.error("Execute plan error for plan_id:{}", plan.planId);
             logger.error(e.getMessage(), e);
         } finally {
-            commitAspectLog(context, plan);
+            aspectLogSupport.commitAspectLog(context, plan);
         }
     }
 }

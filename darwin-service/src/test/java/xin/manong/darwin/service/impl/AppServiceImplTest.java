@@ -49,8 +49,8 @@ public class AppServiceImplTest {
 
         AppSearchRequest searchRequest = new AppSearchRequest();
         searchRequest.name = "测试应用plus";
-        searchRequest.current = 1;
-        searchRequest.size = 10;
+        searchRequest.pageNum = 1;
+        searchRequest.pageSize = 10;
         Pager<App> pager = appService.search(searchRequest);
         Assert.assertEquals(1, pager.total.intValue());
         Assert.assertEquals(1, pager.records.size());

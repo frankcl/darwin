@@ -5,7 +5,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.xml.bind.annotation.XmlAccessType;
 import jakarta.xml.bind.annotation.XmlAccessorType;
 
-import java.io.Serial;
 import java.io.Serializable;
 
 /**
@@ -18,8 +17,6 @@ import java.io.Serializable;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class OrderByRequest implements Serializable {
 
-    @Serial
-    private static final long serialVersionUID = 2862158118974382863L;
     /**
      * 排序字段
      */

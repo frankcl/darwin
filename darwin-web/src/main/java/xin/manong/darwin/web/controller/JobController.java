@@ -34,9 +34,9 @@ import java.util.List;
 public class JobController {
 
     @Resource
-    protected JobService jobService;
+    private JobService jobService;
     @Resource
-    protected URLService urlService;
+    private URLService urlService;
 
     /**
      * 根据ID获取任务
@@ -71,7 +71,6 @@ public class JobController {
         searchRequest.jobId = id;
         long total = urlService.selectCount(searchRequest);
         searchRequest.statusList = new ArrayList<>();
-        searchRequest.statusList.add(Constants.URL_STATUS_CREATED);
         searchRequest.statusList.add(Constants.URL_STATUS_QUEUING);
         searchRequest.statusList.add(Constants.URL_STATUS_FETCHING);
         long notCompletedCount = urlService.selectCount(searchRequest);
@@ -80,19 +79,35 @@ public class JobController {
     }
 
     /**
-     * 根据分组统计任务数据状态
+     * 根据数据状态分组统计
      *
      * @param id 任务ID
      * @return 统计结果
      */
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @Path("bucketCountGroupByStatus")
-    @GetMapping("bucketCountGroupByStatus")
+    @Path("countGroupByStatus")
+    @GetMapping("countGroupByStatus")
     @EnableWebLogAspect
-    public List<URLGroupCount> bucketCountGroupByStatus(@QueryParam("id") String id) {
+    public List<URLGroupCount> countGroupByStatus(@QueryParam("id") String id) {
         if (StringUtils.isEmpty(id)) throw new BadRequestException("任务ID缺失");
-        return urlService.bucketCountGroupByStatus(id);
+        return urlService.countGroupByStatus(id, null);
+    }
+
+    /**
+     * 根据内容类型分组统计
+     *
+     * @param id 任务ID
+     * @return 统计结果
+     */
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("countGroupByCategory")
+    @GetMapping("countGroupByCategory")
+    @EnableWebLogAspect
+    public List<URLGroupCount> countGroupByCategory(@QueryParam("id") String id) {
+        if (StringUtils.isEmpty(id)) throw new BadRequestException("任务ID缺失");
+        return urlService.countGroupByCategory(id, null);
     }
 
     /**

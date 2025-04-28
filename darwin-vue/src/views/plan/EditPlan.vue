@@ -119,7 +119,7 @@ watchEffect( async () => await resetPlanForm())
         <el-form-item label="重复抓取" prop="allow_repeat" required>
           <el-radio-group v-model="plan.allow_repeat">
             <el-radio :value="true">允许</el-radio>
-            <el-radio :value="false">避免</el-radio>
+            <el-radio :value="false">禁止</el-radio>
           </el-radio-group>
         </el-form-item>
       </el-col>

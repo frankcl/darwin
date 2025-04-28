@@ -51,6 +51,7 @@ public class M3U8Input extends Input {
             int code = process.waitFor();
             if (code == 0) {
                 inputStream = new FileInputStream(tempFile);
+                record.contentLength = tempFile.length();
                 return;
             }
             throw new IllegalStateException(String.format("Fetch M3U8 stream failed for %s, code is %d",

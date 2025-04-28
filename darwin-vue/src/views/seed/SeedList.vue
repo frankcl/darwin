@@ -98,20 +98,6 @@ watchEffect(async () => await search())
           <el-text class="ml-2" :href="scope.row.url" target="_blank">{{ scope.row.url }}</el-text>
         </template>
       </el-table-column>
-      <el-table-column prop="category" label="类型" width="100" show-overflow-tooltip>
-        <template #default="scope">
-          <span v-if="scope.row.category === 2">列表页</span>
-          <span v-else-if="scope.row.category === 3">媒体资源</span>
-          <span v-else-if="scope.row.category === 4">视频流</span>
-          <span v-else>内容页</span>
-        </template>
-      </el-table-column>
-      <el-table-column prop="concurrent_level" label="并发级别" width="100" show-overflow-tooltip>
-        <template #default="scope">
-          <span v-if="scope.row.concurrent_level === 1">HOST</span>
-          <span v-else>DOMAIN</span>
-        </template>
-      </el-table-column>
       <el-table-column prop="priority" label="优先级" width="90" show-overflow-tooltip>
         <template #default="scope">
           <span v-if="scope.row.priority === 0">高优先级</span>
@@ -136,7 +122,7 @@ watchEffect(async () => await search())
     </el-table>
     <el-row justify="center" align="middle">
       <el-pagination background layout="prev, pager, next" :total="total"
-                     v-model:page-size="query.size" v-model:current-page="query.current" />
+                     v-model:page-size="query.page_size" v-model:current-page="query.page_num" />
     </el-row>
   </el-space>
   <add-seed v-model="openAddDialog" :plan-id="props.planId" @close="search" />

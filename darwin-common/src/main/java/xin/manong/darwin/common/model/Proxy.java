@@ -14,8 +14,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import xin.manong.darwin.common.Constants;
 
-import java.io.Serial;
-
 /**
  * 代理IP
  *
@@ -31,8 +29,6 @@ import java.io.Serial;
 public class Proxy extends BaseModel {
 
     private static final Logger logger = LoggerFactory.getLogger(Proxy.class);
-    @Serial
-    private static final long serialVersionUID = 867495051081193091L;
 
     /**
      * 代理ID

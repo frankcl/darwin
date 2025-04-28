@@ -87,8 +87,8 @@ public abstract class JobService {
      */
     protected JobSearchRequest prepareSearchRequest(JobSearchRequest searchRequest) {
         if (searchRequest == null) searchRequest = new JobSearchRequest();
-        if (searchRequest.current == null || searchRequest.current < 1) searchRequest.current = Constants.DEFAULT_CURRENT;
-        if (searchRequest.size == null || searchRequest.size <= 0) searchRequest.size = Constants.DEFAULT_PAGE_SIZE;
+        if (searchRequest.pageNum == null || searchRequest.pageNum < 1) searchRequest.pageNum = Constants.DEFAULT_PAGE_NUM;
+        if (searchRequest.pageSize == null || searchRequest.pageSize <= 0) searchRequest.pageSize = Constants.DEFAULT_PAGE_SIZE;
         RangeValue<Long> rangeValue = ModelValidator.validateRangeValue(searchRequest.createTime, Long.class);
         if (rangeValue != null) searchRequest.createTimeRange = rangeValue;
         return searchRequest;
@@ -142,6 +142,18 @@ public abstract class JobService {
     public abstract Pager<Job> search(JobSearchRequest searchRequest);
 
     /**
+     * 判断任务是否允许重复抓取
+     *
+     * @param jobId 任务ID
+     * @return 允许返回true，否则返回false
+     */
+    public boolean allowRepeat(String jobId) {
+        Job job = get(jobId);
+        if (job == null) return false;
+        return job.allowRepeat != null && job.allowRepeat;
+    }
+
+    /**
      * 判断任务是否完成
      * 任务存在且任务URL不存在以下状态则任务完成
      * 1. URL_STATUS_CREATED：1
@@ -157,7 +169,6 @@ public abstract class JobService {
         if (job.status != null && !job.status) return true;
         URLSearchRequest searchRequest = new URLSearchRequest();
         searchRequest.statusList = new ArrayList<>();
-        searchRequest.statusList.add(Constants.URL_STATUS_CREATED);
         searchRequest.statusList.add(Constants.URL_STATUS_QUEUING);
         searchRequest.statusList.add(Constants.URL_STATUS_FETCHING);
         searchRequest.jobId = jobId;
@@ -166,18 +177,18 @@ public abstract class JobService {
     }
 
     /**
-     * 获取创建时间在beforeTime之前的运行任务
+     * 获取创建时间在endTime之前的运行任务
      *
-     * @param beforeTime 创建时间
-     * @param size 任务数量
+     * @param endTime 最晚创建时间
+     * @param pageSize 任务数量
      * @return 任务列表
      */
-    public List<Job> getRunningJobs(long beforeTime, int size) {
+    public List<Job> getRunningJobs(long endTime, int pageSize) {
         JobSearchRequest searchRequest = new JobSearchRequest();
-        searchRequest.current = 1;
-        searchRequest.size = size <= 0 ? Constants.DEFAULT_PAGE_SIZE : size;
+        searchRequest.pageNum = 1;
+        searchRequest.pageSize = pageSize <= 0 ? Constants.DEFAULT_PAGE_SIZE : pageSize;
         searchRequest.createTimeRange = new RangeValue<>();
-        searchRequest.createTimeRange.end = beforeTime;
+        searchRequest.createTimeRange.end = endTime;
         searchRequest.createTimeRange.includeUpper = true;
         searchRequest.status = true;
         Pager<Job> pager = search(searchRequest);

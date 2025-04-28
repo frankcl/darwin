@@ -1,5 +1,6 @@
 <script setup>
-import { ref, watchEffect } from 'vue'
+import { computed, ref, watchEffect } from 'vue'
+import { useRoute } from 'vue-router'
 import {
   ElBadge,
   ElButton, ElLoading,
@@ -21,7 +22,8 @@ import {
   asyncStopRunner
 } from '@/common/AsyncRequest'
 
-const props = defineProps(['title', 'type'])
+const route = useRoute()
+const title = computed(() => route.query.type === '1' ? '核心进程' : '监控进程')
 const vLoading = ElLoading.directive
 const userStore = useUserStore()
 const starting = ref()
@@ -88,16 +90,16 @@ const popMessage = async runner => {
   runner.message_num = await getRunnerMessageCount(runner.key)
 }
 
-watchEffect(async () => await getRunners(props.type))
+watchEffect(async () => await getRunners(route.query.type))
 </script>
 
 <template>
   <el-row class="mb-3" align="middle">
-    <span class="text-xl font-bold ml-2">{{ props.title }}</span>
+    <span class="text-xl font-bold ml-2">{{ title }}</span>
   </el-row>
   <el-table :data="runners" table-layout="auto" stripe>
     <template #empty>暂无执行进程</template>
-    <el-table-column prop="name" label="执行进程" show-overflow-tooltip>
+    <el-table-column prop="name" label="进程" show-overflow-tooltip>
       <template #default="scope">{{ scope.row.name }}</template>
     </el-table-column>
     <el-table-column prop="status" label="状态" width="80" show-overflow-tooltip>
@@ -122,10 +124,10 @@ watchEffect(async () => await getRunners(props.type))
         <el-badge v-if="scope.row.message_num > 0" :value="scope.row.message_num"
                   class="badge-button">
           <el-button type="warning" @click="popMessage(scope.row)"
-                     :disabled="!userStore.superAdmin">错误</el-button>
+                     :disabled="!userStore.superAdmin">异常</el-button>
         </el-badge>
         <el-button v-else type="warning" @click="popMessage(scope.row)"
-                   :disabled="!userStore.superAdmin || scope.row.message_num === 0">错误</el-button>
+                   :disabled="!userStore.superAdmin || scope.row.message_num === 0">异常</el-button>
       </template>
     </el-table-column>
   </el-table>

@@ -15,7 +15,8 @@ public class ScriptFactoryTest {
     @Test
     public void testMake() throws Exception {
         String scriptCode = ApplicationTest.readScript("/script/groovy_script");
-        Script script = ScriptFactory.make(Constants.SCRIPT_TYPE_GROOVY, scriptCode);
-        Assert.assertTrue(script instanceof GroovyScript);
+        try (Script script = ScriptFactory.make(Constants.SCRIPT_TYPE_GROOVY, scriptCode)) {
+            Assert.assertTrue(script instanceof GroovyScript);
+        }
     }
 }

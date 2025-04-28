@@ -10,8 +10,8 @@ weapon:
           html:
             servers: localhost:9092
             group-id: GID_TEST_DARWIN_FETCH_HTML
-            name: html_consumer
-            processor-name: htmlURLReceiver
+            name: page_consumer
+            processor-name: pageReceiver
             consumeThreadNum: 2
             topics:
               - TEST_DARWIN_FETCH_URL
@@ -19,7 +19,7 @@ weapon:
             servers: localhost:9092
             group-id: GID_TEST_DARWIN_FETCH_RESOURCE
             name: resource_consumer
-            processor-name: resourceURLReceiver
+            processor-name: resourceReceiver
             consumeThreadNum: 2
             topics:
               - TEST_DARWIN_FETCH_URL

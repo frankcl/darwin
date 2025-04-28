@@ -1,8 +1,10 @@
 app:
   spider:
-    max-repeat-fetch-time-interval-ms: 86400000
+    max-content-length: 10485760
+    max-repeat-fetch-time-interval-ms: 7200000
     connect-timeout-seconds: 5
     read-timeout-seconds: 10
     keep-alive-minutes: 3
     max-idle-connections: 100
     retry-cnt: 3
+    max-depth: 3

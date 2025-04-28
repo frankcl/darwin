@@ -30,9 +30,9 @@ import xin.manong.weapon.spring.boot.aspect.EnableWebLogAspect;
 public class AppController {
 
     @Resource
-    protected AppService appService;
+    private AppService appService;
     @Resource
-    protected PermissionSupport permissionSupport;
+    private PermissionSupport permissionSupport;
 
     /**
      * 根据应用名搜索应用

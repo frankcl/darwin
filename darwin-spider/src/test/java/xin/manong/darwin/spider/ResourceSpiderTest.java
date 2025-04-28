@@ -11,7 +11,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 import xin.manong.darwin.common.Constants;
 import xin.manong.darwin.common.model.URLRecord;
 import xin.manong.darwin.service.iface.OSSService;
-import xin.manong.darwin.spider.core.ResourceSpider;
+import xin.manong.darwin.spider.core.Router;
 import xin.manong.darwin.spider.core.SpiderConfig;
 import xin.manong.weapon.base.common.Context;
 import xin.manong.weapon.base.util.RandomID;
@@ -26,23 +26,23 @@ import xin.manong.weapon.base.util.RandomID;
 public class ResourceSpiderTest {
 
     @Resource
-    protected SpiderConfig spiderConfig;
+    private SpiderConfig spiderConfig;
     @Resource
-    protected OSSService ossService;
+    private OSSService ossService;
     @Resource
-    protected ResourceSpider spider;
+    private Router router;
 
     @Test
     public void testFetchSuccess() {
         String url = "https://default-crawler-file.oss-cn-hangzhou.aliyuncs.com/crawler_video/video/2021/11/11/4d5e356b35138269fb4492b52f834727.mp4";
         URLRecord record = new URLRecord(url);
-        record.category = Constants.CONTENT_CATEGORY_RESOURCE;
         record.jobId = RandomID.build();
         record.appId = 0;
         Context context = new Context();
-        spider.process(record, context);
+        router.route(record, context);
         String key = String.format("%s/%s/%s.mp4", spiderConfig.ossDirectory, "resource", record.key);
-        Assert.assertEquals(Constants.URL_STATUS_SUCCESS, record.status.intValue());
+        Assert.assertEquals(Constants.URL_STATUS_FETCH_SUCCESS, record.status.intValue());
+        Assert.assertEquals(Constants.CONTENT_CATEGORY_RESOURCE, record.category.intValue());
         Assert.assertEquals(ossService.buildURL(key), record.fetchContentURL);
         Assert.assertTrue(record.fetchTime != null && record.fetchTime > 0L);
         Assert.assertFalse(StringUtils.isEmpty(record.fetchContentURL));
@@ -54,11 +54,11 @@ public class ResourceSpiderTest {
     public void testFetchFail() {
         String url = "https://default-crawler-file.oss-cn-hangzhou.aliyuncs.com/crawler_video/video/not_found.mp4";
         URLRecord record = new URLRecord(url);
-        record.category = Constants.CONTENT_CATEGORY_RESOURCE;
         record.jobId = RandomID.build();
         record.appId = 0;
         Context context = new Context();
-        spider.process(record, context);
+        router.route(record, context);
+        Assert.assertNull(record.category);
         Assert.assertEquals(Constants.URL_STATUS_FETCH_FAIL, record.status.intValue());
         Assert.assertTrue(record.fetchTime != null && record.fetchTime > 0L);
         Assert.assertTrue(StringUtils.isEmpty(record.fetchContentURL));

@@ -15,6 +15,7 @@ import org.springframework.context.annotation.Configuration;
 @ConfigurationProperties(prefix = "app.service")
 public class ServiceConfig {
 
+    public boolean dispatch = false;
     public MQConfig mq;
     public OTSConfig ots;
     public OSSConfig oss;

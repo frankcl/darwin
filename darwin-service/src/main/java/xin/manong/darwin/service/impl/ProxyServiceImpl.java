@@ -31,7 +31,7 @@ public class ProxyServiceImpl implements ProxyService {
 
     private final Map<Integer, ProxyCache> proxyCacheMap;
     @Resource
-    protected ProxyMapper proxyMapper;
+    private ProxyMapper proxyMapper;
 
     public ProxyServiceImpl() {
         proxyCacheMap = new HashMap<>();
@@ -121,8 +121,8 @@ public class ProxyServiceImpl implements ProxyService {
     @Override
     public Pager<Proxy> search(ProxySearchRequest searchRequest) {
         if (searchRequest == null) searchRequest = new ProxySearchRequest();
-        if (searchRequest.current == null || searchRequest.current < 1) searchRequest.current = Constants.DEFAULT_CURRENT;
-        if (searchRequest.size == null || searchRequest.size <= 0) searchRequest.size = Constants.DEFAULT_PAGE_SIZE;
+        if (searchRequest.pageNum == null || searchRequest.pageNum < 1) searchRequest.pageNum = Constants.DEFAULT_PAGE_NUM;
+        if (searchRequest.pageSize == null || searchRequest.pageSize <= 0) searchRequest.pageSize = Constants.DEFAULT_PAGE_SIZE;
         ModelValidator.validateOrderBy(Proxy.class, searchRequest);
         QueryWrapper<Proxy> query = new QueryWrapper<>();
         searchRequest.prepareOrderBy(query);
@@ -137,7 +137,7 @@ public class ProxyServiceImpl implements ProxyService {
                         eq("expired_time", currentTime));
             }
         }
-        IPage<Proxy> page = proxyMapper.selectPage(new Page<>(searchRequest.current, searchRequest.size), query);
+        IPage<Proxy> page = proxyMapper.selectPage(new Page<>(searchRequest.pageNum, searchRequest.pageSize), query);
         return Converter.convert(page);
     }
 

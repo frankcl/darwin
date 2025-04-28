@@ -33,9 +33,9 @@ import java.util.stream.Collectors;
 public class RuleServiceImpl extends RuleService {
 
     @Resource
-    protected RuleMapper ruleMapper;
+    private RuleMapper ruleMapper;
     @Resource
-    protected RuleHistoryMapper ruleHistoryMapper;
+    private RuleHistoryMapper ruleHistoryMapper;
 
     @Autowired
     public RuleServiceImpl(CacheConfig cacheConfig) {
@@ -108,14 +108,14 @@ public class RuleServiceImpl extends RuleService {
     @Override
     public Pager<Rule> search(RuleSearchRequest searchRequest) {
         if (searchRequest == null) searchRequest = new RuleSearchRequest();
-        if (searchRequest.current == null || searchRequest.current < 1) searchRequest.current = Constants.DEFAULT_CURRENT;
-        if (searchRequest.size == null || searchRequest.size <= 0) searchRequest.size = Constants.DEFAULT_PAGE_SIZE;
+        if (searchRequest.pageNum == null || searchRequest.pageNum < 1) searchRequest.pageNum = Constants.DEFAULT_PAGE_NUM;
+        if (searchRequest.pageSize == null || searchRequest.pageSize <= 0) searchRequest.pageSize = Constants.DEFAULT_PAGE_SIZE;
         ModelValidator.validateOrderBy(Rule.class, searchRequest);
         QueryWrapper<Rule> query = new QueryWrapper<>();
         searchRequest.prepareOrderBy(query);
         if (searchRequest.scriptType != null) query.eq("script_type", searchRequest.scriptType);
         if (!StringUtils.isEmpty(searchRequest.name)) query.like("name", searchRequest.name);
-        IPage<Rule> page = ruleMapper.selectPage(new Page<>(searchRequest.current, searchRequest.size), query);
+        IPage<Rule> page = ruleMapper.selectPage(new Page<>(searchRequest.pageNum, searchRequest.pageSize), query);
         return Converter.convert(page);
     }
 
@@ -146,13 +146,13 @@ public class RuleServiceImpl extends RuleService {
     }
 
     @Override
-    public Pager<RuleHistory> getHistoryList(Integer ruleId, int current, int size) {
-        current = current < 1 ? Constants.DEFAULT_CURRENT : current;
-        size = size <= 0 ? Constants.DEFAULT_PAGE_SIZE : size;
+    public Pager<RuleHistory> getHistoryList(Integer ruleId, int pageNum, int pageSize) {
+        pageNum = pageNum < 1 ? Constants.DEFAULT_PAGE_NUM : pageNum;
+        pageSize = pageSize <= 0 ? Constants.DEFAULT_PAGE_SIZE : pageSize;
         LambdaQueryWrapper<RuleHistory> query = new LambdaQueryWrapper<>();
         query.orderByDesc(RuleHistory::getCreateTime);
         query.eq(RuleHistory::getRuleId, ruleId);
-        IPage<RuleHistory> page = ruleHistoryMapper.selectPage(new Page<>(current, size), query);
+        IPage<RuleHistory> page = ruleHistoryMapper.selectPage(new Page<>(pageNum, pageSize), query);
         return Converter.convert(page);
     }
 

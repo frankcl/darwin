@@ -18,7 +18,7 @@ public class GroovyParser extends HTMLParser {
         Map<String, Object> fieldMap = new HashMap<>();
         Document document = Jsoup.parse(request.html, StringUtils.isEmpty(request.redirectURL) ?
                 request.url : request.redirectURL);
-        String title = request.userDefinedMap == null ? null : (String) request.userDefinedMap.get("title");
+        String title = request.customMap == null ? null : (String) request.customMap.get("title");
         if (StringUtils.isEmpty(title)) title = parseTitle(document);
         if (!StringUtils.isEmpty(title)) fieldMap.put("title", title);
         Long publishTime = parsePublishTime(document);
@@ -32,7 +32,7 @@ public class GroovyParser extends HTMLParser {
             if (!StringUtils.isEmpty(mainHTML)) fieldMap.put("html", mainHTML);
             if (!StringUtils.isEmpty(mainText)) fieldMap.put("content_text", mainText);
         }
-        return ParseResponse.buildOK(fieldMap, null, request.userDefinedMap);
+        return ParseResponse.buildOK(fieldMap, null, request.customMap);
     }
 
     /**

@@ -34,12 +34,11 @@ public class Converter {
         record.timeout = seedRecord.timeout;
         record.priority = seedRecord.priority;
         record.fetchMethod = seedRecord.fetchMethod;
-        record.category = seedRecord.category;
-        record.concurrentLevel = seedRecord.concurrentLevel;
-        record.scope = seedRecord.scope;
+        record.linkScope = seedRecord.linkScope;
         record.planId = seedRecord.planId;
+        record.allowDispatch = seedRecord.allowDispatch;
         record.headers = seedRecord.headers == null ? new HashMap<>() : seedRecord.headers;
-        record.userDefinedMap = seedRecord.userDefinedMap == null ? new HashMap<>() : seedRecord.userDefinedMap;
+        record.customMap = seedRecord.customMap == null ? new HashMap<>() : seedRecord.customMap;
         return record;
     }
 
@@ -54,8 +53,8 @@ public class Converter {
         if (page == null) return null;
         Pager<T> pager = new Pager<>();
         pager.records = page.getRecords();
-        pager.current = page.getCurrent();
-        pager.size = page.getSize();
+        pager.pageNum = page.getCurrent();
+        pager.pageSize = page.getSize();
         pager.total = page.getTotal();
         return pager;
     }
@@ -85,15 +84,15 @@ public class Converter {
      *
      * @param response 搜索响应
      * @param clazz 数据类型
-     * @param current 当前页码
-     * @param size 每页数量
+     * @param pageNum 当前页码
+     * @param pageSize 每页数量
      * @return 分页结果
      */
     public static <T> Pager<T> convert(OTSSearchResponse response, Class<T> clazz,
-                                       int current, int size) {
+                                       int pageNum, int pageSize) {
         Pager<T> pager = new Pager<>();
-        pager.current = (long) current;
-        pager.size = (long) size;
+        pager.pageNum = (long) pageNum;
+        pager.pageSize = (long) pageSize;
         pager.total = response.totalCount;
         pager.records = new ArrayList<>();
         KVRecords kvRecords = response.records;

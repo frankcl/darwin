@@ -22,16 +22,16 @@ import java.util.concurrent.ConcurrentHashMap;
 public class HttpClientFactory {
 
     @Resource
-    protected SpiderConfig config;
-    @Resource(name = "spiderLongProxySelector")
-    private SpiderProxySelector spiderLongProxySelector;
-    @Resource(name = "spiderShortProxySelector")
-    private SpiderProxySelector spiderShortProxySelector;
+    private SpiderConfig spiderConfig;
+    @Resource(name = "longProxySelector")
+    private SpiderProxySelector longProxySelector;
+    @Resource(name = "shortProxySelector")
+    private SpiderProxySelector shortProxySelector;
     private final HttpProxyAuthenticator authenticator;
     private final Map<Integer, HttpClient> httpClientMap;
 
     public HttpClientFactory() {
-        this.authenticator = new HttpProxyAuthenticator();
+        authenticator = new HttpProxyAuthenticator();
         httpClientMap = new ConcurrentHashMap<>();
     }
 
@@ -50,16 +50,16 @@ public class HttpClientFactory {
         synchronized (this) {
             if (httpClientMap.containsKey(fetchMethod)) return httpClientMap.get(fetchMethod);
             HttpClientConfig httpClientConfig = new HttpClientConfig();
-            httpClientConfig.connectTimeoutSeconds = config.connectTimeoutSeconds;
-            httpClientConfig.readTimeoutSeconds = config.readTimeoutSeconds;
-            httpClientConfig.keepAliveMinutes = config.keepAliveMinutes;
-            httpClientConfig.maxIdleConnections = config.maxIdleConnections;
-            httpClientConfig.retryCnt = config.retryCnt;
+            httpClientConfig.connectTimeoutSeconds = spiderConfig.connectTimeoutSeconds;
+            httpClientConfig.readTimeoutSeconds = spiderConfig.readTimeoutSeconds;
+            httpClientConfig.keepAliveMinutes = spiderConfig.keepAliveMinutes;
+            httpClientConfig.maxIdleConnections = spiderConfig.maxIdleConnections;
+            httpClientConfig.retryCnt = spiderConfig.retryCnt;
             HttpClient httpClient;
             if (fetchMethod == Constants.FETCH_METHOD_LONG_PROXY) {
-                httpClient = new HttpClient(httpClientConfig, spiderLongProxySelector, authenticator);
+                httpClient = new HttpClient(httpClientConfig, longProxySelector, authenticator);
             } else if (fetchMethod == Constants.FETCH_METHOD_SHORT_PROXY) {
-                httpClient = new HttpClient(httpClientConfig, spiderShortProxySelector, authenticator);
+                httpClient = new HttpClient(httpClientConfig, shortProxySelector, authenticator);
             } else {
                 httpClient = new HttpClient(httpClientConfig);
             }

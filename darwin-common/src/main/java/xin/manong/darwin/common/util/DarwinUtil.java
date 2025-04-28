@@ -35,6 +35,9 @@ public class DarwinUtil {
         if (!StringUtils.isEmpty(record.hash)) context.put(Constants.HASH, record.hash);
         if (!StringUtils.isEmpty(record.mimeType)) context.put(Constants.MIME_TYPE, record.mimeType);
         if (!StringUtils.isEmpty(record.subMimeType)) context.put(Constants.SUB_MIME_TYPE, record.subMimeType);
+        if (!StringUtils.isEmpty(record.mediaType)) context.put(Constants.MEDIA_TYPE, record.mediaType);
+        if (!StringUtils.isEmpty(record.primitiveCharset)) context.put(Constants.PRIMITIVE_CHARSET, record.primitiveCharset);
+        if (!StringUtils.isEmpty(record.charset)) context.put(Constants.CHARSET, record.charset);
         if (record.appId != null) context.put(Constants.APP_ID, record.appId);
         if (record.status != null) context.put(Constants.STATUS, Constants.SUPPORT_URL_STATUSES.get(record.status));
         if (record.httpCode != null) context.put(Constants.HTTP_CODE, record.httpCode);
@@ -46,7 +49,9 @@ public class DarwinUtil {
         if (record.timeout != null) context.put(Constants.TIMEOUT, record.timeout);
         if (record.priority != null) context.put(Constants.PRIORITY, record.priority);
         if (record.category != null) context.put(Constants.CATEGORY, Constants.SUPPORT_CONTENT_CATEGORIES.get(record.category));
-        if (record.concurrentLevel != null) context.put(Constants.CONCURRENT_LEVEL, Constants.SUPPORT_CONCURRENT_LEVELS.get(record.concurrentLevel));
+        if (record.allowDispatch != null) context.put(Constants.ALLOW_DISPATCH, record.allowDispatch);
+        if (record.fetched != null) context.put(Constants.FETCHED, record.fetched);
+        if (record.concurrencyLevel != null) context.put(Constants.CONCURRENCY_LEVEL, Constants.SUPPORT_CONCURRENCY_LEVELS.get(record.concurrencyLevel));
     }
 
     /**

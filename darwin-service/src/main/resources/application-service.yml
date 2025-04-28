@@ -14,10 +14,9 @@ spring:
 
 app:
   service:
+    dispatch: false
     cache:
       rule-cache-num: 100
       rule-expired-minutes: 5
       job-cache-num: 100
       job-expired-minutes: 5
-      url-cache-num: 500
-      url-expired-minutes: 60

@@ -21,7 +21,6 @@ public class MessageServiceImpl implements MessageService {
     @Resource
     private MessageMapper messageMapper;
 
-
     @Override
     public Message pop(String sourceKey, int sourceType) {
         LambdaQueryWrapper<Message> query = new LambdaQueryWrapper<>();

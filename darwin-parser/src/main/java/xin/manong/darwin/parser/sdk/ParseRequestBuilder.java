@@ -41,22 +41,22 @@ public class ParseRequestBuilder {
     /**
      * 设置待解析内容
      *
-     * @param html 待解析HTML
+     * @param text 待解析文本
      * @return 构建器
      */
-    public ParseRequestBuilder html(String html) {
-        delegate.html = html;
+    public ParseRequestBuilder text(String text) {
+        delegate.text = text;
         return this;
     }
 
     /**
      * 设置用户自定义数据
      *
-     * @param userDefinedMap 用户自定义数据
+     * @param customMap 用户自定义数据
      * @return 构建器
      */
-    public ParseRequestBuilder userDefinedMap(Map<String, Object> userDefinedMap) {
-        delegate.userDefinedMap = userDefinedMap;
+    public ParseRequestBuilder customMap(Map<String, Object> customMap) {
+        delegate.customMap = customMap;
         return this;
     }
 
@@ -67,10 +67,10 @@ public class ParseRequestBuilder {
      */
     public ParseRequest build() {
         ParseRequest request = new ParseRequest();
-        request.html = delegate.html;
+        request.text = delegate.text;
         request.url = delegate.url;
         request.redirectURL = delegate.redirectURL;
-        request.userDefinedMap = delegate.userDefinedMap;
+        request.customMap = delegate.customMap;
         return request;
     }
 }

@@ -8,16 +8,16 @@ package xin.manong.darwin.spider.core;
  */
 public class SpiderTask implements Runnable {
 
-    protected Spider spider;
-    protected SpiderRecord spiderRecord;
+    private final Router router;
+    protected final SpiderRecord spiderRecord;
 
-    public SpiderTask(SpiderRecord spiderRecord, Spider spider) {
+    public SpiderTask(SpiderRecord spiderRecord, Router router) {
         this.spiderRecord = spiderRecord;
-        this.spider = spider;
+        this.router = router;
     }
 
     @Override
     public void run() {
-        spider.process(spiderRecord.record, spiderRecord.context);
+        router.route(spiderRecord.record, spiderRecord.context);
     }
 }

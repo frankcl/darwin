@@ -6,6 +6,7 @@ import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import xin.manong.darwin.common.model.Message;
+import xin.manong.darwin.runner.core.DashboardRunner;
 import xin.manong.darwin.runner.monitor.ConcurrencyQueueMonitor;
 import xin.manong.darwin.runner.monitor.ProxyMonitor;
 import xin.manong.darwin.runner.core.Allocator;
@@ -43,6 +44,7 @@ public class ExecuteRunnerShell implements EventListener {
 
     public static final String LOCK_KEY_PLAN_RUNNER = LOCK_KEY_PREFIX + PlanRunner.ID;
     public static final String LOCK_KEY_ALLOCATOR = LOCK_KEY_PREFIX + Allocator.ID;
+    public static final String LOCK_KEY_DASHBOARD_RUNNER = LOCK_KEY_PREFIX + DashboardRunner.ID;
     public static final String LOCK_KEY_CONCURRENCY_QUEUE_MONITOR = LOCK_KEY_PREFIX + ConcurrencyQueueMonitor.ID;
     public static final String LOCK_KEY_PROXY_MONITOR = LOCK_KEY_PREFIX + ProxyMonitor.KEY;
 
@@ -79,7 +81,7 @@ public class ExecuteRunnerShell implements EventListener {
      * 启动执行器
      */
     public void start() {
-        if (runner.isRunning()) {
+        if (isRunning()) {
             logger.warn("Runner:{} has been started", runner.getId());
             throw new IllegalStateException("当前已是运行状态");
         }
@@ -114,7 +116,7 @@ public class ExecuteRunnerShell implements EventListener {
      */
     public void stop() {
         try {
-            if (!runner.isRunning()) {
+            if (!isRunning()) {
                 logger.warn("Runner:{} is not running", runner.getId());
                 throw new IllegalStateException("当前已是停止状态");
             }

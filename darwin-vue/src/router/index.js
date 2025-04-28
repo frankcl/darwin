@@ -5,11 +5,14 @@ import PlanList from '@/views/plan/PlanList'
 import PlanTabs from '@/views/plan/PlanTabs'
 import RecordList from '@/views/record/RecordList'
 import ProxyList from '@/views/proxy/ProxyList'
-import RunnerTabs from '@/views/runner/RunnerTabs'
+import ConcurrencyConfig from '@/views/concurrency/ConcurrencyConfig'
+import ConcurrencyQueue from '@/views/concurrency/ConcurrencyQueue'
+import RunnerList from '@/views/runner/RunnerList'
 
 const routes = [
   {
     path: '/',
+    alias: '/home',
     name: 'Home',
     component: Home
   },
@@ -34,14 +37,24 @@ const routes = [
     component: RecordList
   },
   {
-    path: '/runner/tabs',
-    name: 'RunnerTabs',
-    component: RunnerTabs
+    path: '/runner/getList',
+    name: 'RunnerList',
+    component: RunnerList
   },
   {
     path: '/proxy/search',
     name: 'ProxyList',
     component: ProxyList
+  },
+  {
+    path: '/concurrency/config',
+    name: 'ConcurrencyConfig',
+    component: ConcurrencyConfig
+  },
+  {
+    path: '/concurrency/queue',
+    name: 'ConcurrencyQueue',
+    component: ConcurrencyQueue
   }
 ]
 const router = createRouter({

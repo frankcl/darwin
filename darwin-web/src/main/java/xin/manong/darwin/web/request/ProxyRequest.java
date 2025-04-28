@@ -8,7 +8,6 @@ import jakarta.xml.bind.annotation.XmlAccessorType;
 import xin.manong.darwin.common.Constants;
 import xin.manong.weapon.base.util.CommonUtil;
 
-import java.io.Serial;
 import java.io.Serializable;
 
 /**
@@ -20,9 +19,6 @@ import java.io.Serializable;
 @XmlAccessorType(XmlAccessType.FIELD)
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class ProxyRequest implements Serializable {
-
-    @Serial
-    private static final long serialVersionUID = 8440988806676915104L;
 
     /**
      * 代理地址

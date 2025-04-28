@@ -24,6 +24,15 @@ public abstract class Input implements Closeable {
     public abstract void open() throws IOException;
 
     /**
+     * 是否打开
+     *
+     * @return 打开返回true，否则返回false
+     */
+    public boolean isOpened() {
+        return inputStream != null;
+    }
+
+    /**
      * 关闭数据输入
      *
      * @throws IOException I/O异常

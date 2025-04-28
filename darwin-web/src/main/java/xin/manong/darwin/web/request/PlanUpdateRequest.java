@@ -9,7 +9,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.quartz.CronExpression;
 import xin.manong.darwin.common.Constants;
 
-import java.io.Serial;
 import java.io.Serializable;
 
 /**
@@ -21,9 +20,6 @@ import java.io.Serializable;
 @XmlAccessorType(XmlAccessType.FIELD)
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class PlanUpdateRequest implements Serializable {
-
-    @Serial
-    private static final long serialVersionUID = -8293970142431237124L;
 
     /**
      * 避免重复抓取

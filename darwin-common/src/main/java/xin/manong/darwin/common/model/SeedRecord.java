@@ -20,9 +20,10 @@ import xin.manong.darwin.common.model.handler.JSONMapObjectTypeHandler;
 import xin.manong.darwin.common.model.json.MapDeserializer;
 import xin.manong.weapon.aliyun.ots.annotation.Column;
 import xin.manong.weapon.aliyun.ots.annotation.PrimaryKey;
+import xin.manong.weapon.base.util.CommonUtil;
+import xin.manong.weapon.base.util.DomainUtil;
 import xin.manong.weapon.base.util.RandomID;
 
-import java.io.Serial;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -42,9 +43,6 @@ import java.util.Objects;
 public class SeedRecord extends BaseModel {
 
     private static final Logger logger = LoggerFactory.getLogger(SeedRecord.class);
-
-    @Serial
-    private static final long serialVersionUID = 7563911493400497697L;
 
     /**
      * 唯一key
@@ -99,40 +97,16 @@ public class SeedRecord extends BaseModel {
     public Integer fetchMethod;
 
     /**
-     * 抓取URL类型
-     * 内容页：0
-     * 列表页：1
-     * 图片视频资源：2
-     * 视频流：3
-     */
-    @TableField(value = "category")
-    @Column(name = "category")
-    @JSONField(name = "category")
-    @JsonProperty("category")
-    public Integer category;
-
-    /**
-     * 抓取并发级别
-     * domain:0
-     * host:1
-     */
-    @TableField(value = "concurrent_level")
-    @Column(name = "concurrent_level")
-    @JSONField(name = "concurrent_level")
-    @JsonProperty("concurrent_level")
-    public Integer concurrentLevel;
-
-    /**
-     * 全局抽链范围
+     * 抽链范围
      * 所有：1
      * 域domain：2
      * 站点host：3
      */
-    @TableField(value = "scope")
-    @Column(name = "scope")
-    @JSONField(name = "scope")
-    @JsonProperty("scope")
-    public Integer scope;
+    @TableField(value = "link_scope")
+    @Column(name = "link_scope")
+    @JSONField(name = "link_scope")
+    @JsonProperty("link_scope")
+    public Integer linkScope;
 
     /**
      * URL
@@ -153,6 +127,33 @@ public class SeedRecord extends BaseModel {
     public String planId;
 
     /**
+     * 允许分发
+     */
+    @TableField(value = "allow_dispatch")
+    @Column(name = "allow_dispatch")
+    @JSONField(name = "allow_dispatch")
+    @JsonProperty("allow_dispatch")
+    public Boolean allowDispatch;
+
+    /**
+     * host
+     */
+    @TableField(value = "host")
+    @Column(name = "host")
+    @JSONField(name = "host")
+    @JsonProperty("host")
+    public String host;
+
+    /**
+     * domain
+     */
+    @TableField(value = "domain")
+    @Column(name = "domain")
+    @JSONField(name = "domain")
+    @JsonProperty("domain")
+    public String domain;
+
+    /**
      * HTTP header信息
      */
     @TableField(value = "headers", typeHandler = JSONMapObjectTypeHandler.class)
@@ -164,11 +165,11 @@ public class SeedRecord extends BaseModel {
     /**
      * 用户自定义字段，用于透传数据
      */
-    @TableField(value = "user_defined_map", typeHandler = JSONMapObjectTypeHandler.class)
-    @Column(name = "user_defined_map")
-    @JSONField(name = "user_defined_map", deserializeUsing = MapDeserializer.class)
-    @JsonProperty("user_defined_map")
-    public Map<String, Object> userDefinedMap = new HashMap<>();
+    @TableField(value = "custom_map", typeHandler = JSONMapObjectTypeHandler.class)
+    @Column(name = "custom_map")
+    @JSONField(name = "custom_map", deserializeUsing = MapDeserializer.class)
+    @JsonProperty("custom_map")
+    public Map<String, Object> customMap = new HashMap<>();
 
     /**
      * 检测有效性
@@ -192,19 +193,17 @@ public class SeedRecord extends BaseModel {
             logger.error("Plan id is empty");
             return false;
         }
+        if (StringUtils.isEmpty(host)) host = CommonUtil.getHost(url);
+        if (StringUtils.isEmpty(domain)) domain = DomainUtil.getDomain(host);
+        if (allowDispatch == null) allowDispatch = true;
         if (priority == null) priority = Constants.PRIORITY_NORMAL;
-        if (concurrentLevel == null) concurrentLevel = Constants.CONCURRENT_LEVEL_DOMAIN;
         if (fetchMethod == null) fetchMethod = Constants.FETCH_METHOD_COMMON;
-        if (!Constants.SUPPORT_CONTENT_CATEGORIES.containsKey(category)) {
-            logger.error("Not support URL category:{}", category);
-            return false;
-        }
         if (!Constants.SUPPORT_FETCH_METHODS.containsKey(fetchMethod)) {
             logger.error("Not support fetch method:{}", fetchMethod);
             return false;
         }
-        if (!Constants.SUPPORT_CONCURRENT_LEVELS.containsKey(concurrentLevel)) {
-            logger.error("Not support concurrent level:{}", concurrentLevel);
+        if (linkScope != null && !Constants.SUPPORT_LINK_SCOPES.containsKey(linkScope)) {
+            logger.error("Not support link scope:{}", linkScope);
             return false;
         }
         if (priority > Constants.PRIORITY_LOW || priority < Constants.PRIORITY_HIGH) {
@@ -216,6 +215,7 @@ public class SeedRecord extends BaseModel {
 
     public SeedRecord() {
         key = RandomID.build();
+        allowDispatch = true;
         createTime = System.currentTimeMillis();
     }
 
@@ -223,22 +223,25 @@ public class SeedRecord extends BaseModel {
         this();
         this.url = url;
         hash = DigestUtils.md5Hex(url);
+        host = CommonUtil.getHost(url);
+        domain = DomainUtil.getDomain(host);
     }
 
     public SeedRecord(SeedRecord record) {
         key = record.key;
         url = record.url;
+        host = record.host;
+        domain = record.domain;
         hash = record.hash;
         planId = record.planId;
         createTime = record.createTime;
         updateTime = record.updateTime;
-        concurrentLevel = record.concurrentLevel;
         timeout = record.timeout;
         fetchMethod = record.fetchMethod;
         priority = record.priority;
-        category = record.category;
-        scope = record.scope;
-        userDefinedMap = record.userDefinedMap == null ? new HashMap<>() : new HashMap<>(record.userDefinedMap);
+        linkScope = record.linkScope;
+        allowDispatch = record.allowDispatch;
+        customMap = record.customMap == null ? new HashMap<>() : new HashMap<>(record.customMap);
         headers = record.headers == null ? new HashMap<>() : new HashMap<>(record.headers);
     }
 
@@ -253,15 +256,12 @@ public class SeedRecord extends BaseModel {
     }
 
     /**
-     * 是否全局抽链，满足以下条件为全局抽链
-     * 1. 列表页
-     * 2. 抽链范围scope合法
+     * 是否范围抽链
      *
-     * @return 全局抽链返回true，否则返回false
+     * @return 范围抽链返回true，否则返回false
      */
     public boolean isScopeExtract() {
-        return category != null && category == Constants.CONTENT_CATEGORY_LIST &&
-                scope != null && Constants.SUPPORT_LINK_SCOPES.containsKey(scope);
+        return linkScope != null && Constants.SUPPORT_LINK_SCOPES.containsKey(linkScope);
     }
 
     /**
@@ -272,6 +272,8 @@ public class SeedRecord extends BaseModel {
     public void setUrl(String url) {
         this.url = url;
         this.hash = DigestUtils.md5Hex(url);
+        this.host = CommonUtil.getHost(url);
+        this.domain = DomainUtil.getDomain(host);
     }
 
     @Override

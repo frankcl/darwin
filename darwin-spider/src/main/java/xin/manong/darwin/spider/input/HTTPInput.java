@@ -12,6 +12,7 @@ import xin.manong.weapon.base.http.RequestMethod;
 import xin.manong.weapon.base.util.CommonUtil;
 
 import java.io.IOException;
+import java.nio.charset.Charset;
 
 /**
  * HTTP数据源输入
@@ -60,11 +61,13 @@ public class HTTPInput extends Input {
         if (!StringUtils.isEmpty(targetURL) && !targetURL.equals(record.url)) record.redirectURL = targetURL;
         ResponseBody responseBody = httpResponse.body();
         assert responseBody != null;
+        record.contentLength = responseBody.contentLength();
         MediaType mediaType = responseBody.contentType();
         if (mediaType != null) {
+            Charset charset = mediaType.charset();
             record.mimeType = mediaType.type();
             record.subMimeType = mediaType.subtype();
-            record.charset = mediaType.charset();
+            record.primitiveCharset = charset == null ? null : charset.name();
         }
         inputStream = responseBody.byteStream();
     }

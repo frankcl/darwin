@@ -7,7 +7,6 @@ import jakarta.xml.bind.annotation.XmlAccessType;
 import jakarta.xml.bind.annotation.XmlAccessorType;
 import xin.manong.darwin.common.model.RangeValue;
 
-import java.io.Serial;
 import java.util.List;
 
 /**
@@ -20,22 +19,8 @@ import java.util.List;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class URLSearchRequest extends SearchRequest {
 
-    @Serial
-    private static final long serialVersionUID = -7037469437530155769L;
     /**
      * URL状态
-     * 抓取成功:0
-     * 创建:1
-     * 排队拒绝:2
-     * 排队中:3
-     * 抓取中:4
-     * URL非法:5
-     * 超时:6
-     * I/O错误:7
-     * 抓取失败:8
-     * 解析失败:9
-     * 未知错误:10
-     * 溢出:11
      */
     @JsonProperty("status")
     @QueryParam("status")
@@ -65,6 +50,18 @@ public class URLSearchRequest extends SearchRequest {
     @QueryParam("url")
     public String url;
     /**
+     * 站点
+     */
+    @JsonProperty("host")
+    @QueryParam("host")
+    public String host;
+    /**
+     * domain
+     */
+    @JsonProperty("domain")
+    @QueryParam("domain")
+    public String domain;
+    /**
      * 任务ID
      */
     @JsonProperty("job_id")
@@ -82,6 +79,12 @@ public class URLSearchRequest extends SearchRequest {
     @JsonProperty("app_id")
     @QueryParam("app_id")
     public Integer appId;
+    /**
+     * 媒体类型
+     */
+    @JsonProperty("media_type")
+    @QueryParam("media_type")
+    public String mediaType;
     /**
      * 抓取时间范围
      */

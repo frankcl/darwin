@@ -25,18 +25,18 @@ public class ParseRequest {
      */
     public String redirectURL;
     /**
-     * 网页内容HTML
+     * 文本内容
      */
-    public String html;
+    public String text;
     /**
      * 用户透传数据
      */
-    public Map<String, Object> userDefinedMap;
+    public Map<String, Object> customMap;
 
     /**
      * 检测有效性
      * 1. 解析URL不能为空
-     * 2. 解析HTML不能为空
+     * 2. 解析文本不能为空
      *
      * @return 有效返回true，否则返回false
      */
@@ -45,8 +45,8 @@ public class ParseRequest {
             logger.error("Url is empty");
             return false;
         }
-        if (StringUtils.isEmpty(html)) {
-            logger.error("Html is empty");
+        if (StringUtils.isEmpty(text)) {
+            logger.error("Text is empty");
             return false;
         }
         return true;

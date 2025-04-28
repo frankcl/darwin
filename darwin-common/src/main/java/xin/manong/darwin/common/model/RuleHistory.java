@@ -12,8 +12,6 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 
-import java.io.Serial;
-
 /**
  * 规则历史
  *
@@ -27,9 +25,6 @@ import java.io.Serial;
 @TableName(value = "rule_history", autoResultMap = true)
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class RuleHistory extends RuleCommon {
-
-    @Serial
-    private static final long serialVersionUID = 168619520495450112L;
 
     /**
      * 规则ID

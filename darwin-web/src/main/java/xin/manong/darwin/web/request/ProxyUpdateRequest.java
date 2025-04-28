@@ -9,8 +9,6 @@ import org.apache.commons.lang3.StringUtils;
 import xin.manong.darwin.common.Constants;
 import xin.manong.weapon.base.util.CommonUtil;
 
-import java.io.Serial;
-
 /**
  * @author frankcl
  * @date 2023-12-12 14:50:12
@@ -18,9 +16,6 @@ import java.io.Serial;
 @XmlAccessorType(XmlAccessType.FIELD)
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class ProxyUpdateRequest extends ProxyRequest {
-
-    @Serial
-    private static final long serialVersionUID = -5927703215374099983L;
 
     /**
      * 代理ID

@@ -31,7 +31,7 @@ import java.util.List;
 public class SeedServiceImpl implements SeedService {
 
     @Resource
-    protected SeedMapper seedMapper;
+    private SeedMapper seedMapper;
 
     @Override
     public boolean add(SeedRecord record) {
@@ -42,7 +42,7 @@ public class SeedServiceImpl implements SeedService {
     public boolean update(SeedRecord record) {
         if (seedMapper.selectById(record.key) == null) throw new NotFoundException("种子记录不存在");
         LambdaUpdateWrapper<SeedRecord> query = new LambdaUpdateWrapper<SeedRecord>().
-                eq(SeedRecord::getKey, record.key).set(SeedRecord::getScope, record.scope);
+                eq(SeedRecord::getKey, record.key).set(SeedRecord::getLinkScope, record.linkScope);
         return seedMapper.update(record, query) > 0;
     }
 
@@ -67,14 +67,14 @@ public class SeedServiceImpl implements SeedService {
     @Override
     public Pager<SeedRecord> search(SeedSearchRequest searchRequest) {
         if (searchRequest == null) searchRequest = new SeedSearchRequest();
-        if (searchRequest.current == null || searchRequest.current < 1) searchRequest.current = Constants.DEFAULT_CURRENT;
-        if (searchRequest.size == null || searchRequest.size <= 0) searchRequest.size = Constants.DEFAULT_PAGE_SIZE;
+        if (searchRequest.pageNum == null || searchRequest.pageNum < 1) searchRequest.pageNum = Constants.DEFAULT_PAGE_NUM;
+        if (searchRequest.pageSize == null || searchRequest.pageSize <= 0) searchRequest.pageSize = Constants.DEFAULT_PAGE_SIZE;
         ModelValidator.validateOrderBy(SeedRecord.class, searchRequest);
         QueryWrapper<SeedRecord> query = new QueryWrapper<>();
         searchRequest.prepareOrderBy(query);
         if (StringUtils.isNotEmpty(searchRequest.planId)) query.eq("plan_id", searchRequest.planId);
         if (StringUtils.isNotEmpty(searchRequest.url)) query.eq("hash", DigestUtils.md5Hex(searchRequest.url));
-        IPage<SeedRecord> page = seedMapper.selectPage(new Page<>(searchRequest.current, searchRequest.size), query);
+        IPage<SeedRecord> page = seedMapper.selectPage(new Page<>(searchRequest.pageNum, searchRequest.pageSize), query);
         return Converter.convert(page);
     }
 }

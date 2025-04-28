@@ -4,6 +4,8 @@ import jakarta.annotation.Resource;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import xin.manong.darwin.common.Constants;
@@ -34,18 +36,20 @@ import java.util.List;
 @RequestMapping("/api/plan")
 public class PlanController {
 
+    private static final Logger logger = LoggerFactory.getLogger(PlanController.class);
+
     @Resource
-    protected AppService appService;
+    private AppService appService;
     @Resource
-    protected PlanService planService;
+    private PlanService planService;
     @Resource
-    protected RuleService ruleService;
+    private RuleService ruleService;
     @Resource
-    protected SeedService seedService;
+    private SeedService seedService;
     @Resource
-    protected PlanExecutor planExecutor;
+    private PlanExecutor planExecutor;
     @Resource
-    protected PermissionSupport permissionSupport;
+    private PermissionSupport permissionSupport;
 
     /**
      * 开启计划
@@ -227,16 +231,11 @@ public class PlanController {
         if (seedRecords == null || seedRecords.isEmpty()) throw new IllegalStateException("尚未配置种子URL，请完善计划");
         List<Rule> rules = ruleService.getRules(planId);
         for (SeedRecord seedRecord : seedRecords) {
-            if (seedRecord.category == null) throw new IllegalStateException("种子URL缺失类型，请完善计划");
-            if (seedRecord.category == Constants.CONTENT_CATEGORY_RESOURCE) continue;
-            if (seedRecord.category == Constants.CONTENT_CATEGORY_STREAM) continue;
             if (seedRecord.isScopeExtract()) continue;
             long matchCount = rules.stream().filter(rule -> rule.match(seedRecord.url)).count();
-            if (matchCount == 0) {
-                throw new IllegalStateException(String.format("种子URL:%s没有找到匹配脚本规则，请完善计划", seedRecord.url));
-            }
+            if (matchCount == 0) logger.warn("no matched rule found for url:{}", seedRecord.url);
             if (matchCount > 1) {
-                throw new IllegalStateException(String.format("种子URL:%s存在多条匹配规则，请完善计划", seedRecord.url));
+                throw new IllegalStateException(String.format("种子%s存在多条匹配规则", seedRecord.url));
             }
         }
     }

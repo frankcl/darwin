@@ -23,6 +23,8 @@ import xin.manong.weapon.base.http.HttpProxyAuthenticator;
 import xin.manong.weapon.base.http.HttpRequest;
 import xin.manong.weapon.spring.boot.aspect.EnableWebLogAspect;
 
+import java.io.IOException;
+
 /**
  * 代理控制器
  *
@@ -38,9 +40,9 @@ public class ProxyController {
     private static final Logger logger = LoggerFactory.getLogger(ProxyController.class);
 
     @Resource
-    protected ProxyService proxyService;
+    private ProxyService proxyService;
     @Resource
-    protected PermissionSupport permissionSupport;
+    private PermissionSupport permissionSupport;
     private final HttpProxyAuthenticator authenticator;
 
     public ProxyController() {
@@ -58,7 +60,7 @@ public class ProxyController {
     @Path("check")
     @GetMapping("check")
     @EnableWebLogAspect
-    public boolean check(@QueryParam("id") Integer id) {
+    public boolean check(@QueryParam("id") Integer id) throws IOException {
         if (id == null) throw new BadRequestException("代理ID缺失");
         Proxy proxy = proxyService.get(id);
         if (proxy == null) throw new NotFoundException("代理未找到");

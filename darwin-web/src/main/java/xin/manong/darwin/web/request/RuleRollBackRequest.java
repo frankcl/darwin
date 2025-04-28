@@ -6,7 +6,6 @@ import jakarta.ws.rs.BadRequestException;
 import jakarta.xml.bind.annotation.XmlAccessType;
 import jakarta.xml.bind.annotation.XmlAccessorType;
 
-import java.io.Serial;
 import java.io.Serializable;
 
 /**
@@ -18,9 +17,6 @@ import java.io.Serializable;
 @XmlAccessorType(XmlAccessType.FIELD)
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class RuleRollBackRequest implements Serializable {
-
-    @Serial
-    private static final long serialVersionUID = -8255192848581819665L;
 
     /**
      * 规则ID

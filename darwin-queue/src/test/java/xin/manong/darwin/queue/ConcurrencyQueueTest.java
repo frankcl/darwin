@@ -27,27 +27,27 @@ public class ConcurrencyQueueTest {
     @Resource
     private ConcurrencyQueue concurrencyQueue;
 
-    private URLRecord buildRecord(String url, int priority, int concurrentLevel) {
-        URLRecord record = URLRecord.buildListLink(url);
+    private URLRecord buildRecord(String url, int priority, String concurrencyUnit) {
+        URLRecord record = new URLRecord(url);
         record.jobId = "abc";
         record.planId = "abc";
         record.appId = 0;
         record.priority = priority;
-        record.concurrentLevel = concurrentLevel;
+        record.concurrencyUnit = concurrencyUnit;
         return record;
     }
 
     @Test
     public void testConcurrencyQueue() {
         List<URLRecord> records = new ArrayList<>();
-        records.add(buildRecord("http://www.sina.com.cn", Constants.PRIORITY_LOW, Constants.CONCURRENT_LEVEL_HOST));
-        records.add(buildRecord("http://www.sina.com.cn/index.html", Constants.PRIORITY_HIGH, Constants.CONCURRENT_LEVEL_HOST));
+        records.add(buildRecord("http://www.sina.com.cn", Constants.PRIORITY_LOW, "www.sina.com.cn"));
+        records.add(buildRecord("http://www.sina.com.cn/index.html", Constants.PRIORITY_HIGH, "www.sina.com.cn"));
         List<PushResult> pushResults = concurrencyQueue.push(records);
         Assert.assertEquals(2, pushResults.size());
         Assert.assertEquals(PushResult.SUCCESS, pushResults.get(0));
         Assert.assertEquals(PushResult.SUCCESS, pushResults.get(1));
         URLRecord record = buildRecord("http://www.sohu.com/index.html",
-                Constants.PRIORITY_HIGH, Constants.CONCURRENT_LEVEL_DOMAIN);
+                Constants.PRIORITY_HIGH, "sohu.com");
         Assert.assertEquals(PushResult.SUCCESS, concurrencyQueue.push(record));
 
         Assert.assertTrue(concurrencyQueue.canPush());
@@ -57,24 +57,21 @@ public class ConcurrencyQueueTest {
         Assert.assertEquals("abc", records.get(0).jobId);
         Assert.assertEquals("http://www.sina.com.cn/index.html", records.get(0).url);
         Assert.assertEquals(Constants.PRIORITY_HIGH, records.get(0).priority.intValue());
-        Assert.assertEquals(Constants.CONTENT_CATEGORY_LIST, records.get(0).category.intValue());
-        Assert.assertEquals(Constants.CONCURRENT_LEVEL_HOST, records.get(0).concurrentLevel.intValue());
+        Assert.assertEquals("www.sina.com.cn", records.get(0).concurrencyUnit);
 
         Assert.assertEquals("abc", records.get(1).jobId);
         Assert.assertEquals("http://www.sina.com.cn", records.get(1).url);
         Assert.assertEquals(Constants.PRIORITY_LOW, records.get(1).priority.intValue());
-        Assert.assertEquals(Constants.CONTENT_CATEGORY_LIST, records.get(1).category.intValue());
-        Assert.assertEquals(Constants.CONCURRENT_LEVEL_HOST, records.get(1).concurrentLevel.intValue());
+        Assert.assertEquals("www.sina.com.cn", records.get(1).concurrencyUnit);
 
         records = concurrencyQueue.pop("sohu.com", 2);
         Assert.assertEquals(1, records.size());
         Assert.assertEquals("abc", records.get(0).jobId);
         Assert.assertEquals("http://www.sohu.com/index.html", records.get(0).url);
         Assert.assertEquals(Constants.PRIORITY_HIGH, records.get(0).priority.intValue());
-        Assert.assertEquals(Constants.CONTENT_CATEGORY_LIST, records.get(0).category.intValue());
-        Assert.assertEquals(Constants.CONCURRENT_LEVEL_DOMAIN, records.get(0).concurrentLevel.intValue());
+        Assert.assertEquals("sohu.com", records.get(0).concurrencyUnit);
 
-        Assert.assertTrue(concurrencyQueue.removeConcurrentUnit("www.sina.com.cn"));
-        Assert.assertTrue(concurrencyQueue.removeConcurrentUnit("sohu.com"));
+        Assert.assertTrue(concurrencyQueue.removeConcurrencyUnit("www.sina.com.cn"));
+        Assert.assertTrue(concurrencyQueue.removeConcurrencyUnit("sohu.com"));
     }
 }

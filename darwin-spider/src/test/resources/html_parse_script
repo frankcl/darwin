@@ -11,7 +11,7 @@ class GroovyParser extends HTMLParser {
     @Override
     public ParseResponse parse(ParseRequest request) {
         Map<String, Object> fieldMap = new HashMap<>();
-        Document document = Jsoup.parse(request.html, request.url);
+        Document document = Jsoup.parse(request.text, request.url);
         if (document == null) {
             logger.error("parse content failed");
             return ParseResponse.buildError("HTML解析失败");

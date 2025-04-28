@@ -6,7 +6,6 @@ import jakarta.xml.bind.annotation.XmlAccessType;
 import jakarta.xml.bind.annotation.XmlAccessorType;
 import xin.manong.darwin.common.model.URLRecord;
 
-import java.io.Serial;
 import java.util.List;
 import java.util.Map;
 
@@ -20,8 +19,6 @@ import java.util.Map;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class DebugSuccess extends DebugResponse {
 
-    @Serial
-    private static final long serialVersionUID = -4982638994956229570L;
     /**
      * 结构化数据
      */
@@ -30,8 +27,8 @@ public class DebugSuccess extends DebugResponse {
     /**
      * 用户透传数据
      */
-    @JsonProperty("user_defined_map")
-    public Map<String, Object> userDefinedMap;
+    @JsonProperty("custom_map")
+    public Map<String, Object> customMap;
     /**
      * 抽链列表
      */
@@ -39,10 +36,10 @@ public class DebugSuccess extends DebugResponse {
     public List<URLRecord> children;
 
     public DebugSuccess(Map<String, Object> fieldMap, List<URLRecord> children,
-                        Map<String, Object> userDefinedMap) {
+                        Map<String, Object> customMap) {
         super(true);
         this.fieldMap = fieldMap;
         this.children = children;
-        this.userDefinedMap = userDefinedMap;
+        this.customMap = customMap;
     }
 }

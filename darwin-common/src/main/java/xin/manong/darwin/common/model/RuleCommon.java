@@ -15,8 +15,6 @@ import lombok.experimental.Accessors;
 import org.apache.commons.lang3.StringUtils;
 import xin.manong.darwin.common.Constants;
 
-import java.io.Serial;
-
 /**
  * 规则公共定义
  *
@@ -29,9 +27,6 @@ import java.io.Serial;
 @XmlAccessorType(XmlAccessType.FIELD)
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class RuleCommon extends BaseModel {
-
-    @Serial
-    private static final long serialVersionUID = -2381254860790737994L;
 
     /**
      * 规则历史版本ID

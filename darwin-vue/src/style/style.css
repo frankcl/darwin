@@ -32,6 +32,10 @@ body {
   font-size: 14px;
 }
 
+.text-16px {
+  font-size: 16px;
+}
+
 .text-4 {
   font-size: 1rem;
 }
@@ -90,6 +94,10 @@ body {
 
 .mb-4 {
   margin-bottom: 1rem;
+}
+
+.mb-16px {
+  margin-bottom: 16px;
 }
 
 .me {
@@ -152,7 +160,7 @@ body {
 }
 
 [m~="t-0"] {
-  margin-top: 0rem;
+  margin-top: 0;
 }
 
 .inline {

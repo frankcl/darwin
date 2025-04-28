@@ -7,6 +7,8 @@ import { EditorView, keymap } from '@codemirror/view'
 import { indentUnit } from '@codemirror/language'
 import { java } from '@codemirror/lang-java'
 import { javascript } from '@codemirror/lang-javascript'
+import { html } from '@codemirror/lang-html'
+import { xml } from '@codemirror/lang-xml'
 import { autocompletion, closeBracketsKeymap, completionKeymap } from '@codemirror/autocomplete'
 import { oneDark } from '@codemirror/theme-one-dark'
 import { dracula } from '@uiw/codemirror-theme-dracula'
@@ -29,6 +31,8 @@ const language = computed(() => {
   if (lang === 'groovy') return java()
   else if (lang === 'java') return java()
   else if (lang === 'javascript') return javascript()
+  else if (lang === 'xml') return xml()
+  else if (lang === 'html') return html()
   return java()
 })
 
@@ -92,7 +96,6 @@ onUnmounted(() => destroyEditor())
 <style scoped>
 .code-editor {
   width: 100%;
-  max-width: 980px;
   max-height: 550px;
   height: 550px;
   background-color: #292C34;

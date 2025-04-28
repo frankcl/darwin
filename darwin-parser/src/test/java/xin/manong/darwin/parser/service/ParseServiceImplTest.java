@@ -41,7 +41,7 @@ public class ParseServiceImplTest {
     public void testParse() throws Exception {
         String scriptCode = ApplicationTest.readScript("/script/groovy_script");
         ScriptParseRequest request = new ScriptParseRequestBuilder().url("http://www.sina.com.cn/").
-                html("<p>Hello world</p>").scriptType(Constants.SCRIPT_TYPE_GROOVY).scriptCode(scriptCode).build();
+                text("<p>Hello world</p>").scriptType(Constants.SCRIPT_TYPE_GROOVY).scriptCode(scriptCode).build();
         ParseResponse response = parseService.parse(request);
         Assert.assertTrue(response != null && response.status);
         Assert.assertTrue(response.fieldMap != null && !response.fieldMap.isEmpty());

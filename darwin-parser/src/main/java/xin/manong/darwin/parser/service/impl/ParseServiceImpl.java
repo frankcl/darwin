@@ -33,15 +33,15 @@ public class ParseServiceImpl implements ParseService {
     private static final int RETRY_COUNT = 3;
 
     @Resource
-    protected ScriptCache scriptCache;
+    private ScriptCache scriptCache;
     @Resource
-    protected LinkExtractService linkExtractService;
+    private LinkExtractService linkExtractService;
 
     @Override
     public CompileResult compile(CompileRequest request) {
         try (Script script = ScriptFactory.make(request.scriptType, request.script)) {
             ParseRequestBuilder builder = new ParseRequestBuilder();
-            ParseRequest parseRequest = builder.html(COMPILE_HTML).url(COMPILE_URL).build();
+            ParseRequest parseRequest = builder.text(COMPILE_HTML).url(COMPILE_URL).build();
             script.doExecute(parseRequest);
             return CompileResult.success();
         } catch (Exception e) {

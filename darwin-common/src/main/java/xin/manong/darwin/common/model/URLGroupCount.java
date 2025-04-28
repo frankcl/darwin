@@ -4,7 +4,6 @@ import com.alibaba.fastjson.annotation.JSONField;
 import com.baomidou.mybatisplus.annotation.FieldStrategy;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableName;
-import com.baomidou.mybatisplus.extension.activerecord.Model;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.xml.bind.annotation.XmlAccessType;
@@ -25,7 +24,7 @@ import lombok.experimental.Accessors;
 @XmlAccessorType(XmlAccessType.FIELD)
 @TableName(value = "url", autoResultMap = true)
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class URLGroupCount extends Model<URLGroupCount> {
+public class URLGroupCount extends BaseModel {
 
     /**
      * URL状态
@@ -34,6 +33,30 @@ public class URLGroupCount extends Model<URLGroupCount> {
     @JSONField(name = "status")
     @JsonProperty("status")
     public Integer status;
+
+    /**
+     * 类型
+     */
+    @TableField(value = "category")
+    @JSONField(name = "category")
+    @JsonProperty("category")
+    public Integer category;
+
+    /**
+     * 并发单元
+     */
+    @TableField(value = "concurrency_unit")
+    @JSONField(name = "concurrency_unit")
+    @JsonProperty("concurrency_unit")
+    public String concurrencyUnit;
+
+    /**
+     * host
+     */
+    @TableField(value = "host")
+    @JSONField(name = "host")
+    @JsonProperty("host")
+    public String host;
 
     /**
      * 任务ID

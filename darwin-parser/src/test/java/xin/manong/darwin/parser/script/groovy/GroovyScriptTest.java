@@ -18,7 +18,7 @@ public class GroovyScriptTest {
         String url = "http://www.sina.com.cn/";
         String scriptCode = ApplicationTest.readScript("/script/groovy_script");
         GroovyScript groovyScript = new GroovyScript(scriptCode);
-        ParseRequest request = new ParseRequestBuilder().html("<p>Hello world!!!</p>").url(url).build();
+        ParseRequest request = new ParseRequestBuilder().text("<p>Hello world!!!</p>").url(url).build();
         ParseResponse response = groovyScript.execute(request);
         Assert.assertTrue(response.status);
         Assert.assertEquals(1, response.fieldMap.size());

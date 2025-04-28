@@ -7,8 +7,6 @@ import jakarta.xml.bind.annotation.XmlAccessType;
 import jakarta.xml.bind.annotation.XmlAccessorType;
 import xin.manong.darwin.common.model.RangeValue;
 
-import java.io.Serial;
-
 /**
  * 任务搜索请求
  *
@@ -19,8 +17,6 @@ import java.io.Serial;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class JobSearchRequest extends SearchRequest {
 
-    @Serial
-    private static final long serialVersionUID = 1124669204233050210L;
     /**
      * 计划ID
      */

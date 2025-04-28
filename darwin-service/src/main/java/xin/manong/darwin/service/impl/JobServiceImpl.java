@@ -33,7 +33,7 @@ import xin.manong.darwin.service.util.ModelValidator;
 public class JobServiceImpl extends JobService {
 
     @Resource
-    protected JobMapper jobMapper;
+    private JobMapper jobMapper;
 
     @Autowired
     public JobServiceImpl(CacheConfig cacheConfig) {
@@ -98,7 +98,9 @@ public class JobServiceImpl extends JobService {
         if (searchRequest.priority != null) query.eq("priority", searchRequest.priority);
         if (searchRequest.status != null) query.eq("status", searchRequest.status);
         if (searchRequest.planId != null) query.eq("plan_id", searchRequest.planId);
-        if (StringUtils.isNotEmpty(searchRequest.name)) query.like("name", searchRequest.name);
+        if (StringUtils.isNotEmpty(searchRequest.name)) {
+            query.like("name", searchRequest.name).or().eq("job_id", searchRequest.name);
+        }
         if (searchRequest.createTimeRange != null && searchRequest.createTimeRange.end != null) {
             if (searchRequest.createTimeRange.includeUpper) query.le("create_time", searchRequest.createTimeRange.end);
             else query.lt("create_time", searchRequest.createTimeRange.end);
@@ -107,7 +109,7 @@ public class JobServiceImpl extends JobService {
             if (searchRequest.createTimeRange.includeLower) query.ge("create_time", searchRequest.createTimeRange.start);
             else query.gt("create_time", searchRequest.createTimeRange.start);
         }
-        IPage<Job> page = jobMapper.selectPage(new Page<>(searchRequest.current, searchRequest.size), query);
+        IPage<Job> page = jobMapper.selectPage(new Page<>(searchRequest.pageNum, searchRequest.pageSize), query);
         return Converter.convert(page);
     }
 }

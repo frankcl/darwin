@@ -1,6 +1,7 @@
 app:
   log:
-    job-log-file: ./log/aspect/job.log
-    plan-log-file: ./log/aspect/plan.log
-    url-log-file: ./log/aspect/url.log
-    concurrent-log-file: ./log/aspect/concurrent.log
+    job-aspect-log-file: ./log/aspect/job.log
+    plan-aspect-log-file: ./log/aspect/plan.log
+    url-aspect-log-file: ./log/aspect/url.log
+    concurrency-aspect-log-file: ./log/aspect/concurrent.log
+    web-aspect-log-file: ./log/aspect/web.log

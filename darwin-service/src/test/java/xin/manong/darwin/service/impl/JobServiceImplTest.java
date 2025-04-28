@@ -66,10 +66,10 @@ public class JobServiceImplTest {
         JobSearchRequest searchRequest = new JobSearchRequest();
         searchRequest.status = true;
         searchRequest.planId = job.planId;
-        searchRequest.current = 1;
-        searchRequest.size = 10;
+        searchRequest.pageNum = 1;
+        searchRequest.pageSize = 10;
         Pager<Job> pager = jobService.search(searchRequest);
-        Assert.assertEquals(1L, pager.current.longValue());
+        Assert.assertEquals(1L, pager.pageNum.longValue());
         Assert.assertEquals(1L, pager.total.longValue());
         Assert.assertEquals(1, pager.records.size());
 

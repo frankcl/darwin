@@ -42,16 +42,13 @@ public class PlanServiceImpl implements PlanService {
     private static final Logger logger = LoggerFactory.getLogger(PlanServiceImpl.class);
 
     @Resource
-    protected PlanMapper planMapper;
+    private PlanMapper planMapper;
     @Resource
     @Lazy
-    protected RuleService ruleService;
+    private RuleService ruleService;
     @Resource
     @Lazy
-    protected JobService jobService;
-    @Resource
-    @Lazy
-    protected URLService urlService;
+    private JobService jobService;
 
     @Override
     public Plan get(String planId) {
@@ -120,8 +117,8 @@ public class PlanServiceImpl implements PlanService {
     @Override
     public Pager<Plan> search(PlanSearchRequest searchRequest) {
         if (searchRequest == null) searchRequest = new PlanSearchRequest();
-        if (searchRequest.current == null || searchRequest.current < 1) searchRequest.current = Constants.DEFAULT_CURRENT;
-        if (searchRequest.size == null || searchRequest.size <= 0) searchRequest.size = Constants.DEFAULT_PAGE_SIZE;
+        if (searchRequest.pageNum == null || searchRequest.pageNum < 1) searchRequest.pageNum = Constants.DEFAULT_PAGE_NUM;
+        if (searchRequest.pageSize == null || searchRequest.pageSize <= 0) searchRequest.pageSize = Constants.DEFAULT_PAGE_SIZE;
         ModelValidator.validateOrderBy(Plan.class, searchRequest);
         searchRequest.appList = ModelValidator.validateListField(searchRequest.appIds, String.class);
         QueryWrapper<Plan> query = new QueryWrapper<>();
@@ -131,9 +128,11 @@ public class PlanServiceImpl implements PlanService {
         if (searchRequest.priority != null) query.eq("priority", searchRequest.priority);
         if (searchRequest.fetchMethod != null) query.eq("fetch_method", searchRequest.fetchMethod);
         if (searchRequest.appId != null) query.eq("app_id", searchRequest.appId);
-        if (!StringUtils.isEmpty(searchRequest.name)) query.like("name", searchRequest.name);
+        if (!StringUtils.isEmpty(searchRequest.name)) {
+            query.like("name", searchRequest.name).or().eq("plan_id", searchRequest.name);
+        }
         if (searchRequest.appList != null) query.in("app_id", searchRequest.appList);
-        IPage<Plan> page = planMapper.selectPage(new Page<>(searchRequest.current, searchRequest.size), query);
+        IPage<Plan> page = planMapper.selectPage(new Page<>(searchRequest.pageNum, searchRequest.pageSize), query);
         return Converter.convert(page);
     }
 
@@ -142,8 +141,8 @@ public class PlanServiceImpl implements PlanService {
         PlanSearchRequest searchRequest = new PlanSearchRequest();
         searchRequest.category = Constants.PLAN_CATEGORY_PERIOD;
         searchRequest.status = true;
-        searchRequest.current = pageNum;
-        searchRequest.size = pageSize;
+        searchRequest.pageNum = pageNum;
+        searchRequest.pageSize = pageSize;
         Pager<Plan> pager = search(searchRequest);
         if (pager == null || pager.records == null) return new ArrayList<>();
         return pager.records;
