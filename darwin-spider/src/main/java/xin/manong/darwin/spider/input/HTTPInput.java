@@ -55,7 +55,10 @@ public class HTTPInput extends Input {
             httpRequest.readTimeoutMs = record.timeout;
         }
         httpResponse = httpClient.execute(httpRequest);
-        if (httpResponse == null || !httpResponse.isSuccessful()) throw new IOException("获取HTTP响应失败");
+        if (!httpResponse.isSuccessful()) {
+            httpResponse.close();
+            throw new IOException("获取HTTP响应失败");
+        }
         record.httpCode = httpResponse.code();
         String targetURL = httpResponse.request().url().url().toString();
         if (!StringUtils.isEmpty(targetURL) && !targetURL.equals(record.url)) record.redirectURL = targetURL;
@@ -65,9 +68,8 @@ public class HTTPInput extends Input {
         MediaType mediaType = responseBody.contentType();
         if (mediaType != null) {
             Charset charset = mediaType.charset();
-            record.mimeType = mediaType.type();
-            record.subMimeType = mediaType.subtype();
-            record.primitiveCharset = charset == null ? null : charset.name();
+            record.mediaType = new xin.manong.darwin.common.model.MediaType(mediaType.type(), mediaType.subtype());
+            if (charset != null) record.mediaType.charset = charset.name();
         }
         inputStream = responseBody.byteStream();
     }

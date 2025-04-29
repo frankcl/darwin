@@ -38,6 +38,8 @@ public class ResourceSpiderTest {
         URLRecord record = new URLRecord(url);
         record.jobId = RandomID.build();
         record.appId = 0;
+        record.concurrencyUnit = "default-crawler-file.oss-cn-hangzhou.aliyuncs.com";
+        record.concurrencyLevel = Constants.CONCURRENCY_LEVEL_HOST;
         Context context = new Context();
         router.route(record, context);
         String key = String.format("%s/%s/%s.mp4", spiderConfig.ossDirectory, "resource", record.key);
@@ -56,6 +58,8 @@ public class ResourceSpiderTest {
         URLRecord record = new URLRecord(url);
         record.jobId = RandomID.build();
         record.appId = 0;
+        record.concurrencyUnit = "default-crawler-file.oss-cn-hangzhou.aliyuncs.com";
+        record.concurrencyLevel = Constants.CONCURRENCY_LEVEL_HOST;
         Context context = new Context();
         router.route(record, context);
         Assert.assertNull(record.category);

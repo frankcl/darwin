@@ -80,12 +80,6 @@ public class URLSearchRequest extends SearchRequest {
     @QueryParam("app_id")
     public Integer appId;
     /**
-     * 媒体类型
-     */
-    @JsonProperty("media_type")
-    @QueryParam("media_type")
-    public String mediaType;
-    /**
      * 抓取时间范围
      */
     @JsonProperty("fetch_time")

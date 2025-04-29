@@ -37,6 +37,8 @@ public class Converter {
         record.linkScope = seedRecord.linkScope;
         record.planId = seedRecord.planId;
         record.allowDispatch = seedRecord.allowDispatch;
+        record.allowRepeat = true;
+        record.normalize = seedRecord.normalize;
         record.headers = seedRecord.headers == null ? new HashMap<>() : seedRecord.headers;
         record.customMap = seedRecord.customMap == null ? new HashMap<>() : seedRecord.customMap;
         return record;

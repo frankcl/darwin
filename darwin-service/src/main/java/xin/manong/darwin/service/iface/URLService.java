@@ -231,6 +231,23 @@ public abstract class URLService {
         searchRequest.planId = planId;
         searchRequest.statusList = new ArrayList<>();
         searchRequest.statusList.add(Constants.URL_STATUS_FETCH_SUCCESS);
+        searchRequest.statusList.add(Constants.URL_STATUS_QUEUING);
+        searchRequest.statusList.add(Constants.URL_STATUS_FETCHING);
+        searchRequest.pageNum = searchRequest.pageSize = 1;
+        return selectCount(searchRequest) > 0;
+    }
+
+    /**
+     * 是否为任务中重复数据
+     *
+     * @param url URL
+     * @param jobId 任务ID
+     * @return 存在重复数据返回true，否则返回false
+     */
+    public boolean isDuplicate(String url, String jobId) {
+        URLSearchRequest searchRequest = new URLSearchRequest();
+        searchRequest.url = url;
+        searchRequest.jobId = jobId;
         searchRequest.pageNum = searchRequest.pageSize = 1;
         return selectCount(searchRequest) > 0;
     }

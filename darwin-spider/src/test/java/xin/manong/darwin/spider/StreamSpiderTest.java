@@ -38,6 +38,9 @@ public class StreamSpiderTest {
         URLRecord record = new URLRecord(url);
         record.jobId = RandomID.build();
         record.appId = 0;
+        record.allowRepeat = true;
+        record.concurrencyUnit = "cache.m.iqiyi.com";
+        record.concurrencyLevel = Constants.CONCURRENCY_LEVEL_HOST;
         Context context = new Context();
         router.route(record, context);
         String key = String.format("%s/%s/%s.mp4", spiderConfig.ossDirectory, "stream", record.key);
@@ -56,9 +59,11 @@ public class StreamSpiderTest {
         URLRecord record = new URLRecord(url);
         record.jobId = RandomID.build();
         record.appId = 0;
+        record.concurrencyUnit = "kbs-dokdo.gscdn.com";
+        record.concurrencyLevel = Constants.CONCURRENCY_LEVEL_HOST;
         Context context = new Context();
         router.route(record, context);
-        Assert.assertEquals(Constants.URL_STATUS_FETCH_FAIL, record.status.intValue());
+        Assert.assertEquals(Constants.URL_STATUS_ERROR, record.status.intValue());
         Assert.assertTrue(record.fetchTime != null && record.fetchTime > 0L);
     }
 }

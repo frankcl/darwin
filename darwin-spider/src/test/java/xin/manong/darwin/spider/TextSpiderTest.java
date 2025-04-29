@@ -115,6 +115,8 @@ public class TextSpiderTest {
             record.jobId = "aaa";
             record.planId = plan.planId;
             record.appId = 1;
+            record.concurrencyUnit = "politics.people.com.cn";
+            record.concurrencyLevel = Constants.CONCURRENCY_LEVEL_HOST;
             Context context = new Context();
             router.route(record, context);
             String key = String.format("%s/%s/%s.html", spiderConfig.ossDirectory, "text", record.key);
@@ -144,6 +146,8 @@ public class TextSpiderTest {
             record.jobId = "aaa";
             record.planId = plan.planId;
             record.appId = 1;
+            record.concurrencyUnit = "www.sina.com.cn";
+            record.concurrencyLevel = Constants.CONCURRENCY_LEVEL_HOST;
             Context context = new Context();
             router.route(record, context);
             String key = String.format("%s/%s/%s.json", spiderConfig.ossDirectory, "text", record.key);
@@ -174,6 +178,8 @@ public class TextSpiderTest {
             record.jobId = "aaa";
             record.planId = plan.planId;
             record.appId = 1;
+            record.concurrencyUnit = "politics.people.com.cn";
+            record.concurrencyLevel = Constants.CONCURRENCY_LEVEL_HOST;
             Context context = new Context();
             router.route(record, context);
             Assert.assertNull(record.category);

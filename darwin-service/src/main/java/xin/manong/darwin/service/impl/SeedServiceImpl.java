@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 import xin.manong.darwin.common.Constants;
 import xin.manong.darwin.common.model.Pager;
 import xin.manong.darwin.common.model.SeedRecord;
+import xin.manong.darwin.common.util.URLNormalizer;
 import xin.manong.darwin.service.convert.Converter;
 import xin.manong.darwin.service.dao.mapper.SeedMapper;
 import xin.manong.darwin.service.iface.SeedService;
@@ -35,12 +36,21 @@ public class SeedServiceImpl implements SeedService {
 
     @Override
     public boolean add(SeedRecord record) {
+        if (record.mustNormalize()) {
+            String normalizedURL = URLNormalizer.normalize(record.url);
+            record.setUrl(normalizedURL);
+        }
         return seedMapper.insert(record) > 0;
     }
 
     @Override
     public boolean update(SeedRecord record) {
-        if (seedMapper.selectById(record.key) == null) throw new NotFoundException("种子记录不存在");
+        SeedRecord prevRecord = seedMapper.selectById(record.key);
+        if (prevRecord == null) throw new NotFoundException("种子记录不存在");
+        if (record.url != null && record.mustNormalize()) {
+            String normalizedURL = URLNormalizer.normalize(record.url);
+            record.setUrl(normalizedURL);
+        }
         LambdaUpdateWrapper<SeedRecord> query = new LambdaUpdateWrapper<SeedRecord>().
                 eq(SeedRecord::getKey, record.key).set(SeedRecord::getLinkScope, record.linkScope);
         return seedMapper.update(record, query) > 0;

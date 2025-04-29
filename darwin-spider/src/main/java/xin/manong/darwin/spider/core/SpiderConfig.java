@@ -43,45 +43,6 @@ public class SpiderConfig {
     public String tempDirectory;
 
     /**
-     * 构建文本爬虫
-     *
-     * @param router 路由
-     * @return 文本爬虫
-     */
-    @Bean
-    public TextSpider buildTextSpider(Router router) {
-        TextSpider textSpider = new TextSpider();
-        textSpider.supportedMediaTypes().forEach(mediaType -> router.registerSpider(mediaType, textSpider));
-        return textSpider;
-    }
-
-    /**
-     * 构建资源爬虫
-     *
-     * @param router 路由
-     * @return 资源爬虫
-     */
-    @Bean
-    public ResourceSpider buildResourceSpider(Router router) {
-        ResourceSpider resourceSpider = new ResourceSpider();
-        resourceSpider.supportedMediaTypes().forEach(mediaType -> router.registerSpider(mediaType, resourceSpider));
-        return resourceSpider;
-    }
-
-    /**
-     * 构建M3U8爬虫
-     *
-     * @param router 路由
-     * @return M3U8爬虫
-     */
-    @Bean
-    public M3U8Spider buildM3U8Spider(Router router) {
-        M3U8Spider m3U8Spider = new M3U8Spider();
-        m3U8Spider.supportedMediaTypes().forEach(mediaType -> router.registerSpider(mediaType, m3U8Spider));
-        return m3U8Spider;
-    }
-
-    /**
      * 构建长效代理选择器
      *
      * @param proxyService 代理服务

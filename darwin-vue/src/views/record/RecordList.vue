@@ -10,7 +10,7 @@ import {
 import { useUserStore } from '@/store'
 import { formatDate } from '@/common/Time'
 import { writeClipboard } from '@/common/Clipboard'
-import { showMessage, SUCCESS } from '@/common/Feedback'
+import { ERROR, showMessage, SUCCESS } from '@/common/Feedback'
 import { categoryMap, priorityMap, statusMap } from '@/common/Constants'
 import {
   asyncSearchURL,
@@ -49,7 +49,6 @@ const total = ref(0)
 const query = reactive(newSearchQuery({
   category: 'all',
   priority: 'all',
-  media_type: 'all',
   sort_field: 'fetch_time',
   sort_order: 'descending'
 }))
@@ -64,7 +63,6 @@ const prepareSearchRequest = () => {
   if (query.domain) request.domain = query.domain
   if (query.priority && query.priority !== 'all') request.priority = query.priority
   if (query.category && query.category !== 'all') request.category = query.category
-  if (query.media_type && query.media_type !== 'all') request.media_type = query.media_type
   if (query.status && query.status.length > 0) request.status = JSON.stringify(query.status)
   return request
 }
@@ -82,6 +80,7 @@ const exportData = async () => {
     const request = prepareSearchRequest()
     let exportURL = '/api/url/export?'
     Object.keys(request).forEach(key => exportURL += key + '=' + encodeURIComponent(request[key]) + '&')
+    console.log(exportURL)
     window.location = exportURL
   } finally {
     exporting.value = false
@@ -95,13 +94,15 @@ const view = record => {
 
 const preview = record => {
   previewKey.value = record.key
-  previewType.value = record.media_type
+  previewType.value = record.media_type.alias
   if (previewType.value === 'VIDEO') openPreviewVideo.value = true
   else if (previewType.value === 'IMAGE') openPreviewImage.value = true
   else if (previewType.value === 'PDF') openPreviewPdf.value = true
   else if (previewType.value === 'JSON') openPreviewJson.value = true
-  else if (previewType.value === 'HTML') openPreviewHTML.value = true
-  else openPreviewText.value = true
+  else if (previewType.value === 'HTML' || previewType.value === 'XHTML') openPreviewHTML.value = true
+  else if (previewType.value === 'PLAIN' || previewType.value === 'CSS' ||
+    previewType.value === 'JAVASCRIPT' || previewType.value === 'XML') openPreviewText.value = true
+  else showMessage('媒体类型不支持预览', ERROR)
 }
 
 const copy = async record => {
@@ -234,13 +235,15 @@ watchEffect(async () => await search())
         </template>
       </el-table-column>
       <el-table-column prop="category" label="类型" width="100" show-overflow-tooltip>
-        <template #default="scope">{{ categoryMap[scope.row.category] }}</template>
+        <template #default="scope">{{ scope.row.category ? categoryMap[scope.row.category] : '未知' }}</template>
       </el-table-column>
       <el-table-column prop="status" label="状态" width="100" show-overflow-tooltip>
         <template #default="scope">{{ statusMap[scope.row.status] }}</template>
       </el-table-column>
       <el-table-column prop="media_type" label="媒体类型" width="100" show-overflow-tooltip>
-        <template #default="scope">{{ scope.row.media_type }}</template>
+        <template #default="scope">
+          {{ scope.row.media_type && scope.row.media_type.alias ? scope.row.media_type.alias : '未知' }}
+        </template>
       </el-table-column>
       <el-table-column prop="priority" label="优先级" width="90" show-overflow-tooltip>
         <template #default="scope">{{ priorityMap[scope.row.priority] }}</template>

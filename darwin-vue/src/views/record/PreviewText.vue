@@ -16,6 +16,10 @@ watchEffect(async () => {
     if (props.recordType === 'XML') {
       previewType.value = 'xml'
       previewText.value = xmlFormat(previewText.value)
+    } else if (props.recordType === 'JAVASCRIPT') {
+      previewType.value = 'javascript'
+    } else if (props.recordType === 'CSS') {
+      previewType.value = 'css'
     } else if (props.recordType === 'HTML' || props.recordType === 'XHTML') {
       previewType.value = 'html'
     } else {

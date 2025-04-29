@@ -38,8 +38,8 @@ watchEffect(async () => {
     </el-row>
     <el-descriptions v-if="record" direction="vertical" :column="5" border>
       <el-descriptions-item label="抓取URL" class-name="wide-column">{{ record.url }}</el-descriptions-item>
-      <el-descriptions-item label="状态" width="110">{{ statusMap[record.status] }}</el-descriptions-item>
-      <el-descriptions-item label="类型" width="130">
+      <el-descriptions-item label="状态" width="140">{{ statusMap[record.status] }}</el-descriptions-item>
+      <el-descriptions-item label="类型" width="140">
         {{ record.category ? categoryMap[record.category] : '未知' }}
       </el-descriptions-item>
       <el-descriptions-item label="创建时间" width="300">{{ formatDate(record.create_time) }}</el-descriptions-item>
@@ -63,12 +63,12 @@ watchEffect(async () => {
       </el-descriptions-item>
       <el-descriptions-item label="抓取深度">{{ record.depth }}</el-descriptions-item>
       <el-descriptions-item label="媒体类型">
-        {{ record.media_type ? record.media_type : '暂无' }}
+        {{ record.media_type && record.media_type.alias ? record.media_type.alias : '暂无' }}
       </el-descriptions-item>
       <el-descriptions-item label="抓取时间">{{ formatDate(record.fetch_time) }}</el-descriptions-item>
-      <el-descriptions-item label="MimeType">{{ record.mime ? record.mime : '未知' }}</el-descriptions-item>
-      <el-descriptions-item label="原始编码">
-        {{ record.primitive_charset ? record.primitive_charset : '未知' }}
+      <el-descriptions-item label="MimeType">{{ record.mime_type ? record.mime_type : '未知' }}</el-descriptions-item>
+      <el-descriptions-item label="HTTP编码">
+        {{ record.media_type && record.media_type.charset ? record.media_type.charset : (record.html_charset ? record.html_charset : '未知') }}
       </el-descriptions-item>
       <el-descriptions-item label="探测编码">{{ record.charset ? record.charset : '未知' }}</el-descriptions-item>
       <el-descriptions-item label="内容长度">

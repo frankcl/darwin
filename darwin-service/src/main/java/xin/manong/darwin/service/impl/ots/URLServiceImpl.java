@@ -72,11 +72,9 @@ public class URLServiceImpl extends URLService {
         updateRecord.updateTime = System.currentTimeMillis();
         updateRecord.key = record.key;
         updateRecord.status = record.status;
-        updateRecord.mimeType = record.mimeType;
-        updateRecord.subMimeType = record.subMimeType;
         updateRecord.mediaType = record.mediaType;
-        updateRecord.primitiveCharset = record.primitiveCharset;
         updateRecord.charset = record.charset;
+        updateRecord.htmlCharset = record.htmlCharset;
         updateRecord.fetched = record.fetched;
         updateRecord.fetchTime = record.fetchTime;
         updateRecord.fetchContentURL = record.fetchContentURL;
@@ -220,9 +218,6 @@ public class URLServiceImpl extends URLService {
         }
         if (searchRequest.category != null) {
             queryList.add(SearchQueryBuilder.buildTermQuery(KEY_CATEGORY, searchRequest.category));
-        }
-        if (searchRequest.mediaType != null) {
-            queryList.add(SearchQueryBuilder.buildTermQuery(KEY_MEDIA_TYPE, searchRequest.mediaType));
         }
         if (searchRequest.appId != null) {
             queryList.add(SearchQueryBuilder.buildTermQuery(KEY_APP_ID, searchRequest.appId));

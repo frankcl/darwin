@@ -17,14 +17,14 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * JSON字典数据类型转换
+ * JSON泛型字典转换
  *
  * @author frankcl
  * @date 2022-08-29 19:11:08
  */
 @MappedTypes({ Map.class })
 @MappedJdbcTypes({ JdbcType.VARCHAR })
-public abstract class AbstractJSONMapTypeHandler<T> extends BaseTypeHandler<Map<String, T>> {
+public abstract class JSONGenericMapHandler<T> extends BaseTypeHandler<Map<String, T>> {
 
     protected abstract TypeReference<Map<String, T>> specificType();
 

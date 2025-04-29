@@ -63,7 +63,7 @@ public class URLController {
         if (StringUtils.isEmpty(key)) throw new BadRequestException("数据key缺失");
         URLRecord record = urlService.get(key);
         if (record == null) throw new NotFoundException("数据不存在");
-        record.MIME = composeMIME(record);
+        record.mimeType = record.mediaType == null ? null : record.mediaType.toString();
         return record;
     }
 
@@ -76,14 +76,12 @@ public class URLController {
     @Produces(MediaType.TEXT_HTML)
     @Path("previewHTML")
     @GetMapping("previewHTML")
-    @EnableWebLogAspect
     public String previewHTML(@QueryParam("key") String key) throws IOException {
         if (StringUtils.isEmpty(key)) throw new BadRequestException("预览数据key缺失");
         URLRecord record = urlService.get(key);
         checkPreviewRecord(record);
-        if (record.mediaType == null || (!record.mediaType.equals(
-                xin.manong.darwin.spider.core.MediaType.HTML.name()) &&
-                !record.mediaType.equals(xin.manong.darwin.spider.core.MediaType.XHTML.name()))) {
+        if (!xin.manong.darwin.common.model.MediaType.TEXT_HTML.equals(record.mediaType) &&
+                !xin.manong.darwin.common.model.MediaType.APPLICATION_XHTML.equals(record.mediaType)) {
             throw new UnsupportedOperationException("抓取结果不是HTML");
         }
         byte[] byteArray = ossService.getByURL(record.fetchContentURL);
@@ -99,17 +97,16 @@ public class URLController {
      *
      * @param key 数据key
      * @return 响应
-     * @throws IOException I/O异常
      */
     @GET
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
     @Path("previewPDF")
     @GetMapping("previewPDF")
-    public Response previewPDF(@QueryParam("key") String key) throws IOException {
+    public Response previewPDF(@QueryParam("key") String key) {
         if (StringUtils.isEmpty(key)) throw new BadRequestException("预览数据key缺失");
         URLRecord record = urlService.get(key);
         checkPreviewRecord(record);
-        if (!record.mediaType.equals(xin.manong.darwin.spider.core.MediaType.PDF.name())) {
+        if (!xin.manong.darwin.common.model.MediaType.APPLICATION_PDF.equals(record.mediaType)) {
             throw new IllegalStateException("抓取结果不是PDF文档");
         }
         InputStream input = ossService.getObjectStream(record.fetchContentURL);
@@ -132,19 +129,18 @@ public class URLController {
     @Produces(MediaType.APPLICATION_JSON)
     @Path("preview")
     @GetMapping("preview")
-    @EnableWebLogAspect
-    public String preview(@QueryParam("key") String key) throws IOException {
+    public String preview(@QueryParam("key") String key) {
         if (StringUtils.isEmpty(key)) throw new BadRequestException("预览数据key缺失");
         URLRecord record = urlService.get(key);
         checkPreviewRecord(record);
-        if (record.mediaType.equals(xin.manong.darwin.spider.core.MediaType.IMAGE.name()) ||
-                record.mediaType.equals(xin.manong.darwin.spider.core.MediaType.VIDEO.name()) ||
-                record.mediaType.equals(xin.manong.darwin.spider.core.MediaType.AUDIO.name())) {
+        if (record.mediaType.isImage() || record.mediaType.isVideo() || record.mediaType.isAudio()) {
             return ossService.signURL(record.fetchContentURL);
         }
-        if (record.mediaType.equals(xin.manong.darwin.spider.core.MediaType.JSON.name()) ||
-                record.mediaType.equals(xin.manong.darwin.spider.core.MediaType.PLAIN.name()) ||
-                record.mediaType.equals(xin.manong.darwin.spider.core.MediaType.XML.name())) {
+        if (record.mediaType.equals(xin.manong.darwin.common.model.MediaType.APPLICATION_JSON) ||
+                record.mediaType.equals(xin.manong.darwin.common.model.MediaType.APPLICATION_XML) ||
+                record.mediaType.equals(xin.manong.darwin.common.model.MediaType.APPLICATION_JAVASCRIPT) ||
+                record.mediaType.equals(xin.manong.darwin.common.model.MediaType.APPLICATION_XHTML) ||
+                record.mediaType.isText()) {
             byte[] byteArray = ossService.getByURL(record.fetchContentURL);
             return new String(byteArray, StandardCharsets.UTF_8);
         }
@@ -165,7 +161,9 @@ public class URLController {
     @EnableWebLogAspect
     public Pager<URLRecord> search(@BeanParam URLSearchRequest request) {
         Pager<URLRecord> pager = urlService.search(request);
-        for (URLRecord record : pager.records) record.MIME = composeMIME(record);
+        for (URLRecord record : pager.records) {
+            record.mimeType = record.mediaType == null ? null : record.mediaType.toString();
+        }
         return pager;
     }
 
@@ -204,16 +202,5 @@ public class URLController {
                 !ossService.existsByURL(record.fetchContentURL)) {
             throw new IllegalStateException("数据抓取失败，不支持预览");
         }
-    }
-
-    /**
-     * 组合生成多媒体类型
-     *
-     * @param record 数据
-     * @return 多媒体类型
-     */
-    private String composeMIME(URLRecord record) {
-        if (StringUtils.isEmpty(record.mimeType) || StringUtils.isEmpty(record.subMimeType)) return null;
-        return String.format("%s/%s", record.mimeType, record.subMimeType);
     }
 }

@@ -21,7 +21,7 @@ public class CharsetSpeculatorTest {
         HttpRequest httpRequest = new HttpRequest.Builder().requestURL(url).method(RequestMethod.GET).build();
         byte[] body;
         try (Response response = httpClient.execute(httpRequest)) {
-            Assert.assertTrue(response != null && response.isSuccessful());
+            Assert.assertTrue(response.isSuccessful());
             Assert.assertNotNull(response.body());
             body = response.body().bytes();
         }

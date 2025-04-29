@@ -16,7 +16,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import xin.manong.darwin.common.Constants;
-import xin.manong.darwin.common.model.handler.JSONMapObjectTypeHandler;
+import xin.manong.darwin.common.model.handler.JSONObjectMapHandler;
 import xin.manong.darwin.common.model.json.MapDeserializer;
 import xin.manong.weapon.aliyun.ots.annotation.Column;
 import xin.manong.weapon.aliyun.ots.annotation.PrimaryKey;
@@ -136,6 +136,15 @@ public class SeedRecord extends BaseModel {
     public Boolean allowDispatch;
 
     /**
+     * 是否对URL进行正规化，默认进行normalize
+     */
+    @TableField(value = "normalize")
+    @Column(name = "normalize")
+    @JSONField(name = "normalize")
+    @JsonProperty("normalize")
+    public Boolean normalize;
+
+    /**
      * host
      */
     @TableField(value = "host")
@@ -156,7 +165,7 @@ public class SeedRecord extends BaseModel {
     /**
      * HTTP header信息
      */
-    @TableField(value = "headers", typeHandler = JSONMapObjectTypeHandler.class)
+    @TableField(value = "headers", typeHandler = JSONObjectMapHandler.class)
     @Column(name = "headers")
     @JSONField(name = "headers", deserializeUsing = MapDeserializer.class)
     @JsonProperty("headers")
@@ -165,7 +174,7 @@ public class SeedRecord extends BaseModel {
     /**
      * 用户自定义字段，用于透传数据
      */
-    @TableField(value = "custom_map", typeHandler = JSONMapObjectTypeHandler.class)
+    @TableField(value = "custom_map", typeHandler = JSONObjectMapHandler.class)
     @Column(name = "custom_map")
     @JSONField(name = "custom_map", deserializeUsing = MapDeserializer.class)
     @JsonProperty("custom_map")
@@ -241,6 +250,7 @@ public class SeedRecord extends BaseModel {
         priority = record.priority;
         linkScope = record.linkScope;
         allowDispatch = record.allowDispatch;
+        normalize = record.normalize;
         customMap = record.customMap == null ? new HashMap<>() : new HashMap<>(record.customMap);
         headers = record.headers == null ? new HashMap<>() : new HashMap<>(record.headers);
     }
@@ -271,8 +281,8 @@ public class SeedRecord extends BaseModel {
      */
     public void setUrl(String url) {
         this.url = url;
-        this.hash = DigestUtils.md5Hex(url);
-        this.host = CommonUtil.getHost(url);
+        this.hash = DigestUtils.md5Hex(this.url);
+        this.host = CommonUtil.getHost(this.url);
         this.domain = DomainUtil.getDomain(host);
     }
 
@@ -286,5 +296,14 @@ public class SeedRecord extends BaseModel {
     @Override
     public int hashCode() {
         return key == null ? 0 : key.hashCode();
+    }
+
+    /**
+     * 是否需要进行normalize
+     *
+     * @return 需要返回true，否则返回false
+     */
+    public boolean mustNormalize() {
+        return normalize == null || normalize;
     }
 }

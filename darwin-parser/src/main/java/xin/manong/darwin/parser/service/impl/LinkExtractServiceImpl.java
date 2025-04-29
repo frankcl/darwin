@@ -11,13 +11,15 @@ import org.springframework.stereotype.Service;
 import xin.manong.darwin.common.Constants;
 import xin.manong.darwin.common.model.URLRecord;
 import xin.manong.darwin.common.util.DarwinUtil;
+import xin.manong.darwin.common.util.URLNormalizer;
 import xin.manong.darwin.parser.sdk.ParseResponse;
 import xin.manong.darwin.parser.service.LinkExtractService;
 import xin.manong.darwin.parser.service.request.ScriptParseRequest;
 
-import java.net.URL;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * 抽链服务实现
@@ -39,8 +41,9 @@ public class LinkExtractServiceImpl implements LinkExtractService {
         String parentURL = StringUtils.isEmpty(request.redirectURL) ? request.url : request.redirectURL;
         Document document = Jsoup.parse(request.text, parentURL);
         Element body = document.body();
+        Set<String> hashes = new HashSet<>();
         List<URLRecord> children = new ArrayList<>();
-        scopeExtract(body, parentURL, request.linkScope, children);
+        scopeExtract(body, parentURL, request.linkScope, children, hashes);
         return ParseResponse.buildOK(null, children, null);
     }
 
@@ -51,24 +54,30 @@ public class LinkExtractServiceImpl implements LinkExtractService {
      * @param parentURL 父URL
      * @param scope 抽链范围
      * @param children 抽链结果
+     * @param hashes 子链接hash集合，用于去重
      */
     private void scopeExtract(Element element, String parentURL, int scope,
-                              List<URLRecord> children) {
+                              List<URLRecord> children, Set<String> hashes) {
         if (!isVisible(element)) return;
         if (element.tagName().equals(TAG_NAME_A)) {
             if (!element.hasAttr(ATTR_NAME_HREF)) return;
             String child = element.absUrl(ATTR_NAME_HREF);
-            if (!supportExtract(child, scope, parentURL)) return;
             try {
-                new URL(child);
-                children.add(URLRecord.scopeLink(child, scope));
+                child = child.trim();
+                child = URLNormalizer.normalize(child);
             } catch (Exception e) {
-                logger.warn("Invalid child URL:{}", child);
+                logger.warn("Invalid child url:{}", child);
+                return;
             }
+            if (!supportExtract(child, scope, parentURL)) return;
+            URLRecord record = URLRecord.scopeLink(child, scope);
+            if (hashes.contains(record.hash)) return;
+            children.add(record);
+            hashes.add(record.hash);
             return;
         }
         Elements elements = element.children();
-        for (Element child : elements) scopeExtract(child, parentURL, scope, children);
+        for (Element child : elements) scopeExtract(child, parentURL, scope, children, hashes);
     }
 
     /**

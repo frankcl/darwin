@@ -77,6 +77,12 @@ public class SeedRequest implements Serializable {
     public Boolean allowDispatch = true;
 
     /**
+     * URL正规化
+     */
+    @JsonProperty("normalize")
+    public Boolean normalize = true;
+
+    /**
      * HTTP header信息
      */
     @JsonProperty("headers")
@@ -98,6 +104,7 @@ public class SeedRequest implements Serializable {
         if (fetchMethod == null) fetchMethod = Constants.FETCH_METHOD_COMMON;
         if (priority == null) priority = Constants.PRIORITY_NORMAL;
         if (allowDispatch == null) allowDispatch = true;
+        if (normalize == null) normalize = true;
         if (linkScope != null && !Constants.SUPPORT_LINK_SCOPES.containsKey(linkScope)) throw new BadRequestException("不支持的抽链范围");
         if (!Constants.SUPPORT_FETCH_METHODS.containsKey(fetchMethod)) throw new BadRequestException("不支持的抓取方式");
         if (priority > Constants.PRIORITY_LOW || priority < Constants.PRIORITY_HIGH) throw new BadRequestException("不支持的优先级");

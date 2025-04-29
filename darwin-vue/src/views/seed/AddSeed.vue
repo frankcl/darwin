@@ -19,6 +19,7 @@ const seedFormRef = useTemplateRef('seedForm')
 const more = ref(false)
 const seed = reactive({
   allow_dispatch: true,
+  normalize: true,
   priority: 1,
   fetch_method: 0,
   timeout: 3000
@@ -48,12 +49,12 @@ watchEffect(() => seed.plan_id = props.planId)
 </script>
 
 <template>
-  <el-dialog v-model="open" @close="emits('close')" width="800" align-center show-close>
+  <el-dialog v-model="open" @close="emits('close')" width="850" align-center show-close>
     <el-space direction="vertical" :size="20" :fill="true" class="w100">
       <el-row align="middle">
         <span class="text-xl font-bold ml-2">新增种子</span>
       </el-row>
-      <el-form ref="seedForm" :model="seed" :rules="seedFormRules" label-width="80px" label-position="right">
+      <el-form ref="seedForm" :model="seed" :rules="seedFormRules" label-width="100px" label-position="right">
         <el-form-item label="种子URL" prop="url">
           <el-input v-model.trim="seed.url" clearable />
         </el-form-item>
@@ -71,9 +72,11 @@ watchEffect(() => seed.plan_id = props.planId)
             </el-form-item>
           </el-col>
           <el-col :span="12">
-            <el-form-item label="抓取超时" prop="timeout">
-              <el-input-number v-model="seed.timeout" :min="0" :max="20000" :step="100" class="w180px" />
-              <el-text class="ml-3" size="small">单位：毫秒</el-text>
+            <el-form-item label="URL正规化" prop="normalize">
+              <el-radio-group v-model="seed.normalize">
+                <el-radio :value="true">允许</el-radio>
+                <el-radio :value="false">禁止</el-radio>
+              </el-radio-group>
             </el-form-item>
           </el-col>
         </el-row>
@@ -105,6 +108,12 @@ watchEffect(() => seed.plan_id = props.planId)
                 <el-option key="2" label="DOMAIN" :value="2" />
                 <el-option key="3" label="HOST" :value="3" />
               </el-select>
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="抓取超时" prop="timeout">
+              <el-input-number v-model="seed.timeout" :min="0" :max="20000" :step="100" class="w180px" />
+              <el-text class="ml-3" size="small">单位：毫秒</el-text>
             </el-form-item>
           </el-col>
         </el-row>

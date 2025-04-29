@@ -81,6 +81,8 @@ public class M3U8Input extends Input {
     private List<String> buildCommands(URLRecord record, String tempFile) {
         List<String> commands = new ArrayList<>();
         commands.add(ffmpeg);
+        commands.add("-v");
+        commands.add("quiet");
         commands.add("-user_agent");
         commands.add(config.userAgent);
         if (record.isUseProxy() && proxy != null) {

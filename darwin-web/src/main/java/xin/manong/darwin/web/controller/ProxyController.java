@@ -64,14 +64,13 @@ public class ProxyController {
         if (id == null) throw new BadRequestException("代理ID缺失");
         Proxy proxy = proxyService.get(id);
         if (proxy == null) throw new NotFoundException("代理未找到");
-        String requestURL = "https://darwin.manong.xin/health/check";
+        String requestURL = "https://darwin.manong.xin/api/health/check";
         SingleProxySelector proxySelector = new SingleProxySelector(proxy);
         HttpClient httpClient = new HttpClient(new HttpClientConfig(), proxySelector, authenticator);
         HttpRequest httpRequest = HttpRequest.buildGetRequest(requestURL, null);
         try (Response httpResponse = httpClient.execute(httpRequest)) {
-            if (httpResponse == null || !httpResponse.isSuccessful()) {
-                logger.error("Check proxy failed for {}, http code:{}",
-                        proxy, httpResponse == null ? -1 : httpResponse.code());
+            if (!httpResponse.isSuccessful()) {
+                logger.error("Check proxy failed for {}, http code:{}", proxy, httpResponse.code());
                 return false;
             }
         }

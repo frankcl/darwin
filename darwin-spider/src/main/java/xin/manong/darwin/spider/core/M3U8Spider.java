@@ -1,7 +1,11 @@
 package xin.manong.darwin.spider.core;
 
 import jakarta.annotation.Resource;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Component;
 import xin.manong.darwin.common.Constants;
+import xin.manong.darwin.common.model.MediaType;
 import xin.manong.darwin.common.model.Proxy;
 import xin.manong.darwin.common.model.URLRecord;
 import xin.manong.darwin.service.iface.ProxyService;
@@ -18,11 +22,11 @@ import java.util.List;
  * @author frankcl
  * @date 2025-04-27 21:17:23
  */
+@Component
 public class M3U8Spider extends Spider {
 
+    private static final Logger logger = LoggerFactory.getLogger(M3U8Spider.class);
     private static final int HTTP_CODE_OK = 200;
-    private static final String MIME_TYPE_VIDEO = "video";
-    private static final String SUB_MIME_TYPE_MP4 = "mp4";
 
     @Resource
     private ProxyService proxyService;
@@ -32,9 +36,7 @@ public class M3U8Spider extends Spider {
         record.category = Constants.CONTENT_CATEGORY_STREAM;
         Proxy proxy = record.isUseProxy() ? proxyService.randomGet(record.fetchMethod) : null;
         try (M3U8Input m3U8Input = new M3U8Input(record, proxy, spiderConfig)) {
-            record.mimeType = MIME_TYPE_VIDEO;
-            record.subMimeType = SUB_MIME_TYPE_MP4;
-            record.mediaType = MediaType.VIDEO.name();
+            record.mediaType = MediaType.VIDEO_MP4;
             record.httpCode = HTTP_CODE_OK;
             writer.write(record, m3U8Input, context);
             return MediaType.UNKNOWN;
@@ -43,6 +45,6 @@ public class M3U8Spider extends Spider {
 
     @Override
     public List<MediaType> supportedMediaTypes() {
-        return List.of(MediaType.M3U8);
+        return List.of(MediaType.STREAM_M3U8);
     }
 }

@@ -14,7 +14,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import xin.manong.darwin.common.Constants;
-import xin.manong.darwin.common.model.handler.JSONMapObjectTypeHandler;
+import xin.manong.darwin.common.model.handler.JSONMediaTypeHandler;
+import xin.manong.darwin.common.model.handler.JSONObjectMapHandler;
 import xin.manong.darwin.common.model.json.MapDeserializer;
 import xin.manong.weapon.aliyun.ots.annotation.Column;
 
@@ -124,24 +125,6 @@ public class URLRecord extends SeedRecord {
     public String fetchContentURL;
 
     /**
-     * mimeType
-     */
-    @TableField(value = "mime_type")
-    @Column(name = "mime_type")
-    @JSONField(name = "mime_type")
-    @JsonProperty("mime_type")
-    public String mimeType;
-
-    /**
-     * 子mimeType
-     */
-    @TableField(value = "sub_mime_type")
-    @Column(name = "sub_mime_type")
-    @JSONField(name = "sub_mime_type")
-    @JsonProperty("sub_mime_type")
-    public String subMimeType;
-
-    /**
      * URL状态
      */
     @TableField(value = "status")
@@ -209,7 +192,7 @@ public class URLRecord extends SeedRecord {
     /**
      * 结构化字段
      */
-    @TableField(value = "field_map", typeHandler = JSONMapObjectTypeHandler.class)
+    @TableField(value = "field_map", typeHandler = JSONObjectMapHandler.class)
     @Column(name = "field_map")
     @JSONField(name = "field_map", deserializeUsing = MapDeserializer.class)
     @JsonProperty("field_map")
@@ -218,20 +201,11 @@ public class URLRecord extends SeedRecord {
     /**
      * 媒体类型
      */
-    @TableField(value = "media_type")
+    @TableField(value = "media_type", typeHandler = JSONMediaTypeHandler.class)
     @Column(name = "media_type")
     @JSONField(name = "media_type")
     @JsonProperty("media_type")
-    public String mediaType;
-
-    /**
-     * HTTP头字符集
-     */
-    @TableField(value = "primitive_charset")
-    @Column(name = "primitive_charset")
-    @JSONField(name = "primitive_charset")
-    @JsonProperty("primitive_charset")
-    public String primitiveCharset;
+    public MediaType mediaType;
 
     /**
      * 字符集
@@ -243,18 +217,36 @@ public class URLRecord extends SeedRecord {
     public String charset;
 
     /**
+     * HTML字符集
+     */
+    @TableField(value = "html_charset")
+    @Column(name = "html_charset")
+    @JSONField(name = "html_charset")
+    @JsonProperty("html_charset")
+    public String htmlCharset;
+
+    /**
+     * 允许重复抓取
+     */
+    @TableField(value = "allow_repeat")
+    @Column(name = "allow_repeat")
+    @JSONField(name = "allow_repeat")
+    @JsonProperty("allow_repeat")
+    public Boolean allowRepeat;
+
+    /**
      * 文本内容
      */
     @TableField(exist = false)
     public String text;
 
     /**
-     * MIME
+     * MimeType
      */
-    @JSONField(name = "mime")
-    @JsonProperty("mime")
+    @JSONField(name = "mime_type")
+    @JsonProperty("mime_type")
     @TableField(exist = false)
-    public String MIME;
+    public String mimeType;
 
     public URLRecord() {
         super();
@@ -277,20 +269,19 @@ public class URLRecord extends SeedRecord {
         parentURL = record.parentURL;
         redirectURL = record.redirectURL;
         fetchContentURL = record.fetchContentURL;
-        mimeType = record.mimeType;
-        subMimeType = record.subMimeType;
-        primitiveCharset = record.primitiveCharset;
-        charset = record.charset;
         mediaType = record.mediaType;
+        charset = record.charset;
+        htmlCharset = record.htmlCharset;
         status = record.status;
         depth = record.depth;
         httpCode = record.httpCode;
         contentLength = record.contentLength;
         concurrencyLevel = record.concurrencyLevel;
         concurrencyUnit = record.concurrencyUnit;
+        allowRepeat = record.allowRepeat;
         fetched = record.fetched;
         text = record.text;
-        MIME = record.MIME;
+        mimeType = record.mimeType;
         fieldMap = record.fieldMap == null ? new HashMap<>() : new HashMap<>(record.fieldMap);
     }
 

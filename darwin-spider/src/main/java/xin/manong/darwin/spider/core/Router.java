@@ -5,8 +5,10 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import xin.manong.darwin.common.Constants;
+import xin.manong.darwin.common.model.MediaType;
 import xin.manong.darwin.common.model.URLRecord;
 import xin.manong.darwin.log.core.AspectLogSupport;
 import xin.manong.darwin.queue.ConcurrencyControl;
@@ -42,6 +44,12 @@ public class Router {
 
     @Resource
     private SpiderConfig spiderConfig;
+    @Resource
+    @Lazy
+    private TextSpider textSpider;
+    @Resource
+    @Lazy
+    private ResourceSpider resourceSpider;
     @Resource
     private ConcurrencyControl concurrencyControl;
     @Resource
@@ -81,25 +89,26 @@ public class Router {
             URLRecord prevRecord = fetchedRecord(record, context);
             MediaType mediaType;
             try (Input input = openInput(record, prevRecord)) {
-                MediaType temp = buildMediaType(record);
-                Spider spider = routeTable.get(temp);
-                if (spider == null) throw new UnsupportedOperationException("不支持的媒体类型");
-                record.mediaType = temp.name();
+                Spider spider = route(record.mediaType);
+                if (spider == null) throw new UnsupportedOperationException(
+                        String.format("不支持的媒体类型:%s", record.mediaType));
                 mediaType = spider.handle(record, input, context);
             }
             while (mediaType != MediaType.UNKNOWN) {
-                Spider spider = routeTable.get(mediaType);
-                if (spider == null) throw new UnsupportedOperationException("不支持的媒体类型");
+                Spider spider = route(mediaType);
+                if (spider == null) throw new UnsupportedOperationException(
+                        String.format("不支持的媒体类型:%s", mediaType));
                 mediaType = spider.handle(record, context);
             }
             record.status = Constants.URL_STATUS_FETCH_SUCCESS;
             logger.info("Fetch success for url: {}", record.url);
-        } catch (UnknownHostException | SocketTimeoutException e) {
+        } catch (IOException e) {
             record.status = Constants.URL_STATUS_FETCH_FAIL;
-            context.put(Constants.DARWIN_DEBUG_MESSAGE, "域名解析失败");
             if (e instanceof SocketTimeoutException) {
                 record.status = Constants.URL_STATUS_TIMEOUT;
                 context.put(Constants.DARWIN_DEBUG_MESSAGE, "抓取超时");
+            } else if (e instanceof UnknownHostException) {
+                context.put(Constants.DARWIN_DEBUG_MESSAGE, "域名解析失败");
             }
             context.put(Constants.DARWIN_STACK_TRACE, ExceptionUtils.getStackTrace(e));
             logger.error("Fetch failed for url: {}", record.url);
@@ -123,31 +132,6 @@ public class Router {
     }
 
     /**
-     * 构建媒体类型
-     *
-     * @param record 数据
-     * @return 媒体类型
-     */
-    public MediaType buildMediaType(URLRecord record) {
-        String mimeType = record.mimeType == null ? null : record.mimeType.toLowerCase();
-        String subMimeType = record.subMimeType == null ? null : record.subMimeType.toLowerCase();
-        if (StringUtils.isEmpty(mimeType)) return MediaType.PLAIN;
-        if (mimeType.equalsIgnoreCase(MediaType.IMAGE.name())) return MediaType.IMAGE;
-        if (mimeType.equalsIgnoreCase(MediaType.VIDEO.name())) return MediaType.VIDEO;
-        String MIME = mimeType;
-        if (StringUtils.isNotEmpty(subMimeType)) MIME = String.format("%s/%s", MIME, subMimeType);
-        return switch (MIME) {
-            case "text/plain" -> MediaType.PLAIN;
-            case "application/json" -> MediaType.JSON;
-            case "application/pdf" -> MediaType.PDF;
-            case "text/html" -> MediaType.HTML;
-            case "application/xhtml+xml" -> MediaType.XHTML;
-            case "text/xml", "application/xml" -> MediaType.XML;
-            default -> MediaType.UNKNOWN;
-        };
-    }
-
-    /**
      * 注册爬虫实例到路由表
      *
      * @param mediaType 媒体类型
@@ -155,6 +139,20 @@ public class Router {
      */
     public void registerSpider(MediaType mediaType, Spider spider) {
         routeTable.put(mediaType, spider);
+    }
+
+    /**
+     * 根据媒体类型路由到对应spider
+     *
+     * @param mediaType 媒体类型
+     * @return 成功返回spider，否则返回null
+     */
+    private Spider route(MediaType mediaType) {
+        Spider spider = routeTable.get(mediaType);
+        if (spider != null) return spider;
+        if (mediaType.isText()) return textSpider;
+        if (mediaType.isVideo() || mediaType.isImage() || mediaType.isAudio()) return resourceSpider;
+        return null;
     }
 
     /**
@@ -178,10 +176,9 @@ public class Router {
         record.status = prevRecord.status;
         record.httpCode = prevRecord.httpCode;
         record.redirectURL = prevRecord.redirectURL;
-        record.mimeType = prevRecord.mimeType;
-        record.subMimeType = prevRecord.subMimeType;
+        record.mediaType = prevRecord.mediaType;
         record.charset = prevRecord.charset;
-        record.primitiveCharset = prevRecord.primitiveCharset;
+        record.htmlCharset = prevRecord.htmlCharset;
         record.contentLength = prevRecord.contentLength;
         Input input = new OSSInput(prevRecord.fetchContentURL, ossService);
         input.open();
@@ -198,11 +195,24 @@ public class Router {
      * @return 如果存在则返回抓取过的数据，否则返回null
      */
     private URLRecord fetchedRecord(URLRecord record, Context context) {
-        if ((boolean) context.get(Constants.ALLOW_REPEAT)) return null;
+        if (allowRepeat(record, context)) return null;
         long startTime = System.currentTimeMillis() - spiderConfig.maxRepeatFetchTimeIntervalMs;
         URLRecord prevRecord = urlService.getFetchedByURL(record.url, startTime);
         if (prevRecord == null || StringUtils.isEmpty(prevRecord.fetchContentURL)) return null;
         return ossService.existsByURL(prevRecord.fetchContentURL) ? prevRecord : null;
+    }
+
+    /**
+     * 是否允许重复抓取
+     *
+     * @param record 数据
+     * @param context 上下文
+     * @return 允许返回true，否则返回false
+     */
+    private boolean allowRepeat(URLRecord record, Context context) {
+        if (record.allowRepeat != null) return record.allowRepeat;
+        if (context.contains(Constants.ALLOW_REPEAT)) return (boolean) context.get(Constants.ALLOW_REPEAT);
+        return false;
     }
 
     /**

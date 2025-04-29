@@ -5,9 +5,12 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Component;
 import xin.manong.darwin.common.Constants;
+import xin.manong.darwin.common.model.MediaType;
 import xin.manong.darwin.common.model.Rule;
 import xin.manong.darwin.common.model.URLRecord;
+import xin.manong.darwin.common.util.URLNormalizer;
 import xin.manong.darwin.log.core.AspectLogSupport;
 import xin.manong.darwin.parser.sdk.ParseResponse;
 import xin.manong.darwin.parser.service.ParseService;
@@ -39,6 +42,7 @@ import java.util.Map;
  * @author frankcl
  * @date 2025-04-27 20:00:39
  */
+@Component
 public class TextSpider extends Spider {
 
     private static final Logger logger = LoggerFactory.getLogger(TextSpider.class);
@@ -67,7 +71,7 @@ public class TextSpider extends Spider {
         record.category = Constants.CONTENT_CATEGORY_PAGE;
         if (input instanceof HTTPInput) {
             record.text = fetch(record, (HTTPInput) input, context);
-            if (checkM3U8(record)) return MediaType.M3U8;
+            if (checkM3U8(record)) return MediaType.STREAM_M3U8;
         } else {
             record.text = read(record, (OSSInput) input, context);
         }
@@ -80,7 +84,9 @@ public class TextSpider extends Spider {
 
     @Override
     public List<MediaType> supportedMediaTypes() {
-        return List.of(MediaType.HTML, MediaType.PLAIN, MediaType.XHTML, MediaType.JSON, MediaType.XML);
+        return List.of(MediaType.TEXT_HTML, MediaType.TEXT_PLAIN, MediaType.APPLICATION_XHTML,
+                MediaType.APPLICATION_JSON, MediaType.TEXT_XML, MediaType.TEXT_CSS, MediaType.TEXT_CSV,
+                MediaType.TEXT_JAVASCRIPT, MediaType.APPLICATION_JAVASCRIPT, MediaType.APPLICATION_XML);
     }
 
     /**
@@ -114,7 +120,7 @@ public class TextSpider extends Spider {
      * @return 满足条件返回true，否则返回false
      */
     private boolean checkM3U8(URLRecord record) {
-        if (!record.mediaType.equals(MediaType.PLAIN.name()) || record.text == null) return false;
+        if (!record.mediaType.equals(MediaType.TEXT_PLAIN) || record.text == null) return false;
         String[] textLines = record.text.split("\n");
         return textLines[0].equals(M3U8_MARK_START) && textLines[textLines.length - 1].equals(M3U8_MARK_END);
     }
@@ -179,10 +185,12 @@ public class TextSpider extends Spider {
      * @return 字符集
      */
     private String speculateCharset(byte[] byteArray, URLRecord record) {
-        if (StringUtils.isNotEmpty(record.primitiveCharset)) return record.primitiveCharset;
+        if (record.mediaType != null && StringUtils.isNotEmpty(
+                record.mediaType.charset)) {
+            return record.mediaType.charset;
+        }
         String charset = HTMLCharsetParser.parse(byteArray);
-        if (StringUtils.isEmpty(record.primitiveCharset) &&
-                StringUtils.isNotEmpty(charset)) record.primitiveCharset = charset;
+        if (StringUtils.isNotEmpty(charset)) record.htmlCharset = charset;
         if (StringUtils.isEmpty(charset)) charset = CharsetSpeculator.speculate(byteArray, 0, 1024);
         if (StringUtils.isNotEmpty(charset)) return charset;
         logger.warn("Speculate charset failed, using UTF-8 charset for url: {}", record.url);
@@ -287,7 +295,19 @@ public class TextSpider extends Spider {
                 logger.warn("Depth exceeds max depth for child:{}", child.url);
                 return false;
             }
-            if (!allowRepeat && urlService.isFetched(child.url, child.planId)) {
+            if (child.url.equals(parent.url)) {
+                context.put(Constants.DARWIN_DEBUG_MESSAGE, "父链接相同");
+                logger.warn("Ignore child:{} same with parent", child.url);
+                return false;
+            }
+            if (urlService.isDuplicate(child.url, child.jobId)) {
+                context.put(Constants.DARWIN_DEBUG_MESSAGE, "重复子链接");
+                logger.warn("Ignore duplicated child:{}", child.url);
+                return false;
+            }
+            if (((child.allowRepeat == null && !allowRepeat) ||
+                    (child.allowRepeat != null && !child.allowRepeat)) &&
+                    urlService.isFetched(child.url, child.planId)) {
                 context.put(Constants.DARWIN_DEBUG_MESSAGE, "忽略已抓取链接");
                 logger.warn("Ignore fetched child:{}", child.url);
                 return false;
@@ -328,6 +348,10 @@ public class TextSpider extends Spider {
         child.parentURL = parent.url;
         child.depth = parent.depth + 1;
         child.status = Constants.URL_STATUS_UNKNOWN;
+        if (child.mustNormalize()) {
+            String normalizedURL = URLNormalizer.normalize(child.url);
+            child.setUrl(normalizedURL);
+        }
         concurrencyComputer.compute(child);
         if (child.priority == null) child.priority = parent.priority;
         if (child.fetchMethod == null) child.fetchMethod = parent.fetchMethod;

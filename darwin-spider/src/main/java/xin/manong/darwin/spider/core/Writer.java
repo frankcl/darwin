@@ -63,27 +63,10 @@ public class Writer {
      * @return OSS key
      */
     private String buildOSSKey(URLRecord record) {
-        String fileSuffix = generateFileSuffixUsingMediaType(record);
+        String suffix = record.mediaType == null ? null : record.mediaType.suffix;
         String key = String.format("%s/%s/%s", spiderConfig.ossDirectory,
                 categoryDirMap.get(record.category), record.key);
-        if (StringUtils.isEmpty(fileSuffix)) return key;
-        return String.format("%s.%s", key, fileSuffix);
-    }
-
-    /**
-     * 根据资源mediaType构建文件后缀
-     *
-     * @param record 数据
-     * @return 成功返回文件后缀，否则返回null
-     */
-    private String generateFileSuffixUsingMediaType(URLRecord record) {
-        if (record.mediaType == null || record.mediaType.equals(MediaType.UNKNOWN.name())) return null;
-        if (record.mediaType.equals(MediaType.IMAGE.name()) ||
-                record.mediaType.equals(MediaType.VIDEO.name()) ||
-                record.mediaType.equals(MediaType.AUDIO.name())) {
-            return StringUtils.isEmpty(record.subMimeType) ? null : record.subMimeType.toLowerCase();
-        }
-        if (record.mediaType.equals(MediaType.PLAIN.name())) return "txt";
-        return record.mediaType.toLowerCase();
+        if (StringUtils.isEmpty(suffix)) return key;
+        return String.format("%s.%s", key, suffix);
     }
 }

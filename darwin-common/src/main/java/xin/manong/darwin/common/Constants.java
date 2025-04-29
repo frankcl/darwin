@@ -179,9 +179,7 @@ public class Constants {
     public static final String HTTP_CODE = "http_code";
     public static final String CHILDREN = "children";
     public static final String INVALID_CHILDREN = "invalid_children";
-    public static final String MIME_TYPE = "mime_type";
-    public static final String SUB_MIME_TYPE = "sub_mime_type";
-    public static final String PRIMITIVE_CHARSET = "primitive_charset";
+    public static final String HTML_CHARSET = "html_charset";
     public static final String CHARSET = "charset";
     public static final String MEDIA_TYPE = "media_type";
     public static final String ALLOW_DISPATCH = "allow_dispatch";

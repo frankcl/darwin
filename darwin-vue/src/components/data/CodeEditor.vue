@@ -9,6 +9,7 @@ import { java } from '@codemirror/lang-java'
 import { javascript } from '@codemirror/lang-javascript'
 import { html } from '@codemirror/lang-html'
 import { xml } from '@codemirror/lang-xml'
+import { css } from '@codemirror/lang-css'
 import { autocompletion, closeBracketsKeymap, completionKeymap } from '@codemirror/autocomplete'
 import { oneDark } from '@codemirror/theme-one-dark'
 import { dracula } from '@uiw/codemirror-theme-dracula'
@@ -33,13 +34,14 @@ const language = computed(() => {
   else if (lang === 'javascript') return javascript()
   else if (lang === 'xml') return xml()
   else if (lang === 'html') return html()
+  else if (lang === 'css') return css()
   return java()
 })
 
 const indentSize = computed(() => {
   const lang = props.lang.toLowerCase()
   if (lang === 'groovy' || lang === 'java') return indentUnit.of(' '.repeat(4))
-  else if (lang === 'javascript') return indentUnit.of(' '.repeat(2))
+  else if (lang === 'javascript' || lang === 'html' || lang === 'css') return indentUnit.of(' '.repeat(2))
   return indentUnit.of(' '.repeat(4))
 })
 

@@ -12,7 +12,7 @@ import jakarta.xml.bind.annotation.XmlAccessorType;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
-import xin.manong.darwin.common.model.handler.JSONListDashboardValueTypeHandler;
+import xin.manong.darwin.common.model.handler.JSONDashboardValueListHandler;
 import xin.manong.darwin.common.model.json.MapDeserializer;
 
 import java.util.ArrayList;
@@ -59,7 +59,7 @@ public class Dashboard extends BaseModel {
     /**
      * 统计结果
      */
-    @TableField(value = "`values`", typeHandler = JSONListDashboardValueTypeHandler.class)
+    @TableField(value = "`values`", typeHandler = JSONDashboardValueListHandler.class)
     @JSONField(name = "values", deserializeUsing = MapDeserializer.class)
     @JsonProperty("values")
     public List<DashboardValue<Integer>> values = new ArrayList<>();

@@ -18,14 +18,14 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * JSON列表数据类型转换
+ * JSON泛型列表转换
  *
  * @author frankcl
  * @date 2022-08-29 19:11:08
  */
 @MappedTypes({ List.class })
 @MappedJdbcTypes({ JdbcType.VARCHAR })
-public abstract class AbstractJSONListTypeHandler<T> extends BaseTypeHandler<List<T>> {
+public abstract class JSONGenericListHandler<T> extends BaseTypeHandler<List<T>> {
 
     protected abstract TypeReference<List<T>> specificType();
 

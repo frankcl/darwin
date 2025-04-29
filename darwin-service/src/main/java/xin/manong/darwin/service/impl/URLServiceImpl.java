@@ -60,20 +60,12 @@ public class URLServiceImpl extends URLService {
         if (record.httpCode != null) updateWrapper.set(URLRecord::getHttpCode, record.httpCode);
         if (record.fetched != null) updateWrapper.set(URLRecord::getFetched, record.fetched);
         if (record.contentLength != null) updateWrapper.set(URLRecord::getContentLength, record.contentLength);
-        if (StringUtils.isNotEmpty(record.mimeType)) {
-            updateWrapper.set(URLRecord::getMimeType, record.mimeType);
-        }
-        if (StringUtils.isNotEmpty(record.subMimeType)) {
-            updateWrapper.set(URLRecord::getSubMimeType, record.subMimeType);
-        }
-        if (StringUtils.isNotEmpty(record.mediaType)) {
-            updateWrapper.set(URLRecord::getMediaType, record.mediaType);
-        }
-        if (StringUtils.isNotEmpty(record.primitiveCharset)) {
-            updateWrapper.set(URLRecord::getPrimitiveCharset, record.primitiveCharset);
-        }
+        if (record.mediaType != null) updateWrapper.set(URLRecord::getMediaType, JSON.toJSONString(record.mediaType));
         if (StringUtils.isNotEmpty(record.charset)) {
             updateWrapper.set(URLRecord::getCharset, record.charset);
+        }
+        if (StringUtils.isNotEmpty(record.htmlCharset)) {
+            updateWrapper.set(URLRecord::getHtmlCharset, record.htmlCharset);
         }
         if (StringUtils.isNotEmpty(record.fetchContentURL)) {
             updateWrapper.set(URLRecord::getFetchContentURL, record.fetchContentURL);
@@ -281,7 +273,6 @@ public class URLServiceImpl extends URLService {
         if (searchRequest.appId != null) query.eq("app_id", searchRequest.appId);
         if (StringUtils.isNotEmpty(searchRequest.jobId)) query.eq("job_id", searchRequest.jobId);
         if (StringUtils.isNotEmpty(searchRequest.planId)) query.eq("plan_id", searchRequest.planId);
-        if (StringUtils.isNotEmpty(searchRequest.mediaType)) query.eq("media_type", searchRequest.mediaType);
         if (StringUtils.isNotEmpty(searchRequest.host)) query.eq("host", searchRequest.host);
         if (StringUtils.isNotEmpty(searchRequest.domain)) query.eq("domain", searchRequest.domain);
         if (StringUtils.isNotEmpty(searchRequest.url)) query.eq("hash", DigestUtils.md5Hex(searchRequest.url));
