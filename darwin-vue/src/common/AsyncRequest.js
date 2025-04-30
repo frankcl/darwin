@@ -36,6 +36,7 @@ export const asyncSearchHistory = async request => await AxiosRequest.get('/api/
 export const asyncRollbackRule = async request => await AxiosRequest.post('/api/rule/rollback', request)
 export const asyncCompileScript = async request => await AxiosRequest.post('/api/script/compile', request)
 export const asyncDebugScript = async request => await AxiosRequest.post('/api/script/debug', request)
+export const asyncDebugURL = async request => await AxiosRequest.get('/api/script/debugURL', {params: request})
 export const asyncGetSeed = async key => await AxiosRequest.get('/api/seed/get', {params: {key: key}})
 export const asyncSearchSeed = async request => await AxiosRequest.get('/api/seed/search', {params: request})
 export const asyncAddSeed = async seed => await AxiosRequest.put('/api/seed/add', seed)

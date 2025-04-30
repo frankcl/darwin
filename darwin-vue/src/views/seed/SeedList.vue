@@ -19,11 +19,13 @@ import {
 } from '@/common/AsyncRequest'
 import AddSeed from '@/views/seed/AddSeed'
 import EditSeed from '@/views/seed/EditSeed'
+import DebugSeed from '@/views/seed/DebugSeed'
 
 const props = defineProps(['planId'])
 const userStore = useUserStore()
 const openAddDialog = ref(false)
 const openEditDialog = ref(false)
+const openDebugDialog = ref(false)
 const seedKey = ref()
 const copiedURL = ref()
 const seeds = ref([])
@@ -42,6 +44,11 @@ const search = async () => {
 const edit = key => {
   seedKey.value = key
   openEditDialog.value = true
+}
+
+const debug = key => {
+  seedKey.value = key
+  openDebugDialog.value = true
 }
 
 const remove = async key => {
@@ -112,10 +119,12 @@ watchEffect(async () => await search())
           <span v-else>未知</span>
         </template>
       </el-table-column>
-      <el-table-column width="160">
+      <el-table-column width="250">
         <template #header>操作</template>
         <template #default="scope">
           <el-button type="primary" @click="edit(scope.row.key)" :disabled="!userStore.injected">修改</el-button>
+          <el-button type="success" @click="debug(scope.row.key)" :loading="openDebugDialog && seedKey === scope.row.key"
+                     :disabled="!userStore.injected">调试</el-button>
           <el-button type="danger" @click="remove(scope.row.key)" :disabled="!userStore.injected">删除</el-button>
         </template>
       </el-table-column>
@@ -125,8 +134,9 @@ watchEffect(async () => await search())
                      v-model:page-size="query.page_size" v-model:current-page="query.page_num" />
     </el-row>
   </el-space>
-  <add-seed v-model="openAddDialog" :plan-id="props.planId" @close="search" />
-  <edit-seed v-model="openEditDialog" :seed-key="seedKey" @close="search" />
+  <add-seed v-if="openAddDialog" v-model="openAddDialog" :plan-id="props.planId" @close="search" />
+  <edit-seed v-if="openEditDialog" v-model="openEditDialog" :seed-key="seedKey" @close="search" />
+  <debug-seed v-if="openDebugDialog" v-model="openDebugDialog" :seed-key="seedKey" :plan-id="props.planId" />
 </template>
 
 <style scoped>

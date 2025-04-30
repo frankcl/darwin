@@ -6,10 +6,10 @@ import {
   ElRow, ElSelect, ElSpace, ElSwitch, ElText,
 } from 'element-plus'
 import { useUserStore } from '@/store'
-import DynamicMap from '@/components/data/DynamicMap'
+import MutableTable from '@/components/data/MutableTable'
 import { ERROR, showMessage, SUCCESS } from '@/common/Feedback'
 import { asyncGetSeed, asyncUpdateSeed } from '@/common/AsyncRequest'
-import { seedFormRules, fillSeedMapField } from '@/views/seed/common'
+import { seedFormRules, fillMap } from '@/views/seed/common'
 
 const open = defineModel()
 const emits = defineEmits(['close'])
@@ -20,23 +20,26 @@ const more = ref(true)
 const seed = ref({})
 const headers = reactive([])
 const customOptions = reactive([])
+const headerColumns = [{ name: '请求头名' }, { name: '请求头值' }]
+const customOptionColumns = [{ name: '字段名' }, { name: '字段值' }]
 
 const update = async formElement => {
   if (!await formElement.validate(v => v)) return
-  fillSeedMapField(seed.value, 'headers', headers)
-  fillSeedMapField(seed.value, 'custom_map', customOptions)
+  fillMap(seed.value, 'headers', headers)
+  fillMap(seed.value, 'custom_map', customOptions)
   if (!await asyncUpdateSeed(seed.value)) {
     showMessage('修改种子失败', ERROR)
     return
   }
   showMessage('修改种子成功', SUCCESS)
+  emits('close')
   open.value = false
 }
 
 const initOptionsWithMap = (options, map) => {
   options.splice(0, options.length)
   if (!map) return
-  for (const key in map) options.push({ key: key, value: map[key] })
+  for (const key in map) options.push([key, map[key]])
 }
 
 const resetSeedForm = async () => {
@@ -51,7 +54,7 @@ watchEffect(() => resetSeedForm())
 </script>
 
 <template>
-  <el-dialog v-model="open" @close="emits('close')" width="850" align-center show-close>
+  <el-dialog v-model="open" width="850" align-center show-close>
     <el-space direction="vertical" :size="20" :fill="true" class="w100">
       <el-row align="middle">
         <span class="text-xl font-bold ml-2">编辑种子</span>
@@ -119,12 +122,12 @@ watchEffect(() => resetSeedForm())
             </el-form-item>
           </el-col>
         </el-row>
-        <el-row v-if="more">
-          <dynamic-map v-model="headers" title="HTTP Header" label="header" />
-        </el-row>
-        <el-row v-if="more">
-          <dynamic-map v-model="customOptions" title="自定义数据" label="数据项" />
-        </el-row>
+        <el-form-item v-if="more" label="HTTP请求头">
+          <mutable-table v-model="headers" :columns="headerColumns" />
+        </el-form-item>
+        <el-form-item v-if="more" label="自定义字段">
+          <mutable-table v-model="customOptions" :columns="customOptionColumns" />
+        </el-form-item>
         <el-form-item>
           <el-button type="primary" @click="update(seedFormRef)" :disabled="!userStore.injected">修改</el-button>
           <el-button type="info" @click="resetSeedForm">重置</el-button>

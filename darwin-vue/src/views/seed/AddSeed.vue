@@ -6,10 +6,10 @@ import {
   ElRow, ElSelect, ElSpace, ElSwitch, ElText
 } from 'element-plus'
 import { useUserStore } from '@/store'
-import DynamicMap from '@/components/data/DynamicMap'
+import MutableTable from '@/components/data/MutableTable'
 import { ERROR, showMessage, SUCCESS } from '@/common/Feedback'
 import { asyncAddSeed } from '@/common/AsyncRequest'
-import { fillSeedMapField, seedFormRules } from '@/views/seed/common'
+import { fillMap, seedFormRules } from '@/views/seed/common'
 
 const open = defineModel()
 const emits = defineEmits(['close'])
@@ -26,16 +26,19 @@ const seed = reactive({
 })
 const headers = reactive([])
 const customOptions = reactive([])
+const headerColumns = [{ name: '请求头名' }, { name: '请求头值' }]
+const customOptionColumns = [{ name: '字段名' }, { name: '字段值' }]
 
 const add = async formElement => {
   if (!await formElement.validate(v => v)) return
-  fillSeedMapField(seed, 'headers', headers)
-  fillSeedMapField(seed, 'custom_map', customOptions)
+  fillMap(seed, 'headers', headers)
+  fillMap(seed, 'custom_map', customOptions)
   if (!await asyncAddSeed(seed)) {
     showMessage('新增种子失败', ERROR)
     return
   }
   showMessage('新增种子成功', SUCCESS)
+  emits('close')
   open.value = false
 }
 
@@ -49,7 +52,7 @@ watchEffect(() => seed.plan_id = props.planId)
 </script>
 
 <template>
-  <el-dialog v-model="open" @close="emits('close')" width="850" align-center show-close>
+  <el-dialog v-model="open" width="850" align-center show-close>
     <el-space direction="vertical" :size="20" :fill="true" class="w100">
       <el-row align="middle">
         <span class="text-xl font-bold ml-2">新增种子</span>
@@ -117,12 +120,12 @@ watchEffect(() => seed.plan_id = props.planId)
             </el-form-item>
           </el-col>
         </el-row>
-        <el-row v-if="more">
-          <dynamic-map v-model="headers" title="HTTP请求头" label="header" />
-        </el-row>
-        <el-row v-if="more">
-          <dynamic-map v-model="customOptions" title="自定义数据" label="数据项" />
-        </el-row>
+        <el-form-item v-if="more" label="HTTP请求头">
+          <mutable-table v-model="headers" :columns="headerColumns" />
+        </el-form-item>
+        <el-form-item v-if="more" label="自定义字段">
+          <mutable-table v-model="customOptions" :columns="customOptionColumns" />
+        </el-form-item>
         <el-form-item>
           <el-button type="primary" @click="add(seedFormRef)" :disabled="!userStore.injected">新增</el-button>
           <el-button type="info" @click="resetSeedForm(seedFormRef)">重置</el-button>

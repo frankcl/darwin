@@ -1,5 +1,3 @@
-const isNull = o => o === undefined || o === null
-
 export const seedFormRules = {
   url: [
     { required: true, message: '请输入种子URL', trigger: 'change' }
@@ -9,11 +7,11 @@ export const seedFormRules = {
   ]
 }
 
-export const fillSeedMapField = (seed, mapKey, options) => {
+export const fillMap = (seed, mapKey, options) => {
   seed[mapKey] = {}
   options.forEach(option => {
-    if (!isNull(option.key) && !isNull(option.value)) {
-      seed[mapKey][option.key] = option.value
+    if (Array.isArray(option) && option.length === 2) {
+      seed[mapKey][option[0]] = option[1]
     }
   })
 }

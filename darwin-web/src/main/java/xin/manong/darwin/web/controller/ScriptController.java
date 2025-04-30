@@ -12,18 +12,27 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import xin.manong.darwin.common.model.Rule;
+import xin.manong.darwin.common.model.SeedRecord;
 import xin.manong.darwin.common.model.URLRecord;
 import xin.manong.darwin.parser.script.Script;
 import xin.manong.darwin.parser.script.CompileException;
 import xin.manong.darwin.parser.script.ScriptFactory;
-import xin.manong.darwin.parser.sdk.ParseRequestBuilder;
 import xin.manong.darwin.parser.sdk.ParseResponse;
+import xin.manong.darwin.parser.service.LinkExtractService;
 import xin.manong.darwin.parser.service.ParseService;
 import xin.manong.darwin.parser.service.request.CompileRequest;
+import xin.manong.darwin.parser.service.request.ScriptParseRequestBuilder;
 import xin.manong.darwin.parser.service.response.CompileResult;
+import xin.manong.darwin.service.convert.Converter;
+import xin.manong.darwin.service.iface.RuleService;
+import xin.manong.darwin.service.iface.SeedService;
 import xin.manong.darwin.spider.core.TextSpider;
 import xin.manong.darwin.web.request.DebugRequest;
 import xin.manong.darwin.web.response.*;
+
+import java.util.List;
+import java.util.Objects;
 
 /**
  * 脚本控制器
@@ -41,6 +50,12 @@ public class ScriptController {
 
     @Resource
     private TextSpider textSpider;
+    @Resource
+    private RuleService ruleService;
+    @Resource
+    private SeedService seedService;
+    @Resource
+    private LinkExtractService linkExtractService;
     @Resource
     private ParseService parseService;
 
@@ -61,6 +76,32 @@ public class ScriptController {
         return parseService.compile(request);
     }
 
+    /**
+     * 调试URL
+     *
+     * @param key 种子key
+     * @param planId 计划ID
+     * @return 调试结果
+     */
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("debugURL")
+    @PostMapping("debugURL")
+    public DebugResponse debugURL(@QueryParam("key") String key,
+                                  @QueryParam("plan_id") String planId) throws Exception {
+        if (StringUtils.isEmpty(key)) throw new BadRequestException("调试种子key为空");
+        if (StringUtils.isEmpty(planId)) throw new BadRequestException("调试计划ID为空");
+        SeedRecord seed = seedService.get(key);
+        if (seed == null) throw new NotFoundException("种子不存在");
+        try {
+            Rule rule = getMatchedRule(seed, planId);
+            URLRecord record = Converter.convert(seed);
+            return debug(record, rule == null ? null : rule.scriptType, rule == null ? null : rule.script);
+        } catch (Exception e) {
+            return new DebugError(e.getMessage(), ExceptionUtils.getStackTrace(e));
+        }
+    }
+
     @POST
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
@@ -69,14 +110,24 @@ public class ScriptController {
     public DebugResponse debug(@RequestBody DebugRequest request) throws CompileException {
         if (request == null) throw new BadRequestException("脚本调试请求为空");
         request.check();
-        try (Script script = ScriptFactory.make(request.scriptType, request.script)) {
-            URLRecord record = textSpider.fetch(request.url);
-            ParseRequestBuilder builder = new ParseRequestBuilder();
-            builder.url(request.url).text(record.text);
-            if (!StringUtils.isEmpty(record.redirectURL)) builder.redirectURL(record.redirectURL);
-            ParseResponse parseResponse = script.doExecute(builder.build());
+        return debug(new URLRecord(request.url), request.scriptType, request.script);
+    }
+
+    /**
+     * 调试
+     *
+     * @param record 调试数据
+     * @param scriptType 脚本类型
+     * @param script 调试脚本
+     * @return 调试结果
+     */
+    private DebugResponse debug(URLRecord record, Integer scriptType, String script) {
+        try {
+            textSpider.fetch(record);
+            ParseResponse parseResponse = record.isScopeExtract() ?
+                    extractLinks(record) : parse(record, scriptType, script);
             if (!parseResponse.status) {
-                logger.error("Parse failed for url:{}", request.url);
+                logger.error("Parse failed for url:{}", record.url);
                 DebugError debugError = new DebugError(parseResponse.message, null);
                 debugError.debugLog = parseResponse.debugLog;
                 return debugError;
@@ -86,9 +137,58 @@ public class ScriptController {
             debugSuccess.debugLog = parseResponse.debugLog;
             return debugSuccess;
         } catch (Exception e) {
-            logger.error("Exception occurred when debugging url:{}", request.url);
+            logger.error("Exception occurred when debugging url:{}", record.url);
             logger.error(e.getMessage(), e);
             return new DebugError(e.getMessage(), ExceptionUtils.getStackTrace(e));
         }
+    }
+
+    /**
+     * 范围抽链
+     *
+     * @param record 数据
+     * @return 解析结果
+     */
+    private ParseResponse extractLinks(URLRecord record) {
+        ScriptParseRequestBuilder builder = new ScriptParseRequestBuilder();
+        builder.url(record.url).text(record.text).linkScope(record.linkScope).customMap(record.customMap);
+        if (!StringUtils.isEmpty(record.redirectURL)) builder.redirectURL(record.redirectURL);
+        return linkExtractService.extract(builder.build());
+    }
+
+    /**
+     * 解析内容
+     *
+     * @param record 数据
+     * @param scriptType 脚本类型
+     * @param scriptCode 脚本代码
+     * @return 解析结果
+     * @throws Exception 异常
+     */
+    private ParseResponse parse(URLRecord record, int scriptType, String scriptCode) throws Exception {
+        try (Script script = ScriptFactory.make(scriptType, scriptCode)) {
+            ScriptParseRequestBuilder builder = new ScriptParseRequestBuilder();
+            builder.url(record.url).text(record.text).customMap(record.customMap);
+            if (!StringUtils.isEmpty(record.redirectURL)) builder.redirectURL(record.redirectURL);
+            return script.doExecute(builder.build());
+        }
+    }
+
+    /**
+     * 获取匹配规则
+     *
+     * @param seed 种子
+     * @param planId 计划ID
+     * @return 存在匹配规则返回，否则返回null
+     */
+    private Rule getMatchedRule(SeedRecord seed, String planId) {
+        if (seed.isScopeExtract()) return null;
+        List<Rule> matchedRules = ruleService.getRuleIds(planId).stream().map(id -> {
+            Rule rule = ruleService.getCache(id);
+            return rule != null && rule.match(seed.url) ? rule : null;
+        }).filter(Objects::nonNull).toList();
+        if (matchedRules.isEmpty()) throw new NotFoundException("未发现匹配规则");
+        if (matchedRules.size() > 1) throw new IllegalStateException("存在多条匹配规则");
+        return matchedRules.get(0);
     }
 }

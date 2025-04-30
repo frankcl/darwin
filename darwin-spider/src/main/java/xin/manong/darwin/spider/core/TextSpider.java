@@ -93,10 +93,15 @@ public class TextSpider extends Spider {
      * 抓取URL
      *
      * @param record URL数据
-     * @throws Exception 异常
+     * @throws IOException I/O异常
      */
-    public void fetch(URLRecord record) throws Exception {
+    public void fetch(URLRecord record) throws IOException {
         HTTPInput input = new HTTPInput(record, httpClientFactory.getHttpClient(record), spiderConfig);
+        input.open();
+        if (record.mediaType == null || (!record.mediaType.isText() &&
+                !supportedMediaTypes().contains(record.mediaType))) {
+            throw new IOException("不支持的媒体类型：" + record.mediaType);
+        }
         record.text = fetch(record, input, null);
     }
 
