@@ -17,9 +17,9 @@ import {
   newSearchQuery,
   newSearchRequest
 } from '@/common/AsyncRequest'
+import DebugSeed from '@/views/debug/DebugSeed'
 import AddSeed from '@/views/seed/AddSeed'
 import EditSeed from '@/views/seed/EditSeed'
-import DebugSeed from '@/views/seed/DebugSeed'
 
 const props = defineProps(['planId'])
 const userStore = useUserStore()

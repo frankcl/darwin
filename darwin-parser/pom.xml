@@ -63,7 +63,7 @@
         </dependency>
         <dependency>
             <groupId>xin.manong</groupId>
-            <artifactId>darwin-common</artifactId>
+            <artifactId>darwin-service</artifactId>
             <version>${darwin.version}</version>
         </dependency>
     </dependencies>

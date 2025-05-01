@@ -1,5 +1,5 @@
 <script setup>
-import { reactive, ref, useTemplateRef, watchEffect } from 'vue'
+import { reactive, ref, useTemplateRef, watch, watchEffect } from 'vue'
 import {
   ElButton, ElCol, ElForm, ElFormItem,
   ElInput, ElOption, ElRow, ElSelect
@@ -7,7 +7,7 @@ import {
 import { useUserStore } from '@/store'
 import CodeEditor from '@/components/data/CodeEditor'
 import { ERROR, showMessage, SUCCESS } from '@/common/Feedback'
-import { asyncAddRule } from '@/common/AsyncRequest'
+import { asyncAddRule, asyncGetTemplate } from '@/common/AsyncRequest'
 import { langMap, ruleFormRules } from '@/views/rule/common'
 
 const props = defineProps(['planId'])
@@ -32,6 +32,12 @@ const handleReset = formElement => {
   refreshEditor.value = Date.now()
 }
 
+watch(() => rule.script_type, async () => {
+  if (rule.script_type !== undefined) {
+    rule.script = await asyncGetTemplate(rule.script_type)
+    refreshEditor.value = Date.now()
+  }
+}, { immediate: true})
 watchEffect(async () => {
   if (props.planId) rule.plan_id = props.planId
 })

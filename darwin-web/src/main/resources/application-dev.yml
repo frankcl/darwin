@@ -22,6 +22,7 @@ hylian:
         - /api/rule/planRules
         - /api/rule/history/search
         - /api/rule/history/get
+        - /api/rule/getTemplate
         - /api/seed/get
         - /api/seed/search
         - /api/url/get

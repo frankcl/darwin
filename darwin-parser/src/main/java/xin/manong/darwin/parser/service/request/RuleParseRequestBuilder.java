@@ -1,19 +1,19 @@
-package xin.manong.darwin.parser.sdk;
+package xin.manong.darwin.parser.service.request;
 
 import java.util.Map;
 
 /**
- * 解析请求构建器
+ * 规则解析请求构建器
  *
  * @author frankcl
  * @date 2023-08-25 15:08:17
  */
-public class ParseRequestBuilder {
+public class RuleParseRequestBuilder {
 
-    private final ParseRequest delegate;
+    private final RuleParseRequest delegate;
 
-    public ParseRequestBuilder() {
-        delegate = new ParseRequest();
+    public RuleParseRequestBuilder() {
+        delegate = new RuleParseRequest();
     }
 
     /**
@@ -22,7 +22,7 @@ public class ParseRequestBuilder {
      * @param url URL
      * @return 构建器
      */
-    public ParseRequestBuilder url(String url) {
+    public RuleParseRequestBuilder url(String url) {
         delegate.url = url;
         return this;
     }
@@ -33,7 +33,7 @@ public class ParseRequestBuilder {
      * @param redirectURL 重定向URL
      * @return 构建器
      */
-    public ParseRequestBuilder redirectURL(String redirectURL) {
+    public RuleParseRequestBuilder redirectURL(String redirectURL) {
         delegate.redirectURL = redirectURL;
         return this;
     }
@@ -44,8 +44,19 @@ public class ParseRequestBuilder {
      * @param text 待解析文本
      * @return 构建器
      */
-    public ParseRequestBuilder text(String text) {
+    public RuleParseRequestBuilder text(String text) {
         delegate.text = text;
+        return this;
+    }
+
+    /**
+     * 设置规则ID
+     *
+     * @param ruleId 规则ID
+     * @return 构建器
+     */
+    public RuleParseRequestBuilder ruleId(int ruleId) {
+        delegate.ruleId = ruleId;
         return this;
     }
 
@@ -55,7 +66,7 @@ public class ParseRequestBuilder {
      * @param linkScope 抽链范围
      * @return 构建器
      */
-    public ParseRequestBuilder linkScope(int linkScope) {
+    public RuleParseRequestBuilder linkScope(int linkScope) {
         delegate.linkScope = linkScope;
         return this;
     }
@@ -66,7 +77,7 @@ public class ParseRequestBuilder {
      * @param customMap 用户自定义数据
      * @return 构建器
      */
-    public ParseRequestBuilder customMap(Map<String, Object> customMap) {
+    public RuleParseRequestBuilder customMap(Map<String, Object> customMap) {
         delegate.customMap = customMap;
         return this;
     }
@@ -76,13 +87,14 @@ public class ParseRequestBuilder {
      *
      * @return 请求对象
      */
-    public ParseRequest build() {
-        ParseRequest request = new ParseRequest();
+    public RuleParseRequest build() {
+        RuleParseRequest request = new RuleParseRequest();
         request.text = delegate.text;
         request.url = delegate.url;
         request.linkScope = delegate.linkScope;
         request.redirectURL = delegate.redirectURL;
         request.customMap = delegate.customMap;
+        request.ruleId = delegate.ruleId;
         return request;
     }
 }

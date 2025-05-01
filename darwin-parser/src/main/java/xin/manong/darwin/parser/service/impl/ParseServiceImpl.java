@@ -1,12 +1,15 @@
 package xin.manong.darwin.parser.service.impl;
 
 import jakarta.annotation.Resource;
+import jakarta.ws.rs.NotFoundException;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Service;
 import xin.manong.darwin.common.Constants;
+import xin.manong.darwin.common.model.Rule;
 import xin.manong.darwin.parser.script.*;
 import xin.manong.darwin.parser.sdk.ParseRequest;
 import xin.manong.darwin.parser.sdk.ParseRequestBuilder;
@@ -14,8 +17,16 @@ import xin.manong.darwin.parser.sdk.ParseResponse;
 import xin.manong.darwin.parser.service.LinkExtractService;
 import xin.manong.darwin.parser.service.ParseService;
 import xin.manong.darwin.parser.service.request.CompileRequest;
+import xin.manong.darwin.parser.service.request.RuleParseRequest;
 import xin.manong.darwin.parser.service.request.ScriptParseRequest;
+import xin.manong.darwin.parser.service.request.ScriptParseRequestBuilder;
 import xin.manong.darwin.parser.service.response.CompileResult;
+import xin.manong.darwin.service.iface.RuleService;
+
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 
 /**
  * 解析服务实现
@@ -30,15 +41,19 @@ public class ParseServiceImpl implements ParseService {
 
     private static final String COMPILE_HTML = "<html><head></head><body></body></html>";
     private static final String COMPILE_URL = "http://www.test.com/";
+    private static final String GROOVY_TEMPLATE = "/template/groovy.tpl";
+    private static final String JS_TEMPLATE = "/template/javascript.tpl";
     private static final int RETRY_COUNT = 3;
 
     @Resource
     private ScriptCache scriptCache;
     @Resource
+    private RuleService ruleService;
+    @Resource
     private LinkExtractService linkExtractService;
 
     @Override
-    public CompileResult compile(CompileRequest request) {
+    public CompileResult compile(@NonNull CompileRequest request) {
         try (Script script = ScriptFactory.make(request.scriptType, request.script)) {
             ParseRequestBuilder builder = new ParseRequestBuilder();
             ParseRequest parseRequest = builder.text(COMPILE_HTML).url(COMPILE_URL).build();
@@ -52,11 +67,20 @@ public class ParseServiceImpl implements ParseService {
     }
 
     @Override
-    public ParseResponse parse(ScriptParseRequest request) {
-        if (request == null || !request.check()) {
-            logger.error("Parse request is invalid");
-            return ParseResponse.buildError("解析请求非法");
+    public String scriptTemplate(int scriptType) throws IOException {
+        if (!Constants.SUPPORT_SCRIPT_TYPES.containsKey(scriptType))
+            throw new UnsupportedOperationException("不支持的代码类型");
+        try (InputStream input = getClass().getResourceAsStream(
+                scriptType == Constants.SCRIPT_TYPE_JAVASCRIPT ? JS_TEMPLATE : GROOVY_TEMPLATE);
+             ByteArrayOutputStream output = new ByteArrayOutputStream()) {
+            if (input == null) throw new IOException("Can't find script template");
+            input.transferTo(output);
+            return output.toString(StandardCharsets.UTF_8);
         }
+    }
+
+    @Override
+    public ParseResponse parse(@NonNull ScriptParseRequest request) {
         if (request.isScopeExtract()) return linkExtractService.extract(request);
         String key = DigestUtils.md5Hex(request.scriptCode);
         for (int i = 0; i < RETRY_COUNT; i++) {
@@ -74,6 +98,17 @@ public class ParseServiceImpl implements ParseService {
             }
         }
         return ParseResponse.buildError("解析失败");
+    }
+
+    @Override
+    public ParseResponse parse(@NonNull RuleParseRequest request) {
+        Rule rule = ruleService.getCache(request.ruleId);
+        if (rule == null) throw new NotFoundException("规则不存在");
+        ScriptParseRequestBuilder builder = new ScriptParseRequestBuilder();
+        ScriptParseRequest scriptParseRequest = builder.text(request.text).url(request.url).
+                redirectURL(request.redirectURL).linkScope(request.linkScope).customMap(request.customMap).
+                scriptType(rule.scriptType).scriptCode(rule.script).build();
+        return parse(scriptParseRequest);
     }
 
     /**

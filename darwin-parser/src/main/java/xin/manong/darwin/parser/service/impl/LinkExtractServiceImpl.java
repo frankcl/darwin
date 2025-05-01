@@ -7,14 +7,15 @@ import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Service;
 import xin.manong.darwin.common.Constants;
 import xin.manong.darwin.common.model.URLRecord;
 import xin.manong.darwin.common.util.DarwinUtil;
 import xin.manong.darwin.common.util.URLNormalizer;
+import xin.manong.darwin.parser.sdk.ParseRequest;
 import xin.manong.darwin.parser.sdk.ParseResponse;
 import xin.manong.darwin.parser.service.LinkExtractService;
-import xin.manong.darwin.parser.service.request.ScriptParseRequest;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -37,7 +38,7 @@ public class LinkExtractServiceImpl implements LinkExtractService {
     private static final String ATTR_NAME_STYLE = "style";
 
     @Override
-    public ParseResponse extract(ScriptParseRequest request) {
+    public ParseResponse extract(@NonNull ParseRequest request) {
         String parentURL = StringUtils.isEmpty(request.redirectURL) ? request.url : request.redirectURL;
         Document document = Jsoup.parse(request.text, parentURL);
         Element body = document.body();

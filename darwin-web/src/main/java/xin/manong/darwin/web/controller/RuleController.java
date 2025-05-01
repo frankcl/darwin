@@ -26,6 +26,7 @@ import xin.manong.hylian.client.core.ContextManager;
 import xin.manong.hylian.model.User;
 import xin.manong.weapon.spring.boot.aspect.EnableWebLogAspect;
 
+import java.io.IOException;
 import java.util.List;
 
 /**
@@ -48,6 +49,21 @@ public class RuleController {
     private ParseService parseService;
     @Resource
     private PermissionSupport permissionSupport;
+
+    /**
+     * 获取代码模版
+     *
+     * @param type 代码类型
+     * @return 代码模版
+     * @throws IOException I/O异常
+     */
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("getTemplate")
+    @GetMapping("getTemplate")
+    public String getTemplate(@QueryParam("type") int type) throws IOException {
+        return parseService.scriptTemplate(type);
+    }
 
     /**
      * 根据ID获取规则

@@ -1,20 +1,15 @@
 <script setup>
-import { onMounted, onUnmounted, reactive, ref, useTemplateRef, watch } from 'vue'
-import { ElDialog, ElForm, ElFormItem, ElLoading, ElRow } from 'element-plus'
-import { basicSetup } from 'codemirror'
-import { EditorState } from '@codemirror/state'
-import { EditorView } from '@codemirror/view'
-import { oneDark } from '@codemirror/theme-one-dark'
+import { onMounted, reactive, ref, watch } from 'vue'
+import { ElDialog, ElForm, ElFormItem, ElRow } from 'element-plus'
 import JsonViewer from 'vue-json-viewer'
+import CodeEditor from '@/components/data/CodeEditor'
 import { pause } from '@/common/Time'
-import { asyncDebugURL } from '@/common/AsyncRequest'
+import { asyncDebugURL, asyncGetSeed } from '@/common/AsyncRequest'
 
 const props = defineProps(['seedKey', 'planId'])
-const vLoading = ElLoading.directive
 const open = defineModel()
-const termRef = useTemplateRef('term')
-const termView = ref()
 const termOutput = ref('')
+const refresh = ref(Date.now())
 const debugging = ref(false)
 const parseResult = reactive({})
 
@@ -25,14 +20,24 @@ const reset = () => {
   delete parseResult.children
 }
 
+const refreshTerm = async () => {
+  refresh.value = Date.now()
+  await pause(1000)
+}
+
 const debug = async () => {
   reset()
-  termOutput.value = '开始调试 ...\n'
+  termOutput.value = '获取种子信息 ...\n'
+  await refreshTerm()
+  const seed = await asyncGetSeed(props.seedKey)
+  termOutput.value += `成功获取种子信息: ${seed.url}\n\n`
+  termOutput.value += '开始调试 ...\n'
+  await refreshTerm()
   let response
   try {
     debugging.value = true
-    termOutput.value += '开始抓取并进行结构化解析 ...\n'
-    await pause(1000)
+    termOutput.value += '抓取种子并进行结构化解析 ...\n'
+    await refreshTerm()
     response = await asyncDebugURL({
       key: props.seedKey,
       plan_id: props.planId,
@@ -46,49 +51,20 @@ const debug = async () => {
     }
     termOutput.value += '发生错误 -> ' + response.message + '\n'
     termOutput.value += '异常堆栈 -> '
-    termOutput.value += response.stack_trace + '\n'
+    termOutput.value += response.stack_trace
   } finally {
     if (response && response.debug_log) {
       termOutput.value += '\n调试日志\n'
       termOutput.value += response.debug_log
     }
-    termOutput.value += '调试结束\n'
+    termOutput.value += '\n调试结束\n'
     debugging.value = false
+    await refreshTerm()
   }
 }
 
-const initTerm = () => {
-  destroyTerm()
-  const state = EditorState.create({
-    doc: termOutput.value,
-    extensions: [
-      basicSetup,
-      EditorState.readOnly.of(true),
-      oneDark
-    ]
-  })
-  if (termRef) {
-    termView.value = new EditorView({
-      state: state,
-      parent: termRef.value
-    })
-  }
-}
-
-const destroyTerm = () => {
-  if (termView.value) termView.value.destroy()
-}
-
-watch(() => [props.seedKey, props.planId], () => {
-  initTerm()
-  debug()
-})
-watch(() => termOutput.value, () => initTerm())
-onMounted(() => {
-  initTerm()
-  debug()
-})
-onUnmounted(() => destroyTerm())
+watch(() => [props.seedKey, props.planId], () => debug())
+onMounted(() => debug())
 </script>
 
 <template>
@@ -98,7 +74,7 @@ onUnmounted(() => destroyTerm())
     </el-row>
     <el-form label-width="80px">
       <el-form-item label-position="top">
-        <div v-loading="debugging" class="w100 terminal" ref="term" />
+        <code-editor :code="termOutput" :refresh="refresh" lang="xml" :height="300" :read-only="true" />
       </el-form-item>
       <el-form-item v-if="parseResult.children && parseResult.children.length > 0" label="抽链列表" label-position="top">
         <json-viewer class="w100" :value="parseResult.children" :expand-depth=0 boxed sort />
@@ -116,10 +92,4 @@ onUnmounted(() => destroyTerm())
 </template>
 
 <style scoped>
-.terminal {
-  max-width: 980px;
-  height: 300px;
-  background-color: #292C34;
-  overflow: scroll;
-}
 </style>

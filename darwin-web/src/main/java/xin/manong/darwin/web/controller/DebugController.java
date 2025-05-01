@@ -16,8 +16,8 @@ import xin.manong.darwin.common.model.Rule;
 import xin.manong.darwin.common.model.SeedRecord;
 import xin.manong.darwin.common.model.URLRecord;
 import xin.manong.darwin.parser.script.Script;
-import xin.manong.darwin.parser.script.CompileException;
 import xin.manong.darwin.parser.script.ScriptFactory;
+import xin.manong.darwin.parser.sdk.ParseRequestBuilder;
 import xin.manong.darwin.parser.sdk.ParseResponse;
 import xin.manong.darwin.parser.service.LinkExtractService;
 import xin.manong.darwin.parser.service.ParseService;
@@ -35,18 +35,20 @@ import java.util.List;
 import java.util.Objects;
 
 /**
- * 脚本控制器
+ * 调试控制器
+ * 1. 种子调试
+ * 2. 脚本调试
  *
  * @author frankcl
  * @date 2024-01-05 14:36:43
  */
 @RestController
 @Controller
-@Path("/api/script")
-@RequestMapping("/api/script")
-public class ScriptController {
+@Path("/api/debug")
+@RequestMapping("/api/debug")
+public class DebugController {
 
-    private static final Logger logger = LoggerFactory.getLogger(ScriptController.class);
+    private static final Logger logger = LoggerFactory.getLogger(DebugController.class);
 
     @Resource
     private TextSpider textSpider;
@@ -68,9 +70,9 @@ public class ScriptController {
     @POST
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    @Path("compile")
-    @PostMapping("compile")
-    public CompileResult compile(@RequestBody CompileRequest request) {
+    @Path("compileScript")
+    @PostMapping("compileScript")
+    public CompileResult compileScript(@RequestBody CompileRequest request) {
         if (request == null) throw new BadRequestException("脚本编译请求为空");
         request.check();
         return parseService.compile(request);
@@ -102,12 +104,18 @@ public class ScriptController {
         }
     }
 
+    /**
+     * 调试脚本
+     *
+     * @param request 调试请求
+     * @return 调试结果
+     */
     @POST
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    @Path("debug")
-    @PostMapping("debug")
-    public DebugResponse debug(@RequestBody DebugRequest request) throws CompileException {
+    @Path("debugScript")
+    @PostMapping("debugScript")
+    public DebugResponse debugScript(@RequestBody DebugRequest request) {
         if (request == null) throw new BadRequestException("脚本调试请求为空");
         request.check();
         return debug(new URLRecord(request.url), request.scriptType, request.script);
@@ -150,9 +158,9 @@ public class ScriptController {
      * @return 解析结果
      */
     private ParseResponse extractLinks(URLRecord record) {
-        ScriptParseRequestBuilder builder = new ScriptParseRequestBuilder();
-        builder.url(record.url).text(record.text).linkScope(record.linkScope).customMap(record.customMap);
-        if (!StringUtils.isEmpty(record.redirectURL)) builder.redirectURL(record.redirectURL);
+        ParseRequestBuilder builder = new ParseRequestBuilder();
+        builder.url(record.url).text(record.text).linkScope(record.linkScope).
+                customMap(record.customMap).redirectURL(record.redirectURL);
         return linkExtractService.extract(builder.build());
     }
 
@@ -168,8 +176,7 @@ public class ScriptController {
     private ParseResponse parse(URLRecord record, int scriptType, String scriptCode) throws Exception {
         try (Script script = ScriptFactory.make(scriptType, scriptCode)) {
             ScriptParseRequestBuilder builder = new ScriptParseRequestBuilder();
-            builder.url(record.url).text(record.text).customMap(record.customMap);
-            if (!StringUtils.isEmpty(record.redirectURL)) builder.redirectURL(record.redirectURL);
+            builder.url(record.url).text(record.text).customMap(record.customMap).redirectURL(record.redirectURL);
             return script.doExecute(builder.build());
         }
     }

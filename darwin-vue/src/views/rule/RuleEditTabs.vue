@@ -2,8 +2,8 @@
 import { ref } from 'vue'
 import { ElCol, ElDivider, ElFormItem, ElTabPane, ElTabs } from 'element-plus'
 import RuleSelect from '@/components/rule/RuleSelect'
+import DebugScript from '@/views/debug/DebugScript'
 import EditRule from '@/views/rule/EditRule'
-import DebugRule from '@/views/rule/DebugRule'
 import HistoryList from '@/views/rule/HistoryList'
 
 const props = defineProps(['planId'])
@@ -41,7 +41,7 @@ const handleRuleRemove = () => {
                    @update="handleRefresh" @change="handleRuleChange" @remove="handleRuleRemove" />
       </el-tab-pane>
       <el-tab-pane label="调试">
-        <debug-rule v-bind="ruleChanged" />
+        <debug-script v-bind="ruleChanged" />
       </el-tab-pane>
       <el-tab-pane label="版本">
         <history-list :rule-id="ruleId" :rule-name="ruleChanged ? ruleChanged.name : ''"

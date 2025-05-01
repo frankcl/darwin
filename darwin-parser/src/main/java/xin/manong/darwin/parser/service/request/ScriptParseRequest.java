@@ -19,13 +19,6 @@ public class ScriptParseRequest extends ParseRequest {
     private static final Logger logger = LoggerFactory.getLogger(ScriptParseRequest.class);
 
     /**
-     * 全局抽链范围
-     * 所有all：1
-     * 域domain：2
-     * 站点host：3
-     */
-    public int linkScope;
-    /**
      * 脚本类型
      */
     public int scriptType;
@@ -51,15 +44,5 @@ public class ScriptParseRequest extends ParseRequest {
             return false;
         }
         return true;
-    }
-
-    /**
-     * 是否进行范围抽链，满足以下条件为范围抽链
-     * 抽链范围合法
-     *
-     * @return 范围抽链返回true，否则返回false
-     */
-    public boolean isScopeExtract() {
-        return Constants.SUPPORT_LINK_SCOPES.containsKey(linkScope);
     }
 }

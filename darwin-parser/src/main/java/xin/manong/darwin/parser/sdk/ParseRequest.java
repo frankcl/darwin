@@ -3,6 +3,7 @@ package xin.manong.darwin.parser.sdk;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import xin.manong.darwin.common.Constants;
 
 import java.util.Map;
 
@@ -16,6 +17,13 @@ public class ParseRequest {
 
     private static final Logger logger = LoggerFactory.getLogger(ParseRequest.class);
 
+    /**
+     * 全局抽链范围
+     * 所有all：1
+     * 域domain：2
+     * 站点host：3
+     */
+    public int linkScope;
     /**
      * 链接URL
      */
@@ -50,5 +58,15 @@ public class ParseRequest {
             return false;
         }
         return true;
+    }
+
+    /**
+     * 是否进行范围抽链，满足以下条件为范围抽链
+     * 抽链范围合法
+     *
+     * @return 范围抽链返回true，否则返回false
+     */
+    public boolean isScopeExtract() {
+        return Constants.SUPPORT_LINK_SCOPES.containsKey(linkScope);
     }
 }

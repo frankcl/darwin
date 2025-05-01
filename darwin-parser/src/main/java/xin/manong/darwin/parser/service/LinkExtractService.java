@@ -1,7 +1,8 @@
 package xin.manong.darwin.parser.service;
 
+import org.springframework.lang.NonNull;
+import xin.manong.darwin.parser.sdk.ParseRequest;
 import xin.manong.darwin.parser.sdk.ParseResponse;
-import xin.manong.darwin.parser.service.request.ScriptParseRequest;
 
 /**
  * 抽链服务
@@ -17,5 +18,5 @@ public interface LinkExtractService {
      * @param request 解析请求
      * @return 解析响应
      */
-    ParseResponse extract(ScriptParseRequest request);
+    ParseResponse extract(@NonNull ParseRequest request);
 }
