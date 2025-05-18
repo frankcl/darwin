@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.ws.rs.QueryParam;
 import jakarta.xml.bind.annotation.XmlAccessType;
 import jakarta.xml.bind.annotation.XmlAccessorType;
+import xin.manong.darwin.common.model.HTTPRequest;
 
 /**
  * 种子URL搜索请求
@@ -22,6 +23,12 @@ public class SeedSearchRequest extends SearchRequest {
     @JsonProperty("url")
     @QueryParam("url")
     public String url;
+    /**
+     * HTTP请求
+     */
+    @JsonProperty("http_request")
+    @QueryParam("http_request")
+    public HTTPRequest httpRequest;
     /**
      * 计划ID
      */

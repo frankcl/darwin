@@ -13,3 +13,5 @@ app:
       waring-memory-used-ratio: 0.90
     concurrencyControl:
       concurrent-connection-ttl-second: 3600
+    crawlDelay:
+      default-crawl-delay-ms: 1000

@@ -12,6 +12,34 @@ import java.util.Map;
 public interface ConcurrencyService {
 
     /**
+     * 获取默认抓取间隔
+     *
+     * @return 默认抓取间隔
+     */
+    long defaultCrawlDelay();
+
+    /**
+     * 设置默认抓取间隔
+     *
+     * @param crawlDelay 默认抓取间隔
+     */
+    void defaultCrawlDelay(long crawlDelay);
+
+    /**
+     * 获取抓取间隔配置
+     *
+     * @return 抓取间隔配置
+     */
+    Map<String, Long> crawlDelayMap();
+
+    /**
+     * 设置抓取间隔配置
+     *
+     * @param crawlDelayMap 抓取间隔配置
+     */
+    void crawlDelayMap(Map<String, Long> crawlDelayMap);
+
+    /**
      * 获取默认并发数
      *
      * @return 默认并发数

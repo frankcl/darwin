@@ -1,6 +1,8 @@
 spring:
   application:
     name: darwin-spider
+  main:
+    web-application-type: none
   profiles:
     active: @profileActive@
   config:

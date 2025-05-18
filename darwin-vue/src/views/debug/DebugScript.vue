@@ -1,26 +1,22 @@
 <script setup>
+import { IconBug } from '@tabler/icons-vue'
 import { reactive, ref, useTemplateRef, watch } from 'vue'
 import { ElButton, ElCol, ElForm, ElFormItem, ElInput, ElRow } from 'element-plus'
-import JsonViewer from 'vue-json-viewer'
 import { useUserStore } from '@/store'
 import { pause } from '@/common/Time'
 import { asyncCompileScript, asyncDebugScript } from '@/common/AsyncRequest'
-import CodeEditor from '@/components/data/CodeEditor'
-
+import TextEditor from '@/components/data/TextEditor'
+import DebugResult from '@/views/debug/DebugResult'
 
 const props = defineProps(['regex', 'script', 'script_type'])
 const userStore = useUserStore()
-const debugFormRef = useTemplateRef('debugForm')
+const formRef = useTemplateRef('form')
 const termOutput = ref('')
 const refresh = ref(Date.now())
 const debugging = ref(false)
 const request = reactive({})
 const parseResult = reactive({})
-const debugFormRules = {
-  url: [
-    { required: true, message: '请输入调试URL', trigger: 'change'}
-  ]
-}
+const formRules = { url: [{ required: true, message: '请输入调试URL', trigger: 'change'}] }
 
 const refreshTerm = async () => {
   refresh.value = Date.now()
@@ -67,9 +63,9 @@ const checkScript = async () => {
   return true
 }
 
-const debug = async formElement => {
+const debug = async () => {
+  if (!await formRef.value.validate(v => v)) return
   reset()
-  if (!await formElement.validate(v => v)) return
   termOutput.value = '开始调试 ...\n\n'
   let response
   try {
@@ -104,39 +100,29 @@ const debug = async formElement => {
   }
 }
 
-watch(() => props.regex, () => {
-  request.url = undefined
-  reset()
-})
+watch(() => props.regex, () => reset())
 </script>
 
 <template>
-  <el-form :model="request" ref="debugForm" :rules="debugFormRules" label-width="80px">
-    <el-row :gutter="20">
-      <el-col :span="15">
+  <el-form :model="request" ref="form" :rules="formRules" label-width="80px" class="ml-2 mr-2 mt-2">
+    <el-row>
+      <el-col :span="21">
         <el-form-item label="调试URL" prop="url" label-position="right">
           <el-input v-model="request.url" clearable />
         </el-form-item>
       </el-col>
-      <el-col :span="3">
-        <el-button type="success" @click="debug(debugFormRef)" :loading="debugging"
-                   :disabled="!userStore.injected">调试</el-button>
+      <el-col :span="3" class="d-flex justify-content-end">
+        <el-button type="success" @click="debug" :loading="debugging" :disabled="!userStore.injected">
+          <IconBug size="20" class="mr-1" />
+          <span>调试</span>
+        </el-button>
       </el-col>
     </el-row>
     <el-form-item label-position="top">
-      <code-editor :code="termOutput" :refresh="refresh" lang="xml" :height="350" :read-only="true" />
+      <text-editor title="调试终端" v-model="termOutput" :refresh="refresh" :height="350" :read-only="true" />
     </el-form-item>
-    <el-form-item v-if="parseResult.children && parseResult.children.length > 0" label="抽链列表" label-position="top">
-      <json-viewer class="w100" :value="parseResult.children" :expand-depth=0 boxed sort />
-    </el-form-item>
-    <el-form-item v-if="parseResult.field_map && Object.keys(parseResult.field_map).length > 0"
-                  label="结构化数据" label-position="top">
-      <json-viewer class="w100" :value="parseResult.field_map" :expand-depth=0 boxed sort />
-    </el-form-item>
-    <el-form-item v-if="parseResult.custom_map && Object.keys(parseResult.custom_map).length > 0"
-                  label="自定义数据" label-position="top">
-      <json-viewer class="w100" :value="parseResult.custom_map" :expand-depth=0 boxed sort />
-    </el-form-item>
+    <debug-result :children="parseResult.children" :custom-map="parseResult.custom_map"
+                  :field-map="parseResult.field_map" />
   </el-form>
 </template>
 

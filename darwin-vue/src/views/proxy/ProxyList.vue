@@ -1,10 +1,11 @@
 <script setup>
+import { IconClock, IconCircleDashedCheck, IconEdit, IconPlus, IconTrash } from '@tabler/icons-vue'
 import { reactive, ref, watchEffect } from 'vue'
+import zhCn from 'element-plus/dist/locale/zh-cn.mjs'
 import {
-  ElButton, ElCol, ElIcon, ElPagination,
-  ElRow, ElSpace, ElTable, ElTableColumn
+  ElBreadcrumb, ElBreadcrumbItem, ElButton, ElConfigProvider,
+  ElPagination, ElRow, ElTable, ElTableColumn
 } from 'element-plus'
-import { Timer } from '@element-plus/icons-vue'
 import { useUserStore } from '@/store'
 import { formatDate } from '@/common/Time'
 import {
@@ -21,10 +22,12 @@ import {
 } from '@/common/Feedback'
 import AddProxy from '@/views/proxy/AddProxy'
 import EditProxy from '@/views/proxy/EditProxy'
+import DarwinCard from '@/components/data/Card'
+import TableHead from '@/components/data/TableHead'
 
 const userStore = useUserStore()
-const openAddDialog = ref(false)
-const openEditDialog = ref(false)
+const openAdd = ref(false)
+const openEdit = ref(false)
 const proxyId = ref()
 const proxies = ref([])
 const checking = ref()
@@ -44,7 +47,7 @@ const search = async () => {
 
 const edit = id => {
   proxyId.value = id
-  openEditDialog.value = true
+  openEdit.value = true
 }
 
 const remove = async id => {
@@ -75,19 +78,24 @@ watchEffect(() => search())
 </script>
 
 <template>
-  <el-space direction="vertical" :size="20" :fill="true" class="w100">
-    <el-row align="middle">
-      <el-col :span="12">
-        <span class="text-xl font-bold ml-2">代理列表</span>
-      </el-col>
-      <el-col :span="12">
-        <el-row justify="end">
-          <el-button type="primary" @click="openAddDialog = true" :disabled="!userStore.superAdmin">新增代理</el-button>
-        </el-row>
-      </el-col>
-    </el-row>
-    <el-table :data="proxies" max-height="850" table-layout="auto"
-              stripe @sort-change="event => changeSearchQuerySort(event.prop, event.order, query)">
+  <darwin-card>
+    <template #title>
+      <el-breadcrumb separator="/">
+        <el-breadcrumb-item :to="{ path: '/home' }">首页</el-breadcrumb-item>
+        <el-breadcrumb-item>抓取控制</el-breadcrumb-item>
+        <el-breadcrumb-item>代理管理</el-breadcrumb-item>
+      </el-breadcrumb>
+    </template>
+    <table-head title="代理列表">
+      <template #right>
+        <el-button type="primary" @click="openAdd = true" :disabled="!userStore.superAdmin">
+          <IconPlus size="20" class="mr-1" />
+          <span>新增</span>
+        </el-button>
+      </template>
+    </table-head>
+    <el-table :data="proxies" max-height="550" table-layout="auto" stripe class="mb-4"
+              @sort-change="event => changeSearchQuerySort(event.prop, event.order, query)">
       <template #empty>暂无代理数据</template>
       <el-table-column prop="address" label="代理IP" show-overflow-tooltip>
         <template #default="scope">{{ scope.row.address }}</template>
@@ -97,28 +105,41 @@ watchEffect(() => search())
       </el-table-column>
       <el-table-column label="更新时间" prop="update_time" sortable="custom" show-overflow-tooltip>
         <template #default="scope">
-          <el-icon><timer /></el-icon>
-          {{ formatDate(scope.row['update_time']) }}
+          <div class="d-flex align-items-center">
+            <IconClock size="16" class="mr-1" />
+            <span>{{ formatDate(scope.row['update_time']) }}</span>
+          </div>
         </template>
       </el-table-column>
-      <el-table-column width="250">
+      <el-table-column width="320">
         <template #header>操作</template>
         <template #default="scope">
-          <el-button type="primary" @click="edit(scope.row.id)" :disabled="!userStore.superAdmin">编辑</el-button>
+          <el-button type="primary" @click="edit(scope.row.id)" :disabled="!userStore.superAdmin">
+            <IconEdit size="20" class="mr-1" />
+            <span>编辑</span>
+          </el-button>
           <el-button type="success" @click="check(scope.row)"
-                     :loading="checking === scope.row.id" :disabled="!userStore.superAdmin">检测</el-button>
-          <el-button type="danger" @click="remove(scope.row.id)" :disabled="!userStore.superAdmin">删除</el-button>
+                     :loading="checking === scope.row.id" :disabled="!userStore.superAdmin">
+            <IconCircleDashedCheck size="20" class="mr-1" />
+            <span>检测</span>
+          </el-button>
+          <el-button type="danger" @click="remove(scope.row.id)" :disabled="!userStore.superAdmin">
+            <IconTrash size="20" class="mr-1" />
+            <span>删除</span>
+          </el-button>
         </template>
       </el-table-column>
     </el-table>
     <el-row justify="center" align="middle">
-      <el-pagination background layout="prev, pager, next" :total="total"
-                     v-model:page-size="query.page_size" v-model:current-page="query.page_num">
-      </el-pagination>
+      <el-config-provider :locale="zhCn">
+        <el-pagination background layout="total, prev, pager, next, jumper" :total="total"
+                       v-model:page-size="query.page_size" v-model:current-page="query.page_num">
+        </el-pagination>
+      </el-config-provider>
     </el-row>
-  </el-space>
-  <add-proxy v-model="openAddDialog" @close="search" />
-  <edit-proxy v-model="openEditDialog" :id="proxyId" @close="search" />
+  </darwin-card>
+  <add-proxy v-model="openAdd" @close="search" />
+  <edit-proxy v-model="openEdit" :id="proxyId" @close="search" />
 </template>
 
 <style scoped>

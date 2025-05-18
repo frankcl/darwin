@@ -1,13 +1,16 @@
 <script setup>
 import { onMounted, ref } from 'vue'
 import { ElOption, ElSelect } from 'element-plus'
+import { useUserStore } from '@/store'
 import { asyncSearchApp } from '@/common/AsyncRequest'
 
 const props = defineProps({
+  'permissionCheck': { default: false },
   'placeholder': { default: '根据应用名搜索' }
 })
 const appId = defineModel()
 const emits = defineEmits(['change'])
+const userStore = useUserStore()
 const loading = ref(false)
 const apps = ref([])
 const appMap = new Map()
@@ -16,7 +19,11 @@ const search = async query => {
   loading.value = true
   try {
     appMap.clear()
-    const pager = await asyncSearchApp({ name: query })
+    const searchRequest = { name: query }
+    if (props.permissionCheck !== undefined && props.permissionCheck) {
+      if (userStore.injected && !userStore.superAdmin) searchRequest.app_ids = userStore.apps
+    }
+    const pager = await asyncSearchApp(searchRequest)
     apps.value = pager.records
     apps.value.forEach(app => appMap.set(app.id, app))
   } finally {

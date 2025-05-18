@@ -37,10 +37,18 @@ public class URLGroupCount extends BaseModel {
     /**
      * 类型
      */
-    @TableField(value = "category")
-    @JSONField(name = "category")
-    @JsonProperty("category")
-    public Integer category;
+    @TableField(value = "content_type")
+    @JSONField(name = "content_type")
+    @JsonProperty("content_type")
+    public Integer contentType;
+
+    /**
+     * 优先级
+     */
+    @TableField(value = "priority")
+    @JSONField(name = "priority")
+    @JsonProperty("priority")
+    public Integer priority;
 
     /**
      * 并发单元

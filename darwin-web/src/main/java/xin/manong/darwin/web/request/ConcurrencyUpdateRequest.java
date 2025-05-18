@@ -9,7 +9,7 @@ import jakarta.xml.bind.annotation.XmlAccessorType;
 import java.io.Serializable;
 
 /**
- * 缺省最大并发数更新请求
+ * 默认并发连接更新请求
  *
  * @author frankcl
  * @date 2025-04-01 10:52:10
@@ -19,7 +19,7 @@ import java.io.Serializable;
 public class ConcurrencyUpdateRequest implements Serializable {
 
     /**
-     * 缺省并发数
+     * 默认并发连接
      */
     @JsonProperty("default_concurrency")
     public Integer defaultConcurrency;
@@ -29,6 +29,6 @@ public class ConcurrencyUpdateRequest implements Serializable {
      * 无效抛出异常
      */
     public void check() {
-        if (defaultConcurrency == null || defaultConcurrency <= 0) throw new BadRequestException("缺省并发数必须大于0");
+        if (defaultConcurrency == null || defaultConcurrency <= 0) throw new BadRequestException("默认并发连接必须大于0");
     }
 }

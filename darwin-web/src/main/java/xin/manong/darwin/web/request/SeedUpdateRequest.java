@@ -7,6 +7,8 @@ import jakarta.xml.bind.annotation.XmlAccessType;
 import jakarta.xml.bind.annotation.XmlAccessorType;
 import org.apache.commons.lang3.StringUtils;
 import xin.manong.darwin.common.Constants;
+import xin.manong.darwin.common.model.HTTPRequest;
+import xin.manong.darwin.common.model.PostMediaType;
 
 import java.io.Serializable;
 import java.util.HashMap;
@@ -48,6 +50,18 @@ public class SeedUpdateRequest implements Serializable {
     public Integer fetchMethod;
 
     /**
+     * HTTP请求
+     */
+    @JsonProperty("http_request")
+    public HTTPRequest httpRequest;
+
+    /**
+     * POST请求媒体类型
+     */
+    @JsonProperty("post_media_type")
+    public PostMediaType postMediaType;
+
+    /**
      * 抽链范围
      * 所有：1
      * 域domain：2
@@ -81,6 +95,12 @@ public class SeedUpdateRequest implements Serializable {
     public Boolean normalize;
 
     /**
+     * HTTP请求体
+     */
+    @JsonProperty("request_body")
+    public Map<String, String> requestBody = new HashMap<>();
+
+    /**
      * HTTP header信息
      */
     @JsonProperty("headers")
@@ -98,9 +118,9 @@ public class SeedUpdateRequest implements Serializable {
      */
     public void check() {
         if (StringUtils.isEmpty(key)) throw new BadRequestException("种子key为空");
-        if (StringUtils.isEmpty(url) && fetchMethod == null && priority == null &&
-                timeout == null && linkScope == null && allowDispatch == null &&
-                normalize == null && headers.isEmpty() && customMap.isEmpty()) {
+        if (StringUtils.isEmpty(url) && fetchMethod == null && priority == null && postMediaType == null &&
+                timeout == null && linkScope == null && allowDispatch == null && httpRequest == null &&
+                normalize == null && headers.isEmpty() && customMap.isEmpty() && requestBody.isEmpty()) {
             throw new BadRequestException("种子更新信息为空");
         }
         if (fetchMethod != null && !Constants.SUPPORT_FETCH_METHODS.containsKey(fetchMethod)) {

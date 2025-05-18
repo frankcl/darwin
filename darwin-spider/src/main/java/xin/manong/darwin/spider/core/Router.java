@@ -13,6 +13,7 @@ import xin.manong.darwin.common.model.URLRecord;
 import xin.manong.darwin.log.core.AspectLogSupport;
 import xin.manong.darwin.queue.ConcurrencyControl;
 import xin.manong.darwin.queue.ConcurrencyQueue;
+import xin.manong.darwin.queue.CrawlDelayControl;
 import xin.manong.darwin.queue.PushResult;
 import xin.manong.darwin.service.event.JobEventListener;
 import xin.manong.darwin.service.event.URLEventListener;
@@ -51,6 +52,8 @@ public class Router {
     @Lazy
     private ResourceSpider resourceSpider;
     @Resource
+    private CrawlDelayControl crawlDelayControl;
+    @Resource
     private ConcurrencyControl concurrencyControl;
     @Resource
     private ConcurrencyQueue concurrencyQueue;
@@ -83,6 +86,7 @@ public class Router {
             passConcurrency = concurrencyCheck(record);
             if (!passConcurrency) return;
             concurrencyControl.putConnection(record.concurrencyUnit, record.key);
+            crawlDelayCheck(record);
             boolean allowRepeat = jobService.allowRepeat(record.jobId);
             context.put(Constants.ALLOW_REPEAT, allowRepeat);
             record.fetchTime = System.currentTimeMillis();
@@ -148,6 +152,7 @@ public class Router {
      * @return 成功返回spider，否则返回null
      */
     private Spider route(MediaType mediaType) {
+        if (mediaType == null) return null;
         Spider spider = routeTable.get(mediaType);
         if (spider != null) return spider;
         if (mediaType.isText()) return textSpider;
@@ -197,7 +202,7 @@ public class Router {
     private URLRecord fetchedRecord(URLRecord record, Context context) {
         if (allowRepeat(record, context)) return null;
         long startTime = System.currentTimeMillis() - spiderConfig.maxRepeatFetchTimeIntervalMs;
-        URLRecord prevRecord = urlService.getFetchedByURL(record.url, startTime);
+        URLRecord prevRecord = urlService.getFetched(record, startTime);
         if (prevRecord == null || StringUtils.isEmpty(prevRecord.fetchContentURL)) return null;
         return ossService.existsByURL(prevRecord.fetchContentURL) ? prevRecord : null;
     }
@@ -239,5 +244,15 @@ public class Router {
             throw new Exception("Update queue time failed when concurrency check");
         }
         return false;
+    }
+
+    /**
+     * 抓取间隔检测
+     *
+     * @param record 数据
+     */
+    private void crawlDelayCheck(URLRecord record) {
+        crawlDelayControl.delay(record.concurrencyUnit);
+        crawlDelayControl.put(record.concurrencyUnit);
     }
 }

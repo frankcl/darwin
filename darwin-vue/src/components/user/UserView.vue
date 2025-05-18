@@ -32,7 +32,7 @@ onMounted(async () => {
 </script>
 
 <template>
-  <el-row v-if="checkLogin()">
+  <div v-if="checkLogin()">
     <el-popover popper-style="box-shadow: rgb(14 18 22 / 35%) 0 10px 38px -10px, rgb(14 18 22 / 20%) 0 10px 20px -15px;padding: 20px;width: auto;min-width: 150px;max-width: 280px;">
       <template #reference>
         <el-badge v-if="userStore.superAdmin" is-dot>
@@ -59,12 +59,12 @@ onMounted(async () => {
     </el-popover>
     <el-text class="ml-2">欢迎您，{{ userStore.name }}</el-text>
     <el-link class="ml-2" @click="onLogout">退出</el-link>
-  </el-row>
-  <el-row v-else>
+  </div>
+  <div v-else>
     <el-avatar shape="circle" :size="30" fit="cover" :icon="UserFilled" />
     <el-text class="ml-2">游客</el-text>
     <el-link class="ml-2" :href="loginURL">登录</el-link>
-  </el-row>
+  </div>
 </template>
 
 <style scoped>

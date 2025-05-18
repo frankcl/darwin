@@ -5,7 +5,6 @@ import com.alibaba.fastjson.serializer.SerializerFeature;
 import jakarta.annotation.Resource;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.kafka.clients.producer.RecordMetadata;
-import org.apache.kafka.common.header.internals.RecordHeaders;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import xin.manong.darwin.common.Constants;
@@ -179,11 +178,7 @@ public class Allocator extends ExecuteRunner {
     private boolean pushMessage(URLRecord record) {
         byte[] bytes = JSON.toJSONString(record, SerializerFeature.DisableCircularReferenceDetect).
                 getBytes(StandardCharsets.UTF_8);
-        byte[] category = String.format("%d", record.category == null ?
-                Constants.CONTENT_CATEGORY_PAGE : record.category).getBytes(StandardCharsets.UTF_8);
-        RecordHeaders headers = new RecordHeaders();
-        headers.add(Constants.CATEGORY, category);
-        RecordMetadata metadata = producer.send(record.key, bytes, topic, headers);
+        RecordMetadata metadata = producer.send(record.key, bytes, topic);
         if (metadata != null) return true;
         logger.warn("Push fetching message failed for url:{}", record.url);
         return false;

@@ -1,5 +1,6 @@
 package xin.manong.darwin.service.impl.ots;
 
+import com.alibaba.fastjson.JSON;
 import com.alicloud.openservices.tablestore.model.search.query.BoolQuery;
 import com.alicloud.openservices.tablestore.model.search.query.Query;
 import jakarta.annotation.Resource;
@@ -40,12 +41,14 @@ public class URLServiceImpl extends URLService {
     private static final String KEY_JOB_ID = "job_id";
     private static final String KEY_PLAN_ID = "plan_id";
     private static final String KEY_HASH = "hash";
+    private static final String KEY_REQUEST_HASH = "request_hash";
+    private static final String KEY_HTTP_REQUEST = "http_request";
     private static final String KEY_HOST = "host";
     private static final String KEY_DOMAIN = "domain";
+    private static final String KEY_CONCURRENCY_UNIT = "concurrency_unit";
     private static final String KEY_STATUS = "status";
     private static final String KEY_PRIORITY = "priority";
-    private static final String KEY_CATEGORY = "category";
-    private static final String KEY_MEDIA_TYPE = "media_type";
+    private static final String KEY_CONTENT_TYPE = "content_type";
     private static final String KEY_FETCH_TIME = "fetch_time";
     private static final String KEY_CREATE_TIME = "create_time";
 
@@ -77,18 +80,20 @@ public class URLServiceImpl extends URLService {
         updateRecord.htmlCharset = record.htmlCharset;
         updateRecord.fetched = record.fetched;
         updateRecord.fetchTime = record.fetchTime;
+        updateRecord.downTime = record.downTime;
         updateRecord.fetchContentURL = record.fetchContentURL;
         updateRecord.redirectURL = record.redirectURL;
         updateRecord.parentURL = record.parentURL;
         updateRecord.httpCode = record.httpCode;
         updateRecord.contentLength = record.contentLength;
+        updateRecord.contentType = record.contentType;
         if (record.fieldMap != null && !record.fieldMap.isEmpty()) {
             updateRecord.fieldMap = record.fieldMap;
         }
         if (record.customMap != null && !record.customMap.isEmpty()) {
             updateRecord.customMap = record.customMap;
         }
-        return update(prevRecord.hash, updateRecord);
+        return update(updateRecord);
     }
 
     @Override
@@ -101,7 +106,7 @@ public class URLServiceImpl extends URLService {
         updateRecord.pushTime = record.pushTime;
         updateRecord.popTime = record.popTime;
         updateRecord.status = record.status;
-        return update(prevRecord.hash, updateRecord);
+        return update(updateRecord);
     }
 
     @Override
@@ -112,7 +117,7 @@ public class URLServiceImpl extends URLService {
         updateRecord.updateTime = System.currentTimeMillis();
         updateRecord.key = key;
         updateRecord.status = status;
-        return update(prevRecord.hash, updateRecord);
+        return update(updateRecord);
     }
 
     @Override
@@ -145,42 +150,42 @@ public class URLServiceImpl extends URLService {
     }
 
     @Override
-    public List<URLGroupCount> countGroupByStatus(String jobId, RangeValue<Long> timeRange) {
+    public List<URLGroupCount> statusGroupCount(String jobId, RangeValue<Long> timeRange) {
         throw new UnsupportedOperationException("Unsupported this method");
     }
 
     @Override
-    public List<URLGroupCount> countGroupByCategory(String jobId, RangeValue<Long> timeRange) {
+    public List<URLGroupCount> contentGroupCount(String jobId, RangeValue<Long> timeRange) {
         throw new UnsupportedOperationException("Unsupported this method");
     }
 
     @Override
-    public int urlCount(RangeValue<Long> timeRange) {
+    public int fetchURLCount(RangeValue<Long> timeRange) {
         throw new UnsupportedOperationException("Unsupported this method");
     }
 
     @Override
-    public int hostCount(RangeValue<Long> timeRange) {
+    public int fetchHostCount(RangeValue<Long> timeRange) {
         throw new UnsupportedOperationException("Unsupported this method");
     }
 
     @Override
-    public int domainCount(RangeValue<Long> timeRange) {
+    public int fetchDomainCount(RangeValue<Long> timeRange) {
         throw new UnsupportedOperationException("Unsupported this method");
     }
 
     @Override
-    public long avgContentLength(Integer category, RangeValue<Long> timeRange) {
+    public List<URLGroupCount> waitConcurrencyUnits(int n) {
         throw new UnsupportedOperationException("Unsupported this method");
     }
 
     @Override
-    public List<URLGroupCount> topConcurrencyUnits(int top) {
+    public List<URLGroupCount> queueWaitPriority() {
         throw new UnsupportedOperationException("Unsupported this method");
     }
 
     @Override
-    public List<URLGroupCount> topHosts(RangeValue<Long> timeRange, int top) {
+    public List<URLGroupCount> hostFetchCount(RangeValue<Long> timeRange, int n) {
         throw new UnsupportedOperationException("Unsupported this method");
     }
 
@@ -216,11 +221,14 @@ public class URLServiceImpl extends URLService {
         if (searchRequest.priority != null) {
             queryList.add(SearchQueryBuilder.buildTermQuery(KEY_PRIORITY, searchRequest.priority));
         }
-        if (searchRequest.category != null) {
-            queryList.add(SearchQueryBuilder.buildTermQuery(KEY_CATEGORY, searchRequest.category));
+        if (searchRequest.contentType != null) {
+            queryList.add(SearchQueryBuilder.buildTermQuery(KEY_CONTENT_TYPE, searchRequest.contentType));
         }
         if (searchRequest.appId != null) {
             queryList.add(SearchQueryBuilder.buildTermQuery(KEY_APP_ID, searchRequest.appId));
+        }
+        if (searchRequest.httpRequest != null) {
+            queryList.add(SearchQueryBuilder.buildTermQuery(KEY_HTTP_REQUEST, searchRequest.httpRequest.name()));
         }
         if (StringUtils.isNotEmpty(searchRequest.jobId)) {
             queryList.add(SearchQueryBuilder.buildTermQuery(KEY_JOB_ID, searchRequest.jobId));
@@ -234,8 +242,17 @@ public class URLServiceImpl extends URLService {
         if (StringUtils.isNotEmpty(searchRequest.domain)) {
             queryList.add(SearchQueryBuilder.buildTermQuery(KEY_DOMAIN, searchRequest.domain));
         }
+        if (StringUtils.isNotEmpty(searchRequest.concurrencyUnit)) {
+            queryList.add(SearchQueryBuilder.buildTermQuery(KEY_CONCURRENCY_UNIT, searchRequest.concurrencyUnit));
+        }
         if (StringUtils.isNotEmpty(searchRequest.url)) {
-            queryList.add(SearchQueryBuilder.buildTermQuery(KEY_HASH, DigestUtils.md5Hex(searchRequest.url)));
+            if (searchRequest.requestBody != null && !searchRequest.requestBody.isEmpty()) {
+                queryList.add(SearchQueryBuilder.buildTermQuery(KEY_REQUEST_HASH, String.format("%s_%s",
+                        searchRequest.url, JSON.toJSONString(searchRequest.requestBody))));
+            } else {
+                queryList.add(SearchQueryBuilder.buildTermQuery(KEY_HASH, DigestUtils.md5Hex(searchRequest.url)));
+            }
+
         }
         if (searchRequest.fetchTimeRange != null) {
             queryList.add(SearchQueryBuilder.buildRangeQuery(KEY_FETCH_TIME, searchRequest.fetchTimeRange));
@@ -266,11 +283,10 @@ public class URLServiceImpl extends URLService {
     /**
      * 更新数据
      *
-     * @param hash URL hash
      * @param record 更新数据
      * @return 更新成功返回true，否则返回false
      */
-    private boolean update(String hash, URLRecord record) {
+    private boolean update(URLRecord record) {
         KVRecord kvRecord = OTSConverter.convertJavaObjectToKVRecord(record);
         OTSStatus status = otsClient.update(serviceConfig.ots.urlTable, kvRecord, null);
         return status == OTSStatus.SUCCESS;
@@ -286,7 +302,7 @@ public class URLServiceImpl extends URLService {
         Map<String, Object> keyMap = new HashMap<>();
         keyMap.put(KEY_KEY, key);
         KVRecord kvRecord = otsClient.get(serviceConfig.ots.urlTable, keyMap);
-        if (kvRecord == null) logger.warn("record is not found for key:{}", key);
+        if (kvRecord == null) logger.warn("Record is not found for key:{}", key);
         return kvRecord;
     }
 }

@@ -1,27 +1,29 @@
 <script setup>
+import { IconEdit, IconRefresh } from '@tabler/icons-vue'
 import { ref, useTemplateRef, watchEffect } from 'vue'
 import {
   ElButton, ElCol, ElDialog, ElForm, ElFormItem,
-  ElInput, ElInputNumber, ElOption, ElRow, ElSelect, ElSpace
+  ElInput, ElInputNumber, ElOption, ElRow, ElSelect
 } from 'element-plus'
 import { useUserStore } from '@/store'
 import { ERROR, showMessage, SUCCESS } from '@/common/Feedback'
 import { asyncGetProxy, asyncUpdateProxy } from '@/common/AsyncRequest'
+import DarwinCard from '@/components/data/Card'
 import { proxyFormRules } from '@/views/proxy/common'
 
 const props = defineProps(['id'])
 const open = defineModel()
 const emits = defineEmits(['close'])
 const userStore = useUserStore()
-const proxyFormRef = useTemplateRef('proxyForm')
+const formRef = useTemplateRef('form')
 const proxy = ref({})
 
 const resetProxyForm = async () => {
   if (props.id) proxy.value = await asyncGetProxy(props.id)
 }
 
-const update = async formElement => {
-  if (!await formElement.validate(valid => valid)) return
+const update = async () => {
+  if (!await formRef.value.validate(valid => valid)) return
   if (await asyncUpdateProxy(proxy.value)) showMessage('编辑代理成功', SUCCESS)
   else showMessage('编辑代理失败', ERROR)
   open.value = false
@@ -31,12 +33,9 @@ watchEffect(async () => await resetProxyForm())
 </script>
 
 <template>
-  <el-dialog v-model="open" @close="emits('close')" width="680" align-center show-close>
-    <el-space direction="vertical" :size="20" :fill="true" class="w100">
-      <el-row align="middle">
-        <span class="text-xl font-bold ml-2">编辑代理</span>
-      </el-row>
-      <el-form ref="proxyForm" :model="proxy" :rules="proxyFormRules" label-width="80px" label-position="right">
+  <el-dialog v-model="open" @close="emits('close')" align-center show-close>
+    <darwin-card title="编辑代理">
+      <el-form ref="form" :model="proxy" :rules="proxyFormRules" label-width="80px" label-position="left">
         <el-row :gutter="20">
           <el-col :span="12">
             <el-form-item label="代理IP" prop="address">
@@ -70,12 +69,18 @@ watchEffect(async () => await resetProxyForm())
             </el-form-item>
           </el-col>
         </el-row>
-        <el-form-item>
-          <el-button type="primary" @click="update(proxyFormRef)" :disabled="!userStore.superAdmin">编辑</el-button>
-          <el-button type="info" @click="resetProxyForm">重置</el-button>
+        <el-form-item label-position="top">
+          <el-button type="primary" @click="update" :disabled="!userStore.superAdmin">
+            <IconEdit size="20" class="mr-1" />
+            <span>编辑</span>
+          </el-button>
+          <el-button type="info" @click="resetProxyForm">
+            <IconRefresh size="20" class="mr-1" />
+            <span>重置</span>
+          </el-button>
         </el-form-item>
       </el-form>
-    </el-space>
+    </darwin-card>
   </el-dialog>
 </template>
 

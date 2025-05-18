@@ -46,7 +46,7 @@ public class DarwinUtil {
         if (record.depth != null) context.put(Constants.DEPTH, record.depth);
         if (record.timeout != null) context.put(Constants.TIMEOUT, record.timeout);
         if (record.priority != null) context.put(Constants.PRIORITY, record.priority);
-        if (record.category != null) context.put(Constants.CATEGORY, Constants.SUPPORT_CONTENT_CATEGORIES.get(record.category));
+        if (record.contentType != null) context.put(Constants.CONTENT_TYPE, Constants.SUPPORT_CONTENT_TYPES.get(record.contentType));
         if (record.allowDispatch != null) context.put(Constants.ALLOW_DISPATCH, record.allowDispatch);
         if (record.fetched != null) context.put(Constants.FETCHED, record.fetched);
         if (record.concurrencyLevel != null) context.put(Constants.CONCURRENCY_LEVEL, Constants.SUPPORT_CONCURRENCY_LEVELS.get(record.concurrencyLevel));

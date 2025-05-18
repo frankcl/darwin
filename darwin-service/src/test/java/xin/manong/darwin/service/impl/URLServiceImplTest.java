@@ -43,7 +43,7 @@ public class URLServiceImplTest {
         record.planId = "test_plan_id";
         record.appId = 1;
         record.status = Constants.URL_STATUS_QUEUING;
-        record.category = Constants.CONTENT_CATEGORY_PAGE;
+        record.contentType = Constants.CONTENT_TYPE_PAGE;
         record.fetchTime = System.currentTimeMillis();
         record.customMap = new HashMap<>();
         record.customMap.put("k1", "v1");
@@ -61,7 +61,7 @@ public class URLServiceImplTest {
         Assert.assertEquals("test_plan_id", recordInDB.planId);
         Assert.assertEquals(1, recordInDB.getAppId().intValue());
         Assert.assertEquals(Constants.URL_STATUS_QUEUING, recordInDB.status.intValue());
-        Assert.assertEquals(Constants.CONTENT_CATEGORY_PAGE, recordInDB.category.intValue());
+        Assert.assertEquals(Constants.CONTENT_TYPE_PAGE, recordInDB.contentType.intValue());
         Assert.assertEquals(Constants.PRIORITY_NORMAL, recordInDB.priority.intValue());
         Assert.assertEquals(record.createTime.longValue(), recordInDB.createTime.longValue());
         Assert.assertEquals(3, recordInDB.customMap.size());

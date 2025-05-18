@@ -1,8 +1,6 @@
 package xin.manong.darwin.spider.core;
 
 import jakarta.annotation.Resource;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import xin.manong.darwin.common.Constants;
 import xin.manong.darwin.common.model.MediaType;
@@ -25,7 +23,6 @@ import java.util.List;
 @Component
 public class M3U8Spider extends Spider {
 
-    private static final Logger logger = LoggerFactory.getLogger(M3U8Spider.class);
     private static final int HTTP_CODE_OK = 200;
 
     @Resource
@@ -33,7 +30,7 @@ public class M3U8Spider extends Spider {
 
     @Override
     public MediaType handle(URLRecord record, Input input, Context context) throws IOException {
-        record.category = Constants.CONTENT_CATEGORY_STREAM;
+        record.contentType = Constants.CONTENT_TYPE_VIDEO;
         Proxy proxy = record.isUseProxy() ? proxyService.randomGet(record.fetchMethod) : null;
         try (M3U8Input m3U8Input = new M3U8Input(record, proxy, spiderConfig)) {
             record.mediaType = MediaType.VIDEO_MP4;

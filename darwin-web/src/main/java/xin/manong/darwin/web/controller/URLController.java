@@ -18,7 +18,6 @@ import xin.manong.darwin.service.iface.OSSService;
 import xin.manong.darwin.service.iface.URLService;
 import xin.manong.darwin.service.request.URLSearchRequest;
 import xin.manong.darwin.service.util.HTMLMender;
-import xin.manong.weapon.spring.boot.aspect.EnableWebLogAspect;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -58,7 +57,6 @@ public class URLController {
     @Produces(MediaType.APPLICATION_JSON)
     @Path("get")
     @GetMapping("get")
-    @EnableWebLogAspect
     public URLRecord get(@QueryParam("key") String key) {
         if (StringUtils.isEmpty(key)) throw new BadRequestException("数据key缺失");
         URLRecord record = urlService.get(key);
@@ -93,31 +91,40 @@ public class URLController {
     }
 
     /**
-     * 预览PDF
+     * 预览数据流
      *
      * @param key 数据key
      * @return 响应
      */
     @GET
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
-    @Path("previewPDF")
-    @GetMapping("previewPDF")
-    public Response previewPDF(@QueryParam("key") String key) {
+    @Path("previewStream")
+    @GetMapping("previewStream")
+    public Response previewStream(@QueryParam("key") String key) {
         if (StringUtils.isEmpty(key)) throw new BadRequestException("预览数据key缺失");
-        URLRecord record = urlService.get(key);
-        checkPreviewRecord(record);
-        if (!xin.manong.darwin.common.model.MediaType.APPLICATION_PDF.equals(record.mediaType)) {
-            throw new IllegalStateException("抓取结果不是PDF文档");
+        try {
+            URLRecord record = urlService.get(key);
+            checkPreviewRecord(record);
+            if (!xin.manong.darwin.common.model.MediaType.APPLICATION_PDF.equals(record.mediaType) &&
+                    !record.mediaType.isAudio()) {
+                throw new IllegalStateException("抓取结果不是音频或PDF文档");
+            }
+            InputStream input = ossService.getObjectStream(record.fetchContentURL);
+            StreamingOutput output = outputStream -> {
+                input.transferTo(outputStream);
+                outputStream.flush();
+                input.close();
+            };
+            String attachment = "preview";
+            if (record.mediaType != null && StringUtils.isNotEmpty(record.mediaType.suffix)) {
+                attachment = String.format("%s.%s", attachment, record.mediaType.suffix);
+            }
+            return Response.ok(output).header(RESPONSE_HEADER_CACHE_CONTROL, RESPONSE_HEADER_VALUE_NO_CACHE).
+                    header(RESPONSE_HEADER_CONTENT_DISPOSITION, String.format(RESPONSE_HEADER_VALUE_ATTACHMENT,
+                            attachment)).build();
+        } catch (Exception e) {
+            return Response.serverError().entity(e.getMessage()).build();
         }
-        InputStream input = ossService.getObjectStream(record.fetchContentURL);
-        StreamingOutput output = outputStream -> {
-            input.transferTo(outputStream);
-            outputStream.flush();
-            input.close();
-        };
-        return Response.ok(output).header(RESPONSE_HEADER_CACHE_CONTROL, RESPONSE_HEADER_VALUE_NO_CACHE).
-                header(RESPONSE_HEADER_CONTENT_DISPOSITION, String.format(RESPONSE_HEADER_VALUE_ATTACHMENT,
-                        "preview.pdf")).build();
     }
 
     /**
@@ -158,7 +165,6 @@ public class URLController {
     @Consumes(MediaType.APPLICATION_JSON)
     @Path("search")
     @GetMapping("search")
-    @EnableWebLogAspect
     public Pager<URLRecord> search(@BeanParam URLSearchRequest request) {
         Pager<URLRecord> pager = urlService.search(request);
         for (URLRecord record : pager.records) {
@@ -198,9 +204,7 @@ public class URLController {
      */
     private void checkPreviewRecord(URLRecord record) {
         if (record == null) throw new NotFoundException("预览数据不存在");
-        if (record.status != Constants.URL_STATUS_FETCH_SUCCESS ||
-                !ossService.existsByURL(record.fetchContentURL)) {
-            throw new IllegalStateException("数据抓取失败，不支持预览");
-        }
+        if (record.status != Constants.URL_STATUS_FETCH_SUCCESS) throw new IllegalStateException("抓取失败");
+        if (!ossService.existsByURL(record.fetchContentURL)) throw new IllegalStateException("数据失效");
     }
 }

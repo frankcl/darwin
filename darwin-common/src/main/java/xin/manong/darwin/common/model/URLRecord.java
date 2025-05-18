@@ -95,16 +95,18 @@ public class URLRecord extends SeedRecord {
     public Integer appId;
 
     /**
-     * 抓取URL类型
+     * 内容类型
      * 网页：1
-     * 资源：2
-     * 视频流：3
+     * 图片：2
+     * 视频：3
+     * 音频：4
+     * 其他：5
      */
-    @TableField(value = "category")
-    @Column(name = "category")
-    @JSONField(name = "category")
-    @JsonProperty("category")
-    public Integer category;
+    @TableField(value = "content_type")
+    @Column(name = "content_type")
+    @JSONField(name = "content_type")
+    @JsonProperty("content_type")
+    public Integer contentType;
 
     /**
      * 抓取时间
@@ -114,6 +116,15 @@ public class URLRecord extends SeedRecord {
     @JSONField(name = "fetch_time")
     @JsonProperty("fetch_time")
     public Long fetchTime;
+
+    /**
+     * 下载时长
+     */
+    @TableField(value = "down_time")
+    @Column(name = "down_time")
+    @JSONField(name = "down_time")
+    @JsonProperty("down_time")
+    public Long downTime;
 
     /**
      * 抓取内容OSS地址
@@ -262,8 +273,9 @@ public class URLRecord extends SeedRecord {
         super(record);
         appId = record.appId;
         jobId = record.jobId;
-        category = record.category;
+        contentType = record.contentType;
         fetchTime = record.fetchTime;
+        downTime = record.downTime;
         pushTime = record.pushTime;
         popTime = record.popTime;
         parentURL = record.parentURL;
@@ -325,6 +337,7 @@ public class URLRecord extends SeedRecord {
         assert Constants.SUPPORT_LINK_SCOPES.containsKey(linkScope);
         URLRecord record = new URLRecord(url);
         record.linkScope = linkScope;
+        record.allowRepeat = false;
         return record;
     }
 }

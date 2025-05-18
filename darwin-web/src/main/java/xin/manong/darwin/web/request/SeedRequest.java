@@ -7,6 +7,8 @@ import jakarta.xml.bind.annotation.XmlAccessType;
 import jakarta.xml.bind.annotation.XmlAccessorType;
 import org.apache.commons.lang3.StringUtils;
 import xin.manong.darwin.common.Constants;
+import xin.manong.darwin.common.model.HTTPRequest;
+import xin.manong.darwin.common.model.PostMediaType;
 
 import java.io.Serializable;
 import java.net.MalformedURLException;
@@ -50,6 +52,18 @@ public class SeedRequest implements Serializable {
     public Integer fetchMethod;
 
     /**
+     * HTTP请求
+     */
+    @JsonProperty("http_request")
+    public HTTPRequest httpRequest;
+
+    /**
+     * POST请求媒体类型
+     */
+    @JsonProperty("post_media_type")
+    public PostMediaType postMediaType;
+
+    /**
      * 抽链范围
      * 所有：1
      * 域domain：2
@@ -83,6 +97,12 @@ public class SeedRequest implements Serializable {
     public Boolean normalize = true;
 
     /**
+     * HTTP请求体
+     */
+    @JsonProperty("request_body")
+    public Map<String, String> requestBody = new HashMap<>();
+
+    /**
      * HTTP header信息
      */
     @JsonProperty("headers")
@@ -105,6 +125,8 @@ public class SeedRequest implements Serializable {
         if (priority == null) priority = Constants.PRIORITY_NORMAL;
         if (allowDispatch == null) allowDispatch = true;
         if (normalize == null) normalize = true;
+        if (httpRequest == null) httpRequest = HTTPRequest.GET;
+        if (postMediaType == null && httpRequest == HTTPRequest.POST) postMediaType = PostMediaType.JSON;
         if (linkScope != null && !Constants.SUPPORT_LINK_SCOPES.containsKey(linkScope)) throw new BadRequestException("不支持的抽链范围");
         if (!Constants.SUPPORT_FETCH_METHODS.containsKey(fetchMethod)) throw new BadRequestException("不支持的抓取方式");
         if (priority > Constants.PRIORITY_LOW || priority < Constants.PRIORITY_HIGH) throw new BadRequestException("不支持的优先级");

@@ -15,6 +15,17 @@ public class Constants {
     public static final int DEFAULT_PAGE_SIZE = 20;
 
     /**
+     * 队列内存水位
+     */
+    public static final Map<Integer, String> MEMORY_WATER_LEVEL_MAP = new HashMap<>() {
+        {
+            put(0, "安全");
+            put(1, "警告");
+            put(2, "危险");
+        }
+    };
+
+    /**
      * URL状态
      */
     public static final int URL_STATUS_UNKNOWN = -1;                //未知
@@ -89,14 +100,18 @@ public class Constants {
     /**
      * 内容分类
      */
-    public static final int CONTENT_CATEGORY_PAGE = 1;              //网页
-    public static final int CONTENT_CATEGORY_RESOURCE = 2;          //资源：图片、视频和文档等
-    public static final int CONTENT_CATEGORY_STREAM = 3;            //视频流
-    public static final Map<Integer, String> SUPPORT_CONTENT_CATEGORIES = new HashMap<>() {
+    public static final int CONTENT_TYPE_PAGE = 1;              //网页
+    public static final int CONTENT_TYPE_IMAGE = 2;             //图片
+    public static final int CONTENT_TYPE_VIDEO = 3;             //视频
+    public static final int CONTENT_TYPE_AUDIO = 4;             //音频
+    public static final int CONTENT_TYPE_OTHER = 5;             //其他
+    public static final Map<Integer, String> SUPPORT_CONTENT_TYPES = new HashMap<>() {
         {
-            put(CONTENT_CATEGORY_PAGE, "网页");
-            put(CONTENT_CATEGORY_RESOURCE, "资源");
-            put(CONTENT_CATEGORY_STREAM, "视频流");
+            put(CONTENT_TYPE_PAGE, "网页");
+            put(CONTENT_TYPE_IMAGE, "图片");
+            put(CONTENT_TYPE_VIDEO, "视频");
+            put(CONTENT_TYPE_AUDIO, "音频");
+            put(CONTENT_TYPE_OTHER, "其他");
         }
     };
 
@@ -138,9 +153,7 @@ public class Constants {
         }
     };
 
-    public static final int DASHBOARD_CATEGORY_TOTAL = 1;
-    public static final int DASHBOARD_CATEGORY_STATUS = 2;
-    public static final int DASHBOARD_CATEGORY_CONTENT = 3;
+    public static final int TREND_CATEGORY_FETCH_COUNT = 1;
 
     /**
      * 数据记录类型
@@ -172,7 +185,7 @@ public class Constants {
     public static final String FETCH_METHOD = "fetch_method";
     public static final String PUSH_TIME = "push_time";
     public static final String POP_TIME = "pop_time";
-    public static final String CATEGORY = "category";
+    public static final String CONTENT_TYPE = "content_type";
     public static final String DEPTH = "depth";
     public static final String CONCURRENCY_LEVEL = "concurrency_level";
     public static final String TIMEOUT = "timeout";
@@ -192,6 +205,7 @@ public class Constants {
     public static final String APP_ID = "app_id";
     public static final String NAME = "name";
     public static final String STATUS = "status";
+    public static final String CATEGORY = "category";
     public static final String PRIORITY = "priority";
     public static final String ALLOW_REPEAT = "allow_repeat";
     public static final String CRONTAB_EXPRESSION = "crontab_expression";
@@ -227,7 +241,8 @@ public class Constants {
     public static final String DARWIN_MESSAGE_TOPIC = "__DARWIN_MESSAGE_TOPIC__";
     public static final String DARWIN_MESSAGE_TIMESTAMP = "__DARWIN_MESSAGE_TIMESTAMP__";
     public static final String DARWIN_PROCESS_TIME = "__DARWIN_PROCESS_TIME__";
-    public static final String DARWIN_FETCH_TIME = "__DARWIN_FETCH_TIME__";
+    public static final String DARWIN_DOWN_TIME = "__DARWIN_DOWN_TIME__";
+    public static final String DARWIN_READ_TIME = "__DARWIN_READ_TIME__";
     public static final String DARWIN_WRITE_TIME = "__DARWIN_WRITE_TIME__";
     public static final String DARWIN_PARSE_TIME = "__DARWIN_PARSE_TIME__";
 }

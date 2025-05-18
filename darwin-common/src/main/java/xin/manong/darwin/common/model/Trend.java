@@ -19,7 +19,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * 首页大盘统计数据
+ * 趋势数据
+ * 统计单位：小时
  *
  * @author frankcl
  * @date 2025-04-23 15:44:39
@@ -28,9 +29,9 @@ import java.util.List;
 @Setter
 @Accessors(chain = true)
 @XmlAccessorType(XmlAccessType.FIELD)
-@TableName(value = "dashboard", autoResultMap = true)
+@TableName(value = "trend", autoResultMap = true)
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class Dashboard extends BaseModel {
+public class Trend extends BaseModel {
 
     /**
      * 代理ID
@@ -41,12 +42,12 @@ public class Dashboard extends BaseModel {
     public Integer id;
 
     /**
-     * 小时
+     * 统计维度
      */
-    @TableField(value = "hour")
-    @JSONField(name = "hour")
-    @JsonProperty("hour")
-    public String hour;
+    @TableField(value = "`key`")
+    @JSONField(name = "key")
+    @JsonProperty("key")
+    public String key;
 
     /**
      * 统计类型
@@ -62,12 +63,12 @@ public class Dashboard extends BaseModel {
     @TableField(value = "`values`", typeHandler = JSONDashboardValueListHandler.class)
     @JSONField(name = "values", deserializeUsing = MapDeserializer.class)
     @JsonProperty("values")
-    public List<DashboardValue<Integer>> values = new ArrayList<>();
+    public List<TrendValue<?>> values = new ArrayList<>();
 
-    public Dashboard() {}
-    public Dashboard(String hour, Integer category,
-                     List<DashboardValue<Integer>> values) {
-        this.hour = hour;
+    public Trend() {}
+    public Trend(String key, Integer category,
+                 List<TrendValue<?>> values) {
+        this.key = key;
         this.category = category;
         this.values = values;
     }

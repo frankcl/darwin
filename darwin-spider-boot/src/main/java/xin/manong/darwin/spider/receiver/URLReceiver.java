@@ -8,8 +8,6 @@ import com.aliyun.openservices.ons.api.MessageListener;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
-import org.apache.kafka.common.header.Header;
-import org.apache.kafka.common.header.Headers;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import xin.manong.darwin.common.Constants;
@@ -20,7 +18,6 @@ import xin.manong.weapon.base.common.Context;
 import xin.manong.weapon.base.kafka.KafkaRecordProcessor;
 
 import java.nio.charset.StandardCharsets;
-import java.util.Set;
 
 /**
  * URL接收器：支持kafka和阿里云ONS
@@ -32,14 +29,12 @@ public class URLReceiver implements MessageListener, KafkaRecordProcessor {
 
     private static final Logger logger = LoggerFactory.getLogger(URLReceiver.class);
 
-    private final Set<String> supportedCategory;
     private final Router router;
     private final AspectLogSupport aspectLogSupport;
 
-    public URLReceiver(Router router, AspectLogSupport aspectLogSupport, Set<String> supportedCategory) {
+    public URLReceiver(Router router, AspectLogSupport aspectLogSupport) {
         this.router = router;
         this.aspectLogSupport = aspectLogSupport;
-        this.supportedCategory = supportedCategory;
     }
 
     private void handle(byte[] body, Context context) {
@@ -87,11 +82,6 @@ public class URLReceiver implements MessageListener, KafkaRecordProcessor {
 
     @Override
     public void process(ConsumerRecord<byte[], byte[]> consumerRecord) throws Exception {
-        Headers headers = consumerRecord.headers();
-        if (headers == null) return;
-        Header header = headers.lastHeader(Constants.CATEGORY);
-        if (header == null || supportedCategory == null ||
-                !supportedCategory.contains(new String(header.value(), StandardCharsets.UTF_8))) return;
         Context context = new Context();
         context.put(Constants.DARWIN_STAGE, Constants.PROCESS_STAGE_FETCH);
         if (consumerRecord.key() != null) {

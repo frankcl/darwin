@@ -1,5 +1,6 @@
 package xin.manong.darwin.common.model;
 
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.annotation.JSONField;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
@@ -61,6 +62,15 @@ public class SeedRecord extends BaseModel {
     @JSONField(name = "hash")
     @JsonProperty("hash")
     public String hash;
+
+    /**
+     * URL和请求体计算hash
+     */
+    @TableField(value = "request_hash")
+    @Column(name = "request_hash")
+    @JSONField(name = "request_hash")
+    @JsonProperty("request_hash")
+    public String requestHash;
 
     /**
      * 超时时间（毫秒）
@@ -163,6 +173,33 @@ public class SeedRecord extends BaseModel {
     public String domain;
 
     /**
+     * HTTP请求
+     */
+    @TableField(value = "http_request")
+    @Column(name = "http_request")
+    @JSONField(name = "http_request")
+    @JsonProperty("http_request")
+    public HTTPRequest httpRequest;
+
+    /**
+     * POST媒体类型
+     */
+    @TableField(value = "post_media_type")
+    @Column(name = "post_media_type")
+    @JSONField(name = "post_media_type")
+    @JsonProperty("post_media_type")
+    public PostMediaType postMediaType;
+
+    /**
+     * 请求体
+     */
+    @TableField(value = "request_body", typeHandler = JSONObjectMapHandler.class)
+    @Column(name = "request_body")
+    @JSONField(name = "request_body", deserializeUsing = MapDeserializer.class)
+    @JsonProperty("request_body")
+    public Map<String, Object> requestBody = new HashMap<>();
+
+    /**
      * HTTP header信息
      */
     @TableField(value = "headers", typeHandler = JSONObjectMapHandler.class)
@@ -207,6 +244,8 @@ public class SeedRecord extends BaseModel {
         if (allowDispatch == null) allowDispatch = true;
         if (priority == null) priority = Constants.PRIORITY_NORMAL;
         if (fetchMethod == null) fetchMethod = Constants.FETCH_METHOD_COMMON;
+        if (httpRequest == null) httpRequest = HTTPRequest.GET;
+        if (postMediaType == null && httpRequest == HTTPRequest.POST) postMediaType = PostMediaType.JSON;
         if (!Constants.SUPPORT_FETCH_METHODS.containsKey(fetchMethod)) {
             logger.error("Not support fetch method:{}", fetchMethod);
             return false;
@@ -225,6 +264,7 @@ public class SeedRecord extends BaseModel {
     public SeedRecord() {
         key = RandomID.build();
         allowDispatch = true;
+        httpRequest = HTTPRequest.GET;
         createTime = System.currentTimeMillis();
     }
 
@@ -251,8 +291,21 @@ public class SeedRecord extends BaseModel {
         linkScope = record.linkScope;
         allowDispatch = record.allowDispatch;
         normalize = record.normalize;
+        httpRequest = record.httpRequest;
+        postMediaType = record.postMediaType;
+        requestHash = record.requestHash;
+        requestBody = record.requestBody == null ? new HashMap<>() : new HashMap<>(record.requestBody);
         customMap = record.customMap == null ? new HashMap<>() : new HashMap<>(record.customMap);
         headers = record.headers == null ? new HashMap<>() : new HashMap<>(record.headers);
+    }
+
+    /**
+     * 计算请求hash
+     *
+     * @return 请求hash
+     */
+    public String computeRequestHash() {
+        return DigestUtils.md5Hex(String.format("%s_%s", url, JSON.toJSONString(requestBody)));
     }
 
     /**
@@ -284,6 +337,18 @@ public class SeedRecord extends BaseModel {
         this.hash = DigestUtils.md5Hex(this.url);
         this.host = CommonUtil.getHost(this.url);
         this.domain = DomainUtil.getDomain(host);
+        this.requestHash = computeRequestHash();
+    }
+
+    /**
+     * 设置请求体
+     *
+     * @param requestBody 请求体
+     */
+    public void setRequestBody(Map<String, Object> requestBody) {
+        assert requestBody != null;
+        this.requestBody = requestBody;
+        this.requestHash = computeRequestHash();
     }
 
     @Override

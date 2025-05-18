@@ -5,7 +5,7 @@ import { checkPermission } from '@/common/Permission'
 import { ERROR, showMessage, WARNING } from '@/common/Feedback'
 
 const axiosRequestMap = new Map()
-const abortController = new AbortController()
+let abortController = new AbortController()
 
 const isJsonStr = str => {
   if (typeof str !== 'string') return false
@@ -104,11 +104,12 @@ axiosInstance.interceptors.response.use(
     return handleAxiosResponse(response)
   },
   async error => {
+    removeAxiosRequest(error)
     if (error instanceof CanceledError) {
       showMessage(`取消重复请求:${error.config.url}`, WARNING)
+      abortController = new AbortController()
       return Promise.reject(error)
     }
-    removeAxiosRequest(error)
     if (error.response && error.response.status === 401) {
       showMessage('请重新登录认证', WARNING)
       useUserStore().$reset()

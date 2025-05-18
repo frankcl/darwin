@@ -10,9 +10,9 @@ export const statusMap = {
 }
 
 export const priorityMap = {
-  0: '高优先级',
-  1: '中优先级',
-  2: '低优先级',
+  0: '高',
+  1: '中',
+  2: '低',
 }
 
 export const fetchMethodMap = {
@@ -20,10 +20,17 @@ export const fetchMethodMap = {
   1: '代理IP'
 }
 
-export const categoryMap = {
+export const contentTypeMap = {
   1: '网页',
-  2: '资源',
-  3: '视频流'
+  2: '图片',
+  3: '视频',
+  4: '音频',
+  5: '其他',
+}
+
+export const planCategoryMap = {
+  0: '单次型',
+  1: '周期型',
 }
 
 export const concurrentLevelMap = {
@@ -31,13 +38,23 @@ export const concurrentLevelMap = {
   1: 'HOST'
 }
 
-export const previewTitleMap = {
-  'html': '网页预览',
-  'xhtml': '网页预览',
-  'json': 'JSON预览',
-  'image': '图片预览',
-  'video': '视频预览',
-  'pdf': 'PDF预览',
-  'txt': '文本预览',
-  'xml': 'XML预览',
+export const linkScopeMap = {
+  1: '全部',
+  2: 'DOMAIN',
+  3: 'HOST'
+}
+
+export const scriptLangMap = {
+  1: 'Groovy',
+  2: 'JavaScript'
+}
+
+export const httpRequestMap = {
+  GET: 'GET',
+  POST: 'POST'
+}
+
+export const postMediaTypeMap = {
+  JSON: 'JSON',
+  FORM: 'FORM'
 }

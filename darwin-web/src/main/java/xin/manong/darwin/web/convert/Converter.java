@@ -137,9 +137,13 @@ public class Converter {
         record.priority = request.priority;
         record.allowDispatch = request.allowDispatch;
         record.normalize = request.normalize;
+        record.httpRequest = request.httpRequest;
+        record.postMediaType = request.postMediaType;
         record.timeout = request.timeout != null && request.timeout <= 0 ? null : request.timeout;
         record.headers = request.headers == null ? new HashMap<>() : new HashMap<>(request.headers);
         record.customMap = request.customMap == null ? new HashMap<>() : new HashMap<>(request.customMap);
+        record.requestBody = request.requestBody == null ? new HashMap<>() : new HashMap<>(request.requestBody);
+        record.requestHash = record.computeRequestHash();
         return record;
     }
 
@@ -159,8 +163,12 @@ public class Converter {
         record.timeout = request.timeout;
         record.allowDispatch = request.allowDispatch;
         record.normalize = request.normalize;
+        record.httpRequest = request.httpRequest;
+        record.postMediaType = request.postMediaType;
+        record.requestBody = request.requestBody == null ? new HashMap<>() : new HashMap<>(request.requestBody);
         record.headers = request.headers == null ? new HashMap<>() : new HashMap<>(request.headers);
         record.customMap = request.customMap == null ? new HashMap<>() : new HashMap<>(request.customMap);
+        record.requestHash = record.computeRequestHash();
         record.createTime = null;
         return record;
     }

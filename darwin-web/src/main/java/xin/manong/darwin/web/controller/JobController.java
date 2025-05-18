@@ -11,15 +11,12 @@ import org.springframework.web.bind.annotation.RestController;
 import xin.manong.darwin.common.Constants;
 import xin.manong.darwin.common.model.Job;
 import xin.manong.darwin.common.model.Pager;
-import xin.manong.darwin.common.model.URLGroupCount;
 import xin.manong.darwin.service.iface.JobService;
 import xin.manong.darwin.service.iface.URLService;
 import xin.manong.darwin.service.request.JobSearchRequest;
 import xin.manong.darwin.service.request.URLSearchRequest;
-import xin.manong.weapon.spring.boot.aspect.EnableWebLogAspect;
 
 import java.util.ArrayList;
-import java.util.List;
 
 /**
  * 任务控制器
@@ -48,7 +45,6 @@ public class JobController {
     @Produces(MediaType.APPLICATION_JSON)
     @Path("get")
     @GetMapping("get")
-    @EnableWebLogAspect
     public Job get(@QueryParam("id") String id) {
         if (StringUtils.isEmpty(id)) throw new BadRequestException("任务ID缺失");
         return jobService.get(id);
@@ -64,7 +60,6 @@ public class JobController {
     @Produces(MediaType.APPLICATION_JSON)
     @Path("progress")
     @GetMapping("progress")
-    @EnableWebLogAspect
     public Double progress(@QueryParam("id") String id) {
         if (StringUtils.isEmpty(id)) throw new BadRequestException("任务ID缺失");
         URLSearchRequest searchRequest = new URLSearchRequest();
@@ -79,35 +74,29 @@ public class JobController {
     }
 
     /**
-     * 根据数据状态分组统计
+     * 获取任务抓取成功率
      *
      * @param id 任务ID
-     * @return 统计结果
+     * @return 抓取成功率
      */
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @Path("countGroupByStatus")
-    @GetMapping("countGroupByStatus")
-    @EnableWebLogAspect
-    public List<URLGroupCount> countGroupByStatus(@QueryParam("id") String id) {
+    @Path("successRate")
+    @GetMapping("successRate")
+    public Double successRate(@QueryParam("id") String id) {
         if (StringUtils.isEmpty(id)) throw new BadRequestException("任务ID缺失");
-        return urlService.countGroupByStatus(id, null);
-    }
-
-    /**
-     * 根据内容类型分组统计
-     *
-     * @param id 任务ID
-     * @return 统计结果
-     */
-    @GET
-    @Produces(MediaType.APPLICATION_JSON)
-    @Path("countGroupByCategory")
-    @GetMapping("countGroupByCategory")
-    @EnableWebLogAspect
-    public List<URLGroupCount> countGroupByCategory(@QueryParam("id") String id) {
-        if (StringUtils.isEmpty(id)) throw new BadRequestException("任务ID缺失");
-        return urlService.countGroupByCategory(id, null);
+        URLSearchRequest searchRequest = new URLSearchRequest();
+        searchRequest.jobId = id;
+        searchRequest.statusList = new ArrayList<>();
+        searchRequest.statusList.add(Constants.URL_STATUS_FETCH_SUCCESS);
+        long successCount = urlService.selectCount(searchRequest);
+        searchRequest.statusList = new ArrayList<>();
+        searchRequest.statusList.add(Constants.URL_STATUS_FETCH_SUCCESS);
+        searchRequest.statusList.add(Constants.URL_STATUS_FETCH_FAIL);
+        searchRequest.statusList.add(Constants.URL_STATUS_ERROR);
+        long total = urlService.selectCount(searchRequest);
+        double rate = total == 0d ? 0d : successCount * 1.0d / total;
+        return Double.parseDouble(String.format("%.2f", rate));
     }
 
     /**
@@ -121,7 +110,6 @@ public class JobController {
     @Consumes(MediaType.APPLICATION_JSON)
     @Path("search")
     @GetMapping("search")
-    @EnableWebLogAspect
     public Pager<Job> search(@BeanParam JobSearchRequest request) {
         return jobService.search(request);
     }

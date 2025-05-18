@@ -1,10 +1,11 @@
 <script setup>
 import { onMounted, reactive, ref, watch } from 'vue'
-import { ElDialog, ElForm, ElFormItem, ElRow } from 'element-plus'
-import JsonViewer from 'vue-json-viewer'
-import CodeEditor from '@/components/data/CodeEditor'
+import { ElDialog } from 'element-plus'
+import DarwinCard from '@/components/data/Card'
+import TextEditor from '@/components/data/TextEditor'
 import { pause } from '@/common/Time'
 import { asyncDebugURL, asyncGetSeed } from '@/common/AsyncRequest'
+import DebugResult from '@/views/debug/DebugResult'
 
 const props = defineProps(['seedKey', 'planId'])
 const open = defineModel()
@@ -69,25 +70,12 @@ onMounted(() => debug())
 
 <template>
   <el-dialog v-model="open" width="850" align-center show-close>
-    <el-row align="middle" class="mb-2">
-      <span class="text-xl font-bold ml-2">调试终端</span>
-    </el-row>
-    <el-form label-width="80px">
-      <el-form-item label-position="top">
-        <code-editor :code="termOutput" :refresh="refresh" lang="xml" :height="300" :read-only="true" />
-      </el-form-item>
-      <el-form-item v-if="parseResult.children && parseResult.children.length > 0" label="抽链列表" label-position="top">
-        <json-viewer class="w100" :value="parseResult.children" :expand-depth=0 boxed sort />
-      </el-form-item>
-      <el-form-item v-if="parseResult.field_map && Object.keys(parseResult.field_map).length > 0"
-                    label="结构化数据" label-position="top">
-        <json-viewer class="w100" :value="parseResult.field_map" :expand-depth=0 boxed sort />
-      </el-form-item>
-      <el-form-item v-if="parseResult.custom_map && Object.keys(parseResult.custom_map).length > 0"
-                    label="自定义数据" label-position="top">
-        <json-viewer class="w100" :value="parseResult.custom_map" :expand-depth=0 boxed sort />
-      </el-form-item>
-    </el-form>
+    <darwin-card title="种子调试">
+      <text-editor class="mb-4" title="调试终端" v-model="termOutput" :refresh="refresh"
+                   :height="300" :read-only="true" />
+      <debug-result :children="parseResult.children" :custom-map="parseResult.custom_map"
+                    :field-map="parseResult.field_map" />
+    </darwin-card>
   </el-dialog>
 </template>
 

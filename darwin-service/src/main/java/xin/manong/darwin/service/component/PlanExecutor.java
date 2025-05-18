@@ -18,6 +18,8 @@ import xin.manong.darwin.service.convert.Converter;
 import xin.manong.darwin.service.iface.JobService;
 import xin.manong.darwin.service.iface.SeedService;
 import xin.manong.darwin.service.iface.URLService;
+import xin.manong.hylian.client.core.ContextManager;
+import xin.manong.hylian.model.User;
 import xin.manong.weapon.base.common.Context;
 
 import java.util.ArrayList;
@@ -67,6 +69,8 @@ public class PlanExecutor {
             return false;
         }
         Job job = Converter.convert(plan);
+        User user = ContextManager.getUser();
+        job.executor = user == null ? "系统" : user.name;
         List<URLRecord> pushRecords = new ArrayList<>(), commitRecords = new ArrayList<>();
         try {
             if (!jobService.add(job)) throw new IllegalStateException("添加任务失败");

@@ -1,19 +1,22 @@
 <script setup>
+import { IconHelp, IconPlus, IconRefresh } from '@tabler/icons-vue'
 import { reactive, useTemplateRef } from 'vue'
 import {
-  ElButton, ElDialog, ElForm, ElFormItem,
-  ElInput, ElRadio, ElRadioGroup, ElRow, ElSpace,
+  ElButton, ElCol, ElDialog, ElForm, ElFormItem,
+  ElInput, ElRadio, ElRadioGroup, ElRow, ElTooltip,
 } from 'element-plus'
 import { useUserStore } from '@/store'
+import { fetchMethodMap, planCategoryMap, priorityMap } from '@/common/Constants'
 import { ERROR, showMessage, SUCCESS } from '@/common/Feedback'
 import { asyncAddPlan } from '@/common/AsyncRequest'
 import { planFormRules } from '@/views/plan/common'
+import DarwinCard from '@/components/data/Card'
 import AppSearch from '@/components/app/AppSearch'
 
 const open = defineModel()
 const emits = defineEmits(['close'])
 const userStore = useUserStore()
-const planFormRef = useTemplateRef('planForm')
+const formRef = useTemplateRef('form')
 const plan = reactive({
   priority: 1,
   allow_repeat: 'false',
@@ -21,8 +24,8 @@ const plan = reactive({
   category: 0
 })
 
-const add = async formElement => {
-  if (!await formElement.validate(valid => valid)) return
+const add = async () => {
+  if (!await formRef.value.validate(valid => valid)) return
   if (!await asyncAddPlan(plan)) {
     showMessage('新增计划失败', ERROR)
     return
@@ -33,53 +36,91 @@ const add = async formElement => {
 </script>
 
 <template>
-  <el-dialog v-model="open" @close="emits('close')" width="800" align-center show-close>
-    <el-space direction="vertical" :size="20" :fill="true" class="w100">
-      <el-row align="middle">
-        <span class="text-xl font-bold ml-2">新增计划</span>
-      </el-row>
-      <el-form ref="planForm" :model="plan" :rules="planFormRules"
-               label-width="80px" label-position="right" class="w100">
+  <el-dialog v-model="open" @close="emits('close')" align-center show-close>
+    <darwin-card title="新增计划">
+      <el-form ref="form" :model="plan" :rules="planFormRules"
+               label-width="80px" label-position="top">
         <el-form-item label="计划名称" prop="name">
           <el-input v-model.trim="plan.name" clearable />
         </el-form-item>
         <el-form-item label="所属应用" prop="app_id">
-          <app-search v-model="plan.app_id" @change="app => plan.app_name = app.name" />
+          <app-search v-model="plan.app_id" :permission-check="true" @change="app => plan.app_name = app.name" />
         </el-form-item>
-        <el-form-item v-if="plan.category === 1" label="调度时间" prop="crontab_expression" required>
-          <el-input v-model="plan.crontab_expression" clearable placeholder="10分钟调度1次：0 0/10 * * * ?" />
+        <el-form-item v-if="plan.category === 1" label="调度计划" prop="crontab_expression">
+          <template #label>
+            <span>调度计划</span>
+            <el-tooltip effect="dark" placement="top"
+                        content="crontab表达式，系统根据表达式计算下次调度时间进行调度">
+              <IconHelp size="12" class="ml-2"/>
+            </el-tooltip>
+          </template>
+          <el-input v-model="plan.crontab_expression" clearable placeholder="0 0/10 * * * ?   从0分开始每10分钟调度1次" />
         </el-form-item>
-        <el-form-item label="优先级" prop="priority" required>
-          <el-radio-group v-model="plan.priority">
-            <el-radio :value="0">高优先级</el-radio>
-            <el-radio :value="1">中优先级</el-radio>
-            <el-radio :value="2">低优先级</el-radio>
-          </el-radio-group>
-        </el-form-item>
-        <el-form-item label="计划类型" prop="category" required>
-          <el-radio-group v-model="plan.category">
-            <el-radio :value="0">单次型</el-radio>
-            <el-radio :value="1">周期型</el-radio>
-          </el-radio-group>
-        </el-form-item>
-        <el-form-item label="抓取方式" prop="fetch_method" required>
-          <el-radio-group v-model="plan.fetch_method">
-            <el-radio :value="0">本地IP</el-radio>
-            <el-radio :value="1">代理IP</el-radio>
-          </el-radio-group>
-        </el-form-item>
-        <el-form-item label="重复抓取" prop="allow_repeat" required>
-          <el-radio-group v-model="plan.allow_repeat">
-            <el-radio value="true">允许</el-radio>
-            <el-radio value="false">禁止</el-radio>
-          </el-radio-group>
-        </el-form-item>
+        <el-row>
+          <el-col :span="12">
+            <el-form-item prop="category">
+              <template #label>
+                <span>计划类型</span>
+                <el-tooltip effect="dark" placement="top"
+                            content="单次型：手动执行；周期型：支持手动执行和系统调度执行，周期型计划需配合调度计划使用">
+                  <IconHelp size="12" class="ml-2"/>
+                </el-tooltip>
+              </template>
+              <el-radio-group v-model="plan.category">
+                <el-radio v-for="key in Object.keys(planCategoryMap)" :value="parseInt(key)" :key="key">
+                  {{ planCategoryMap[key] }}
+                </el-radio>
+              </el-radio-group>
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="优先级" prop="priority" required>
+              <el-radio-group v-model="plan.priority">
+                <el-radio v-for="key in Object.keys(priorityMap)" :value="parseInt(key)" :key="key">
+                  {{ priorityMap[key] }}
+                </el-radio>
+              </el-radio-group>
+            </el-form-item>
+          </el-col>
+        </el-row>
+        <el-row>
+          <el-col :span="12">
+            <el-form-item label="抓取方式" prop="fetch_method" required>
+              <el-radio-group v-model="plan.fetch_method">
+                <el-radio v-for="key in Object.keys(fetchMethodMap)" :value="parseInt(key)" :key="key">
+                  {{ fetchMethodMap[key] }}
+                </el-radio>
+              </el-radio-group>
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item prop="allow_repeat">
+              <template #label>
+                <span>重复抓取</span>
+                <el-tooltip effect="dark" placement="top"
+                            content="允许：直接通过网络抓取；禁止：数据库存在抓取结果则使用，不存在则抓取；默认禁止">
+                  <IconHelp size="12" class="ml-2"/>
+                </el-tooltip>
+              </template>
+              <el-radio-group v-model="plan.allow_repeat">
+                <el-radio value="true">允许</el-radio>
+                <el-radio value="false">禁止</el-radio>
+              </el-radio-group>
+            </el-form-item>
+          </el-col>
+        </el-row>
         <el-form-item>
-          <el-button type="primary" @click="add(planFormRef)" :disabled="!userStore.injected">新增</el-button>
-          <el-button type="info" @click="planFormRef.resetFields()">重置</el-button>
+          <el-button type="primary" @click="add" :disabled="!userStore.injected">
+            <IconPlus size="20" class="mr-1" />
+            <span>新增</span>
+          </el-button>
+          <el-button type="info" @click="formRef.resetFields()">
+            <IconRefresh size="20" class="mr-1" />
+            <span>重置</span>
+          </el-button>
         </el-form-item>
       </el-form>
-    </el-space>
+    </darwin-card>
   </el-dialog>
 </template>
 

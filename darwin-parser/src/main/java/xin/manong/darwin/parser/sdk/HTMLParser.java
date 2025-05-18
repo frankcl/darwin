@@ -49,7 +49,7 @@ public abstract class HTMLParser {
         try {
             ParseResponse response = parse(request);
             String debugLog = appender.getLogContent();
-            if (debugLog != null) response.debugLog = debugLog;
+            if (response != null && debugLog != null) response.debugLog = debugLog;
             return response;
         } finally {
             sweepSLF4JLogger(name);

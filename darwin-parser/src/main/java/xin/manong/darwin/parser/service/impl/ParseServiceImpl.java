@@ -39,7 +39,7 @@ public class ParseServiceImpl implements ParseService {
 
     private static final Logger logger = LoggerFactory.getLogger(ParseServiceImpl.class);
 
-    private static final String COMPILE_HTML = "<html><head></head><body></body></html>";
+    private static final String COMPILE_HTML = "{}";
     private static final String COMPILE_URL = "http://www.test.com/";
     private static final String GROOVY_TEMPLATE = "/template/groovy.tpl";
     private static final String JS_TEMPLATE = "/template/javascript.tpl";
@@ -102,12 +102,15 @@ public class ParseServiceImpl implements ParseService {
 
     @Override
     public ParseResponse parse(@NonNull RuleParseRequest request) {
-        Rule rule = ruleService.getCache(request.ruleId);
-        if (rule == null) throw new NotFoundException("规则不存在");
+        Rule rule = null;
+        if (!request.isScopeExtract()) {
+            rule = ruleService.getCache(request.ruleId);
+            if (rule == null) throw new NotFoundException("规则不存在");
+        }
         ScriptParseRequestBuilder builder = new ScriptParseRequestBuilder();
+        if (rule != null) builder.scriptType(rule.scriptType).scriptCode(rule.script);
         ScriptParseRequest scriptParseRequest = builder.text(request.text).url(request.url).
-                redirectURL(request.redirectURL).linkScope(request.linkScope).customMap(request.customMap).
-                scriptType(rule.scriptType).scriptCode(rule.script).build();
+                redirectURL(request.redirectURL).linkScope(request.linkScope).customMap(request.customMap).build();
         return parse(scriptParseRequest);
     }
 

@@ -4,11 +4,10 @@ import jakarta.annotation.Resource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import xin.manong.darwin.common.Constants;
-import xin.manong.darwin.common.model.Dashboard;
-import xin.manong.darwin.common.model.DashboardValue;
+import xin.manong.darwin.common.model.Trend;
+import xin.manong.darwin.common.model.TrendValue;
 import xin.manong.darwin.common.model.RangeValue;
-import xin.manong.darwin.common.model.URLGroupCount;
-import xin.manong.darwin.service.iface.DashboardService;
+import xin.manong.darwin.service.iface.TrendService;
 import xin.manong.darwin.service.iface.URLService;
 import xin.manong.weapon.base.executor.ExecuteRunner;
 import xin.manong.weapon.base.util.CommonUtil;
@@ -32,7 +31,7 @@ public class DashboardRunner extends ExecuteRunner {
     @Resource
     private URLService urlService;
     @Resource
-    private DashboardService dashboardService;
+    private TrendService trendService;
 
     public DashboardRunner(long executeTimeIntervalMs) {
         super(ID, executeTimeIntervalMs);
@@ -55,56 +54,22 @@ public class DashboardRunner extends ExecuteRunner {
         prevHourTimeRange.start = prevHourTime;
         prevHourTimeRange.includeLower = true;
         prevHourTimeRange.end = currentHourTime;
-        upsertTotalTrend(prevHour, prevHourTimeRange);
-        upsertTotalTrend(currentHour, currentHourTimeRange);
-        upsertStatusTrend(prevHour, prevHourTimeRange);
-        upsertStatusTrend(currentHour, currentHourTimeRange);
-        upsertContentTrend(prevHour, prevHourTimeRange);
-        upsertContentTrend(currentHour, currentHourTimeRange);
+        upsertFetchCountTrend(prevHour, prevHourTimeRange);
+        upsertFetchCountTrend(currentHour, currentHourTimeRange);
     }
 
     /**
-     * 计算总量趋势
+     * 更新抓取量趋势
      *
-     * @param hour 小时
+     * @param key 小时
      * @param timeRange 时间范围
      */
-    private void upsertTotalTrend(String hour, RangeValue<Long> timeRange) {
-        List<DashboardValue<Integer>> values = new ArrayList<>();
-        values.add(new DashboardValue<>("URL", urlService.urlCount(timeRange)));
-        values.add(new DashboardValue<>("HOST", urlService.hostCount(timeRange)));
-        values.add(new DashboardValue<>("DOMAIN", urlService.domainCount(timeRange)));
-        Dashboard dashboard = new Dashboard(hour, Constants.DASHBOARD_CATEGORY_TOTAL, values);
-        if (!dashboardService.upsert(dashboard)) logger.warn("Upsert total trend dashboard failed for hour:{}", hour);
-    }
-
-    /**
-     * 计算数据状态趋势
-     *
-     * @param hour 小时
-     * @param timeRange 时间范围
-     */
-    private void upsertStatusTrend(String hour, RangeValue<Long> timeRange) {
-        List<URLGroupCount> groupCounts = urlService.countGroupByStatus(null, timeRange);
-        List<DashboardValue<Integer>> values = new ArrayList<>();
-        groupCounts.forEach(groupCount -> values.add(new DashboardValue<>(
-                Constants.SUPPORT_URL_STATUSES.get(groupCount.status), groupCount.count)));
-        Dashboard dashboard = new Dashboard(hour, Constants.DASHBOARD_CATEGORY_STATUS, values);
-        if (!dashboardService.upsert(dashboard)) logger.warn("Upsert status trend dashboard failed for hour:{}", hour);
-    }
-
-    /**
-     * 计算数据内容趋势
-     *
-     * @param hour 小时
-     * @param timeRange 时间范围
-     */
-    private void upsertContentTrend(String hour, RangeValue<Long> timeRange) {
-        List<URLGroupCount> groupCounts = urlService.countGroupByCategory(null, timeRange);
-        List<DashboardValue<Integer>> values = new ArrayList<>();
-        groupCounts.forEach(groupCount -> values.add(new DashboardValue<>(
-                Constants.SUPPORT_CONTENT_CATEGORIES.get(groupCount.category), groupCount.count)));
-        Dashboard dashboard = new Dashboard(hour, Constants.DASHBOARD_CATEGORY_CONTENT, values);
-        if (!dashboardService.upsert(dashboard)) logger.warn("Upsert content trend dashboard failed for hour:{}", hour);
+    private void upsertFetchCountTrend(String key, RangeValue<Long> timeRange) {
+        List<TrendValue<?>> values = new ArrayList<>();
+        values.add(new TrendValue<>("链接数量", urlService.fetchURLCount(timeRange)));
+        values.add(new TrendValue<>("站点数量", urlService.fetchHostCount(timeRange)));
+        values.add(new TrendValue<>("域名数量", urlService.fetchDomainCount(timeRange)));
+        Trend trend = new Trend(key, Constants.TREND_CATEGORY_FETCH_COUNT, values);
+        if (!trendService.upsert(trend)) logger.warn("Upsert fetch count trend failed for key:{}", key);
     }
 }

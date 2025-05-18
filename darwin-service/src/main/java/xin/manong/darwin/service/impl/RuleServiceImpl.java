@@ -95,6 +95,7 @@ public class RuleServiceImpl extends RuleService {
     public List<Rule> getRules(String planId) {
         QueryWrapper<Rule> query = new QueryWrapper<Rule>().select("id", "name", "regex");
         query.eq("plan_id", planId);
+        query.orderByDesc("create_time");
         return ruleMapper.selectList(query);
     }
 

@@ -49,7 +49,6 @@ public class AppUserController {
     @Produces(MediaType.APPLICATION_JSON)
     @Path("getAppUsers")
     @GetMapping("getAppUsers")
-    @EnableWebLogAspect
     public List<AppUser> getAppUsers(@QueryParam("app_id") Integer appId) {
         if (appId == null) throw new BadRequestException("应用ID为空");
         return appUserService.getAppUsers(appId);
@@ -64,7 +63,6 @@ public class AppUserController {
     @Produces(MediaType.APPLICATION_JSON)
     @Path("getOwnApps")
     @GetMapping("getOwnApps")
-    @EnableWebLogAspect
     public List<Integer> getOwnApps() {
         User user = ContextManager.getUser();
         List<AppUser> appUsers = appUserService.getAppUsers(user.getId());

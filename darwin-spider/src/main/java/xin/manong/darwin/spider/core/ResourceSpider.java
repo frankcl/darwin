@@ -22,7 +22,10 @@ public class ResourceSpider extends Spider {
     @Override
     public MediaType handle(URLRecord record, Input input, Context context) throws IOException {
         assert input != null;
-        record.category = Constants.CONTENT_CATEGORY_RESOURCE;
+        record.contentType = Constants.CONTENT_TYPE_OTHER;
+        if (record.mediaType.isImage()) record.contentType = Constants.CONTENT_TYPE_IMAGE;
+        else if (record.mediaType.isVideo()) record.contentType = Constants.CONTENT_TYPE_VIDEO;
+        else if (record.mediaType.isAudio()) record.contentType = Constants.CONTENT_TYPE_AUDIO;
         writer.write(record, input, context);
         return MediaType.UNKNOWN;
     }
@@ -33,8 +36,8 @@ public class ResourceSpider extends Spider {
                 MediaType.IMAGE_GIF, MediaType.IMAGE_SVG, MediaType.IMAGE_TIFF, MediaType.IMAGE_WEBP,
                 MediaType.VIDEO_MPEG, MediaType.VIDEO_MP4, MediaType.VIDEO_ASF, MediaType.VIDEO_AVI,
                 MediaType.VIDEO_QUICKTIME, MediaType.VIDEO_OGG, MediaType.VIDEO_WEBM,
-                MediaType.AUDIO_AAC, MediaType.AUDIO_AU, MediaType.AUDIO_FLAC, MediaType.AUDIO_MP3,
-                MediaType.AUDIO_WAV, MediaType.AUDIO_WMA, MediaType.APPLICATION_PDF,
+                MediaType.AUDIO_AAC, MediaType.AUDIO_AU, MediaType.AUDIO_FLAC, MediaType.AUDIO_MPEG,
+                MediaType.AUDIO_XMPEG, MediaType.AUDIO_WAV, MediaType.AUDIO_WMA, MediaType.APPLICATION_PDF,
                 MediaType.APPLICATION_DOC, MediaType.APPLICATION_DOCX, MediaType.APPLICATION_XLS,
                 MediaType.APPLICATION_XLSX, MediaType.APPLICATION_PPT, MediaType.APPLICATION_PPTX,
                 MediaType.APPLICATION_OCTET);

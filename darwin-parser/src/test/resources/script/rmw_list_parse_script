@@ -15,7 +15,7 @@ public class GroovyParser extends HTMLParser {
 
     @Override
     public ParseResponse parse(ParseRequest request) {
-        Document document = Jsoup.parse(request.html, StringUtils.isEmpty(request.redirectURL) ?
+        Document document = Jsoup.parse(request.text, StringUtils.isEmpty(request.redirectURL) ?
                 request.url : request.redirectURL);
         Elements elements = document.selectXpath("//div[@class=\"ej_list_box clear\"]/ul/li");
         List<URLRecord> children = new ArrayList<>();

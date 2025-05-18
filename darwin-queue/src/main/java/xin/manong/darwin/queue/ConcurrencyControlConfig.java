@@ -2,7 +2,6 @@ package xin.manong.darwin.queue;
 
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import xin.manong.weapon.spring.boot.etcd.WatchValue;
 
@@ -10,7 +9,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * 连接并发管理器配置
+ * 并发管理配置
  *
  * @author frankcl
  * @date 2023-03-09 17:32:32
@@ -28,10 +27,4 @@ public class ConcurrencyControlConfig {
     public int defaultConcurrencyConnections = DEFAULT_CONCURRENCY_CONNECTIONS;
     @WatchValue(namespace = "darwin", key = "queue/concurrencyConnectionMap")
     public Map<String, Integer> concurrencyConnectionMap = new HashMap<>();
-
-    @Bean
-    public ConcurrencyControl buildConcurrencyControl() {
-        return new ConcurrencyControl(concurrencyConnectionMap,
-                defaultConcurrencyConnections, concurrentConnectionTtlSecond);
-    }
 }

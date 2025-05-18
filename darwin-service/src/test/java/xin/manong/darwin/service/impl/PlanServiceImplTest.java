@@ -4,6 +4,7 @@ import jakarta.annotation.Resource;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.quartz.CronExpression;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.annotation.Rollback;
 import org.springframework.test.context.ActiveProfiles;
@@ -17,6 +18,9 @@ import xin.manong.darwin.service.ApplicationTest;
 import xin.manong.darwin.service.iface.PlanService;
 import xin.manong.darwin.service.request.PlanSearchRequest;
 import xin.manong.weapon.base.util.RandomID;
+
+import java.text.ParseException;
+import java.util.Date;
 
 /**
  * @author frankcl
@@ -79,5 +83,9 @@ public class PlanServiceImplTest {
         Assert.assertEquals(1, pager.records.size());
 
         Assert.assertTrue(planService.delete(plan.planId));
+    }
+
+    public static void main(String[] args) throws ParseException {
+        System.out.println(new CronExpression("0 * */1 * * ?").getNextValidTimeAfter(new Date(System.currentTimeMillis())).getTime());
     }
 }

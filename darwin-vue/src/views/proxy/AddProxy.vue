@@ -1,22 +1,24 @@
 <script setup>
+import { IconPlus, IconRefresh } from '@tabler/icons-vue'
 import { reactive, useTemplateRef } from 'vue'
 import {
   ElButton, ElCol, ElDialog, ElForm, ElFormItem,
-  ElInput, ElInputNumber, ElOption, ElRow, ElSelect, ElSpace
+  ElInput, ElInputNumber, ElOption, ElRow, ElSelect
 } from 'element-plus'
 import { useUserStore } from '@/store'
 import { ERROR, showMessage, SUCCESS } from '@/common/Feedback'
 import { asyncAddProxy } from '@/common/AsyncRequest'
+import DarwinCard from '@/components/data/Card'
 import { proxyFormRules } from '@/views/proxy/common'
 
 const open = defineModel()
 const emits = defineEmits(['close'])
 const userStore = useUserStore()
-const proxyFormRef = useTemplateRef('proxyForm')
+const formRef = useTemplateRef('form')
 const proxy = reactive({ category: 1, port: 888 })
 
-const add = async formElement => {
-  if (!await formElement.validate(valid => valid)) return
+const add = async () => {
+  if (!await formRef.value.validate(valid => valid)) return
   if (await asyncAddProxy(proxy)) showMessage('新增代理成功', SUCCESS)
   else showMessage('新增代理失败', ERROR)
   open.value = false
@@ -24,12 +26,9 @@ const add = async formElement => {
 </script>
 
 <template>
-  <el-dialog v-model="open" @close="emits('close')" width="680" align-center show-close>
-    <el-space direction="vertical" :size="20" :fill="true" class="w100">
-      <el-row align="middle">
-        <span class="text-xl font-bold ml-2">新增代理</span>
-      </el-row>
-      <el-form ref="proxyForm" :model="proxy" :rules="proxyFormRules" label-width="80px" label-position="right">
+  <el-dialog v-model="open" @close="emits('close')" align-center show-close>
+    <darwin-card title="新增代理">
+      <el-form ref="form" :model="proxy" :rules="proxyFormRules" label-width="80px" label-position="left">
         <el-row :gutter="20">
           <el-col :span="12">
             <el-form-item label="代理IP" prop="address">
@@ -63,12 +62,18 @@ const add = async formElement => {
             </el-form-item>
           </el-col>
         </el-row>
-        <el-form-item>
-          <el-button type="primary" @click="add(proxyFormRef)" :disabled="!userStore.superAdmin">新增</el-button>
-          <el-button type="info" @click="proxyFormRef.resetFields()">重置</el-button>
+        <el-form-item label-position="top">
+          <el-button type="primary" @click="add" :disabled="!userStore.superAdmin">
+            <IconPlus size="20" class="mr-1" />
+            <span>新增</span>
+          </el-button>
+          <el-button type="info" @click="formRef.resetFields()">
+            <IconRefresh size="20" class="mr-1" />
+            <span>重置</span>
+          </el-button>
         </el-form-item>
       </el-form>
-    </el-space>
+    </darwin-card>
   </el-dialog>
 </template>
 

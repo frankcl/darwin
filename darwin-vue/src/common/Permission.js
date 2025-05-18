@@ -17,9 +17,9 @@ const NO_PERMISSION_REQUESTS = [
   '/api/rule/delete',
   '/api/rule/deleteHistory',
   '/api/rule/rollback',
-  '/api/script/compile',
-  '/api/script/debug',
-  '/api/script/debugURL',
+  '/api/debug/compileScript',
+  '/api/debug/debugScript',
+  '/api/debug/debugURL',
   '/api/seed/add',
   '/api/seed/update',
   '/api/seed/delete',
@@ -30,8 +30,10 @@ const NO_PERMISSION_REQUESTS = [
   '/api/runner/start',
   '/api/runner/stop',
   '/api/runner/popMessage',
-  '/api/concurrency/updateDefaultMaxConcurrency',
+  '/api/concurrency/updateDefaultConcurrency',
   '/api/concurrency/updateConcurrencyConnectionMap',
+  '/api/concurrency/updateDefaultCrawlDelay',
+  '/api/concurrency/updateCrawlDelayMap',
 ]
 
 export const checkLogin = () => useUserStore().injected

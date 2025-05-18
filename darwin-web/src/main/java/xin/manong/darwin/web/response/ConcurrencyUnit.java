@@ -18,6 +18,11 @@ import java.io.Serializable;
 public class ConcurrencyUnit implements Serializable {
 
     /**
+     * 并发单元
+     */
+    @JsonProperty("name")
+    public String name;
+    /**
      * 抓取队列容量
      */
     @JsonProperty("fetch_capacity")
@@ -46,4 +51,9 @@ public class ConcurrencyUnit implements Serializable {
      */
     @JsonProperty("expired_records")
     public Integer expiredRecords;
+
+    public ConcurrencyUnit() {}
+    public ConcurrencyUnit(String name) {
+        this.name = name;
+    }
 }

@@ -10,7 +10,6 @@ import xin.manong.darwin.service.iface.OSSService;
 import xin.manong.hylian.client.component.UserServiceSupport;
 import xin.manong.hylian.client.core.ContextManager;
 import xin.manong.hylian.model.User;
-import xin.manong.weapon.spring.boot.aspect.EnableWebLogAspect;
 
 import java.util.List;
 
@@ -40,7 +39,6 @@ public class UserController {
     @Produces(MediaType.APPLICATION_JSON)
     @Path("currentUser")
     @GetMapping("currentUser")
-    @EnableWebLogAspect
     public User currentUser() {
         User user = ContextManager.getUser();
         if (user != null && StringUtils.isNotEmpty(user.avatar)) {
@@ -58,7 +56,6 @@ public class UserController {
     @Produces(MediaType.APPLICATION_JSON)
     @Path("allUsers")
     @GetMapping("allUsers")
-    @EnableWebLogAspect
     public List<User> allUsers() {
         return userServiceSupport.getAllUsers();
     }

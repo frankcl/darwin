@@ -121,7 +121,7 @@ public class TextSpiderTest {
             router.route(record, context);
             String key = String.format("%s/%s/%s.html", spiderConfig.ossDirectory, "text", record.key);
             Assert.assertEquals(Constants.URL_STATUS_FETCH_SUCCESS, record.status.intValue());
-            Assert.assertEquals(Constants.CONTENT_CATEGORY_PAGE, record.category.intValue());
+            Assert.assertEquals(Constants.CONTENT_TYPE_PAGE, record.contentType.intValue());
             Assert.assertEquals(ossService.buildURL(key), record.fetchContentURL);
             Assert.assertTrue(record.fetchTime != null && record.fetchTime > 0L);
             Assert.assertTrue(record.fieldMap != null && !record.fieldMap.isEmpty());
@@ -152,7 +152,7 @@ public class TextSpiderTest {
             router.route(record, context);
             String key = String.format("%s/%s/%s.json", spiderConfig.ossDirectory, "text", record.key);
             Assert.assertEquals(Constants.URL_STATUS_FETCH_SUCCESS, record.status.intValue());
-            Assert.assertEquals(Constants.CONTENT_CATEGORY_PAGE, record.category.intValue());
+            Assert.assertEquals(Constants.CONTENT_TYPE_PAGE, record.contentType.intValue());
             Assert.assertEquals(ossService.buildURL(key), record.fetchContentURL);
             Assert.assertTrue(record.fetchTime != null && record.fetchTime > 0L);
             Assert.assertTrue(record.fieldMap != null && !record.fieldMap.isEmpty());
@@ -182,7 +182,7 @@ public class TextSpiderTest {
             record.concurrencyLevel = Constants.CONCURRENCY_LEVEL_HOST;
             Context context = new Context();
             router.route(record, context);
-            Assert.assertNull(record.category);
+            Assert.assertNull(record.contentType);
             Assert.assertEquals(Constants.URL_STATUS_FETCH_FAIL, record.status.intValue());
             Assert.assertTrue(record.fetchTime != null && record.fetchTime > 0L);
             Assert.assertTrue(StringUtils.isEmpty(record.fetchContentURL));

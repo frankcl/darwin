@@ -9,7 +9,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 /**
- * 大盘统计项
+ * 趋势统计项
  *
  * @author frankcl
  * @date 2025-04-23 19:59:10
@@ -18,7 +18,7 @@ import lombok.Setter;
 @Setter
 @XmlAccessorType(XmlAccessType.FIELD)
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class DashboardValue<T> {
+public class TrendValue<T> {
 
     /**
      * 统计名
@@ -33,8 +33,8 @@ public class DashboardValue<T> {
     @JsonProperty("value")
     public T value;
 
-    public DashboardValue() {}
-    public DashboardValue(String name, T value) {
+    public TrendValue() {}
+    public TrendValue(String name, T value) {
         this.name = name;
         this.value = value;
     }

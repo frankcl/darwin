@@ -1,12 +1,14 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import Home from '@/views/Home'
+import Home from '@/views/main/Home.vue'
 import AppList from '@/views/app/AppList'
 import PlanList from '@/views/plan/PlanList'
 import PlanTabs from '@/views/plan/PlanTabs'
+import JobList from '@/views/job/JobList'
 import RecordList from '@/views/record/RecordList'
 import ProxyList from '@/views/proxy/ProxyList'
-import ConcurrencyConfig from '@/views/concurrency/ConcurrencyConfig'
-import ConcurrencyQueue from '@/views/concurrency/ConcurrencyQueue'
+import CrawlDelay from '@/views/concurrency/CrawlDelay'
+import ConControl from '@/views/concurrency/ConControl'
+import ConcurrencyQueue from '@/views/concurrency/ConQueue'
 import RunnerList from '@/views/runner/RunnerList'
 
 const routes = [
@@ -32,6 +34,11 @@ const routes = [
     component: PlanTabs
   },
   {
+    path: '/job/search',
+    name: 'JobList',
+    component: JobList
+  },
+  {
     path: '/record/search',
     name: 'RecordList',
     component: RecordList
@@ -47,9 +54,14 @@ const routes = [
     component: ProxyList
   },
   {
-    path: '/concurrency/config',
-    name: 'ConcurrencyConfig',
-    component: ConcurrencyConfig
+    path: '/concurrency/control',
+    name: 'ConControl',
+    component: ConControl
+  },
+  {
+    path: '/concurrency/crawlDelay',
+    name: 'CrawlDelay',
+    component: CrawlDelay
   },
   {
     path: '/concurrency/queue',

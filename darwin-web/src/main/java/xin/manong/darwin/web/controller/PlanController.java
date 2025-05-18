@@ -100,7 +100,6 @@ public class PlanController {
     @Produces(MediaType.APPLICATION_JSON)
     @Path("get")
     @GetMapping("get")
-    @EnableWebLogAspect
     public Plan get(@QueryParam("id") String id) {
         if (StringUtils.isEmpty(id)) throw new BadRequestException("计划ID缺失");
         return planService.get(id);
@@ -117,7 +116,6 @@ public class PlanController {
     @Consumes(MediaType.APPLICATION_JSON)
     @Path("search")
     @GetMapping("search")
-    @EnableWebLogAspect
     public Pager<Plan> search(@BeanParam PlanSearchRequest request) {
         return planService.search(request);
     }

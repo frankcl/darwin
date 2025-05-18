@@ -1,36 +1,37 @@
 <script setup>
+import { IconDeviceIpadHorizontalCode, IconNews } from '@tabler/icons-vue'
 import { ref } from 'vue'
 import { ElDivider, ElTabPane, ElTabs } from 'element-plus'
 import DebugScript from '@/views/debug/DebugScript'
 import AddRule from '@/views/rule/AddRule'
 
 const props = defineProps(['planId'])
-const ruleChanged = ref()
+const emits = defineEmits(['add'])
+const newRule = ref()
 
-const handleRuleChange = rule => ruleChanged.value = rule
+const handleAdd = () => emits('add')
+const handleChange = rule => newRule.value = rule
 </script>
 
 <template>
   <el-divider></el-divider>
   <el-tabs tab-position="left" class="rule-tabs">
     <el-tab-pane label="新增">
-      <add-rule :plan-id="props.planId" @change="handleRuleChange" />
+      <template #label>
+        <IconNews size="20" />
+        <span class="ml-2">新增</span>
+      </template>
+      <add-rule :plan-id="props.planId" @change="handleChange" @add="handleAdd" />
     </el-tab-pane>
     <el-tab-pane label="调试">
-      <debug-script v-bind="ruleChanged" />
+      <template #label>
+        <IconDeviceIpadHorizontalCode size="20" />
+        <span class="ml-2">调试</span>
+      </template>
+      <debug-script v-bind="newRule" />
     </el-tab-pane>
   </el-tabs>
 </template>
 
 <style scoped>
-.rule-tabs > .el-tabs__content {
-  padding: 32px;
-  color: #6b778c;
-  font-size: 32px;
-  font-weight: 600;
-}
-.el-tabs--right .el-tabs__content,
-.el-tabs--left .el-tabs__content {
-  height: 100%;
-}
 </style>

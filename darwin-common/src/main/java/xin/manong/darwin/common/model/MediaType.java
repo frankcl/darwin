@@ -49,7 +49,8 @@ public class MediaType {
     public static MediaType VIDEO_QUICKTIME = new MediaType("video", "quicktime");
     public static MediaType VIDEO_ASF = new MediaType("video", "x-ms-asf");
 
-    public static MediaType AUDIO_MP3 = new MediaType("audio", "x-mpeg");
+    public static MediaType AUDIO_XMPEG = new MediaType("audio", "x-mpeg");
+    public static MediaType AUDIO_MPEG = new MediaType("audio", "mpeg");
     public static MediaType AUDIO_AU = new MediaType("audio", "basic");
     public static MediaType AUDIO_WAV = new MediaType("audio", "x-wav");
     public static MediaType AUDIO_FLAC = new MediaType("audio", "flac");
@@ -308,7 +309,7 @@ public class MediaType {
                 alias = "AUDIO";
                 suffix = "wma";
             }
-            case "x-mpeg" -> {
+            case "x-mpeg", "mpeg" -> {
                 alias = "AUDIO";
                 suffix = "mp3";
             }

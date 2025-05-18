@@ -1,7 +1,7 @@
 package xin.manong.darwin.common.model.handler;
 
 import com.alibaba.fastjson.TypeReference;
-import xin.manong.darwin.common.model.DashboardValue;
+import xin.manong.darwin.common.model.TrendValue;
 
 import java.util.List;
 
@@ -11,10 +11,10 @@ import java.util.List;
  * @author frankcl
  * @date 2023-03-15 11:59:24
  */
-public class JSONDashboardValueListHandler extends JSONGenericListHandler<DashboardValue<?>> {
+public class JSONDashboardValueListHandler extends JSONGenericListHandler<TrendValue<?>> {
 
     @Override
-    protected TypeReference<List<DashboardValue<?>>> specificType() {
+    protected TypeReference<List<TrendValue<?>>> specificType() {
         return new TypeReference<>() {};
     }
 }

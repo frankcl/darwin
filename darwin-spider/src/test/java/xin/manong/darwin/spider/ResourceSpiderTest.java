@@ -42,9 +42,9 @@ public class ResourceSpiderTest {
         record.concurrencyLevel = Constants.CONCURRENCY_LEVEL_HOST;
         Context context = new Context();
         router.route(record, context);
-        String key = String.format("%s/%s/%s.mp4", spiderConfig.ossDirectory, "resource", record.key);
+        String key = String.format("%s/%s/%s.mp4", spiderConfig.ossDirectory, "video", record.key);
         Assert.assertEquals(Constants.URL_STATUS_FETCH_SUCCESS, record.status.intValue());
-        Assert.assertEquals(Constants.CONTENT_CATEGORY_RESOURCE, record.category.intValue());
+        Assert.assertEquals(Constants.CONTENT_TYPE_VIDEO, record.contentType.intValue());
         Assert.assertEquals(ossService.buildURL(key), record.fetchContentURL);
         Assert.assertTrue(record.fetchTime != null && record.fetchTime > 0L);
         Assert.assertFalse(StringUtils.isEmpty(record.fetchContentURL));
@@ -62,7 +62,7 @@ public class ResourceSpiderTest {
         record.concurrencyLevel = Constants.CONCURRENCY_LEVEL_HOST;
         Context context = new Context();
         router.route(record, context);
-        Assert.assertNull(record.category);
+        Assert.assertNull(record.contentType);
         Assert.assertEquals(Constants.URL_STATUS_FETCH_FAIL, record.status.intValue());
         Assert.assertTrue(record.fetchTime != null && record.fetchTime > 0L);
         Assert.assertTrue(StringUtils.isEmpty(record.fetchContentURL));

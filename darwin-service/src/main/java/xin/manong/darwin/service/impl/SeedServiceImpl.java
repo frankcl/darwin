@@ -82,6 +82,7 @@ public class SeedServiceImpl implements SeedService {
         ModelValidator.validateOrderBy(SeedRecord.class, searchRequest);
         QueryWrapper<SeedRecord> query = new QueryWrapper<>();
         searchRequest.prepareOrderBy(query);
+        if (searchRequest.httpRequest != null) query.eq("http_request", searchRequest.httpRequest.name());
         if (StringUtils.isNotEmpty(searchRequest.planId)) query.eq("plan_id", searchRequest.planId);
         if (StringUtils.isNotEmpty(searchRequest.url)) query.eq("hash", DigestUtils.md5Hex(searchRequest.url));
         IPage<SeedRecord> page = seedMapper.selectPage(new Page<>(searchRequest.pageNum, searchRequest.pageSize), query);

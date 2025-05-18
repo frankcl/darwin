@@ -1,42 +1,44 @@
 <script setup>
 import xmlFormat from 'xml-formatter'
 import { ref, watchEffect } from 'vue'
-import { ElDialog, ElRow, ElText } from 'element-plus'
-import CodeEditor from '@/components/data/CodeEditor'
+import { ElDialog } from 'element-plus'
+import TextEditor from '@/components/data/TextEditor'
 import { asyncPreview } from '@/common/AsyncRequest'
+import DarwinCard from '@/components/data/Card'
 
 const props = defineProps(['recordKey', 'recordType'])
 const open = defineModel()
 const previewText = ref()
-const previewType = ref('xml')
+const previewType = ref()
 
 watchEffect(async () => {
   if (props.recordKey) {
-    previewText.value = await asyncPreview(props.recordKey)
-    if (props.recordType === 'XML') {
-      previewType.value = 'xml'
-      previewText.value = xmlFormat(previewText.value)
-    } else if (props.recordType === 'JAVASCRIPT') {
-      previewType.value = 'javascript'
-    } else if (props.recordType === 'CSS') {
-      previewType.value = 'css'
-    } else if (props.recordType === 'HTML' || props.recordType === 'XHTML') {
-      previewType.value = 'html'
-    } else {
-      previewType.value = 'xml'
+    try {
+      previewText.value = await asyncPreview(props.recordKey)
+      if (props.recordType === 'XML') {
+        previewType.value = 'xml'
+        previewText.value = xmlFormat(previewText.value)
+      } else if (props.recordType === 'JAVASCRIPT') {
+        previewType.value = 'javascript'
+      } else if (props.recordType === 'CSS') {
+        previewType.value = 'css'
+      } else if (props.recordType === 'HTML' || props.recordType === 'XHTML') {
+        previewType.value = 'html'
+      } else {
+        previewType.value = undefined
+      }
+    } catch {
+      open.value = false
     }
   }
 })
 </script>
 
 <template>
-  <el-dialog v-model="open" width="1200" align-center show-close>
-    <el-row class="mb-3">
-      <el-text class="text-xl font-600">文本预览</el-text>
-    </el-row>
-    <el-row justify="center">
-      <code-editor v-if="previewText" :code="previewText" :lang="previewType" :read-only="true" />
-    </el-row>
+  <el-dialog v-model="open" align-center show-close>
+    <darwin-card title="文本预览">
+      <text-editor v-if="previewText" title="文本阅读器" v-model="previewText" :lang="previewType" :read-only="true" />
+    </darwin-card>
   </el-dialog>
 </template>
 

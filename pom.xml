@@ -46,7 +46,7 @@
         <quartz.version>2.3.2</quartz.version>
         <jersey.version>3.1.9</jersey.version>
         <ffmpeg-platform.version>5.0-1.5.7</ffmpeg-platform.version>
-        <jackson.version>2.13.3</jackson.version>
+        <jackson.version>2.17.2</jackson.version>
         <velocity.version>2.3</velocity.version>
         <mybatis-plus.version>3.5.8</mybatis-plus.version>
         <druid.version>1.2.23</druid.version>
@@ -201,6 +201,12 @@
                 <groupId>io.etcd</groupId>
                 <artifactId>jetcd-core</artifactId>
                 <version>${jetcd.version}</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>com.fasterxml.jackson.core</groupId>
+                        <artifactId>jackson-core</artifactId>
+                    </exclusion>
+                </exclusions>
             </dependency>
             <dependency>
                 <groupId>com.squareup.okhttp3</groupId>

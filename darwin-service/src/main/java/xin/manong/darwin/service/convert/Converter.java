@@ -39,6 +39,10 @@ public class Converter {
         record.allowDispatch = seedRecord.allowDispatch;
         record.allowRepeat = true;
         record.normalize = seedRecord.normalize;
+        record.httpRequest = seedRecord.httpRequest;
+        record.postMediaType = seedRecord.postMediaType;
+        record.requestHash = seedRecord.requestHash;
+        record.requestBody = seedRecord.requestBody == null ? new HashMap<>() : seedRecord.requestBody;
         record.headers = seedRecord.headers == null ? new HashMap<>() : seedRecord.headers;
         record.customMap = seedRecord.customMap == null ? new HashMap<>() : seedRecord.customMap;
         return record;

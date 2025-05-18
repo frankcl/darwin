@@ -1,8 +1,9 @@
 <script setup>
 import { ref, watch, watchEffect } from 'vue'
-import { ElDialog, ElRow, ElText } from 'element-plus'
+import { ElDialog } from 'element-plus'
 import VideoPlayer from '@/components/data/VideoPlayer'
 import { asyncPreview } from '@/common/AsyncRequest'
+import DarwinCard from '@/components/data/Card'
 
 const props = defineProps(['recordKey'])
 const emits = defineEmits(['close'])
@@ -17,18 +18,19 @@ const close = () => {
 
 watch(() => open.value, () => openVideoPlayer.value = open.value)
 watchEffect(async () => {
-  if (props.recordKey) previewVideoURL.value = await asyncPreview(props.recordKey)
+  try {
+    if (props.recordKey) previewVideoURL.value = await asyncPreview(props.recordKey)
+  } catch {
+    open.value = false
+  }
 })
 </script>
 
 <template>
-  <el-dialog v-model="open" @close="close()" width="1200" align-center show-close>
-    <el-row class="mb-3">
-      <el-text class="text-xl font-600">视频预览</el-text>
-    </el-row>
-    <el-row justify="center">
+  <el-dialog v-model="open" @close="close()" align-center show-close>
+    <darwin-card title="视频预览">
       <video-player :open="openVideoPlayer" :videoURL="previewVideoURL" />
-    </el-row>
+    </darwin-card>
   </el-dialog>
 </template>
 

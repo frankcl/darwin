@@ -42,7 +42,7 @@ public class TextSpider extends Spider {
     @Override
     public MediaType handle(URLRecord record, Input input, Context context) throws IOException {
         assert input != null;
-        record.category = Constants.CONTENT_CATEGORY_PAGE;
+        record.contentType = Constants.CONTENT_TYPE_PAGE;
         if (input instanceof HTTPInput) {
             record.text = fetch(record, (HTTPInput) input, context);
             if (checkM3U8(record)) return MediaType.STREAM_M3U8;
@@ -124,7 +124,7 @@ public class TextSpider extends Spider {
             }
             return new String(byteArray, record.charset);
         } finally {
-            if (context != null) context.put(Constants.DARWIN_FETCH_TIME, System.currentTimeMillis() - startTime);
+            if (context != null) context.put(Constants.DARWIN_READ_TIME, System.currentTimeMillis() - startTime);
         }
     }
 
@@ -148,7 +148,8 @@ public class TextSpider extends Spider {
             record.charset = speculateCharset(byteArray, record);
             return new String(byteArray, Charset.forName(record.charset));
         } finally {
-            if (context != null) context.put(Constants.DARWIN_FETCH_TIME, System.currentTimeMillis() - startTime);
+            record.downTime = System.currentTimeMillis() - startTime;
+            if (context != null) context.put(Constants.DARWIN_DOWN_TIME, record.downTime);
         }
     }
 

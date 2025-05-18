@@ -44,7 +44,6 @@ public class AppController {
     @Produces(MediaType.APPLICATION_JSON)
     @Path("search")
     @GetMapping("search")
-    @EnableWebLogAspect
     public Pager<App> search(@BeanParam AppSearchRequest searchRequest) {
         return appService.search(searchRequest);
     }
@@ -59,7 +58,6 @@ public class AppController {
     @Produces(MediaType.APPLICATION_JSON)
     @Path("get")
     @GetMapping("get")
-    @EnableWebLogAspect
     public App get(@QueryParam("id") Integer id) {
         if (id == null) throw new BadRequestException("应用ID缺失");
         return appService.get(id);

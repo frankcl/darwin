@@ -4,6 +4,7 @@ import jakarta.annotation.Resource;
 import org.redisson.api.RMap;
 import org.redisson.client.codec.Codec;
 import org.redisson.codec.SnappyCodecV2;
+import org.springframework.stereotype.Component;
 import xin.manong.weapon.base.redis.RedisClient;
 
 import java.time.Duration;
@@ -15,24 +16,19 @@ import java.util.Map;
  * @author frankcl
  * @date 2023-03-09 17:30:39
  */
+@Component
 public class ConcurrencyControl {
 
-    private final int defaultConcurrencyConnections;
-    private final int concurrencyConnectionTtlSecond;
-    private final Map<String, Integer> concurrencyConnectionMap;
     /**
      * 使用snappy压缩节省URLRecord内存占用空间
      */
     private final Codec codec;
     @Resource
+    private ConcurrencyControlConfig config;
+    @Resource
     private RedisClient redisClient;
 
-    public ConcurrencyControl(Map<String, Integer> concurrencyConnectionMap,
-                              int defaultConcurrencyConnections,
-                              int concurrencyConnectionTtlSecond) {
-        this.concurrencyConnectionMap = concurrencyConnectionMap;
-        this.defaultConcurrencyConnections = defaultConcurrencyConnections;
-        this.concurrencyConnectionTtlSecond = concurrencyConnectionTtlSecond;
+    public ConcurrencyControl() {
         this.codec = new SnappyCodecV2();
     }
 
@@ -47,7 +43,7 @@ public class ConcurrencyControl {
         String redisKey = String.format("%s_%s", ConcurrencyConstants.CONCURRENCY_CONTROL, concurrencyUnit);
         RMap<String, Long> connectionRecordMap = redisClient.getRedissonClient().getMap(redisKey, codec);
         connectionRecordMap.put(key, System.currentTimeMillis());
-        connectionRecordMap.expireAsync(Duration.ofSeconds(concurrencyConnectionTtlSecond));
+        connectionRecordMap.expireAsync(Duration.ofSeconds(config.concurrentConnectionTtlSecond));
     }
 
     /**
@@ -62,7 +58,7 @@ public class ConcurrencyControl {
         String redisKey = String.format("%s_%s", ConcurrencyConstants.CONCURRENCY_CONTROL, concurrencyUnit);
         RMap<String, Long> connectionRecordMap = redisClient.getRedissonClient().getMap(redisKey, codec);
         boolean result = connectionRecordMap.remove(key) != null;
-        connectionRecordMap.expireAsync(Duration.ofSeconds(concurrencyConnectionTtlSecond));
+        connectionRecordMap.expireAsync(Duration.ofSeconds(config.concurrentConnectionTtlSecond));
         return result;
     }
 
@@ -112,9 +108,9 @@ public class ConcurrencyControl {
      */
     public int getMaxConcurrencyConnections(String concurrencyUnit) {
         assert concurrencyUnit != null;
-        if (concurrencyConnectionMap.containsKey(concurrencyUnit)) {
-            return concurrencyConnectionMap.get(concurrencyUnit);
+        if (config.concurrencyConnectionMap.containsKey(concurrencyUnit)) {
+            return config.concurrencyConnectionMap.get(concurrencyUnit);
         }
-        return defaultConcurrencyConnections;
+        return config.defaultConcurrencyConnections;
     }
 }

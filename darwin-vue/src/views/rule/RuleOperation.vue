@@ -1,22 +1,23 @@
 <script setup>
 import { ref } from 'vue'
-import { ElFormItem, ElRadio, ElRadioGroup } from 'element-plus'
+import { ElRadio, ElRadioGroup } from 'element-plus'
 import RuleAddTabs from '@/views/rule/RuleAddTabs'
 import RuleEditTabs from '@/views/rule/RuleEditTabs'
 
 defineProps(['planId'])
-const operator = ref(true)
+const edit = ref(true)
 </script>
 
 <template>
-  <el-form-item label="请选择操作">
-    <el-radio-group v-model="operator">
+  <div class="d-flex align-items-center mb-4">
+    <label class="mr-4 fs-14px flex-shrink-0">请选择操作</label>
+    <el-radio-group v-model="edit" label="请选择操作">
       <el-radio :value="true">编辑</el-radio>
       <el-radio :value="false">新增</el-radio>
     </el-radio-group>
-  </el-form-item>
-  <rule-edit-tabs v-if="operator" :plan-id="planId" />
-  <rule-add-tabs v-else :plan-id="planId" />
+  </div>
+  <rule-edit-tabs v-if="edit" :plan-id="planId" />
+  <rule-add-tabs v-else :plan-id="planId" @add="edit = true" />
 </template>
 
 <style scoped>

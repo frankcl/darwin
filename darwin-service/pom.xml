@@ -131,6 +131,10 @@
         </dependency>
         <dependency>
             <groupId>xin.manong</groupId>
+            <artifactId>hylian-client</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>xin.manong</groupId>
             <artifactId>darwin-common</artifactId>
             <version>${darwin.version}</version>
         </dependency>

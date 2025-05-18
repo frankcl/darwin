@@ -49,7 +49,6 @@ public class SeedController {
     @Produces(MediaType.APPLICATION_JSON)
     @Path("get")
     @GetMapping("get")
-    @EnableWebLogAspect
     public SeedRecord get(@QueryParam("key") String key) {
         if (StringUtils.isEmpty(key)) throw new BadRequestException("key缺失");
         return seedService.get(key);
@@ -66,7 +65,6 @@ public class SeedController {
     @Consumes(MediaType.APPLICATION_JSON)
     @Path("getList")
     @GetMapping("getList")
-    @EnableWebLogAspect
     public List<SeedRecord> getList(@QueryParam("plan_id") String planId) {
         if (StringUtils.isEmpty(planId)) throw new BadRequestException("计划ID缺失");
         return seedService.getList(planId);
@@ -83,7 +81,6 @@ public class SeedController {
     @Consumes(MediaType.APPLICATION_JSON)
     @Path("search")
     @GetMapping("search")
-    @EnableWebLogAspect
     public Pager<SeedRecord> search(@BeanParam SeedSearchRequest request) {
         return seedService.search(request);
     }

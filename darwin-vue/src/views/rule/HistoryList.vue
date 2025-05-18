@@ -1,6 +1,8 @@
 <script setup>
+import { IconArrowBackUp, IconClock, IconFileDescription, IconTrash } from '@tabler/icons-vue'
 import { reactive, ref, watch } from 'vue'
-import { ElButton, ElPagination, ElRow, ElSpace, ElTable, ElTableColumn } from 'element-plus'
+import zhCn from 'element-plus/dist/locale/zh-cn.mjs'
+import { ElButton, ElConfigProvider, ElPagination, ElRow, ElTable, ElTableColumn } from 'element-plus'
 import { useUserStore } from '@/store'
 import { formatDate } from '@/common/Time'
 import {
@@ -18,7 +20,7 @@ import ViewHistory from '@/views/rule/ViewHistory'
 const props = defineProps(['ruleId', 'ruleName', 'refresh'])
 const emits = defineEmits(['rollback'])
 const userStore = useUserStore()
-const openViewDialog = ref(false)
+const openView = ref(false)
 const historyId = ref()
 const historyList = ref([])
 const total = ref(0)
@@ -32,7 +34,7 @@ const search = async () => {
 
 const view = id => {
   historyId.value = id
-  openViewDialog.value = true
+  openView.value = true
 }
 
 const remove = async id => {
@@ -59,42 +61,56 @@ const rollback = async id => {
   emits('rollback')
 }
 
-watch(() => [ props.refresh, props.ruleId, query ], async () => query.rule_id = props.ruleId, { immediate: true })
-watch(() => [props.refresh, query], async () => await search(), { immediate: true })
+watch(() => props.ruleId, async () => query.rule_id = props.ruleId, { immediate: true })
+watch(() => [props.refresh, query.rule_id], async () => await search(), { immediate: true })
 </script>
 
 <template>
-  <el-space direction="vertical" :size="20" :fill="true" class="w100">
-    <el-table :data="historyList" table-layout="auto" stripe>
-      <template #empty>暂无历史版本</template>
-      <el-table-column prop="version" label="版本" width="80">
-        <template #default="scope">{{ scope.row.version }}</template>
-      </el-table-column>
-      <el-table-column prop="modifier" label="变更人" width="80" show-overflow-tooltip>
-        <template #default="scope">{{ scope.row.modifier }}</template>
-      </el-table-column>
-      <el-table-column prop="update_time" label="变更时间" width="180" show-overflow-tooltip>
-        <template #default="scope">{{ formatDate(scope.row['update_time']) }}</template>
-      </el-table-column>
-      <el-table-column prop="change_log" label="变更原因" show-overflow-tooltip>
-        <template #default="scope">{{ scope.row.change_log }}</template>
-      </el-table-column>
-      <el-table-column width="230">
-        <template #header>操作</template>
-        <template #default="scope">
-          <el-button type="primary" @click="view(scope.row.id)">查看</el-button>
-          <el-button type="success" @click="rollback(scope.row.id)" :disabled="!userStore.injected">回滚</el-button>
-          <el-button type="danger" @click="remove(scope.row.id)" :disabled="!userStore.injected">删除</el-button>
-        </template>
-      </el-table-column>
-    </el-table>
-    <el-row justify="center" align="middle">
-      <el-pagination background layout="prev, pager, next" :total="total"
+  <el-table class="mb-4 ml-2 mr-2" max-height="550" :data="historyList" table-layout="auto" stripe>
+    <template #empty>暂无历史数据</template>
+    <el-table-column prop="version" label="版本" width="80">
+      <template #default="scope">{{ scope.row.version }}</template>
+    </el-table-column>
+    <el-table-column prop="modifier" label="变更人" width="100" show-overflow-tooltip>
+      <template #default="scope">{{ scope.row.modifier }}</template>
+    </el-table-column>
+    <el-table-column prop="update_time" label="变更时间" show-overflow-tooltip>
+      <template #default="scope">
+        <div class="d-flex align-items-center">
+          <IconClock size="16" class="mr-1" />
+          <span>{{ formatDate(scope.row['update_time']) }}</span>
+        </div>
+      </template>
+    </el-table-column>
+    <el-table-column prop="change_log" label="变更原因" show-overflow-tooltip>
+      <template #default="scope">{{ scope.row.change_log }}</template>
+    </el-table-column>
+    <el-table-column width="300">
+      <template #header>操作</template>
+      <template #default="scope">
+        <el-button type="primary" plain @click="view(scope.row.id)">
+          <IconFileDescription size="20" class="mr-1" />
+          <span>查看</span>
+        </el-button>
+        <el-button type="success" @click="rollback(scope.row.id)" :disabled="!userStore.injected">
+          <IconArrowBackUp size="20" class="mr-1" />
+          <span>回滚</span>
+        </el-button>
+        <el-button type="danger" @click="remove(scope.row.id)" :disabled="!userStore.injected">
+          <IconTrash size="20" class="mr-1" />
+          <span>删除</span>
+        </el-button>
+      </template>
+    </el-table-column>
+  </el-table>
+  <el-row justify="center" align="middle">
+    <el-config-provider :locale="zhCn">
+      <el-pagination background layout="total, prev, pager, next, jumper" :total="total"
                      v-model:page-size="query.page_size" v-model:current-page="query.page_num">
       </el-pagination>
-    </el-row>
-  </el-space>
-  <view-history v-model="openViewDialog" :id="historyId" :name="ruleName" />
+    </el-config-provider>
+  </el-row>
+  <view-history v-model="openView" :id="historyId" :name="ruleName" />
 </template>
 
 <style scoped>

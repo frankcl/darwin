@@ -21,7 +21,6 @@ import xin.manong.weapon.base.http.HttpClient;
 import xin.manong.weapon.base.http.HttpClientConfig;
 import xin.manong.weapon.base.http.HttpProxyAuthenticator;
 import xin.manong.weapon.base.http.HttpRequest;
-import xin.manong.weapon.spring.boot.aspect.EnableWebLogAspect;
 
 import java.io.IOException;
 
@@ -59,7 +58,6 @@ public class ProxyController {
     @Produces(MediaType.APPLICATION_JSON)
     @Path("check")
     @GetMapping("check")
-    @EnableWebLogAspect
     public boolean check(@QueryParam("id") Integer id) throws IOException {
         if (id == null) throw new BadRequestException("代理ID缺失");
         Proxy proxy = proxyService.get(id);
@@ -87,9 +85,9 @@ public class ProxyController {
     @Produces(MediaType.APPLICATION_JSON)
     @Path("get")
     @GetMapping("get")
-    @EnableWebLogAspect
     public Proxy get(@QueryParam("id") Integer id) {
         if (id == null) throw new BadRequestException("代理ID缺失");
+        permissionSupport.checkAdmin();
         return proxyService.get(id);
     }
 
@@ -104,7 +102,6 @@ public class ProxyController {
     @Consumes(MediaType.APPLICATION_JSON)
     @Path("search")
     @GetMapping("search")
-    @EnableWebLogAspect
     public Pager<Proxy> search(@BeanParam ProxySearchRequest request) {
         return proxyService.search(request);
     }
@@ -120,7 +117,6 @@ public class ProxyController {
     @Consumes(MediaType.APPLICATION_JSON)
     @Path("add")
     @PutMapping("add")
-    @EnableWebLogAspect
     public Boolean add(@RequestBody ProxyRequest request) {
         if (request == null) throw new BadRequestException("代理请求信息为空");
         request.check();
@@ -140,7 +136,6 @@ public class ProxyController {
     @Consumes(MediaType.APPLICATION_JSON)
     @Path("update")
     @PostMapping("update")
-    @EnableWebLogAspect
     public Boolean update(@RequestBody ProxyUpdateRequest request) {
         if (request == null) throw new BadRequestException("代理更新信息为空");
         request.check();
@@ -159,7 +154,6 @@ public class ProxyController {
     @Produces(MediaType.APPLICATION_JSON)
     @Path("delete")
     @DeleteMapping("delete")
-    @EnableWebLogAspect
     public Boolean delete(@QueryParam("id") Integer id) {
         if (id == null) throw new BadRequestException("代理ID为空");
         permissionSupport.checkAdmin();

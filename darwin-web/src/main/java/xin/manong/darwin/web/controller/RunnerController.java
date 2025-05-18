@@ -12,7 +12,6 @@ import xin.manong.darwin.runner.manage.ExecuteRunnerMeta;
 import xin.manong.darwin.runner.manage.ExecuteRunnerRegistry;
 import xin.manong.darwin.service.iface.MessageService;
 import xin.manong.darwin.web.component.PermissionSupport;
-import xin.manong.weapon.spring.boot.aspect.EnableWebLogAspect;
 
 import java.util.List;
 
@@ -45,7 +44,6 @@ public class RunnerController {
     @Produces(MediaType.APPLICATION_JSON)
     @Path("getList")
     @GetMapping("getList")
-    @EnableWebLogAspect
     public List<ExecuteRunnerMeta> getList(@QueryParam("type") int type) {
         return executeRunnerRegistry.getList(type);
     }
@@ -60,7 +58,6 @@ public class RunnerController {
     @Produces(MediaType.APPLICATION_JSON)
     @Path("isRunning")
     @GetMapping("isRunning")
-    @EnableWebLogAspect
     public boolean isRunning(@QueryParam("key") String key) {
         return executeRunnerRegistry.isRunning(key);
     }
@@ -75,7 +72,6 @@ public class RunnerController {
     @Produces(MediaType.APPLICATION_JSON)
     @Path("popMessage")
     @GetMapping("popMessage")
-    @EnableWebLogAspect
     public Message popMessage(@QueryParam("key") String key) {
         permissionSupport.checkAdmin();
         Message message = messageService.pop(key, Message.SOURCE_TYPE_RUNNER);
@@ -93,7 +89,6 @@ public class RunnerController {
     @Produces(MediaType.APPLICATION_JSON)
     @Path("messageCount")
     @GetMapping("messageCount")
-    @EnableWebLogAspect
     public Long messageCount(@QueryParam("key") String key) {
         return messageService.messageCount(key, Message.SOURCE_TYPE_RUNNER);
     }
@@ -108,7 +103,6 @@ public class RunnerController {
     @Produces(MediaType.APPLICATION_JSON)
     @Path("start")
     @GetMapping("start")
-    @EnableWebLogAspect
     public boolean start(@QueryParam("key") String key) {
         permissionSupport.checkAdmin();
         return executeRunnerRegistry.start(key);
@@ -124,7 +118,6 @@ public class RunnerController {
     @Produces(MediaType.APPLICATION_JSON)
     @Path("stop")
     @GetMapping("stop")
-    @EnableWebLogAspect
     public boolean stop(@QueryParam("key") String key) {
         permissionSupport.checkAdmin();
         return executeRunnerRegistry.stop(key);

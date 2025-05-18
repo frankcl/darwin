@@ -28,7 +28,7 @@ export default defineConfig({
   },
   server: {
     port: 8088,
-    host: '192.168.3.43',
+    host: '127.0.0.1',
     allowedHosts: ['darwin.manong.xin'],
     cors: true,
     proxy: {

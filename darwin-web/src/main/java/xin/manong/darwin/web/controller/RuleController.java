@@ -75,7 +75,6 @@ public class RuleController {
     @Produces(MediaType.APPLICATION_JSON)
     @Path("get")
     @GetMapping("get")
-    @EnableWebLogAspect
     public Rule get(@QueryParam("id") Integer id) {
         if (id == null) throw new BadRequestException("规则ID缺失");
         return ruleService.get(id);
@@ -91,7 +90,6 @@ public class RuleController {
     @Produces(MediaType.APPLICATION_JSON)
     @Path("planRules")
     @GetMapping("planRules")
-    @EnableWebLogAspect
     public List<Rule> getRules(@QueryParam("plan_id") String planId) {
         if (StringUtils.isEmpty(planId)) throw new BadRequestException("计划ID为空");
         return ruleService.getRules(planId);
@@ -108,7 +106,6 @@ public class RuleController {
     @Consumes(MediaType.APPLICATION_JSON)
     @Path("search")
     @GetMapping("search")
-    @EnableWebLogAspect
     public Pager<Rule> search(@BeanParam RuleSearchRequest request) {
         return ruleService.search(request);
     }
@@ -124,7 +121,6 @@ public class RuleController {
     @Consumes(MediaType.APPLICATION_JSON)
     @Path("add")
     @PutMapping("add")
-    @EnableWebLogAspect
     public Boolean add(@RequestBody RuleRequest request) {
         if (request == null) throw new BadRequestException("规则请求信息为空");
         request.check();
@@ -148,7 +144,6 @@ public class RuleController {
     @Consumes(MediaType.APPLICATION_JSON)
     @Path("update")
     @PostMapping("update")
-    @EnableWebLogAspect
     public Boolean update(@RequestBody RuleUpdateRequest request) {
         if (request == null) throw new BadRequestException("规则更新信息为空");
         request.check();
@@ -191,7 +186,6 @@ public class RuleController {
     @Produces(MediaType.APPLICATION_JSON)
     @Path("history/get")
     @GetMapping("history/get")
-    @EnableWebLogAspect
     public RuleHistory getHistory(@QueryParam("id") Integer id) {
         if (id == null) throw new BadRequestException("规则历史ID缺失");
         return ruleService.getHistory(id);
@@ -230,7 +224,6 @@ public class RuleController {
     @Produces(MediaType.APPLICATION_JSON)
     @Path("history/search")
     @GetMapping("history/search")
-    @EnableWebLogAspect
     public Pager<RuleHistory> searchHistory(@QueryParam("rule_id") Integer ruleId,
                                             @QueryParam("page_num") Integer pageNum,
                                             @QueryParam("page_size") Integer pageSize) {
@@ -251,7 +244,6 @@ public class RuleController {
     @Consumes(MediaType.APPLICATION_JSON)
     @Path("rollback")
     @PostMapping("rollback")
-    @EnableWebLogAspect
     public Boolean rollback(@RequestBody RuleRollBackRequest rollBackRequest) {
         if (rollBackRequest == null) throw new BadRequestException("规则回滚请求为空");
         rollBackRequest.check();

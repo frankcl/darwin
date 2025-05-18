@@ -21,10 +21,8 @@ import xin.manong.darwin.service.iface.URLService;
 import xin.manong.darwin.service.request.URLSearchRequest;
 import xin.manong.darwin.service.util.ModelValidator;
 
-import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 /**
  * MySQL URL服务实现
@@ -55,8 +53,9 @@ public class URLServiceImpl extends URLService {
         updateWrapper.eq(URLRecord::getKey, record.key);
         updateWrapper.set(URLRecord::getUpdateTime, System.currentTimeMillis());
         if (record.fetchTime != null) updateWrapper.set(URLRecord::getFetchTime, record.fetchTime);
+        if (record.downTime != null) updateWrapper.set(URLRecord::getDownTime, record.downTime);
         if (record.status != null) updateWrapper.set(URLRecord::getStatus, record.status);
-        if (record.category != null) updateWrapper.set(URLRecord::getCategory, record.category);
+        if (record.contentType != null) updateWrapper.set(URLRecord::getContentType, record.contentType);
         if (record.httpCode != null) updateWrapper.set(URLRecord::getHttpCode, record.httpCode);
         if (record.fetched != null) updateWrapper.set(URLRecord::getFetched, record.fetched);
         if (record.contentLength != null) updateWrapper.set(URLRecord::getContentLength, record.contentLength);
@@ -142,7 +141,7 @@ public class URLServiceImpl extends URLService {
     }
 
     @Override
-    public List<URLGroupCount> countGroupByStatus(String jobId, RangeValue<Long> timeRange) {
+    public List<URLGroupCount> statusGroupCount(String jobId, RangeValue<Long> timeRange) {
         LambdaQueryWrapper<URLGroupCount> query = new LambdaQueryWrapper<>();
         query.select(URLGroupCount::getStatus, URLGroupCount::getCount);
         if (jobId != null) query.eq(URLGroupCount::getJobId, jobId);
@@ -152,17 +151,18 @@ public class URLServiceImpl extends URLService {
     }
 
     @Override
-    public List<URLGroupCount> countGroupByCategory(String jobId, RangeValue<Long> timeRange) {
+    public List<URLGroupCount> contentGroupCount(String jobId, RangeValue<Long> timeRange) {
         LambdaQueryWrapper<URLGroupCount> query = new LambdaQueryWrapper<>();
-        query.select(URLGroupCount::getCategory, URLGroupCount::getCount);
+        query.select(URLGroupCount::getContentType, URLGroupCount::getCount);
+        query.ge(URLGroupCount::getContentType, Constants.CONTENT_TYPE_PAGE);
         if (timeRange != null) prepareCreateTimeRange(query, timeRange);
         if (jobId != null) query.eq(URLGroupCount::getJobId, jobId);
-        query.groupBy(URLGroupCount::getCategory);
+        query.groupBy(URLGroupCount::getContentType);
         return URLGroupCountMapper.selectList(query);
     }
 
     @Override
-    public int urlCount(RangeValue<Long> timeRange) {
+    public int fetchURLCount(RangeValue<Long> timeRange) {
         LambdaQueryWrapper<URLGroupCount> query = new LambdaQueryWrapper<>();
         query.select(URLGroupCount::getCount);
         prepareCreateTimeRange(query, timeRange);
@@ -171,7 +171,7 @@ public class URLServiceImpl extends URLService {
     }
 
     @Override
-    public int hostCount(RangeValue<Long> timeRange) {
+    public int fetchHostCount(RangeValue<Long> timeRange) {
         QueryWrapper<URLRecord> query = new QueryWrapper<>();
         query.select("DISTINCT host");
         prepareCreateTimeRange(query, timeRange);
@@ -179,7 +179,7 @@ public class URLServiceImpl extends URLService {
     }
 
     @Override
-    public int domainCount(RangeValue<Long> timeRange) {
+    public int fetchDomainCount(RangeValue<Long> timeRange) {
         QueryWrapper<URLRecord> query = new QueryWrapper<>();
         query.select("DISTINCT domain");
         prepareCreateTimeRange(query, timeRange);
@@ -187,41 +187,37 @@ public class URLServiceImpl extends URLService {
     }
 
     @Override
-    public long avgContentLength(Integer category, RangeValue<Long> timeRange) {
-        QueryWrapper<URLRecord> query = new QueryWrapper<>();
-        String columnName = "content_length";
-        String avgColumnName = "avgContentLength";
-        query.select(String.format("AVG(%s) AS %s", columnName, avgColumnName));
-        query.gt(columnName, 0);
-        if (category != null) query.eq("category", category);
-        prepareCreateTimeRange(query, timeRange);
-        List<Map<String, Object>> results = urlMapper.selectMaps(query);
-        if (results == null || results.isEmpty() || results.get(0) == null) return 0L;
-        return ((BigDecimal) results.get(0).get(avgColumnName)).longValue();
-    }
-
-    @Override
-    public List<URLGroupCount> topConcurrencyUnits(int top) {
+    public List<URLGroupCount> waitConcurrencyUnits(int n) {
         List<Integer> statusList = new ArrayList<>();
         statusList.add(Constants.URL_STATUS_QUEUING);
-        statusList.add(Constants.URL_STATUS_FETCHING);
         LambdaQueryWrapper<URLGroupCount> query = new LambdaQueryWrapper<>();
         query.select(URLGroupCount::getConcurrencyUnit, URLGroupCount::getCount);
         query.in(URLGroupCount::getStatus, statusList);
         query.groupBy(URLGroupCount::getConcurrencyUnit);
         query.orderByDesc(URLGroupCount::getCount);
-        query.last(String.format("LIMIT %d", top));
+        query.last(String.format("LIMIT %d", n));
         return URLGroupCountMapper.selectList(query);
     }
 
     @Override
-    public List<URLGroupCount> topHosts(RangeValue<Long> timeRange, int top) {
+    public List<URLGroupCount> queueWaitPriority() {
+        List<Integer> statusList = new ArrayList<>();
+        statusList.add(Constants.URL_STATUS_QUEUING);
+        LambdaQueryWrapper<URLGroupCount> query = new LambdaQueryWrapper<>();
+        query.in(URLGroupCount::getStatus, statusList);
+        query.groupBy(URLGroupCount::getPriority);
+        query.select(URLGroupCount::getPriority, URLGroupCount::getCount);
+        return URLGroupCountMapper.selectList(query);
+    }
+
+    @Override
+    public List<URLGroupCount> hostFetchCount(RangeValue<Long> timeRange, int n) {
         LambdaQueryWrapper<URLGroupCount> query = new LambdaQueryWrapper<>();
         query.select(URLGroupCount::getHost, URLGroupCount::getCount);
         prepareCreateTimeRange(query, timeRange);
         query.groupBy(URLGroupCount::getHost);
         query.orderByDesc(URLGroupCount::getCount);
-        query.last(String.format("LIMIT %d", top));
+        query.last(String.format("LIMIT %d", n));
         return URLGroupCountMapper.selectList(query);
     }
 
@@ -267,15 +263,24 @@ public class URLServiceImpl extends URLService {
      */
     private QueryWrapper<URLRecord> buildQueryWrapper(URLSearchRequest searchRequest) {
         QueryWrapper<URLRecord> query = new QueryWrapper<>();
-        if (searchRequest.category != null) query.eq("category", searchRequest.category);
+        if (searchRequest.contentType != null) query.eq("content_type", searchRequest.contentType);
         if (searchRequest.priority != null) query.eq("priority", searchRequest.priority);
         if (searchRequest.fetchMethod != null) query.eq("fetch_method", searchRequest.fetchMethod);
         if (searchRequest.appId != null) query.eq("app_id", searchRequest.appId);
+        if (searchRequest.httpRequest != null) query.eq("http_request", searchRequest.httpRequest.name());
         if (StringUtils.isNotEmpty(searchRequest.jobId)) query.eq("job_id", searchRequest.jobId);
         if (StringUtils.isNotEmpty(searchRequest.planId)) query.eq("plan_id", searchRequest.planId);
         if (StringUtils.isNotEmpty(searchRequest.host)) query.eq("host", searchRequest.host);
         if (StringUtils.isNotEmpty(searchRequest.domain)) query.eq("domain", searchRequest.domain);
-        if (StringUtils.isNotEmpty(searchRequest.url)) query.eq("hash", DigestUtils.md5Hex(searchRequest.url));
+        if (StringUtils.isNotEmpty(searchRequest.concurrencyUnit)) query.eq("concurrency_unit", searchRequest.concurrencyUnit);
+        if (StringUtils.isNotEmpty(searchRequest.url)) {
+            if (searchRequest.requestBody != null && !searchRequest.requestBody.isEmpty()) {
+                query.eq("request_hash", DigestUtils.md5Hex(String.format("%s_%s",
+                        searchRequest.url, JSON.toJSONString(searchRequest.requestBody))));
+            } else {
+                query.eq("hash", DigestUtils.md5Hex(searchRequest.url));
+            }
+        }
         if (searchRequest.statusList != null && !searchRequest.statusList.isEmpty()) {
             query.in("status", searchRequest.statusList);
         }

@@ -1,34 +1,33 @@
 <script setup>
-import { reactive, useTemplateRef, watchEffect } from 'vue'
-import {
-  ElButton, ElDialog, ElForm,
-  ElFormItem, ElInput, ElRow, ElSpace
-} from 'element-plus'
+import { IconEdit, IconRefresh } from '@tabler/icons-vue'
+import { ref, useTemplateRef, watchEffect } from 'vue'
+import { ElButton, ElDialog, ElForm, ElFormItem, ElInput } from 'element-plus'
 import { useUserStore } from '@/store'
 import { ERROR, showMessage, SUCCESS } from '@/common/Feedback'
 import { asyncGetApp, asyncUpdateApp } from '@/common/AsyncRequest'
+import DarwinCard from '@/components/data/Card'
 import { appFormRules } from '@/views/app/common'
 
 const props = defineProps(['id'])
 const open = defineModel()
 const emits = defineEmits(['close'])
 const userStore = useUserStore()
-const appFormRef = useTemplateRef('appForm')
-const app = reactive({})
+const formRef = useTemplateRef('form')
+const app = ref({})
 
 const resetAppForm = async () => {
   if (props.id) {
-    const tempApp = await asyncGetApp(props.id)
-    app.id = props.id
-    app.name = tempApp.name
-    app.comment = tempApp.comment
+    app.value = await asyncGetApp(props.id)
   }
 }
 
-const update = async formElement => {
-  if (!await formElement.validate(valid => valid)) return
-  if (await asyncUpdateApp(app)) showMessage('编辑应用成功', SUCCESS)
-  else showMessage('编辑应用失败', ERROR)
+const update = async () => {
+  if (!await formRef.value.validate(valid => valid)) return
+  if (!await asyncUpdateApp(app.value)) {
+    showMessage('编辑应用失败', ERROR)
+    return
+  }
+  showMessage('编辑应用成功', SUCCESS)
   open.value = false
 }
 
@@ -36,12 +35,9 @@ watchEffect(async () => await resetAppForm())
 </script>
 
 <template>
-  <el-dialog v-model="open" @close="emits('close')" width="680" align-center show-close>
-    <el-space direction="vertical" :size="20" :fill="true" class="w100">
-      <el-row align="middle">
-        <span class="text-xl font-bold ml-2">编辑应用</span>
-      </el-row>
-      <el-form ref="appForm" :model="app" :rules="appFormRules" label-width="80px" label-position="right">
+  <el-dialog v-model="open" @close="emits('close')" align-center show-close>
+    <darwin-card :title="`编辑应用：${app.name}`">
+      <el-form ref="form" :model="app" :rules="appFormRules" label-width="80px" label-position="top">
         <el-form-item label="应用名" prop="name">
           <el-input v-model.trim="app.name" clearable />
         </el-form-item>
@@ -49,11 +45,17 @@ watchEffect(async () => await resetAppForm())
           <el-input type="textarea" :rows="5" v-model="app.comment" />
         </el-form-item>
         <el-form-item>
-          <el-button type="primary" @click="update(appFormRef)" :disabled="!userStore.injected">编辑</el-button>
-          <el-button type="info" @click="resetAppForm">重置</el-button>
+          <el-button type="primary" @click="update(appFormRef)" :disabled="!userStore.injected">
+            <IconEdit size="20" class="mr-1" />
+            <span>编辑</span>
+          </el-button>
+          <el-button type="info" @click="resetAppForm">
+            <IconRefresh size="20" class="mr-1" />
+            <span>重置</span>
+          </el-button>
         </el-form-item>
       </el-form>
-    </el-space>
+    </darwin-card>
   </el-dialog>
 </template>
 

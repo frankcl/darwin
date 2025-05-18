@@ -147,14 +147,14 @@ public class TextParser {
                 logger.warn("Ignore child:{} same with parent", child.url);
                 return false;
             }
-            if (urlService.isDuplicate(child.url, child.jobId)) {
+            if (urlService.isDuplicate(child)) {
                 context.put(Constants.DARWIN_DEBUG_MESSAGE, "重复子链接");
                 logger.warn("Ignore duplicated child:{}", child.url);
                 return false;
             }
             if (((child.allowRepeat == null && !allowRepeat) ||
                     (child.allowRepeat != null && !child.allowRepeat)) &&
-                    urlService.isFetched(child.url, child.planId)) {
+                    urlService.isFetched(child)) {
                 context.put(Constants.DARWIN_DEBUG_MESSAGE, "忽略已抓取链接");
                 logger.warn("Ignore fetched child:{}", child.url);
                 return false;
@@ -199,6 +199,7 @@ public class TextParser {
             String normalizedURL = URLNormalizer.normalize(child.url);
             child.setUrl(normalizedURL);
         }
+        child.requestHash = child.computeRequestHash();
         concurrencyComputer.compute(child);
         if (child.priority == null) child.priority = parent.priority;
         if (child.fetchMethod == null) child.fetchMethod = parent.fetchMethod;

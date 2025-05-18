@@ -1,10 +1,14 @@
 <script setup>
+import {
+  IconCircleX, IconExclamationCircleFilled, IconPlayerPlayFilled,
+  IconPlayerStopFilled, IconProgress, IconProgressHelp
+} from '@tabler/icons-vue'
 import { computed, ref, watchEffect } from 'vue'
 import { useRoute } from 'vue-router'
 import {
-  ElBadge,
+  ElBadge, ElBreadcrumb, ElBreadcrumbItem,
   ElButton, ElLoading,
-  ElNotification, ElRow,
+  ElNotification,
   ElTable,
   ElTableColumn, ElText
 } from 'element-plus'
@@ -21,6 +25,8 @@ import {
   asyncStartRunner,
   asyncStopRunner
 } from '@/common/AsyncRequest'
+import DarwinCard from '@/components/data/Card'
+import TableHead from '@/components/data/TableHead'
 
 const route = useRoute()
 const title = computed(() => route.query.type === '1' ? '核心进程' : '监控进程')
@@ -94,43 +100,71 @@ watchEffect(async () => await getRunners(route.query.type))
 </script>
 
 <template>
-  <el-row class="mb-3" align="middle">
-    <span class="text-xl font-bold ml-2">{{ title }}</span>
-  </el-row>
-  <el-table :data="runners" table-layout="auto" stripe>
-    <template #empty>暂无执行进程</template>
-    <el-table-column prop="name" label="进程" show-overflow-tooltip>
-      <template #default="scope">{{ scope.row.name }}</template>
-    </el-table-column>
-    <el-table-column prop="status" label="状态" width="80" show-overflow-tooltip>
-      <template #default="scope">
-        <el-text v-loading="scope.row.loading">
-          <span v-if="scope.row.status === undefined">未知</span>
-          <span v-else-if="scope.row.status">运行</span>
-          <span v-else>停止</span>
-        </el-text>
-      </template>
-    </el-table-column>
-    <el-table-column prop="description" label="说明" show-overflow-tooltip>
-      <template #default="scope">{{ scope.row.description }}</template>
-    </el-table-column>
-    <el-table-column width="200">
-      <template #header>操作</template>
-      <template #default="scope">
-        <el-button v-if="!scope.row.status" type="success" @click="start(scope.row)" :loading="starting === scope.row.key"
-                   :disabled="!userStore.superAdmin">启动</el-button>
-        <el-button v-else type="danger" @click="stop(scope.row)" :loading="stopping === scope.row.key"
-                   :disabled="!userStore.superAdmin">停止</el-button>
-        <el-badge v-if="scope.row.message_num > 0" :value="scope.row.message_num"
-                  class="badge-button">
-          <el-button type="warning" @click="popMessage(scope.row)"
-                     :disabled="!userStore.superAdmin">异常</el-button>
-        </el-badge>
-        <el-button v-else type="warning" @click="popMessage(scope.row)"
-                   :disabled="!userStore.superAdmin || scope.row.message_num === 0">异常</el-button>
-      </template>
-    </el-table-column>
-  </el-table>
+  <darwin-card>
+    <template #title>
+      <el-breadcrumb separator="/">
+        <el-breadcrumb-item :to="{ path: '/home' }">首页</el-breadcrumb-item>
+        <el-breadcrumb-item>后台进程</el-breadcrumb-item>
+        <el-breadcrumb-item>{{ title }}</el-breadcrumb-item>
+      </el-breadcrumb>
+    </template>
+    <table-head title="进程列表" />
+    <el-table :data="runners" table-layout="auto" stripe>
+      <template #empty>暂无后台进程</template>
+      <el-table-column prop="name" label="进程" show-overflow-tooltip>
+        <template #default="scope">{{ scope.row.name }}</template>
+      </el-table-column>
+      <el-table-column prop="status" label="状态" width="120" show-overflow-tooltip>
+        <template #default="scope">
+          <el-text v-loading="scope.row.loading">
+            <div v-if="scope.row.status === undefined" class="d-flex align-items-center">
+              <IconProgressHelp size="20" color="#e6a23c" class="mr-1" />
+              <span>未知</span>
+            </div>
+            <div v-else-if="scope.row.status" class="d-flex align-items-center">
+              <IconProgress size="20" color="#95D475" class="mr-1" />
+              <span>运行</span>
+            </div>
+            <div v-else class="d-flex align-items-center">
+              <IconCircleX size="20" color="#f56c6c" class="mr-1" />
+              <span>停止</span>
+            </div>
+          </el-text>
+        </template>
+      </el-table-column>
+      <el-table-column prop="description" label="说明" show-overflow-tooltip>
+        <template #default="scope">{{ scope.row.description }}</template>
+      </el-table-column>
+      <el-table-column width="240">
+        <template #header>操作</template>
+        <template #default="scope">
+          <el-button v-if="!scope.row.status" type="success" @click="start(scope.row)" :loading="starting === scope.row.key"
+                     :disabled="!userStore.superAdmin">
+            <IconPlayerPlayFilled size="20" class="mr-1" />
+            <span>启动</span>
+          </el-button>
+          <el-button v-else type="danger" @click="stop(scope.row)" :loading="stopping === scope.row.key"
+                     :disabled="!userStore.superAdmin">
+            <IconPlayerStopFilled size="20" class="mr-1" />
+            <span>停止</span>
+          </el-button>
+          <el-badge v-if="scope.row.message_num > 0" :value="scope.row.message_num"
+                    class="badge-button">
+            <el-button type="warning" @click="popMessage(scope.row)"
+                       :disabled="!userStore.superAdmin">
+              <IconExclamationCircleFilled size="20" class="mr-1" />
+              <span>异常</span>
+            </el-button>
+          </el-badge>
+          <el-button v-else type="warning" @click="popMessage(scope.row)"
+                     :disabled="!userStore.superAdmin || scope.row.message_num === 0">
+            <IconExclamationCircleFilled size="20" class="mr-1" />
+            <span>异常</span>
+          </el-button>
+        </template>
+      </el-table-column>
+    </el-table>
+  </darwin-card>
 </template>
 
 <style scoped>

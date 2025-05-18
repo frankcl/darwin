@@ -16,7 +16,7 @@ public class GroovyParser extends HTMLParser {
     @Override
     public ParseResponse parse(ParseRequest request) {
         Map<String, Object> fieldMap = new HashMap<>();
-        Document document = Jsoup.parse(request.html, StringUtils.isEmpty(request.redirectURL) ?
+        Document document = Jsoup.parse(request.text, StringUtils.isEmpty(request.redirectURL) ?
                 request.url : request.redirectURL);
         String title = request.customMap == null ? null : (String) request.customMap.get("title");
         if (StringUtils.isEmpty(title)) title = parseTitle(document);

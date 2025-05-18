@@ -1,35 +1,37 @@
 <script setup>
+import { IconPlus, IconRefresh } from '@tabler/icons-vue'
 import { reactive, useTemplateRef } from 'vue'
 import {
   ElButton, ElDialog, ElForm,
-  ElFormItem, ElInput, ElRow, ElSpace
+  ElFormItem, ElInput
 } from 'element-plus'
 import { useUserStore } from '@/store'
 import { ERROR, showMessage, SUCCESS } from '@/common/Feedback'
 import { asyncAddApp } from '@/common/AsyncRequest'
+import DarwinCard from '@/components/data/Card'
 import { appFormRules } from '@/views/app/common'
 
 const open = defineModel()
 const emits = defineEmits(['close'])
 const userStore = useUserStore()
-const appFormRef = useTemplateRef('appForm')
+const formRef = useTemplateRef('form')
 const app = reactive({})
 
-const add = async formElement => {
-  if (!await formElement.validate(valid => valid)) return
-  if (await asyncAddApp(app)) showMessage('新增应用成功', SUCCESS)
-  else showMessage('新增应用失败', ERROR)
+const add = async () => {
+  if (!await formRef.value.validate(valid => valid)) return
+  if (!await asyncAddApp(app)) {
+    showMessage('新增应用失败', ERROR)
+    return
+  }
+  showMessage('新增应用成功', SUCCESS)
   open.value = false
 }
 </script>
 
 <template>
-  <el-dialog v-model="open" @close="emits('close')" width="680" align-center show-close>
-    <el-space direction="vertical" :size="20" :fill="true" class="w100">
-      <el-row align="middle">
-        <span class="text-xl font-bold ml-2">新增应用</span>
-      </el-row>
-      <el-form ref="appForm" :model="app" :rules="appFormRules" label-width="80px" label-position="right">
+  <el-dialog v-model="open" @close="emits('close')" align-center show-close>
+    <darwin-card title="新增应用">
+      <el-form ref="form" :model="app" :rules="appFormRules" label-width="80px" label-position="top">
         <el-form-item label="应用名" prop="name">
           <el-input v-model.trim="app.name" clearable />
         </el-form-item>
@@ -37,11 +39,17 @@ const add = async formElement => {
           <el-input type="textarea" :rows="5" v-model="app.comment" />
         </el-form-item>
         <el-form-item>
-          <el-button type="primary" @click="add(appFormRef)" :disabled="!userStore.injected">新增</el-button>
-          <el-button type="info" @click="appFormRef.resetFields()">重置</el-button>
+          <el-button type="primary" @click="add(appFormRef)" :disabled="!userStore.injected">
+            <IconPlus size="20" class="mr-1" />
+            <span>新增</span>
+          </el-button>
+          <el-button type="info" @click="formRef.resetFields()">
+            <IconRefresh size="20" class="mr-1" />
+            <span>重置</span>
+          </el-button>
         </el-form-item>
       </el-form>
-    </el-space>
+    </darwin-card>
   </el-dialog>
 </template>
 

@@ -1,6 +1,7 @@
 <script setup>
+import { IconDeviceIpadHorizontalCode, IconEdit, IconVersions } from '@tabler/icons-vue'
 import { ref } from 'vue'
-import { ElCol, ElDivider, ElFormItem, ElTabPane, ElTabs } from 'element-plus'
+import { ElDivider, ElTabPane, ElTabs} from 'element-plus'
 import RuleSelect from '@/components/rule/RuleSelect'
 import DebugScript from '@/views/debug/DebugScript'
 import EditRule from '@/views/rule/EditRule'
@@ -8,57 +9,57 @@ import HistoryList from '@/views/rule/HistoryList'
 
 const props = defineProps(['planId'])
 const ruleId = ref()
-const ruleChanged = ref()
+const ruleEdited = ref()
 const refreshSelector = ref(Date.now())
 const refreshEdit = ref(Date.now())
 const refreshHistory = ref(Date.now())
 
-const handleClear = () => ruleId.value = ruleChanged.value = undefined
-const handleRefresh = () => {
+const handleClear = () => ruleId.value = ruleEdited.value = undefined
+const handleUpdate = () => {
   refreshSelector.value = Date.now()
   refreshHistory.value = Date.now()
 }
-const handleRuleChange = rule => {
-  ruleChanged.value = rule
+const handleChange = rule => {
+  ruleEdited.value = rule
 }
-const handleRuleRemove = () => {
+const handleRemove = () => {
   handleClear()
-  handleRefresh()
+  handleUpdate()
 }
 </script>
 
 <template>
-    <el-form-item label="请选择规则">
-      <el-col :span="8">
-        <rule-select v-model="ruleId" :plan-id="props.planId"
-                     :force-refresh="refreshSelector" @clear="handleClear" />
-      </el-col>
-    </el-form-item>
-    <el-divider></el-divider>
-    <el-tabs v-if="ruleId" tab-position="left" class="rule-tabs">
-      <el-tab-pane label="编辑">
-        <edit-rule :id="ruleId" :refresh="refreshEdit"
-                   @update="handleRefresh" @change="handleRuleChange" @remove="handleRuleRemove" />
-      </el-tab-pane>
-      <el-tab-pane label="调试">
-        <debug-script v-bind="ruleChanged" />
-      </el-tab-pane>
-      <el-tab-pane label="版本">
-        <history-list :rule-id="ruleId" :rule-name="ruleChanged ? ruleChanged.name : ''"
-                      :refresh="refreshHistory" @rollback="refreshEdit = Date.now()" />
-      </el-tab-pane>
-    </el-tabs>
+  <div class="d-flex align-items-center mb-4">
+    <label class="mr-4 fs-14px flex-shrink-0">请选择规则</label>
+    <rule-select v-model="ruleId" :plan-id="props.planId" :refresh="refreshSelector" @clear="handleClear" />
+  </div>
+  <el-divider></el-divider>
+  <el-tabs v-if="ruleId" tab-position="left" class="rule-tabs">
+    <el-tab-pane label="编辑">
+      <template #label>
+        <IconEdit size="20" />
+        <span class="ml-2">编辑</span>
+      </template>
+      <edit-rule :id="ruleId" :refresh="refreshEdit" @update="handleUpdate"
+                 @change="handleChange" @remove="handleRemove" />
+    </el-tab-pane>
+    <el-tab-pane label="调试">
+      <template #label>
+        <IconDeviceIpadHorizontalCode size="20" />
+        <span class="ml-2">调试</span>
+      </template>
+      <debug-script v-bind="ruleEdited" />
+    </el-tab-pane>
+    <el-tab-pane label="版本">
+      <template #label>
+        <IconVersions size="20" />
+        <span class="ml-2">版本</span>
+      </template>
+      <history-list :rule-id="ruleId" :rule-name="ruleEdited ? ruleEdited.name : ''"
+                    :refresh="refreshHistory" @rollback="refreshEdit = Date.now()" />
+    </el-tab-pane>
+  </el-tabs>
 </template>
 
 <style scoped>
-.rule-tabs > .el-tabs__content {
-  padding: 32px;
-  color: #6b778c;
-  font-size: 32px;
-  font-weight: 600;
-}
-.el-tabs--right .el-tabs__content,
-.el-tabs--left .el-tabs__content {
-  height: 100%;
-}
 </style>

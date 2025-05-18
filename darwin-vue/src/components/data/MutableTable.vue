@@ -1,5 +1,6 @@
 <script setup>
-import { onUpdated, ref, watch} from 'vue'
+import { IconDeviceFloppy, IconEdit, IconTextPlus, IconTrash } from '@tabler/icons-vue'
+import { onMounted, onUpdated, ref, watch } from 'vue'
 import { ERROR, showMessage } from '@/common/Feedback'
 import { ElButton, ElInput, ElInputNumber, ElTable, ElTableColumn, ElText } from 'element-plus'
 
@@ -63,46 +64,61 @@ const save = index => {
 
 const handleRowClassName = o => shows.value[o.rowIndex] ? '' : 'hidden-row'
 
+const init = async () => {
+  shows.value = []
+  rows.value.forEach(() => shows.value.push(true))
+}
+
 watch(() => query.value, () => {
   rows.value.forEach((row, index) => {
     if (!query.value) shows.value[index] = true
     else shows.value[index] = row[props.filterColumn] === query.value
   })
 })
-onUpdated(() => {
-  shows.value = []
-  rows.value.forEach(() => shows.value.push(true))
-})
+onUpdated(() => init())
+onMounted(() => init())
 </script>
 
 <template>
-  <el-table :data="rows" :max-height="maxHeight" table-layout="auto" stripe :row-class-name="handleRowClassName">
+  <el-table :data="rows" :max-height="maxHeight"
+            table-layout="auto" stripe :row-class-name="handleRowClassName">
     <template #empty>暂无数据</template>
     <el-table-column v-for="(column, index) in columns" :key="index" :label="column.name" show-overflow-tooltip>
       <template #default="scope">
         <el-input v-if="scope.$index === prepareIndex && column.type === 'password'" type="password"
                   v-model="scope.row[index]" clearable :placeholder="`请输入${columns[index].name}`" />
         <el-input-number v-else-if="scope.$index === prepareIndex && column.type === 'number'"
-                  :min="column.min" :max="column.max" v-model="scope.row[index]" clearable />
+                  :min="column.min" :max="column.max" :step="column.step" v-model="scope.row[index]" clearable />
         <el-input v-else-if="scope.$index === prepareIndex && (column.type === 'input' || column.type === undefined)"
                   v-model="scope.row[index]" clearable :placeholder="`请输入${columns[index].name}`" />
         <el-text v-else>{{ scope.row[index] }}</el-text>
       </template>
     </el-table-column>
-    <el-table-column width="250" align="center">
+    <el-table-column width="220" align="center">
       <template #header>
         <el-input v-model="query" :placeholder="`根据${columns[filterColumn].name}搜索`"
                   @clear="query = undefined" clearable />
       </template>
       <template #default="scope">
-        <el-button v-if="scope.$index === prepareIndex" type="success" @click="save(scope.$index)">保存</el-button>
-        <el-button v-else type="success" @click="prepare(scope.$index)">修改</el-button>
-        <el-button type="danger" @click="remove(scope.$index)">删除</el-button>
-        <el-button type="primary" @click="add(scope.$index)">新增</el-button>
+        <el-button v-if="scope.$index === prepareIndex" type="success" plain @click="save(scope.$index)">
+          <IconDeviceFloppy size="20" />
+        </el-button>
+        <el-button v-else type="primary" plain @click="prepare(scope.$index)">
+          <IconEdit size="20" />
+        </el-button>
+        <el-button type="danger" @click="remove(scope.$index)">
+          <IconTrash size="20" />
+        </el-button>
+        <el-button type="primary" @click="add(scope.$index)">
+          <IconTextPlus size="20" />
+        </el-button>
       </template>
     </el-table-column>
   </el-table>
-  <el-button v-if="rows.length === 0" type="primary" class="w100 mt-2" @click="add(-1)">新增</el-button>
+  <el-button v-if="rows.length === 0" type="primary" class="w-100p mt-4" @click="add(-1)">
+    <IconTextPlus size="20" class="mr-2" />
+    <span>新增配置数据</span>
+  </el-button>
 </template>
 
 <style scoped>

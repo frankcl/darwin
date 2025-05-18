@@ -6,7 +6,9 @@ import org.springframework.stereotype.Component;
 import xin.manong.darwin.common.Constants;
 import xin.manong.darwin.common.model.URLRecord;
 import xin.manong.darwin.service.iface.OSSService;
+import xin.manong.darwin.spider.input.HTTPInput;
 import xin.manong.darwin.spider.input.Input;
+import xin.manong.darwin.spider.input.M3U8Input;
 import xin.manong.darwin.spider.output.OSSOutput;
 import xin.manong.weapon.base.common.Context;
 
@@ -27,13 +29,15 @@ public class Writer {
     private SpiderConfig spiderConfig;
     @Resource
     private OSSService ossService;
-    private final Map<Integer, String> categoryDirMap;
+    private final Map<Integer, String> contentTypeMap;
 
     public Writer() {
-        categoryDirMap = new HashMap<>();
-        categoryDirMap.put(Constants.CONTENT_CATEGORY_PAGE, "text");
-        categoryDirMap.put(Constants.CONTENT_CATEGORY_RESOURCE, "resource");
-        categoryDirMap.put(Constants.CONTENT_CATEGORY_STREAM, "stream");
+        contentTypeMap = new HashMap<>();
+        contentTypeMap.put(Constants.CONTENT_TYPE_PAGE, "text");
+        contentTypeMap.put(Constants.CONTENT_TYPE_IMAGE, "image");
+        contentTypeMap.put(Constants.CONTENT_TYPE_VIDEO, "video");
+        contentTypeMap.put(Constants.CONTENT_TYPE_AUDIO, "audio");
+        contentTypeMap.put(Constants.CONTENT_TYPE_OTHER, "other");
     }
 
     /**
@@ -52,7 +56,12 @@ public class Writer {
             input.transport(output);
             record.fetchContentURL = ossService.buildURL(ossKey);
         } finally {
-            context.put(Constants.DARWIN_WRITE_TIME, System.currentTimeMillis() - startTime);
+            long processTime = System.currentTimeMillis() - startTime;
+            if (input instanceof HTTPInput || input instanceof M3U8Input) {
+                record.downTime = processTime;
+                context.put(Constants.DARWIN_DOWN_TIME, processTime);
+            }
+            context.put(Constants.DARWIN_WRITE_TIME, processTime);
         }
     }
 
@@ -65,7 +74,7 @@ public class Writer {
     private String buildOSSKey(URLRecord record) {
         String suffix = record.mediaType == null ? null : record.mediaType.suffix;
         String key = String.format("%s/%s/%s", spiderConfig.ossDirectory,
-                categoryDirMap.get(record.category), record.key);
+                contentTypeMap.get(record.contentType), record.key);
         if (StringUtils.isEmpty(suffix)) return key;
         return String.format("%s.%s", key, suffix);
     }

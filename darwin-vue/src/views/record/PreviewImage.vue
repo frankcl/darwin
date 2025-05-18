@@ -1,25 +1,27 @@
 <script setup>
 import { ref, watchEffect } from 'vue'
-import { ElDialog, ElImage, ElRow, ElText } from 'element-plus'
+import { ElDialog, ElImage } from 'element-plus'
 import { asyncPreview } from '@/common/AsyncRequest'
+import DarwinCard from '@/components/data/Card'
 
 const props = defineProps(['recordKey'])
 const open = defineModel()
 const previewImageURL = ref()
 
 watchEffect(async () => {
-  if (props.recordKey) previewImageURL.value = await asyncPreview(props.recordKey)
+  try {
+    if (props.recordKey) previewImageURL.value = await asyncPreview(props.recordKey)
+  } catch {
+    open.value = false
+  }
 })
 </script>
 
 <template>
-  <el-dialog v-model="open" width="1200" align-center show-close>
-    <el-row class="mb-3">
-      <el-text class="text-xl font-600">图片预览</el-text>
-    </el-row>
-    <el-row justify="center">
-      <el-image v-if="previewImageURL" class="w100" :src="previewImageURL" />
-    </el-row>
+  <el-dialog v-model="open" align-center show-close>
+    <darwin-card title="图片预览">
+      <el-image v-if="previewImageURL" :src="previewImageURL" />
+    </darwin-card>
   </el-dialog>
 </template>
 

@@ -108,39 +108,46 @@ public abstract class URLService {
     public abstract long selectCount(URLSearchRequest searchRequest);
 
     /**
-     * 根据URL状态分组计数
+     * 状态分组计数
      *
      * @param jobId 任务ID
      * @param timeRange 时间范围
-     * @return 统计结果
+     * @return 统计列表
      */
-    public abstract List<URLGroupCount> countGroupByStatus(String jobId, RangeValue<Long> timeRange);
+    public abstract List<URLGroupCount> statusGroupCount(String jobId, RangeValue<Long> timeRange);
 
     /**
-     * 根据内容类型分组计数
+     * 内容分组统计
      *
      * @param jobId 任务ID
      * @param timeRange 时间范围
-     * @return 统计结果
+     * @return 统计列表
      */
-    public abstract List<URLGroupCount> countGroupByCategory(String jobId, RangeValue<Long> timeRange);
+    public abstract List<URLGroupCount> contentGroupCount(String jobId, RangeValue<Long> timeRange);
 
     /**
-     * 统计排队抓取top的并发单元
+     * TOP排队等待并发单元列表
      *
-     * @param top top数量
-     * @return 统计结果
+     * @param n top数量
+     * @return 并发单元列表
      */
-    public abstract List<URLGroupCount> topConcurrencyUnits(int top);
+    public abstract List<URLGroupCount> waitConcurrencyUnits(int n);
 
     /**
-     * 统计时间范围内抓取量top的站点
+     * 排队等待数据优先级分布统计
+     *
+     * @return 优先级分布统计列表
+     */
+    public abstract List<URLGroupCount> queueWaitPriority();
+
+    /**
+     * TOP抓取量站点列表
      *
      * @param timeRange 时间范围
-     * @param top top数量
-     * @return 统计结果
+     * @param n top数量
+     * @return 站点列表
      */
-    public abstract List<URLGroupCount> topHosts(RangeValue<Long> timeRange, int top);
+    public abstract List<URLGroupCount> hostFetchCount(RangeValue<Long> timeRange, int n);
 
     /**
      * 统计时间范围内抓取URL数量
@@ -148,7 +155,7 @@ public abstract class URLService {
      * @param timeRange 时间范围
      * @return URL数量
      */
-    public abstract int urlCount(RangeValue<Long> timeRange);
+    public abstract int fetchURLCount(RangeValue<Long> timeRange);
 
     /**
      * 统计时间范围内抓取host数量
@@ -156,7 +163,7 @@ public abstract class URLService {
      * @param timeRange 时间范围
      * @return host数量
      */
-    public abstract int hostCount(RangeValue<Long> timeRange);
+    public abstract int fetchHostCount(RangeValue<Long> timeRange);
 
     /**
      * 统计时间范围内抓取domain数量
@@ -164,16 +171,7 @@ public abstract class URLService {
      * @param timeRange 时间范围
      * @return domain数量
      */
-    public abstract int domainCount(RangeValue<Long> timeRange);
-
-    /**
-     * 平均内容长度
-     *
-     * @param timeRange 时间范围
-     * @param category 内容类型
-     * @return 平均内容长度
-     */
-    public abstract long avgContentLength(Integer category, RangeValue<Long> timeRange);
+    public abstract int fetchDomainCount(RangeValue<Long> timeRange);
 
     /**
      * 准备搜索请求
@@ -195,16 +193,135 @@ public abstract class URLService {
     }
 
     /**
-     * 根据URL获取在startTime之后的最新的抓取成功记录
+     * 计算指定数据类型时间范围内平均下载时间
      *
-     * @param url URL
+     * @param contentType 数据类型
+     * @param timeRange 时间范围
+     * @return 平均下载时间
+     */
+    public long avgDownTime(Integer contentType, RangeValue<Long> timeRange) {
+        long downTime = 0L, recordCount = 0L;
+        URLSearchRequest searchRequest = new URLSearchRequest();
+        searchRequest.pageSize = 100;
+        searchRequest.statusList = new ArrayList<>();
+        searchRequest.statusList.add(Constants.URL_STATUS_FETCH_SUCCESS);
+        searchRequest.statusList.add(Constants.URL_STATUS_FETCH_FAIL);
+        searchRequest.statusList.add(Constants.URL_STATUS_ERROR);
+        searchRequest.fetchTimeRange = timeRange;
+        searchRequest.contentType = contentType;
+        while (true) {
+            Pager<URLRecord> pager = search(searchRequest);
+            for (URLRecord record : pager.records) {
+                if (record.downTime == null) continue;
+                downTime += record.downTime;
+                recordCount++;
+            }
+            if (pager.records.size() < searchRequest.pageSize) break;
+            searchRequest.pageNum++;
+        }
+        return recordCount == 0L ? 0L : downTime / recordCount;
+    }
+
+    /**
+     * 计算指定数据类型时间范围内平均内容长度
+     *
+     * @param contentType 数据类型
+     * @param timeRange 时间范围
+     * @return 平均内容长度
+     */
+    public long avgContentLength(Integer contentType, RangeValue<Long> timeRange) {
+        long contentLength = 0L, recordCount = 0L;
+        URLSearchRequest searchRequest = new URLSearchRequest();
+        searchRequest.pageSize = 100;
+        searchRequest.statusList = new ArrayList<>();
+        searchRequest.statusList.add(Constants.URL_STATUS_FETCH_SUCCESS);
+        searchRequest.fetchTimeRange = timeRange;
+        searchRequest.contentType = contentType;
+        while (true) {
+            Pager<URLRecord> pager = search(searchRequest);
+            for (URLRecord record : pager.records) {
+                if (record.contentLength == null) continue;
+                contentLength += record.contentLength;
+                recordCount++;
+            }
+            if (pager.records.size() < searchRequest.pageSize) break;
+            searchRequest.pageNum++;
+        }
+        return recordCount == 0L ? 0L : contentLength / recordCount;
+    }
+
+    /**
+     * 计算并发单元排队等待数据量
+     * 如果并发单元为null，则计算所有排队等待数据量
+     *
+     * @param concurrencyUnit 并发单元
+     * @return 排队等待数据量
+     */
+    public long queueWaitCount(String concurrencyUnit) {
+        URLSearchRequest searchRequest = new URLSearchRequest();
+        searchRequest.concurrencyUnit = concurrencyUnit;
+        searchRequest.statusList = new ArrayList<>();
+        searchRequest.statusList.add(Constants.URL_STATUS_QUEUING);
+        return selectCount(searchRequest);
+    }
+
+    /**
+     * 计算并发单元正在抓取数据量
+     * 如果并发单元为null，则计算所有正在抓取数据量
+     *
+     * @param concurrencyUnit 并发单元
+     * @return 正在抓取数据量
+     */
+    public long fetchingCount(String concurrencyUnit) {
+        URLSearchRequest searchRequest = new URLSearchRequest();
+        searchRequest.concurrencyUnit = concurrencyUnit;
+        searchRequest.statusList = new ArrayList<>();
+        searchRequest.statusList.add(Constants.URL_STATUS_FETCHING);
+        return selectCount(searchRequest);
+    }
+
+    /**
+     * 计算并发单元平均排队等待时间
+     * 如果并发单元为null，则计算所有排队数据平均等待时间
+     *
+     * @param concurrencyUnit 并发单元
+     * @return 平均排队等待时间
+     */
+    public long queueWaitTime(String concurrencyUnit) {
+        long waitTime = 0L;
+        long recordCount = 0L;
+        long currentTime = System.currentTimeMillis();
+        URLSearchRequest searchRequest = new URLSearchRequest();
+        searchRequest.pageNum = 1;
+        searchRequest.pageSize = 100;
+        searchRequest.concurrencyUnit = concurrencyUnit;
+        searchRequest.statusList = new ArrayList<>();
+        searchRequest.statusList.add(Constants.URL_STATUS_QUEUING);
+        while (true) {
+            Pager<URLRecord> pager = search(searchRequest);
+            for (URLRecord record : pager.records) {
+                if (record.pushTime == null) continue;
+                waitTime += currentTime - record.pushTime;
+                recordCount++;
+            }
+            if (pager.records.size() < searchRequest.pageSize) break;
+            searchRequest.pageNum++;
+        }
+        return recordCount == 0L ? 0L : waitTime / recordCount;
+    }
+
+    /**
+     * 获取在startTime之后的最新的抓取成功记录
+     *
+     * @param record 数据
      * @param startTime 起始时间
      * @return 成功返回数据记录，否则返回null
      */
-    public URLRecord getFetchedByURL(String url, long startTime) {
+    public URLRecord getFetched(URLRecord record, long startTime) {
         OrderByRequest orderByRequest = new OrderByRequest("fetch_time", false);
         URLSearchRequest searchRequest = new URLSearchRequest();
-        searchRequest.url = url;
+        searchRequest.url = record.url;
+        searchRequest.requestBody = record.requestBody;
         searchRequest.statusList = new ArrayList<>();
         searchRequest.statusList.add(Constants.URL_STATUS_FETCH_SUCCESS);
         searchRequest.fetchTimeRange = new RangeValue<>();
@@ -221,14 +338,14 @@ public abstract class URLService {
     /**
      * 判断计划是否抓取过URL
      *
-     * @param url URL
-     * @param planId 计划ID
+     * @param record 数据
      * @return 如果抓取过返回true，否则返回false
      */
-    public boolean isFetched(String url, String planId) {
+    public boolean isFetched(URLRecord record) {
         URLSearchRequest searchRequest = new URLSearchRequest();
-        searchRequest.url = url;
-        searchRequest.planId = planId;
+        searchRequest.url = record.url;
+        searchRequest.planId = record.planId;
+        searchRequest.requestBody = record.requestBody;
         searchRequest.statusList = new ArrayList<>();
         searchRequest.statusList.add(Constants.URL_STATUS_FETCH_SUCCESS);
         searchRequest.statusList.add(Constants.URL_STATUS_QUEUING);
@@ -240,14 +357,14 @@ public abstract class URLService {
     /**
      * 是否为任务中重复数据
      *
-     * @param url URL
-     * @param jobId 任务ID
+     * @param record 数据
      * @return 存在重复数据返回true，否则返回false
      */
-    public boolean isDuplicate(String url, String jobId) {
+    public boolean isDuplicate(URLRecord record) {
         URLSearchRequest searchRequest = new URLSearchRequest();
-        searchRequest.url = url;
-        searchRequest.jobId = jobId;
+        searchRequest.url = record.url;
+        searchRequest.jobId = record.jobId;
+        searchRequest.requestBody = record.requestBody;
         searchRequest.pageNum = searchRequest.pageSize = 1;
         return selectCount(searchRequest) > 0;
     }

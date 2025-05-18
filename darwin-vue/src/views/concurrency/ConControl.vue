@@ -1,13 +1,8 @@
 <script setup>
+import { IconCircleCheck, IconRefresh } from '@tabler/icons-vue'
 import { onMounted, ref } from 'vue'
 import {
-  ElButton,
-  ElCol,
-  ElForm,
-  ElFormItem,
-  ElInputNumber,
-  ElRow,
-  ElSpace,
+  ElBreadcrumb, ElBreadcrumbItem, ElButton, ElInputNumber, ElRow
 } from 'element-plus'
 import { useUserStore } from '@/store'
 import MutableTable from '@/components/data/MutableTable'
@@ -18,6 +13,8 @@ import {
   asyncUpdateDefaultConcurrency
 } from '@/common/AsyncRequest'
 import { ERROR, showMessage, SUCCESS } from '@/common/Feedback'
+import DarwinCard from '@/components/data/Card'
+import TableHead from '@/components/data/TableHead'
 
 const userStore = useUserStore()
 const defaultConcurrency = ref()
@@ -27,7 +24,7 @@ const columns = [{ name: '并发单元' }, { name: '最大连接', type: 'number
 
 const update = async () => {
   if (!await asyncUpdateDefaultConcurrency({ default_concurrency: defaultConcurrency.value })) {
-    showMessage('更新缺省最大并发数失败', ERROR)
+    showMessage('更新默认连接数失败', ERROR)
     return
   }
   concurrencyConnectionMap.value = {}
@@ -37,7 +34,7 @@ const update = async () => {
     }
   })
   if (!await asyncUpdateConcurrencyConnectionMap(concurrencyConnectionMap.value)) {
-    showMessage('更新并发连接配置失败', ERROR)
+    showMessage('更新并发配置失败', ERROR)
     return
   }
   showMessage('更新成功', SUCCESS)
@@ -57,33 +54,33 @@ onMounted(async () => await reset())
 </script>
 
 <template>
-  <el-space direction="vertical" :size="20" :fill="true" class="w100">
-    <el-row align="middle">
-      <span class="text-xl font-bold ml-2">并发配置</span>
+  <darwin-card>
+    <template #title>
+      <el-breadcrumb separator="/">
+        <el-breadcrumb-item :to="{ path: '/home' }">首页</el-breadcrumb-item>
+        <el-breadcrumb-item>抓取控制</el-breadcrumb-item>
+        <el-breadcrumb-item>并发控制</el-breadcrumb-item>
+      </el-breadcrumb>
+    </template>
+    <table-head title="并发配置">
+      <template #right>
+        <label class="mr-4 fs-14px">默认连接数</label>
+        <el-input-number v-model="defaultConcurrency" :min="1" :max="100"
+                         :disabled="!userStore.superAdmin" style="margin-right: 12px;" />
+      </template>
+    </table-head>
+    <mutable-table v-model="concurrencyConnections" :columns="columns" />
+    <el-row class="mt-4">
+      <el-button type="primary" @click="update" :disabled="!userStore.superAdmin">
+        <IconCircleCheck size="20" class="mr-1" />
+        <span>保存</span>
+      </el-button>
+      <el-button type="info" @click="reset" :disabled="!userStore.superAdmin">
+        <IconRefresh size="20" class="mr-1" />
+        <span>重置</span>
+      </el-button>
     </el-row>
-    <el-form ref="form" label-width="150" label-position="right">
-      <el-row>
-        <el-col :span="12">
-          <el-row align="middle" class="h100">
-            <span class="font-bold">并发单元配置列表</span>
-          </el-row>
-        </el-col>
-        <el-col :span="12">
-          <el-row justify="end">
-            <el-form-item label="默认连接数">
-              <el-input-number v-model="defaultConcurrency" :min="1" :max="100"
-                               :disabled="!userStore.superAdmin" style="margin-right: 12px;" />
-            </el-form-item>
-          </el-row>
-        </el-col>
-      </el-row>
-      <mutable-table v-model="concurrencyConnections" :columns="columns" />
-      <el-row class="mt-4">
-        <el-button type="primary" @click="update" :disabled="!userStore.superAdmin">保存</el-button>
-        <el-button type="info" @click="reset" :disabled="!userStore.superAdmin">重置</el-button>
-      </el-row>
-    </el-form>
-  </el-space>
+  </darwin-card>
 </template>
 
 <style scoped>

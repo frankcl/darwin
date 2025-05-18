@@ -1,32 +1,37 @@
 <script setup>
+import { IconEdit, IconHelp, IconRefresh } from '@tabler/icons-vue'
 import { computed, ref, useTemplateRef, watchEffect } from 'vue'
+import { useRouter } from 'vue-router'
 import {
-  ElButton, ElCol, ElForm, ElFormItem,
-  ElInput, ElRadio, ElRadioGroup, ElRow,
+  ElButton, ElCol, ElForm, ElFormItem, ElInput,
+  ElRadio, ElRadioGroup, ElRow, ElTooltip,
 } from 'element-plus'
 import { useUserStore } from '@/store'
 import { formatDate } from '@/common/Time'
+import { fetchMethodMap, planCategoryMap, priorityMap } from '@/common/Constants'
 import { ERROR, showMessage, SUCCESS } from '@/common/Feedback'
 import { asyncGetPlan, asyncUpdatePlan } from '@/common/AsyncRequest'
 import { planFormRules } from '@/views/plan/common'
 import AppSearch from '@/components/app/AppSearch'
 
 const props = defineProps(['id'])
+const router = useRouter()
 const userStore = useUserStore()
 const plan = ref({})
-const planFormRef = useTemplateRef('planForm')
+const formRef = useTemplateRef('form')
 const nextTime = computed(() => {
   if (!plan.value || !plan.value['next_time']) return '暂无'
   return formatDate(plan.value['next_time'])
 })
 
-const update = async formElement => {
-  if (!await formElement.validate(v => v)) return
+const update = async () => {
+  if (!await formRef.value.validate(v => v)) return
   if (!await asyncUpdatePlan(plan.value)) {
     showMessage('更新计划失败', ERROR)
     return
   }
   showMessage('更新计划成功', SUCCESS)
+  await router.push({ path: '/plan/search'})
 }
 
 const resetPlanForm = async () => {
@@ -37,71 +42,79 @@ watchEffect( async () => await resetPlanForm())
 </script>
 
 <template>
-  <el-form ref="planForm" :model="plan" :rules="planFormRules"
-           label-width="100px" label-position="right" class="w100">
-    <el-row :gutter="20">
+  <el-form ref="form" :model="plan" :rules="planFormRules" class="mt-4" label-width="100px" label-position="top">
+    <el-form-item label="计划名称" prop="name">
+      <el-input v-model.trim="plan.name" clearable></el-input>
+    </el-form-item>
+    <el-form-item label="所属应用" prop="app_id">
+      <app-search v-model="plan.app_id" @change="app => plan.app_name = app.name"></app-search>
+    </el-form-item>
+    <el-row v-if="plan.category === 1" :gutter="20">
       <el-col :span="12">
-        <el-form-item label="计划名称" prop="name">
-          <el-input v-model.trim="plan.name" clearable></el-input>
+        <el-form-item label="调度计划" prop="crontab_expression" required>
+          <template #label>
+            <span>调度计划</span>
+            <el-tooltip effect="dark" placement="top"
+                        content="crontab表达式，系统根据表达式计算下次调度时间进行调度">
+              <IconHelp size="12" class="ml-2"/>
+            </el-tooltip>
+          </template>
+          <el-input v-model="plan.crontab_expression" clearable placeholder="0 0/10 * * * ?   从0分开始每10分钟调度1次" />
         </el-form-item>
       </el-col>
-      <el-col :span="12">
-        <el-form-item label="所属应用" prop="app_id">
-          <app-search v-model="plan.app_id" @change="app => plan.app_name = app.name"></app-search>
+      <el-col v-if="plan" :span="12">
+        <el-form-item label="下次调度时间" prop="next_time">
+          <el-input :value="nextTime" disabled />
         </el-form-item>
       </el-col>
     </el-row>
     <el-row v-if="plan" :gutter="20">
       <el-col :span="12">
         <el-form-item label="创建人" prop="creator">
-          <el-input v-model="plan.creator" readonly />
+          <el-input v-model="plan.creator" disabled />
         </el-form-item>
       </el-col>
       <el-col :span="12">
         <el-form-item label="创建时间" prop="create_time">
-          <el-input :value="formatDate(plan['create_time'])" readonly />
+          <el-input :value="formatDate(plan['create_time'])" disabled />
         </el-form-item>
       </el-col>
     </el-row>
     <el-row v-if="plan" :gutter="20">
       <el-col :span="12">
-        <el-form-item label="修改人" prop="modifier">
-          <el-input v-model="plan.modifier" readonly />
+        <el-form-item label="变更人" prop="modifier">
+          <el-input v-model="plan.modifier" disabled />
         </el-form-item>
       </el-col>
       <el-col :span="12">
-        <el-form-item label="修改时间" prop="update_time">
-          <el-input :value="formatDate(plan['update_time'])" readonly />
-        </el-form-item>
-      </el-col>
-    </el-row>
-    <el-row v-if="plan.category === 1" :gutter="20">
-      <el-col :span="12">
-        <el-form-item label="调度计划" prop="crontab_expression" required>
-          <el-input v-model="plan.crontab_expression" clearable placeholder="10分钟调度1次：0 0/10 * * * ?" />
-        </el-form-item>
-      </el-col>
-      <el-col v-if="plan" :span="12">
-        <el-form-item label="下次调度时间" prop="next_time">
-          <el-input :value="nextTime" readonly />
+        <el-form-item label="变更时间" prop="update_time">
+          <el-input :value="formatDate(plan['update_time'])" disabled />
         </el-form-item>
       </el-col>
     </el-row>
     <el-row :gutter="20">
       <el-col :span="12">
-        <el-form-item label="优先级" prop="priority" required>
-          <el-radio-group v-model="plan.priority">
-            <el-radio :value="0">高优先级</el-radio>
-            <el-radio :value="1">中优先级</el-radio>
-            <el-radio :value="2">低优先级</el-radio>
+        <el-form-item prop="category" required>
+          <template #label>
+            <span>计划类型</span>
+            <el-tooltip effect="dark" placement="top"
+                        content="单次型：手动执行；周期型：支持手动执行和系统调度执行，周期型计划需配合调度计划使用">
+              <IconHelp size="12" class="ml-2"/>
+            </el-tooltip>
+          </template>
+          <el-radio-group v-model="plan.category">
+            <el-radio v-for="key in Object.keys(planCategoryMap)" :value="parseInt(key)" :key="key">
+              {{ planCategoryMap[key] }}
+            </el-radio>
           </el-radio-group>
         </el-form-item>
       </el-col>
       <el-col :span="12">
-        <el-form-item label="计划类型" prop="category" required>
-          <el-radio-group v-model="plan.category">
-            <el-radio :value="0">单次型</el-radio>
-            <el-radio :value="1">周期型</el-radio>
+        <el-form-item label="优先级" prop="priority" required>
+          <el-radio-group v-model="plan.priority">
+            <el-radio v-for="key in Object.keys(priorityMap)" :value="parseInt(key)" :key="key">
+              {{ priorityMap[key] }}
+            </el-radio>
           </el-radio-group>
         </el-form-item>
       </el-col>
@@ -110,13 +123,21 @@ watchEffect( async () => await resetPlanForm())
       <el-col :span="12">
         <el-form-item label="抓取方式" prop="fetch_method" required>
           <el-radio-group v-model="plan.fetch_method">
-            <el-radio :value="0">本地IP</el-radio>
-            <el-radio :value="1">代理IP</el-radio>
+            <el-radio v-for="key in Object.keys(fetchMethodMap)" :value="parseInt(key)" :key="key">
+              {{ fetchMethodMap[key] }}
+            </el-radio>
           </el-radio-group>
         </el-form-item>
       </el-col>
       <el-col :span="12">
-        <el-form-item label="重复抓取" prop="allow_repeat" required>
+        <el-form-item prop="allow_repeat">
+          <template #label>
+            <span>重复抓取</span>
+            <el-tooltip effect="dark" placement="top"
+                        content="允许：直接通过网络抓取；禁止：数据库存在抓取结果则使用，不存在则抓取；默认禁止">
+              <IconHelp size="12" class="ml-2"/>
+            </el-tooltip>
+          </template>
           <el-radio-group v-model="plan.allow_repeat">
             <el-radio :value="true">允许</el-radio>
             <el-radio :value="false">禁止</el-radio>
@@ -125,8 +146,14 @@ watchEffect( async () => await resetPlanForm())
       </el-col>
     </el-row>
     <el-form-item>
-      <el-button type="primary" @click="update(planFormRef)" :disabled="!userStore.injected">编辑</el-button>
-      <el-button type="info" @click="resetPlanForm()">重置</el-button>
+      <el-button type="primary" @click="update" :disabled="!userStore.injected">
+        <IconEdit size="20" class="mr-1" />
+        <span>编辑</span>
+      </el-button>
+      <el-button type="info" @click="resetPlanForm">
+        <IconRefresh size="20" class="mr-1" />
+        <span>重置</span>
+      </el-button>
     </el-form-item>
   </el-form>
 </template>

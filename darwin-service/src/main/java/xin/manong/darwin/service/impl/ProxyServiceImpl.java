@@ -125,6 +125,7 @@ public class ProxyServiceImpl implements ProxyService {
         if (searchRequest.pageSize == null || searchRequest.pageSize <= 0) searchRequest.pageSize = Constants.DEFAULT_PAGE_SIZE;
         ModelValidator.validateOrderBy(Proxy.class, searchRequest);
         QueryWrapper<Proxy> query = new QueryWrapper<>();
+        query.select("id", "address", "port", "category", "expired_time", "create_time", "update_time");
         searchRequest.prepareOrderBy(query);
         if (searchRequest.category != null) query.eq("category", searchRequest.category);
         if (searchRequest.expired != null) {
