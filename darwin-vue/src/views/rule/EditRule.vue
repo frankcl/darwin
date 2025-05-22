@@ -19,7 +19,6 @@ const refreshEditor = ref(Date.now())
 
 const update = async () => {
   if (!await formRef.value.validate(v => v)) return
-  console.log(rule.value)
   if (!await asyncUpdateRule(rule.value)) {
     showMessage('编辑规则失败', ERROR)
     return
@@ -89,7 +88,7 @@ watchEffect(() => emits('change', rule.value))
         <IconEdit size="20" class="mr-1" />
         <span>编辑</span>
       </el-button>
-      <el-button type="info" @click="handleReset">
+      <el-button type="info" @click="handleReset" :disabled="!userStore.injected">
         <IconRefresh size="20" class="mr-1" />
         <span>重置</span>
       </el-button>

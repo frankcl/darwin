@@ -234,7 +234,7 @@ watchEffect(() => seed.plan_id = props.planId)
           <IconPlus size="20" class="mr-1" />
           <span>新增</span>
         </el-button>
-        <el-button type="info" @click="resetSeedForm">
+        <el-button type="info" @click="resetSeedForm" :disabled="!userStore.injected">
           <IconRefresh size="20" class="mr-1" />
           <span>重置</span>
         </el-button>

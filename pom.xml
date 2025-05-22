@@ -38,7 +38,7 @@
         <jsoup.version>1.15.3</jsoup.version>
         <mysql-connector-j.version>9.1.0</mysql-connector-j.version>
         <guava.version>33.3.1-jre</guava.version>
-        <kafka.version>3.9.0</kafka.version>
+        <kafka.version>4.0.0</kafka.version>
         <jetcd.version>0.8.3</jetcd.version>
         <spring.version>6.1.14</spring.version>
         <spring-boot.version>3.3.5</spring-boot.version>

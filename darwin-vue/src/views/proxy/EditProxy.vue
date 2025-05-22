@@ -74,7 +74,7 @@ watchEffect(async () => await resetProxyForm())
             <IconEdit size="20" class="mr-1" />
             <span>编辑</span>
           </el-button>
-          <el-button type="info" @click="resetProxyForm">
+          <el-button type="info" @click="resetProxyForm" :disabled="!userStore.superAdmin">
             <IconRefresh size="20" class="mr-1" />
             <span>重置</span>
           </el-button>

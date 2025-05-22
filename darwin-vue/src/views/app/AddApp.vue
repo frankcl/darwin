@@ -43,7 +43,7 @@ const add = async () => {
             <IconPlus size="20" class="mr-1" />
             <span>新增</span>
           </el-button>
-          <el-button type="info" @click="formRef.resetFields()">
+          <el-button type="info" @click="formRef.resetFields()" :disabled="!userStore.injected">
             <IconRefresh size="20" class="mr-1" />
             <span>重置</span>
           </el-button>

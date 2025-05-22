@@ -2,6 +2,7 @@ package xin.manong.darwin.web;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.context.annotation.PropertySource;
 import xin.manong.hylian.client.annotation.EnableCORSFilter;
 import xin.manong.hylian.client.annotation.EnableHylianGuard;
 import xin.manong.weapon.spring.boot.annotation.EnableEtcdClient;
@@ -11,6 +12,7 @@ import xin.manong.weapon.spring.boot.annotation.EnableOSSClient;
 import xin.manong.weapon.spring.boot.annotation.EnableRedisClient;
 import xin.manong.weapon.spring.boot.aspect.EnableWebLogAspect;
 import xin.manong.weapon.spring.boot.etcd.EnableWatchValueBeanProcessor;
+import xin.manong.weapon.spring.boot.io.EtcdPropertySourceFactory;
 
 /**
  * 应用程序入口
@@ -28,6 +30,10 @@ import xin.manong.weapon.spring.boot.etcd.EnableWatchValueBeanProcessor;
 @EnableWebLogAspect
 @EnableHylianGuard
 @EnableCORSFilter
+@PropertySource(
+        name="default",
+        value = "application-service-${spring.profiles.active}.yml",
+        factory = EtcdPropertySourceFactory.class)
 @SpringBootApplication(scanBasePackages = {"xin.manong.darwin"})
 public class Application {
 

@@ -1,0 +1,4 @@
+app:
+  spider:
+    oss-directory: prod/content
+    temp-directory: ./temp/

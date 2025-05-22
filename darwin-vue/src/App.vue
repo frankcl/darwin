@@ -2,7 +2,8 @@
 import { IconX } from '@tabler/icons-vue'
 import { onMounted, onUnmounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { ElLink } from 'element-plus'
+import { ElImage, ElLink } from 'element-plus'
+import ImageLogo from '@/assets/images/logo.jpg'
 import DarwinMenu from '@/views/main/Menu'
 import DarwinNav from '@/views/main/Nav'
 
@@ -35,8 +36,10 @@ onUnmounted(() => window.removeEventListener('resize', setSidebarType))
        :data-sidebartype="sidebarType" data-sidebar-position="fixed" data-header-position="fixed">
     <aside class="left-sidebar">
       <div class="brand-logo align-items-center justify-content-between d-flex">
-        <el-link @click="router.push({ path: '/home' })" :underline="false">首页</el-link>
-        <div class="d-xl-none cursor-pointer" @click="hideSidebar"><IconX color="#5a6a85" /></div>
+        <el-link @click="router.push({ path: '/home' })" :underline="false" class="cursor-pointer">
+          <el-image :src="ImageLogo" fit="fill" />
+        </el-link>
+        <div class="d-xl-none cursor-pointer ml-4" @click="hideSidebar"><IconX color="#5a6a85" /></div>
       </div>
       <darwin-menu />
     </aside>
@@ -83,7 +86,7 @@ onUnmounted(() => window.removeEventListener('resize', setSidebarType))
 }
 .brand-logo {
   min-height: 70px;
-  padding: 0 24px;
+  padding: 27px 24px 0 24px;
 }
 .body-wrapper {
   position: relative;

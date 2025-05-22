@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<assembly>
+    <id>package</id>
+    <formats>
+        <format>tar.gz</format>
+    </formats>
+    <includeBaseDirectory>false</includeBaseDirectory>
+    <files>
+        <file>
+            <source>conf/log4j.properties</source>
+            <outputDirectory>conf/</outputDirectory>
+        </file>
+        <file>
+            <source>bin/start.sh</source>
+            <outputDirectory>bin/</outputDirectory>
+            <fileMode>0775</fileMode>
+        </file>
+        <file>
+            <source>bin/dry_run.sh</source>
+            <outputDirectory>bin/</outputDirectory>
+            <fileMode>0775</fileMode>
+        </file>
+    </files>
+    <dependencySets>
+        <dependencySet>
+            <useProjectArtifact>true</useProjectArtifact>
+            <outputDirectory>jars/</outputDirectory>
+        </dependencySet>
+    </dependencySets>
+</assembly>

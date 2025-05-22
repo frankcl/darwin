@@ -24,7 +24,7 @@ import HostFetchCount from '@/views/dashboard/HostFetchCount'
         <fetch-analysis />
       </el-col>
       <el-col :span="16">
-        <fetch-count-trend :height="240" />
+        <fetch-count-trend :height="229" />
       </el-col>
     </el-row>
     <el-row :gutter="20">

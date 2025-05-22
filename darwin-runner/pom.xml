@@ -26,10 +26,6 @@
             <artifactId>kafka-clients</artifactId>
         </dependency>
         <dependency>
-            <groupId>io.etcd</groupId>
-            <artifactId>jetcd-core</artifactId>
-        </dependency>
-        <dependency>
             <groupId>xin.manong</groupId>
             <artifactId>darwin-service</artifactId>
             <version>${darwin.version}</version>
