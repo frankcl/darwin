@@ -1,0 +1,8 @@
+grant codeBase "file:${user.home}/darwin/web/lib/*" {
+    permission java.security.AllPermission;
+};
+grant {
+    permission java.lang.RuntimePermission "getProtectionDomain";
+    permission java.lang.RuntimePermission "accessClassInPackage.jdk.internal.access";
+    permission java.util.PropertyPermission "javax.xml.xpath.XPathFactory:jsoup", "read";
+};

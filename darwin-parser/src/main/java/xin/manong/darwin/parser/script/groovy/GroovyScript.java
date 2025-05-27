@@ -5,7 +5,6 @@ import groovy.lang.GroovyObject;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import xin.manong.darwin.parser.script.CompileException;
 import xin.manong.darwin.parser.script.ConcurrentException;
 import xin.manong.darwin.parser.sdk.HTMLParser;
 import xin.manong.darwin.parser.script.Script;
@@ -39,7 +38,7 @@ public class GroovyScript extends Script {
         super(null);
     }
 
-    public GroovyScript(String scriptCode) throws CompileException {
+    public GroovyScript(String scriptCode) throws IOException {
         super(DigestUtils.md5Hex(scriptCode));
         this.classLoader = new GroovyClassLoader();
         buildGroovyObject(scriptCode);
@@ -50,24 +49,24 @@ public class GroovyScript extends Script {
      *
      * @param scriptCode 脚本代码
      */
-    private void buildGroovyObject(String scriptCode) throws CompileException {
+    private void buildGroovyObject(String scriptCode) throws IOException {
         Class<?> groovyClass = null;
         try {
             groovyClass = classLoader.parseClass(scriptCode, key);
             if (!HTMLParser.class.isAssignableFrom(groovyClass)) {
                 logger.error("Must inherit from xin.manong.darwin.parser.sdk.HTMLParser");
-                throw new CompileException("解析类必须继承xin.manong.darwin.parser.sdk.HTMLParser");
+                throw new IOException("解析类必须继承xin.manong.darwin.parser.sdk.HTMLParser");
             }
             groovyClass.getMethod(METHOD_EXECUTE, ParseRequest.class);
             this.groovyObject = (GroovyObject) groovyClass.getDeclaredConstructor().newInstance();
         } catch (NoSuchMethodException e) {
             logger.error("Parse method:{} is not found for parser:{}", METHOD_EXECUTE, groovyClass.getName());
             logger.error(e.getMessage(), e);
-            throw new CompileException(String.format("解析类必须实现方法%s", METHOD_EXECUTE), e);
+            throw new IOException(String.format("解析类必须实现方法%s", METHOD_EXECUTE), e);
         } catch (Exception e) {
             logger.error("Build groovy script failed for key:{}", key);
             logger.error(e.getMessage(), e);
-            throw new CompileException(e.getMessage(), e);
+            throw new IOException(e.getMessage(), e);
         }
     }
 

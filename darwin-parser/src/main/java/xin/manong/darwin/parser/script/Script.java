@@ -56,6 +56,24 @@ public abstract class Script implements AutoCloseable {
     public abstract void doClose() throws IOException;
 
     /**
+     * 获取标准输出
+     *
+     * @return 标准输出
+     */
+    public String getStdout() {
+        return null;
+    }
+
+    /**
+     * 获取标准错误
+     *
+     * @return 标准错误
+     */
+    public String getStderr() {
+        return null;
+    }
+
+    /**
      * 执行解析
      *
      * @param request 解析请求
@@ -71,7 +89,10 @@ public abstract class Script implements AutoCloseable {
             throw e;
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
-            return ParseResponse.buildError(String.format("执行脚本异常[%s]", e.getMessage()));
+            ParseResponse response = ParseResponse.buildError(String.format("执行脚本异常[%s]", e.getMessage()));
+            response.stdout = getStdout();
+            response.stderr = getStderr();
+            return response;
         } finally {
             decreaseReference();
             readWriteLock.readLock().unlock();
@@ -95,20 +116,16 @@ public abstract class Script implements AutoCloseable {
 
     /**
      * 增加引用计数
-     *
-     * @return 当前引用计数
      */
-    public int increaseReference() {
-        return referenceCount.incrementAndGet();
+    public void increaseReference() {
+        referenceCount.incrementAndGet();
     }
 
     /**
      * 减少引用计数
-     *
-     * @return 当前引用计数
      */
-    public int decreaseReference() {
-        return referenceCount.decrementAndGet();
+    public void decreaseReference() {
+        referenceCount.decrementAndGet();
     }
 
     /**
