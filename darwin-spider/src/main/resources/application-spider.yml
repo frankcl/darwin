@@ -7,4 +7,4 @@ app:
     keep-alive-minutes: 3
     max-idle-connections: 100
     retry-cnt: 3
-    max-depth: 3
+    max-depth: 4

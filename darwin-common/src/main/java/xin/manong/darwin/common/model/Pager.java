@@ -6,6 +6,7 @@ import jakarta.xml.bind.annotation.XmlAccessType;
 import jakarta.xml.bind.annotation.XmlAccessorType;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -38,4 +39,21 @@ public class Pager<T> implements Serializable {
      */
     @JsonProperty("records")
     public List<T> records;
+
+    /**
+     * 创建空分页
+     *
+     * @param pageNum 页码
+     * @param pageSize 分页数量
+     * @return 空分页
+     * @param <T> 数据类型
+     */
+    public static <T> Pager<T> empty(long pageNum, long pageSize) {
+        Pager<T> pager = new Pager<>();
+        pager.pageNum = pageNum > 0 ? pageNum : 1L;
+        pager.pageSize = pageSize > 0 ? pageSize : 10L;
+        pager.total = 0L;
+        pager.records = new ArrayList<>();
+        return pager;
+    }
 }

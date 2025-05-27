@@ -13,5 +13,6 @@ spring:
       - classpath:application-service-@profileActive@.yml
       - classpath:application-queue.yml
       - classpath:application-queue-@profileActive@.yml
-      - classpath:application-log.yml
       - classpath:application-parser.yml
+      - classpath:application-parser-@profileActive@.yml
+      - classpath:application-log.yml

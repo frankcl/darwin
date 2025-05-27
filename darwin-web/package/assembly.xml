@@ -11,6 +11,10 @@
             <outputDirectory>conf/</outputDirectory>
         </file>
         <file>
+            <source>conf/darwin.policy</source>
+            <outputDirectory>conf/</outputDirectory>
+        </file>
+        <file>
             <source>bin/start.sh</source>
             <outputDirectory>bin/</outputDirectory>
             <fileMode>0775</fileMode>
@@ -20,11 +24,15 @@
             <outputDirectory>bin/</outputDirectory>
             <fileMode>0775</fileMode>
         </file>
+        <file>
+            <source>../javascript/node_modules.tar.gz</source>
+            <outputDirectory>javascript/</outputDirectory>
+        </file>
     </files>
     <dependencySets>
         <dependencySet>
             <useProjectArtifact>true</useProjectArtifact>
-            <outputDirectory>jars/</outputDirectory>
+            <outputDirectory>lib</outputDirectory>
         </dependencySet>
     </dependencySets>
 </assembly>

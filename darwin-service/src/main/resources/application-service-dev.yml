@@ -18,11 +18,11 @@ weapon:
         username: root
         password: xmjjyhy28p
         endpoints:
-          - http://127.0.0.1:2379
+          - http://localhost:2379
     kafka:
       auth:
         security-protocol: SASL_PLAINTEXT
-        sasl-mechanism: PLAIN
+        sasl-mechanism: SCRAM-SHA-256
         sasl-jaas-config: ${weapon/kafka/jaas-config}
       producer:
         servers: localhost:9092
@@ -39,8 +39,8 @@ weapon:
 app:
   service:
     mq:
-      topicJob: TEST_DARWIN_DISPATCH_JOB
-      topicURL: TEST_DARWIN_DISPATCH_RECORD
+      topicJob: TEST-DARWIN-DISPATCH-JOB
+      topicURL: TEST-DARWIN-DISPATCH-RECORD
     oss:
       region: cn-hangzhou
       bucket: darwin-spider

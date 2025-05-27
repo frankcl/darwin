@@ -3,13 +3,13 @@ weapon:
     kafka:
       auth:
         security-protocol: SASL_PLAINTEXT
-        sasl-mechanism: PLAIN
+        sasl-mechanism: SCRAM-SHA-256
         sasl-jaas-config: ${weapon/kafka/jaas-config}
       consumer:
         servers: localhost:9092
-        group-id: GID_TEST_DARWIN_FETCH_URL
+        group-id: GID-TEST-DARWIN-FETCH-URL
         name: url_consumer
         processor-name: URLReceiver
         consumeThreadNum: 5
         topics:
-          - TEST_DARWIN_FETCH_URL
+          - TEST-DARWIN-FETCH-URL

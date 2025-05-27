@@ -1,6 +1,12 @@
 package xin.manong.darwin.parser;
 
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.context.annotation.PropertySource;
+import xin.manong.weapon.spring.boot.annotation.EnableEtcdClient;
+import xin.manong.weapon.spring.boot.annotation.EnableKafkaProducer;
+import xin.manong.weapon.spring.boot.annotation.EnableOSSClient;
+import xin.manong.weapon.spring.boot.annotation.EnableRedisClient;
+import xin.manong.weapon.spring.boot.io.EtcdPropertySourceFactory;
 
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
@@ -12,7 +18,16 @@ import java.nio.charset.StandardCharsets;
  * @author frankcl
  * @date 2022-08-15 21:08:20
  */
-@SpringBootApplication(scanBasePackages = { "xin.manong.darwin.parser" })
+@EnableEtcdClient
+@EnableRedisClient
+@EnableKafkaProducer
+@EnableOSSClient
+@PropertySource(
+        name="default",
+        value = "application-service-dev.yml",
+        factory = EtcdPropertySourceFactory.class)
+@SpringBootApplication(scanBasePackages = {
+        "xin.manong.darwin.parser", "xin.manong.darwin.service", "xin.manong.darwin.queue", "xin.manong.darwin.log" })
 public class ApplicationTest {
 
     public static String readScript(String path) throws Exception {

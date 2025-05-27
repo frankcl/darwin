@@ -21,7 +21,7 @@ import xin.manong.weapon.base.util.RandomID;
  * @date 2023-03-30 15:50:07
  */
 @RunWith(SpringRunner.class)
-@ActiveProfiles(value = { "spider", "spider-dev", "service", "service-dev", "parse", "parse-dev", "queue", "queue-dev", "log", "log-dev" })
+@ActiveProfiles(value = { "spider", "spider-dev", "service", "service-dev", "parser", "parser-dev", "queue", "queue-dev", "log" })
 @SpringBootTest(classes = { ApplicationTest.class })
 public class ResourceSpiderTest {
 
