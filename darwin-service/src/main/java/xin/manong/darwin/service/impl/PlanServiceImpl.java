@@ -121,6 +121,9 @@ public class PlanServiceImpl implements PlanService {
         if (searchRequest.pageSize == null || searchRequest.pageSize <= 0) searchRequest.pageSize = Constants.DEFAULT_PAGE_SIZE;
         ModelValidator.validateOrderBy(Plan.class, searchRequest);
         searchRequest.appList = ModelValidator.validateListField(searchRequest.appIds, String.class);
+        if (searchRequest.appList != null && searchRequest.appList.isEmpty()) {
+            return Pager.empty(searchRequest.pageNum, searchRequest.pageSize);
+        }
         QueryWrapper<Plan> query = new QueryWrapper<>();
         searchRequest.prepareOrderBy(query);
         if (searchRequest.category != null) query.eq("category", searchRequest.category);

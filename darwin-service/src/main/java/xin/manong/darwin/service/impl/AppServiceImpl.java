@@ -98,6 +98,9 @@ public class AppServiceImpl implements AppService {
         if (searchRequest.pageSize == null || searchRequest.pageSize <= 0) searchRequest.pageSize = Constants.DEFAULT_PAGE_SIZE;
         ModelValidator.validateOrderBy(App.class, searchRequest);
         searchRequest.appList = ModelValidator.validateListField(searchRequest.appIds, String.class);
+        if (searchRequest.appList != null && searchRequest.appList.isEmpty()) {
+            return Pager.empty(searchRequest.pageNum, searchRequest.pageSize);
+        }
         QueryWrapper<App> query = new QueryWrapper<>();
         searchRequest.prepareOrderBy(query);
         if (StringUtils.isNotEmpty(searchRequest.name)) query.like("name", searchRequest.name);
