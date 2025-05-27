@@ -86,7 +86,7 @@ onUnmounted(() => window.removeEventListener('resize', setSidebarType))
 }
 .brand-logo {
   min-height: 70px;
-  padding: 27px 24px 0 24px;
+  padding: 20px 12px 0 12px;
 }
 .body-wrapper {
   position: relative;

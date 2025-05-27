@@ -64,7 +64,7 @@ onUnmounted(() => window.removeEventListener('click', handleClick))
               <el-avatar shape="circle" fit="cover" :src="userStore.avatar || ImageGuest" />
               <div class="flex-grow-1 ml-3">
                 <span class="d-block fs-m fw-500">{{ userStore.name || '游客' }}</span>
-                <small v-if="checkLogin">
+                <small v-if="checkLogin()">
                   <el-text v-if="userStore.superAdmin" class="fs-xs">超级管理员</el-text>
                   <el-text class="fs-xs" v-else>普通用户</el-text>
                 </small>
