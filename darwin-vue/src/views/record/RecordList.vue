@@ -76,7 +76,7 @@ const prepareSearchRequest = () => {
   if (query.priority !== undefined && query.priority !== 'all') request.priority = query.priority
   if (query.content_type && query.content_type !== 'all') request.content_type = query.content_type
   if (query.http_request && query.http_request !== 'all') request.http_request = query.http_request
-  if (query.fetch_method && query.fetch_method !== 'all') request.fetch_method = query.fetch_method
+  if (query.fetch_method !== undefined && query.fetch_method !== 'all') request.fetch_method = query.fetch_method
   if (query.status && query.status.length > 0) request.status = JSON.stringify(query.status)
   return request
 }

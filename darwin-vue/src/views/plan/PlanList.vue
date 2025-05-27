@@ -52,10 +52,10 @@ const search = async () => {
   const request = newSearchRequest(query)
   if (query.name) request.name = query.name
   if (query.app_id) request.app_id = query.app_id
-  if (query.category && query.category !== 'all') request.category = query.category
+  if (query.category !== undefined && query.category !== 'all') request.category = query.category
   if (query.priority !== undefined && query.priority !== 'all') request.priority = query.priority
   if (query.status && query.status !== 'all') request.status = query.status
-  if (query.fetch_method && query.fetch_method !== 'all') request.fetch_method = query.fetch_method
+  if (query.fetch_method !== undefined && query.fetch_method !== 'all') request.fetch_method = query.fetch_method
   if (query.app_ids && query.app_ids !== 'all') request.app_ids = query.app_ids
   const pager = await asyncSearchPlan(request)
   total.value = pager.total
