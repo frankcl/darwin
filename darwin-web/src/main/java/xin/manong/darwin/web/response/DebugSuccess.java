@@ -35,6 +35,10 @@ public class DebugSuccess extends DebugResponse {
     @JsonProperty("children")
     public List<URLRecord> children;
 
+    public DebugSuccess() {
+        super(true);
+    }
+
     public DebugSuccess(Map<String, Object> fieldMap, List<URLRecord> children,
                         Map<String, Object> customMap) {
         super(true);

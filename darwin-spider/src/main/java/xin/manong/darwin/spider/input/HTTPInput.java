@@ -61,11 +61,11 @@ public class HTTPInput extends Input {
             httpRequest.readTimeoutMs = record.timeout;
         }
         httpResponse = httpClient.execute(httpRequest);
+        record.httpCode = httpResponse.code();
         if (!httpResponse.isSuccessful()) {
             httpResponse.close();
-            throw new IOException("获取HTTP响应失败");
+            throw new IOException(String.format("获取HTTP响应失败，http状态码：%d", record.httpCode));
         }
-        record.httpCode = httpResponse.code();
         String targetURL = httpResponse.request().url().url().toString();
         if (!StringUtils.isEmpty(targetURL) && !targetURL.equals(record.url)) record.redirectURL = targetURL;
         ResponseBody responseBody = httpResponse.body();

@@ -98,7 +98,15 @@ public class DebugController {
         SeedRecord seed = seedService.get(key);
         if (seed == null) throw new NotFoundException("种子不存在");
         try {
-            Rule rule = getMatchedRule(seed, planId);
+            Rule rule = null;
+            if (!seed.isScopeExtract()) {
+                rule = getMatchedRule(seed, planId);
+                if (rule == null) {
+                    DebugSuccess response = new DebugSuccess();
+                    response.debugLog = "[WARN] 未发现匹配规则";
+                    return response;
+                }
+            }
             URLRecord record = Converter.convert(seed);
             return debug(record, rule == null ? null : rule.scriptType, rule == null ? null : rule.script);
         } catch (Exception e) {
@@ -205,12 +213,11 @@ public class DebugController {
      * @return 存在匹配规则返回，否则返回null
      */
     private Rule getMatchedRule(SeedRecord seed, String planId) {
-        if (seed.isScopeExtract()) return null;
         List<Rule> matchedRules = ruleService.getRuleIds(planId).stream().map(id -> {
             Rule rule = ruleService.getCache(id);
             return rule != null && rule.match(seed.url) ? rule : null;
         }).filter(Objects::nonNull).toList();
-        if (matchedRules.isEmpty()) throw new NotFoundException("未发现匹配规则");
+        if (matchedRules.isEmpty()) return null;
         if (matchedRules.size() > 1) throw new IllegalStateException("存在多条匹配规则");
         return matchedRules.get(0);
     }
