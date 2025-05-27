@@ -57,6 +57,8 @@ public class DebugController {
     @Resource
     private SeedService seedService;
     @Resource
+    private ScriptFactory scriptFactory;
+    @Resource
     private LinkExtractService linkExtractService;
     @Resource
     private ParseService parseService;
@@ -138,11 +140,15 @@ public class DebugController {
                 logger.error("Parse failed for url:{}", record.url);
                 DebugError debugError = new DebugError(parseResponse.message, null);
                 debugError.debugLog = parseResponse.debugLog;
+                debugError.stdout = parseResponse.stdout;
+                debugError.stderr = parseResponse.stderr;
                 return debugError;
             }
             DebugSuccess debugSuccess = new DebugSuccess(parseResponse.fieldMap,
                     parseResponse.children, parseResponse.customMap);
             debugSuccess.debugLog = parseResponse.debugLog;
+            debugSuccess.stdout = parseResponse.stdout;
+            debugSuccess.stderr = parseResponse.stderr;
             return debugSuccess;
         } catch (Exception e) {
             logger.error("Exception occurred when debugging url:{}", record.url);
@@ -171,13 +177,23 @@ public class DebugController {
      * @param scriptType 脚本类型
      * @param scriptCode 脚本代码
      * @return 解析结果
-     * @throws Exception 异常
      */
-    private ParseResponse parse(URLRecord record, int scriptType, String scriptCode) throws Exception {
-        try (Script script = ScriptFactory.make(scriptType, scriptCode)) {
+    private ParseResponse parse(URLRecord record, int scriptType, String scriptCode) {
+        Script script = null;
+        try {
+            script = scriptFactory.make(scriptType, scriptCode);
             ScriptParseRequestBuilder builder = new ScriptParseRequestBuilder();
             builder.url(record.url).text(record.text).customMap(record.customMap).redirectURL(record.redirectURL);
             return script.doExecute(builder.build());
+        } catch (Exception e) {
+            ParseResponse response = ParseResponse.buildError(String.format("执行脚本异常:%s", e.getMessage()));
+            if (script != null) {
+                response.stdout = script.getStdout();
+                response.stderr = script.getStderr();
+            }
+            return response;
+        } finally {
+            if (script != null) script.close();
         }
     }
 

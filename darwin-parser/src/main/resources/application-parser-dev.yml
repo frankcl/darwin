@@ -1,0 +1,3 @@
+app:
+  parser:
+    require-cwd: /Users/frankcl/javascript/node_modules

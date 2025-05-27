@@ -1,0 +1,3 @@
+app:
+  parser:
+    require-cwd: /home/frankcl/darwin/javascript/node_modules

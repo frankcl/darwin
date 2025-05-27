@@ -57,6 +57,14 @@ const checkScript = async () => {
     termOutput.value += '发生错误 -> ' + response.message + '\n'
     termOutput.value += '异常堆栈 -> '
     termOutput.value += response.stack_trace + '\n'
+    if (response && response.stdout) {
+      termOutput.value += '\n标准输出\n'
+      termOutput.value += response.stdout
+    }
+    if (response && response.stderr) {
+      termOutput.value += '\n标准错误\n'
+      termOutput.value += response.stderr
+    }
     return false
   }
   termOutput.value += '检测结束：脚本合法\n\n'
@@ -93,6 +101,14 @@ const debug = async () => {
     if (response && response.debug_log) {
       termOutput.value += '\n调试日志\n'
       termOutput.value += response.debug_log
+    }
+    if (response && response.stdout) {
+      termOutput.value += '\n标准输出\n'
+      termOutput.value += response.stdout
+    }
+    if (response && response.stderr) {
+      termOutput.value += '\n标准错误\n'
+      termOutput.value += response.stderr
     }
     termOutput.value += '\n调试结束\n'
     debugging.value = false

@@ -58,6 +58,14 @@ const debug = async () => {
       termOutput.value += '\n调试日志\n'
       termOutput.value += response.debug_log
     }
+    if (response && response.stdout) {
+      termOutput.value += '\n标准输出\n'
+      termOutput.value += response.stdout
+    }
+    if (response && response.stderr) {
+      termOutput.value += '\n标准错误\n'
+      termOutput.value += response.stderr
+    }
     termOutput.value += '\n调试结束\n'
     debugging.value = false
     await refreshTerm()

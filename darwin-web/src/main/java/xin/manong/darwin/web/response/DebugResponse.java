@@ -27,6 +27,16 @@ public class DebugResponse implements Serializable {
      */
     @JsonProperty("debug_log")
     public String debugLog;
+    /**
+     * 标准输出
+     */
+    @JsonProperty("stdout")
+    public String stdout;
+    /**
+     * 标准出错
+     */
+    @JsonProperty("stderr")
+    public String stderr;
 
     public DebugResponse(boolean success) {
         this.success = success;
