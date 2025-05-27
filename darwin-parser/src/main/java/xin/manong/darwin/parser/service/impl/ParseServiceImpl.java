@@ -48,21 +48,34 @@ public class ParseServiceImpl implements ParseService {
     @Resource
     private ScriptCache scriptCache;
     @Resource
+    private ScriptFactory scriptFactory;
+    @Resource
     private RuleService ruleService;
     @Resource
     private LinkExtractService linkExtractService;
 
     @Override
     public CompileResult compile(@NonNull CompileRequest request) {
-        try (Script script = ScriptFactory.make(request.scriptType, request.script)) {
+        Script script = null;
+        try {
+            script = scriptFactory.make(request.scriptType, request.script);
             ParseRequestBuilder builder = new ParseRequestBuilder();
-            ParseRequest parseRequest = builder.text(COMPILE_HTML).url(COMPILE_URL).build();
-            script.doExecute(parseRequest);
+            if (request.scriptType == Constants.SCRIPT_TYPE_GROOVY) {
+                ParseRequest parseRequest = builder.text(COMPILE_HTML).url(COMPILE_URL).build();
+                script.doExecute(parseRequest);
+            }
             return CompileResult.success();
         } catch (Exception e) {
             logger.error("Compile failed");
             logger.error(e.getMessage(), e);
-            return CompileResult.error(e.getMessage(), ExceptionUtils.getStackTrace(e));
+            CompileResult compileResult = CompileResult.error(e.getMessage(), ExceptionUtils.getStackTrace(e));
+            if (script != null) {
+                compileResult.stdout = script.getStdout();
+                compileResult.stderr = script.getStderr();
+            }
+            return compileResult;
+        } finally {
+            if (script != null) script.close();
         }
     }
 
@@ -83,6 +96,9 @@ public class ParseServiceImpl implements ParseService {
     public ParseResponse parse(@NonNull ScriptParseRequest request) {
         if (request.isScopeExtract()) return linkExtractService.extract(request);
         String key = DigestUtils.md5Hex(request.scriptCode);
+        if (request.scriptType == Constants.SCRIPT_TYPE_JAVASCRIPT) {
+            key = DigestUtils.md5Hex(String.format("%d_%s", Thread.currentThread().getId(), request.scriptCode));
+        }
         for (int i = 0; i < RETRY_COUNT; i++) {
             Script script = buildScript(key, request);
             if (script == null) {
@@ -130,12 +146,13 @@ public class ParseServiceImpl implements ParseService {
             synchronized (this) {
                 script = scriptCache.get(key);
                 if (script != null) return script;
-                script = ScriptFactory.make(request.scriptType, request.scriptCode);
+                script = scriptFactory.make(request.scriptType, request.scriptCode);
                 scriptCache.put(script);
                 return script;
             }
-        } catch (CompileException e) {
-            logger.error("{} script compile failed", Constants.SUPPORT_SCRIPT_TYPES.get(request.scriptType));
+        } catch (IOException e) {
+            logger.error("Script compile failed");
+            logger.error(e.getMessage(), e);
             return null;
         }
     }

@@ -17,7 +17,7 @@ import xin.manong.darwin.parser.service.request.ScriptParseRequest;
  * @date 2023-11-15 15:43:21
  */
 @RunWith(SpringRunner.class)
-@ActiveProfiles(value = { "parser" })
+@ActiveProfiles(value = { "parser", "parser-dev", "service", "service-dev", "queue", "queue-dev", "log" })
 @SpringBootTest(classes = ApplicationTest.class)
 public class LinkExtractServiceImplTest {
 

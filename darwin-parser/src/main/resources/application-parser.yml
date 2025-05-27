@@ -1,4 +1,5 @@
 app:
-  parse:
+  parser:
     cache-max-size: 3000
     cache-expired-time-minutes: 30
+    require-cwd: /Users/frankcl/javascript/node_modules

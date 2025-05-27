@@ -27,6 +27,14 @@ public class ParseResponse {
      */
     public String debugLog;
     /**
+     * 标准输出
+     */
+    public String stdout;
+    /**
+     * 标准错误
+     */
+    public String stderr;
+    /**
      * 结构化数据
      */
     public Map<String, Object> fieldMap;

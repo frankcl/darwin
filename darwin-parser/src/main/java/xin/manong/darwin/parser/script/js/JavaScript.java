@@ -1,28 +1,24 @@
 package xin.manong.darwin.parser.script.js;
 
 import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONObject;
 import org.apache.commons.codec.digest.DigestUtils;
-import org.openjdk.nashorn.api.scripting.ScriptObjectMirror;
+import org.graalvm.polyglot.Context;
+import org.graalvm.polyglot.HostAccess;
+import org.graalvm.polyglot.Source;
+import org.graalvm.polyglot.Value;
+import org.graalvm.polyglot.io.IOAccess;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import xin.manong.darwin.common.model.URLRecord;
 import xin.manong.darwin.parser.script.Script;
-import xin.manong.darwin.parser.script.CompileException;
 import xin.manong.darwin.parser.script.ConcurrentException;
 import xin.manong.darwin.parser.sdk.ParseRequest;
 import xin.manong.darwin.parser.sdk.ParseResponse;
 
-import javax.script.Invocable;
-import javax.script.ScriptEngine;
-import javax.script.ScriptEngineManager;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -35,110 +31,143 @@ public class JavaScript extends Script {
 
     private static final Logger logger = LoggerFactory.getLogger(JavaScript.class);
 
+    private static final String LANGUAGE = "js";
     private static final String METHOD_PARSE = "parse";
-    private static final String JAVASCRIPT_UTILS_FILE = "/js/parse_utils.js";
-    private static final String JAVASCRIPT_ENGINE_NAME = "nashorn";
-    private static final ScriptEngineManager scriptEngineManager = new ScriptEngineManager();
-    private static final String JAVASCRIPT_UTILS = loadJavaScriptUtils();
+    private static final String DARWIN_FILE = "/js/darwin.js";
+    private static final String OPTION_COMMON_JS_REQUIRE = "js.commonjs-require";
+    private static final String OPTION_COMMON_JS_REQUIRE_CWD = "js.commonjs-require-cwd";
 
-    private Invocable function;
-
-    /**
-     * 加载JavaScript工具函数
-     * 失败抛出异常
-     *
-     * @return JavaScript工具函数
-     */
-    private static String loadJavaScriptUtils() {
-        int bufferSize = 4096, n;
-        InputStream inputStream = null;
-        ByteArrayOutputStream outputStream = null;
-        try {
-            inputStream = JavaScript.class.getResourceAsStream(JAVASCRIPT_UTILS_FILE);
-            if (inputStream == null) throw new IllegalStateException("Load javascript utils file failed");
-            outputStream = new ByteArrayOutputStream(bufferSize);
-            byte[] buffer = new byte[bufferSize];
-            while ((n = inputStream.read(buffer)) != -1) outputStream.write(buffer, 0, n);
-            return outputStream.toString(StandardCharsets.UTF_8);
-        } catch (Exception e) {
-            logger.error("Load java script utils failed, cause:{}", e.getMessage());
-            throw new RuntimeException(e);
-        } finally {
-            try {
-                if (outputStream != null) outputStream.close();
-                if (inputStream != null) inputStream.close();
-            } catch (IOException e) {
-                logger.error(e.getMessage(), e);
-            }
-        }
-    }
+    private Context context;
+    private final String requireCwd;
+    private ByteArrayOutputStream stdout;
+    private ByteArrayOutputStream stderr;
 
     public JavaScript() {
         super(null);
+        requireCwd = null;
     }
 
-    public JavaScript(String scriptCode) throws CompileException {
-        super(DigestUtils.md5Hex(scriptCode));
-        buildJavaScriptFunction(scriptCode);
+    public JavaScript(String scriptCode, String requireCwd) throws IOException {
+        super(DigestUtils.md5Hex(String.format("%d_%s", Thread.currentThread().getId(), scriptCode)));
+        this.requireCwd = requireCwd;
+        buildContext(scriptCode);
     }
 
     /**
-     * 构建JavaScript调用方法
+     * 关闭输出
      *
-     * @param scriptCode JavaScript脚本代码
-     * @throws CompileException 编译失败抛出该异常
+     * @throws IOException I/O异常
      */
-    private void buildJavaScriptFunction(String scriptCode) throws CompileException {
+    private void closeOutput() throws IOException {
+        if (stdout != null) {
+            stdout.close();
+            stdout = null;
+        }
+        if (stderr != null) {
+            stderr.close();
+            stderr = null;
+        }
+    }
+
+    /**
+     * 读取JavaScript文件
+     *
+     * @param file 脚本文件
+     * @return 脚本内容
+     * @throws IOException I/O异常
+     */
+    private String readJavaScriptFile(String file) throws IOException {
+        try (ByteArrayOutputStream output = new ByteArrayOutputStream();
+             InputStream input = JavaScript.class.getResourceAsStream(file)) {
+            assert input != null;
+            input.transferTo(output);
+            return output.toString(StandardCharsets.UTF_8);
+        }
+    }
+
+    /**
+     * 构建上下文对象
+     *
+     * @param scriptCode 脚本代码
+     * @throws IOException 异常
+     */
+    private void buildContext(String scriptCode) throws IOException {
         try {
-            ScriptEngine scriptEngine = scriptEngineManager.getEngineByName(JAVASCRIPT_ENGINE_NAME);
-            scriptEngine.eval(String.format("%s\n%s", JAVASCRIPT_UTILS, scriptCode));
-            function = (Invocable) scriptEngine;
+            stdout = new ByteArrayOutputStream();
+            stderr = new ByteArrayOutputStream();
+            context = Context.newBuilder(LANGUAGE).
+                    allowHostAccess(HostAccess.ALL).
+                    allowHostClassLookup(className -> className.equals(JavaScript.class.getName())).
+                    allowExperimentalOptions(true).
+                    allowIO(IOAccess.newBuilder().allowHostFileAccess(true).build()).
+                    option(OPTION_COMMON_JS_REQUIRE, "true").
+                    option(OPTION_COMMON_JS_REQUIRE_CWD, requireCwd).
+                    out(stdout).err(stderr).
+                    build();
+            context.eval(Source.create(LANGUAGE, readJavaScriptFile(DARWIN_FILE)));
+            context.eval(LANGUAGE, scriptCode);
         } catch (Exception e) {
-            logger.error("Build JavaScript script failed for key:{}", key);
+            closeOutput();
+            logger.error("Build JavaScript context failed for key:{}", key);
             logger.error(e.getMessage(), e);
-            throw new CompileException(e.getMessage(), e);
+            throw new IOException(e.getMessage(), e);
         }
     }
 
     @SuppressWarnings("unchecked")
     @Override
     public ParseResponse doExecute(ParseRequest request) throws Exception {
-        if (function == null) throw new ConcurrentException();
-        ScriptObjectMirror scriptObject = (ScriptObjectMirror) function.invokeFunction(METHOD_PARSE, request);
-        Map<String, Object> map = (Map<String, Object>) convertScriptObjectMirror(scriptObject);
+        if (context == null) throw new ConcurrentException();
+        Value parseFunction = context.getBindings(LANGUAGE).getMember(METHOD_PARSE);
+        if (parseFunction == null) {
+            logger.error("function:{} is not found", METHOD_PARSE);
+            throw new IOException(String.format("未定义方法:%s", METHOD_PARSE));
+        }
+        if (stdout != null) stdout.reset();
+        if (stderr != null) stderr.reset();
+        Map<String, Object> map = parseFunction.execute(request).as(Map.class);
         if (map == null) return ParseResponse.buildError("解析响应为空");
-        ParseResponse response = JSON.toJavaObject(new JSONObject(map), ParseResponse.class);
+        ParseResponse response = JSON.parseObject(JSON.toJSONString(map), ParseResponse.class);
+        if (stdout != null) response.stdout = stdout.toString(StandardCharsets.UTF_8);
+        if (stderr != null) response.stderr = stderr.toString(StandardCharsets.UTF_8);
         if (response.status && response.children != null) {
             for (URLRecord child : response.children) {
-                if (child.url != null) child.hash = DigestUtils.md5Hex(child.url);
+                if (child.url != null) child.setUrl(child.url);
             }
         }
         return response;
     }
 
     @Override
+    public String getStdout() {
+        if (stdout != null) return stdout.toString(StandardCharsets.UTF_8);
+        return null;
+    }
+
+    @Override
+    public String getStderr() {
+        if (stderr != null) return stderr.toString(StandardCharsets.UTF_8);
+        return null;
+    }
+
+    @Override
     public void doClose() throws IOException {
-        if (function != null) function = null;
+        closeOutput();
+        if (context != null) context.close();
     }
 
     /**
-     * 转化JavaScript对象，结果为Map或List
+     * 正规化HTML
      *
-     * @param scriptObject JavaScript对象
-     * @return Map或List对象
+     * @param html HTML
+     * @return 正规化HTML
      */
-    @SuppressWarnings("unchecked")
-    private Object convertScriptObjectMirror(ScriptObjectMirror scriptObject) {
-        if (scriptObject == null) return null;
-        boolean isArray = scriptObject.isArray();
-        Object returnObject = isArray ? new ArrayList<>() : new HashMap<>();
-        for (Map.Entry<String, Object> entry : scriptObject.entrySet()) {
-            Object object = entry.getValue();
-            object = object instanceof ScriptObjectMirror ?
-                    convertScriptObjectMirror((ScriptObjectMirror) object) : object;
-            if (isArray) ((List<Object>) returnObject).add(object);
-            else ((Map<Object, Object>) returnObject).put(entry.getKey(), object);
-        }
-        return returnObject;
+    public static String normalizeHTML(String html) {
+        if (html == null) return null;
+        Document.OutputSettings outputSettings = new Document.OutputSettings()
+                .syntax(Document.OutputSettings.Syntax.xml)
+                .charset(StandardCharsets.UTF_8)
+                .prettyPrint(true);
+        return Jsoup.parse(html).outputSettings(outputSettings).outerHtml();
     }
 }

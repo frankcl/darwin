@@ -5,6 +5,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import xin.manong.darwin.parser.script.ScriptCache;
+import xin.manong.darwin.parser.script.ScriptFactory;
 
 /**
  * 解析配置
@@ -14,7 +15,7 @@ import xin.manong.darwin.parser.script.ScriptCache;
  */
 @Data
 @Configuration
-@ConfigurationProperties(prefix = "app.parse")
+@ConfigurationProperties(prefix = "app.parser")
 public class ParseConfig {
 
     private static final int DEFAULT_CACHE_MAX_SIZE = 1000;
@@ -22,7 +23,23 @@ public class ParseConfig {
 
     public int cacheMaxSize = DEFAULT_CACHE_MAX_SIZE;
     public int cacheExpiredTimeMinutes = DEFAULT_CACHE_EXPIRED_TIME_MINUTES;
+    public String requireCwd;
 
+    /**
+     * 构建脚本工厂
+     *
+     * @return 脚本工厂
+     */
+    @Bean
+    public ScriptFactory buildScriptFactory() {
+        return new ScriptFactory(requireCwd);
+    }
+
+    /**
+     * 构建脚本缓存
+     *
+     * @return 脚本缓存
+     */
     @Bean
     public ScriptCache buildScriptCache() {
         return new ScriptCache(cacheMaxSize, cacheExpiredTimeMinutes);

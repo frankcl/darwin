@@ -1,8 +1,14 @@
+const { DOMParser } = require('@xmldom/xmldom')
+const xpath = require('xpath')
+
 function parse(request) {
-    var customMap = {};
-    customMap.url = request.url;
-    var child = buildChild("http://www.sohu.com/", 3);
-    var children = new Array();
-    children[0] = child;
-    return buildOK(undefined, children, customMap);
+    const parser = new DOMParser()
+    request.text = normalizeHTML(request.text)
+    const doc = parser.parseFromString(request.text, 'text/xml')
+    const elements = xpath.select("//p", doc)
+    const child = buildChild("http://www.sohu.com/")
+    const children = []
+    children.push(child)
+    console.log('debug test')
+    return successResponse(undefined, children, { url: request.url })
 }

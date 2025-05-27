@@ -20,7 +20,7 @@ import xin.manong.darwin.parser.service.response.CompileResult;
  * @date 2023-04-04 18:00:24
  */
 @RunWith(SpringRunner.class)
-@ActiveProfiles(value = { "parser" })
+@ActiveProfiles(value = { "parser", "parser-dev", "service", "service-dev", "queue", "queue-dev", "log" })
 @SpringBootTest(classes = ApplicationTest.class)
 public class ParseServiceImplTest {
 
