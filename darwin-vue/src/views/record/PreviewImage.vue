@@ -20,10 +20,14 @@ watchEffect(async () => {
 <template>
   <el-dialog v-model="open" align-center show-close>
     <darwin-card title="图片预览">
-      <el-image v-if="previewImageURL" :src="previewImageURL" />
+      <el-image v-if="previewImageURL" :src="previewImageURL" class="image" />
     </darwin-card>
   </el-dialog>
 </template>
 
 <style scoped>
+.image {
+  display: flex;
+  justify-self: center;
+}
 </style>

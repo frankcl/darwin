@@ -27,6 +27,7 @@ const open = () => {
     const mediaType = videoMediaType(props.videoURL)
     player.value = VideoJS(playerRef.value, {
       autoplay: false,
+      aspectRatio: '16:9',
       controls: true,
       fluid: true,
       preload: 'auto',
@@ -34,6 +35,9 @@ const open = () => {
         src: props.videoURL,
         type: mediaType
       }]
+    }, () => {
+      // const player = document.querySelector('.vjs-tech')
+      // player.style.maxHeight = '600px'
     })
   }
 }
@@ -55,6 +59,11 @@ onUnmounted(() => close())
 .video-container {
   width: 100%;
   max-width: 1200px;
+  overflow: hidden;
   margin: 0 auto;
+}
+.video-js {
+  width: 100%;
+  height: auto;
 }
 </style>
