@@ -1,6 +1,6 @@
 <script setup>
 import { IconCircleCheck, IconRefresh } from '@tabler/icons-vue'
-import { onMounted, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import {
   ElBreadcrumb, ElBreadcrumbItem, ElButton, ElInputNumber, ElRow
 } from 'element-plus'
@@ -20,7 +20,15 @@ const userStore = useUserStore()
 const defaultConcurrency = ref()
 const concurrencyConnectionMap = ref({})
 const concurrencyConnections = ref([])
-const columns = [{ name: '并发单元' }, { name: '最大连接', type: 'number', min: 1, max: 100, default: 20 }]
+const columns = computed(() => {
+  return [
+    { name: '并发单元' },
+    {
+      name: '最大连接', type: 'number', min: 1, max: 100,
+      default: defaultConcurrency.value ? defaultConcurrency.value : 5
+    }
+  ]
+})
 
 const update = async () => {
   if (!await asyncUpdateDefaultConcurrency({ default_concurrency: defaultConcurrency.value })) {

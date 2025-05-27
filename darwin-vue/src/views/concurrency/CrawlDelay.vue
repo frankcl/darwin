@@ -1,6 +1,6 @@
 <script setup>
 import { IconCircleCheck, IconRefresh } from '@tabler/icons-vue'
-import { onMounted, ref } from 'vue'
+import {computed, onMounted, ref} from 'vue'
 import {
   ElBreadcrumb, ElBreadcrumbItem, ElButton, ElInputNumber, ElRow
 } from 'element-plus'
@@ -20,7 +20,15 @@ const userStore = useUserStore()
 const defaultCrawlDelay = ref()
 const crawlDelayMap = ref({})
 const crawlDelays = ref([])
-const columns = [{ name: '并发单元' }, { name: '抓取间隔（ms）', type: 'number', min: 100, max: 20000, step: 100, default: 1000 }]
+const columns = computed(() => {
+  return [
+    { name: '并发单元' },
+    {
+      name: '抓取间隔（ms）', type: 'number', min: 100, max: 20000, step: 100,
+      default: defaultCrawlDelay.value ? defaultCrawlDelay.value : 1000
+    }
+  ]
+})
 
 const update = async () => {
   if (!await asyncUpdateDefaultCrawlDelay({ default_crawl_delay: defaultCrawlDelay.value })) {
