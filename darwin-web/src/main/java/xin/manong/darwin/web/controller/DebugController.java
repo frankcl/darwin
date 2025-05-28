@@ -98,17 +98,12 @@ public class DebugController {
         SeedRecord seed = seedService.get(key);
         if (seed == null) throw new NotFoundException("种子不存在");
         try {
-            Rule rule = null;
-            if (!seed.isScopeExtract()) {
-                rule = getMatchedRule(seed, planId);
-                if (rule == null) {
-                    DebugSuccess response = new DebugSuccess();
-                    response.debugLog = "[WARN] 未发现匹配规则";
-                    return response;
-                }
-            }
             URLRecord record = Converter.convert(seed);
-            return debug(record, rule == null ? null : rule.scriptType, rule == null ? null : rule.script);
+            textSpider.fetch(record);
+            if (record.isScopeExtract()) return debugParse(record, null, null);
+            Rule rule = getMatchedRule(seed, planId);
+            if (rule == null) return new DebugSuccess("[WARN] 未发现匹配规则");
+            return debugParse(record, rule.scriptType, rule.script);
         } catch (Exception e) {
             return new DebugError(e.getMessage(), ExceptionUtils.getStackTrace(e));
         }
@@ -128,41 +123,40 @@ public class DebugController {
     public DebugResponse debugScript(@RequestBody DebugRequest request) {
         if (request == null) throw new BadRequestException("脚本调试请求为空");
         request.check();
-        return debug(new URLRecord(request.url), request.scriptType, request.script);
+        try {
+            URLRecord record = new URLRecord(request.url);
+            textSpider.fetch(record);
+            return debugParse(record, request.scriptType, request.script);
+        } catch (Exception e) {
+            return new DebugError(e.getMessage(), ExceptionUtils.getStackTrace(e));
+        }
     }
 
     /**
-     * 调试
+     * 调试解析
      *
      * @param record 调试数据
      * @param scriptType 脚本类型
      * @param script 调试脚本
      * @return 调试结果
      */
-    private DebugResponse debug(URLRecord record, Integer scriptType, String script) {
-        try {
-            textSpider.fetch(record);
-            ParseResponse parseResponse = record.isScopeExtract() ?
-                    extractLinks(record) : parse(record, scriptType, script);
-            if (!parseResponse.status) {
-                logger.error("Parse failed for url:{}", record.url);
-                DebugError debugError = new DebugError(parseResponse.message, null);
-                debugError.debugLog = parseResponse.debugLog;
-                debugError.stdout = parseResponse.stdout;
-                debugError.stderr = parseResponse.stderr;
-                return debugError;
-            }
-            DebugSuccess debugSuccess = new DebugSuccess(parseResponse.fieldMap,
-                    parseResponse.children, parseResponse.customMap);
-            debugSuccess.debugLog = parseResponse.debugLog;
-            debugSuccess.stdout = parseResponse.stdout;
-            debugSuccess.stderr = parseResponse.stderr;
-            return debugSuccess;
-        } catch (Exception e) {
-            logger.error("Exception occurred when debugging url:{}", record.url);
-            logger.error(e.getMessage(), e);
-            return new DebugError(e.getMessage(), ExceptionUtils.getStackTrace(e));
+    private DebugResponse debugParse(URLRecord record, Integer scriptType, String script) {
+        ParseResponse parseResponse = record.isScopeExtract() ?
+                extractLinks(record) : parse(record, scriptType, script);
+        if (!parseResponse.status) {
+            logger.error("Parse failed for url:{}", record.url);
+            DebugError debugError = new DebugError(parseResponse.message, null);
+            debugError.debugLog = parseResponse.debugLog;
+            debugError.stdout = parseResponse.stdout;
+            debugError.stderr = parseResponse.stderr;
+            return debugError;
         }
+        DebugSuccess debugSuccess = new DebugSuccess(parseResponse.fieldMap,
+                parseResponse.children, parseResponse.customMap);
+        debugSuccess.debugLog = parseResponse.debugLog;
+        debugSuccess.stdout = parseResponse.stdout;
+        debugSuccess.stderr = parseResponse.stderr;
+        return debugSuccess;
     }
 
     /**

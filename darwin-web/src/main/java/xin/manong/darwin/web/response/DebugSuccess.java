@@ -35,8 +35,9 @@ public class DebugSuccess extends DebugResponse {
     @JsonProperty("children")
     public List<URLRecord> children;
 
-    public DebugSuccess() {
+    public DebugSuccess(String debugLog) {
         super(true);
+        this.debugLog = debugLog;
     }
 
     public DebugSuccess(Map<String, Object> fieldMap, List<URLRecord> children,
