@@ -154,6 +154,18 @@ public abstract class JobService {
     }
 
     /**
+     * 获取最大抓取深度
+     *
+     * @param jobId 任务ID
+     * @return 任务最大抓取深度
+     */
+    public Integer maxDepth(String jobId) {
+        Job job = get(jobId);
+        if (job == null) return null;
+        return job.maxDepth;
+    }
+
+    /**
      * 判断任务是否完成
      * 任务存在且任务URL不存在以下状态则任务完成
      * 1. URL_STATUS_CREATED：1

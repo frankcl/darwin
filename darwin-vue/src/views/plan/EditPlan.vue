@@ -4,7 +4,7 @@ import { computed, ref, useTemplateRef, watchEffect } from 'vue'
 import { useRouter } from 'vue-router'
 import {
   ElButton, ElCol, ElForm, ElFormItem, ElInput,
-  ElRadio, ElRadioGroup, ElRow, ElTooltip,
+  ElInputNumber, ElRadio, ElRadioGroup, ElRow, ElTooltip,
 } from 'element-plus'
 import { useUserStore } from '@/store'
 import { formatDate } from '@/common/Time'
@@ -142,6 +142,21 @@ watchEffect( async () => await resetPlanForm())
             <el-radio :value="true">允许</el-radio>
             <el-radio :value="false">禁止</el-radio>
           </el-radio-group>
+        </el-form-item>
+      </el-col>
+    </el-row>
+    <el-row :gutter="20">
+      <el-col :span="12">
+        <el-form-item prop="max_depth">
+          <template #label>
+            <span class="d-flex align-items-center">
+              <span>最大抓取深度</span>
+              <el-tooltip effect="dark" placement="top" content="超过最大抓取深度的数据将被丢弃">
+                <IconHelp size="12" class="ml-2" />
+              </el-tooltip>
+            </span>
+          </template>
+          <el-input-number :min="1" :max="6" v-model="plan.max_depth" clearable />
         </el-form-item>
       </el-col>
     </el-row>

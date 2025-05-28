@@ -2,8 +2,8 @@
 import { IconHelp, IconPlus, IconRefresh } from '@tabler/icons-vue'
 import { reactive, useTemplateRef } from 'vue'
 import {
-  ElButton, ElCol, ElDialog, ElForm, ElFormItem,
-  ElInput, ElRadio, ElRadioGroup, ElRow, ElTooltip,
+  ElButton, ElCol, ElDialog, ElForm, ElFormItem, ElInput,
+  ElInputNumber, ElRadio, ElRadioGroup, ElRow, ElTooltip,
 } from 'element-plus'
 import { useUserStore } from '@/store'
 import { fetchMethodMap, planCategoryMap, priorityMap } from '@/common/Constants'
@@ -19,6 +19,7 @@ const userStore = useUserStore()
 const formRef = useTemplateRef('form')
 const plan = reactive({
   priority: 1,
+  max_depth: 3,
   allow_repeat: 'false',
   fetch_method: 0,
   category: 0
@@ -106,6 +107,21 @@ const add = async () => {
                 <el-radio value="true">允许</el-radio>
                 <el-radio value="false">禁止</el-radio>
               </el-radio-group>
+            </el-form-item>
+          </el-col>
+        </el-row>
+        <el-row>
+          <el-col :span="12">
+            <el-form-item prop="max_depth">
+              <template #label>
+                <span class="d-flex align-items-center">
+                  <span>最大抓取深度</span>
+                  <el-tooltip effect="dark" placement="top" content="超过最大抓取深度的数据将被丢弃">
+                    <IconHelp size="12" class="ml-2" />
+                  </el-tooltip>
+                </span>
+              </template>
+              <el-input-number :min="1" :max="6" v-model="plan.max_depth" clearable />
             </el-form-item>
           </el-col>
         </el-row>

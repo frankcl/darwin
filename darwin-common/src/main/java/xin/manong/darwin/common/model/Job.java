@@ -78,6 +78,15 @@ public class Job extends BaseModel {
     public Integer priority;
 
     /**
+     * 最大抓取深度
+     */
+    @TableField(value = "max_depth")
+    @Column(name = "max_depth")
+    @JSONField(name = "max_depth")
+    @JsonProperty("max_depth")
+    public Integer maxDepth;
+
+    /**
      * 任务ID
      */
     @TableId(value = "job_id")
@@ -143,6 +152,7 @@ public class Job extends BaseModel {
             return false;
         }
         if (status == null) status = true;
+        if (maxDepth == null) maxDepth = 3;
         if (priority == null) priority = Constants.PRIORITY_NORMAL;
         return true;
     }

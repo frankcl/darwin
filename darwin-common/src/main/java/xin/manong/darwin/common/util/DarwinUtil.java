@@ -69,6 +69,7 @@ public class DarwinUtil {
         if (plan.fetchMethod != null) context.put(Constants.FETCH_METHOD, Constants.SUPPORT_FETCH_METHODS.get(plan.fetchMethod));
         if (plan.appId != null) context.put(Constants.APP_ID, plan.appId);
         if (plan.priority != null) context.put(Constants.PRIORITY, plan.priority);
+        if (plan.maxDepth != null) context.put(Constants.MAX_DEPTH, plan.maxDepth);
         if (plan.allowRepeat != null) context.put(Constants.ALLOW_REPEAT, plan.allowRepeat);
     }
 
@@ -88,6 +89,7 @@ public class DarwinUtil {
         if (job.status != null) context.put(Constants.STATUS, job.status);
         if (job.fetchMethod != null) context.put(Constants.FETCH_METHOD, Constants.SUPPORT_FETCH_METHODS.get(job.fetchMethod));
         if (job.priority != null) context.put(Constants.PRIORITY, job.priority);
+        if (job.maxDepth != null) context.put(Constants.MAX_DEPTH, job.maxDepth);
     }
 
     /**

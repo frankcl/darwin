@@ -87,7 +87,9 @@ public class Router {
             if (!passConcurrency) return;
             concurrencyControl.putConnection(record.concurrencyUnit, record.key);
             crawlDelayCheck(record);
+            Integer maxDepth = jobService.maxDepth(record.jobId);
             boolean allowRepeat = jobService.allowRepeat(record.jobId);
+            context.put(Constants.MAX_DEPTH, maxDepth);
             context.put(Constants.ALLOW_REPEAT, allowRepeat);
             record.fetchTime = System.currentTimeMillis();
             URLRecord prevRecord = fetchedRecord(record, context);

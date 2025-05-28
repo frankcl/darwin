@@ -41,6 +41,12 @@ public class PlanRequest implements Serializable {
     public Integer appId;
 
     /**
+     * 最大抓取深度
+     */
+    @JsonProperty("max_depth")
+    public Integer maxDepth;
+
+    /**
      * 应用名
      */
     @JsonProperty("app_name")

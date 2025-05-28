@@ -96,6 +96,7 @@ public class Converter {
         plan.status = false;
         plan.fetchMethod = request.fetchMethod == null ? Constants.FETCH_METHOD_COMMON : request.fetchMethod;
         plan.priority = request.priority == null ? Constants.PRIORITY_NORMAL : request.priority;
+        plan.maxDepth = request.maxDepth == null ? 3 : request.maxDepth;
         plan.category = request.category;
         plan.crontabExpression = request.crontabExpression;
         return plan;
@@ -116,6 +117,7 @@ public class Converter {
         plan.priority = request.priority;
         plan.category = request.category;
         plan.fetchMethod = request.fetchMethod;
+        plan.maxDepth = request.maxDepth;
         plan.appId = request.appId;
         plan.appName = request.appName;
         plan.crontabExpression = request.crontabExpression;

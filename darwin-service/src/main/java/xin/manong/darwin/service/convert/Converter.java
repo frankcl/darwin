@@ -80,6 +80,7 @@ public class Converter {
         job.priority = plan.priority == null ? Constants.PRIORITY_NORMAL : plan.priority;
         job.status = true;
         job.fetchMethod = plan.fetchMethod;
+        job.maxDepth = plan.maxDepth;
         job.jobId = RandomID.build();
         job.name = String.format("%s_%s", plan.name, CommonUtil.timeToString(System.currentTimeMillis(), DATE_TIME_FORMAT));
         return job;

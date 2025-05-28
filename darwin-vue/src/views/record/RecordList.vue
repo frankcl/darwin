@@ -293,6 +293,9 @@ watchEffect(async () => await search())
           {{ scope.row.media_type && scope.row.media_type.alias ? scope.row.media_type.alias : '未知' }}
         </template>
       </el-table-column>
+      <el-table-column prop="http_code" label="HTTP状态码" width="100" show-overflow-tooltip>
+        <template #default="scope">{{ scope.row.http_code ? scope.row.http_code : '未知' }}</template>
+      </el-table-column>
       <el-table-column prop="priority" label="优先级" width="70" show-overflow-tooltip>
         <template #default="scope">{{ priorityMap[scope.row.priority] }}</template>
       </el-table-column>

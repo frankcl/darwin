@@ -34,6 +34,12 @@ public class PlanUpdateRequest implements Serializable {
     public Integer priority;
 
     /**
+     * 最大抓取深度
+     */
+    @JsonProperty("max_depth")
+    public Integer maxDepth;
+
+    /**
      * 计划名称
      */
     @JsonProperty("name")
@@ -82,7 +88,7 @@ public class PlanUpdateRequest implements Serializable {
      */
     public void check() {
         if (StringUtils.isEmpty(planId)) throw new BadRequestException("计划ID为空");
-        if (allowRepeat == null && StringUtils.isEmpty(name) &&
+        if (allowRepeat == null && StringUtils.isEmpty(name) && maxDepth == null &&
                 priority == null && category == null && fetchMethod == null) {
             throw new BadRequestException("更新计划信息为空");
         }

@@ -58,6 +58,14 @@ public class Plan extends BaseModel {
     public Integer priority;
 
     /**
+     * 最大抓取深度
+     */
+    @TableField(value = "max_depth")
+    @JSONField(name = "max_depth")
+    @JsonProperty("max_depth")
+    public Integer maxDepth;
+
+    /**
      * 应用ID
      */
     @TableField(value = "app_id")
@@ -178,6 +186,7 @@ public class Plan extends BaseModel {
         }
         if (status == null) status = false;
         if (allowRepeat == null) allowRepeat = false;
+        if (maxDepth == null) maxDepth = 3;
         if (priority == null) priority = Constants.PRIORITY_NORMAL;
         return true;
     }
