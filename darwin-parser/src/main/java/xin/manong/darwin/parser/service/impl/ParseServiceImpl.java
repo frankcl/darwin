@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 import xin.manong.darwin.common.Constants;
 import xin.manong.darwin.common.model.Rule;
 import xin.manong.darwin.parser.script.*;
+import xin.manong.darwin.parser.sdk.GroovyLogAppender;
 import xin.manong.darwin.parser.sdk.ParseRequest;
 import xin.manong.darwin.parser.sdk.ParseRequestBuilder;
 import xin.manong.darwin.parser.sdk.ParseResponse;
@@ -42,9 +43,11 @@ public class ParseServiceImpl implements ParseService {
     private static final String COMPILE_HTML = "{}";
     private static final String COMPILE_URL = "http://www.test.com/";
     private static final String GROOVY_TEMPLATE = "/template/groovy.tpl";
+    private static final String GROOVY_PARSER_TEMPLATE = "/template/GroovyParser.tpl";
     private static final String JS_TEMPLATE = "/template/javascript.tpl";
     private static final int RETRY_COUNT = 3;
 
+    private final String GROOVY_PARSER_TPL;
     @Resource
     private ScriptCache scriptCache;
     @Resource
@@ -54,10 +57,21 @@ public class ParseServiceImpl implements ParseService {
     @Resource
     private LinkExtractService linkExtractService;
 
+    public ParseServiceImpl() throws IOException {
+        try (InputStream input = getClass().getResourceAsStream(GROOVY_PARSER_TEMPLATE);
+             ByteArrayOutputStream output = new ByteArrayOutputStream()) {
+            if (input == null) throw new IOException("Can't find groovy parser template");
+            input.transferTo(output);
+            GROOVY_PARSER_TPL = output.toString(StandardCharsets.UTF_8);
+            GroovyLogAppender.skipLines = GROOVY_PARSER_TPL.split("\n").length - 2;
+        }
+    }
+
     @Override
     public CompileResult compile(@NonNull CompileRequest request) {
         Script script = null;
         try {
+            if (request.scriptType == Constants.SCRIPT_TYPE_GROOVY) request.script = formatGroovy(request.script);
             script = scriptFactory.make(request.scriptType, request.script);
             ParseRequestBuilder builder = new ParseRequestBuilder();
             if (request.scriptType == Constants.SCRIPT_TYPE_GROOVY) {
@@ -98,6 +112,8 @@ public class ParseServiceImpl implements ParseService {
         String key = DigestUtils.md5Hex(request.scriptCode);
         if (request.scriptType == Constants.SCRIPT_TYPE_JAVASCRIPT) {
             key = DigestUtils.md5Hex(String.format("%d_%s", Thread.currentThread().getId(), request.scriptCode));
+        } else if (request.scriptType == Constants.SCRIPT_TYPE_GROOVY) {
+            request.scriptCode = formatGroovy(request.scriptCode);
         }
         for (int i = 0; i < RETRY_COUNT; i++) {
             Script script = buildScript(key, request);
@@ -155,5 +171,16 @@ public class ParseServiceImpl implements ParseService {
             logger.error(e.getMessage(), e);
             return null;
         }
+    }
+
+    /**
+     * 格式化Groovy脚本
+     * 使用Groovy模板完善用户脚本
+     *
+     * @param script 用户脚本
+     * @return 完整Groovy脚本
+     */
+    public String formatGroovy(String script) {
+        return GROOVY_PARSER_TPL.replace("%GROOVY_SCRIPT%", script);
     }
 }

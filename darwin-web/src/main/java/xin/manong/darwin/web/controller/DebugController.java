@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import xin.manong.darwin.common.Constants;
 import xin.manong.darwin.common.model.Rule;
 import xin.manong.darwin.common.model.SeedRecord;
 import xin.manong.darwin.common.model.URLRecord;
@@ -183,6 +184,7 @@ public class DebugController {
     private ParseResponse parse(URLRecord record, int scriptType, String scriptCode) {
         Script script = null;
         try {
+            if (scriptType == Constants.SCRIPT_TYPE_GROOVY) scriptCode = parseService.formatGroovy(scriptCode);
             script = scriptFactory.make(scriptType, scriptCode);
             ScriptParseRequestBuilder builder = new ScriptParseRequestBuilder();
             builder.url(record.url).text(record.text).customMap(record.customMap).redirectURL(record.redirectURL);

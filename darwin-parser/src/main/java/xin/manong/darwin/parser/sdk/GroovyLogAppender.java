@@ -18,7 +18,7 @@ import java.nio.charset.StandardCharsets;
  * @author frankcl
  * @date 2024-01-05 17:29:32
  */
-class GroovyLogAppender extends WriterAppender {
+public class GroovyLogAppender extends WriterAppender {
 
     private static final int MAX_BUFFER_SIZE = 1024 * 1024;
     private static final String MDC_KEY_GROOVY_FILE_NAME = "GF";
@@ -28,6 +28,7 @@ class GroovyLogAppender extends WriterAppender {
     private static final String LOG4J_LOGGER_CLASS = "org.slf4j.impl.Log4jLoggerAdapter";
     private static final String GROOVY_RUNTIME_CALL_SITE_PACKAGE_PREFIX = "org.codehaus.groovy.runtime.callsite.";
 
+    public static int skipLines = 0;
     private final ByteArrayOutputStream output;
 
     public GroovyLogAppender(Layout layout) {
@@ -76,10 +77,14 @@ class GroovyLogAppender extends WriterAppender {
         if (stackTraceElement == null && pos >= 0 && pos + 1 < stackTraceElements.length) {
             stackTraceElement = stackTraceElements[pos+1];
         }
-        MDC.put(MDC_KEY_GROOVY_FILE_NAME, stackTraceElement != null ? stackTraceElement.getFileName() : "?");
-        MDC.put(MDC_KEY_GROOVY_CLASS_NAME, stackTraceElement != null ? stackTraceElement.getClassName() : "?");
-        MDC.put(MDC_KEY_GROOVY_METHOD_NAME, stackTraceElement != null ? stackTraceElement.getMethodName() : "?");
-        MDC.put(MDC_KEY_GROOVY_LINE_NUMBER, stackTraceElement != null ? stackTraceElement.getLineNumber() : "?");
+        MDC.put(MDC_KEY_GROOVY_FILE_NAME, stackTraceElement != null ?
+                stackTraceElement.getFileName() : "?");
+        MDC.put(MDC_KEY_GROOVY_CLASS_NAME, stackTraceElement != null ?
+                stackTraceElement.getClassName() : "?");
+        MDC.put(MDC_KEY_GROOVY_METHOD_NAME, stackTraceElement != null ?
+                stackTraceElement.getMethodName() : "?");
+        MDC.put(MDC_KEY_GROOVY_LINE_NUMBER, stackTraceElement != null ?
+                stackTraceElement.getLineNumber() - skipLines : "?");
     }
 
     /**

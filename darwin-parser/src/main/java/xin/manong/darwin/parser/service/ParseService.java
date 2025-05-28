@@ -42,6 +42,15 @@ public interface ParseService {
     CompileResult compile(@NonNull CompileRequest request);
 
     /**
+     * 格式化Groovy脚本
+     * 使用Groovy模板完善用户脚本
+     *
+     * @param script 用户脚本
+     * @return 完整Groovy脚本
+     */
+    String formatGroovy(String script);
+
+    /**
      * 获取代码模版
      *
      * @param scriptType 脚本类型
