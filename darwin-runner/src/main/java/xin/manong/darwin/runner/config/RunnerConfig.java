@@ -54,7 +54,7 @@ public class RunnerConfig {
      *
      * @return 周期计划运行器
      */
-    @Bean
+    @Bean(destroyMethod = "stop")
     public PlanRunner buildPlanRunner() {
         PlanRunner scheduler = new PlanRunner(planRunnerExecuteIntervalMs);
         registry.register(new ExecuteRunnerShell(
@@ -69,7 +69,7 @@ public class RunnerConfig {
      *
      * @return 抓取链接分配器
      */
-    @Bean
+    @Bean(destroyMethod = "stop")
     public Allocator buildAllocator() {
         Allocator allocator = new Allocator(topicURL, allocatorExecuteIntervalMs, maxOverflowIntervalMs);
         registry.register(new ExecuteRunnerShell(
@@ -84,7 +84,7 @@ public class RunnerConfig {
      *
      * @return 首页数据大盘运行器
      */
-    @Bean
+    @Bean(destroyMethod = "stop")
     public DashboardRunner buildDashboardRunner() {
         DashboardRunner runner = new DashboardRunner(dashboardRunnerExecuteIntervalMs);
         registry.register(new ExecuteRunnerShell(
@@ -99,7 +99,7 @@ public class RunnerConfig {
      *
      * @return 并发连接监控器
      */
-    @Bean
+    @Bean(destroyMethod = "stop")
     public ConcurrencyQueueMonitor buildConcurrencyQueueMonitor() {
         ConcurrencyQueueMonitor monitor = new ConcurrencyQueueMonitor(
                 concurrencyQueueExecuteTimeIntervalMs, concurrencyQueueExpiredTimeIntervalMs);
@@ -115,7 +115,7 @@ public class RunnerConfig {
      *
      * @return 代理监控器
      */
-    @Bean
+    @Bean(destroyMethod = "stop")
     public ProxyMonitor buildProxyMonitor() {
         ProxyMonitor monitor = new ProxyMonitor(proxyExecuteTimeIntervalMs);
         registry.register(new ExecuteRunnerShell(

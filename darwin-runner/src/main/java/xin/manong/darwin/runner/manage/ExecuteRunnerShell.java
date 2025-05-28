@@ -17,6 +17,7 @@ import xin.manong.weapon.base.etcd.LockApproval;
 import xin.manong.weapon.base.etcd.LockRequest;
 import xin.manong.weapon.base.event.ErrorEvent;
 import xin.manong.weapon.base.event.EventListener;
+import xin.manong.weapon.base.event.StopEvent;
 import xin.manong.weapon.base.executor.ExecuteRunner;
 
 import java.util.List;
@@ -188,6 +189,15 @@ public class ExecuteRunnerShell implements EventListener {
         message.exception = errorEvent.getThrowable() == null ? null :
                 ExceptionUtils.getStackTrace(errorEvent.getThrowable());
         messageService.push(message);
+    }
+
+    @Override
+    public void onStop(@NotNull StopEvent stopEvent) {
+        if (approval != null) {
+            etcdClient.removeWatch(approval.getPath());
+            etcdClient.releaseLock(approval);
+            approval = null;
+        }
     }
 
     /**
