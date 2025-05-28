@@ -7,6 +7,10 @@
  *   JSONObject response = JSONObject.parseObject(request.text);
  *
  * 可使用ParseResponse.buildOK()方法生成成功解析响应
+ *   buildOK(Map<String, Object>fieldMap)
+ *   buildOK(Map<String, Object>fieldMap, Map<String, Object> customMap)
+ *   buildOK(List<URLRecord> children)
+ *   buildOK(List<URLRecord> children, Map<String, Object> customMap)
  *   buildOK(Map<String, Object>fieldMap, List<URLRecord> children, Map<String, Object> customMap)
  * 可使用ParseResponse.buildError()方法生成错误解析响应
  *   buildError(String message)

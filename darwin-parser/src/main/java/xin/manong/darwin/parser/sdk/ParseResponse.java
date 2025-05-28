@@ -64,6 +64,49 @@ public class ParseResponse {
      * 构建成功解析响应
      *
      * @param fieldMap 结构化数据
+     * @return 成功解析响应
+     */
+    public static ParseResponse buildOK(Map<String, Object> fieldMap) {
+        return buildOK(fieldMap, null, null);
+    }
+
+    /**
+     * 构建成功解析响应
+     *
+     * @param fieldMap 结构化数据
+     * @param customMap 用户自定义数据
+     * @return 成功解析响应
+     */
+    public static ParseResponse buildOK(Map<String, Object> fieldMap,
+                                        Map<String, Object> customMap) {
+        return buildOK(fieldMap, null, customMap);
+    }
+
+    /**
+     * 构建成功解析响应
+     *
+     * @param children 抽链列表
+     * @return 成功解析响应
+     */
+    public static ParseResponse buildOK(List<URLRecord> children) {
+        return buildOK(null, children, null);
+    }
+
+    /**
+     * 构建成功解析响应
+     *
+     * @param children 抽链列表
+     * @param customMap 用户自定义数据
+     * @return 成功解析响应
+     */
+    public static ParseResponse buildOK(List<URLRecord> children, Map<String, Object> customMap) {
+        return buildOK(null, children, customMap);
+    }
+
+    /**
+     * 构建成功解析响应
+     *
+     * @param fieldMap 结构化数据
      * @param children 抽链列表
      * @param customMap 用户自定义数据
      * @return 成功解析响应

@@ -45,7 +45,7 @@ public class LinkExtractServiceImpl implements LinkExtractService {
         Set<String> hashes = new HashSet<>();
         List<URLRecord> children = new ArrayList<>();
         scopeExtract(body, parentURL, request.linkScope, children, hashes);
-        return ParseResponse.buildOK(null, children, null);
+        return ParseResponse.buildOK(children);
     }
 
     /**
