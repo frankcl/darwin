@@ -1,15 +1,5 @@
 package xin.manong.darwin.parser.sdk;
 
-import org.apache.log4j.*;
-import org.apache.log4j.spi.LoggerRepository;
-import org.slf4j.ILoggerFactory;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import xin.manong.weapon.base.util.ReflectArgs;
-import xin.manong.weapon.base.util.ReflectUtil;
-
-import java.util.Hashtable;
-import java.util.Map;
 import java.util.UUID;
 
 /**
@@ -21,14 +11,7 @@ import java.util.UUID;
  */
 public abstract class HTMLParser {
 
-    private static final String LOG4J_CATEGORY_KEY_CLASS = "org.apache.log4j.CategoryKey";
-    private static final String LOG4J_FIELD_LOGGER_HASH_TABLE = "ht";
-    private static final String SLF4J_FIELD_LOGGER_MAP = "loggerMap";
-
-    private static final String LOG_LAYOUT_PATTERN = "%-d{yyyy-MM-dd HH:mm:ss,SSS}-%r [%p] [%t] [%X{GC}:%X{GL}] - %m%n";
-
-    private static final Logger logger = LoggerFactory.getLogger(HTMLParser.class);
-    private final ThreadLocal<Logger> groovyLogger = new ThreadLocal<>();
+    protected final GroovyLogger logger = new GroovyLogger();
 
     /**
      * 脚本解析
@@ -37,35 +20,16 @@ public abstract class HTMLParser {
      * @return 解析响应
      */
     public final ParseResponse execute(ParseRequest request) {
-        String name = String.format("%s$%s", HTMLParser.class.getName(), UUID.randomUUID());
-        Logger slf4jLogger = LoggerFactory.getLogger(name);
-        Layout layout = new PatternLayout(LOG_LAYOUT_PATTERN);
-        GroovyLogAppender appender = new GroovyLogAppender(layout);
-        org.apache.log4j.Logger log4jLogger = LogManager.getLogger(slf4jLogger.getName());
-        log4jLogger.addAppender(appender);
-        log4jLogger.setAdditivity(false);
-        log4jLogger.setLevel(Level.INFO);
-        groovyLogger.set(slf4jLogger);
         try {
+            String name = String.format("%s$%s", HTMLParser.class.getName(), UUID.randomUUID());
+            logger.open(name);
             ParseResponse response = parse(request);
-            String debugLog = appender.getLogContent();
+            String debugLog = logger.getLogContent();
             if (response != null && debugLog != null) response.debugLog = debugLog;
             return response;
         } finally {
-            sweepSLF4JLogger(name);
-            sweepLog4JLogger(name);
-            appender.close();
-            groovyLogger.remove();
+            logger.close();
         }
-    }
-
-    /**
-     * 获取Logger对象
-     *
-     * @return Logger对象
-     */
-    protected final Logger getLogger() {
-        return groovyLogger.get();
     }
 
     /**
@@ -75,50 +39,4 @@ public abstract class HTMLParser {
      * @return 解析响应
      */
     public abstract ParseResponse parse(ParseRequest request);
-
-    /**
-     * 清理SLF4J logger
-     *
-     * @param name logger名称
-     */
-    @SuppressWarnings("unchecked")
-    private void sweepSLF4JLogger(String name) {
-        try {
-            ILoggerFactory factory = LoggerFactory.getILoggerFactory();
-            Map<String, Logger> logMap = (Map<String, Logger>) ReflectUtil.getFieldValue(
-                    factory, SLF4J_FIELD_LOGGER_MAP);
-            if (logMap == null) {
-                logger.warn("Field:{} is not found in SLF4J log factory", SLF4J_FIELD_LOGGER_MAP);
-                return;
-            }
-            if (logMap.containsKey(name)) logMap.remove(name);
-            else logger.warn("Logger:{} is not found in SLF4J log map", name);
-        } catch (Exception e) {
-            logger.error(e.getMessage(), e);
-        }
-    }
-
-    /**
-     * 清理Log4J logger
-     *
-     * @param name logger名称
-     */
-    @SuppressWarnings("unchecked")
-    private void sweepLog4JLogger(String name) {
-        try {
-            LoggerRepository loggerRepository = LogManager.getLoggerRepository();
-            Hashtable<Object, org.apache.log4j.Logger> logTable = (Hashtable<Object, org.apache.log4j.Logger>)
-                    ReflectUtil.getFieldValue(loggerRepository, LOG4J_FIELD_LOGGER_HASH_TABLE);
-            if (logTable == null) {
-                logger.warn("Field:{} is not found in Log4J log manager", LOG4J_FIELD_LOGGER_HASH_TABLE);
-                return;
-            }
-            ReflectArgs args = new ReflectArgs(new Class[] { String.class }, new Object[] { name });
-            Object key = ReflectUtil.newInstance(LOG4J_CATEGORY_KEY_CLASS, args);
-            if (logTable.containsKey(key)) logTable.remove(key);
-            else logger.warn("Logger:{} is not found in Log4J hash table", name);
-        } catch (Exception e) {
-            logger.error(e.getMessage(), e);
-        }
-    }
 }

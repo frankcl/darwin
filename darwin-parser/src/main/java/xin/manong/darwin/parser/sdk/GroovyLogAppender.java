@@ -34,8 +34,8 @@ class GroovyLogAppender extends WriterAppender {
         super();
         this.layout = layout;
         this.output = new ByteArrayOutputStream();
-        BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(output));
-        this.setWriter(writer);
+        this.setWriter(new BufferedWriter(new OutputStreamWriter(output)));
+        name = "GroovyLogAppender";
     }
 
     @Override
@@ -43,6 +43,13 @@ class GroovyLogAppender extends WriterAppender {
         if (output.size() > MAX_BUFFER_SIZE) return;
         parseGroovyLog();
         super.append(event);
+    }
+
+    /**
+     * 重置日志appender缓存
+     */
+    public void reset() {
+        if (output != null) output.reset();
     }
 
     /**
