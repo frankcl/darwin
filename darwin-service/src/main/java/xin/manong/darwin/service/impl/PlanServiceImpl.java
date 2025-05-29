@@ -115,6 +115,13 @@ public class PlanServiceImpl implements PlanService {
     }
 
     @Override
+    public Integer maxDepth(String planId) {
+        Plan plan = get(planId);
+        if (plan == null) return null;
+        return plan.maxDepth;
+    }
+
+    @Override
     public Pager<Plan> search(PlanSearchRequest searchRequest) {
         if (searchRequest == null) searchRequest = new PlanSearchRequest();
         if (searchRequest.pageNum == null || searchRequest.pageNum < 1) searchRequest.pageNum = Constants.DEFAULT_PAGE_NUM;
@@ -128,8 +135,6 @@ public class PlanServiceImpl implements PlanService {
         searchRequest.prepareOrderBy(query);
         if (searchRequest.category != null) query.eq("category", searchRequest.category);
         if (searchRequest.status != null) query.eq("status", searchRequest.status);
-        if (searchRequest.priority != null) query.eq("priority", searchRequest.priority);
-        if (searchRequest.fetchMethod != null) query.eq("fetch_method", searchRequest.fetchMethod);
         if (searchRequest.appId != null) query.eq("app_id", searchRequest.appId);
         if (!StringUtils.isEmpty(searchRequest.name)) {
             query.like("name", searchRequest.name).or().eq("plan_id", searchRequest.name);

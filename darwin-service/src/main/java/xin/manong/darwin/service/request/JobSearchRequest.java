@@ -30,12 +30,6 @@ public class JobSearchRequest extends SearchRequest {
     @QueryParam("name")
     public String name;
     /**
-     * 优先级：高0，正常1，低2
-     */
-    @JsonProperty("priority")
-    @QueryParam("priority")
-    public Integer priority;
-    /**
      * 任务状态：结束false，运行true
      */
     @JsonProperty("status")

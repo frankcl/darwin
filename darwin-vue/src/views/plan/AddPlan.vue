@@ -6,7 +6,7 @@ import {
   ElInputNumber, ElRadio, ElRadioGroup, ElRow, ElTooltip,
 } from 'element-plus'
 import { useUserStore } from '@/store'
-import { fetchMethodMap, planCategoryMap, priorityMap } from '@/common/Constants'
+import { planCategoryMap } from '@/common/Constants'
 import { ERROR, showMessage, SUCCESS } from '@/common/Feedback'
 import { asyncAddPlan } from '@/common/AsyncRequest'
 import { planFormRules } from '@/views/plan/common'
@@ -18,10 +18,7 @@ const emits = defineEmits(['close'])
 const userStore = useUserStore()
 const formRef = useTemplateRef('form')
 const plan = reactive({
-  priority: 1,
   max_depth: 3,
-  allow_repeat: 'false',
-  fetch_method: 0,
   category: 0
 })
 
@@ -74,43 +71,6 @@ const add = async () => {
               </el-radio-group>
             </el-form-item>
           </el-col>
-          <el-col :span="12">
-            <el-form-item label="优先级" prop="priority" required>
-              <el-radio-group v-model="plan.priority">
-                <el-radio v-for="key in Object.keys(priorityMap)" :value="parseInt(key)" :key="key">
-                  {{ priorityMap[key] }}
-                </el-radio>
-              </el-radio-group>
-            </el-form-item>
-          </el-col>
-        </el-row>
-        <el-row>
-          <el-col :span="12">
-            <el-form-item label="抓取方式" prop="fetch_method" required>
-              <el-radio-group v-model="plan.fetch_method">
-                <el-radio v-for="key in Object.keys(fetchMethodMap)" :value="parseInt(key)" :key="key">
-                  {{ fetchMethodMap[key] }}
-                </el-radio>
-              </el-radio-group>
-            </el-form-item>
-          </el-col>
-          <el-col :span="12">
-            <el-form-item prop="allow_repeat">
-              <template #label>
-                <span>重复抓取</span>
-                <el-tooltip effect="dark" placement="top"
-                            content="允许：直接通过网络抓取；禁止：数据库存在抓取结果则使用，不存在则抓取；默认禁止">
-                  <IconHelp size="12" class="ml-2"/>
-                </el-tooltip>
-              </template>
-              <el-radio-group v-model="plan.allow_repeat">
-                <el-radio value="true">允许</el-radio>
-                <el-radio value="false">禁止</el-radio>
-              </el-radio-group>
-            </el-form-item>
-          </el-col>
-        </el-row>
-        <el-row>
           <el-col :span="12">
             <el-form-item prop="max_depth">
               <template #label>

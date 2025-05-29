@@ -1,7 +1,6 @@
 package xin.manong.darwin.service.convert;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
-import xin.manong.darwin.common.Constants;
 import xin.manong.darwin.common.model.*;
 import xin.manong.weapon.aliyun.ots.OTSConverter;
 import xin.manong.weapon.aliyun.ots.OTSSearchResponse;
@@ -76,11 +75,7 @@ public class Converter {
         job.createTime = System.currentTimeMillis();
         job.planId = plan.planId;
         job.appId = plan.appId;
-        job.allowRepeat = plan.allowRepeat != null && plan.allowRepeat;
-        job.priority = plan.priority == null ? Constants.PRIORITY_NORMAL : plan.priority;
         job.status = true;
-        job.fetchMethod = plan.fetchMethod;
-        job.maxDepth = plan.maxDepth;
         job.jobId = RandomID.build();
         job.name = String.format("%s_%s", plan.name, CommonUtil.timeToString(System.currentTimeMillis(), DATE_TIME_FORMAT));
         return job;

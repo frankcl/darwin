@@ -22,18 +22,6 @@ import java.io.Serializable;
 public class PlanUpdateRequest implements Serializable {
 
     /**
-     * 避免重复抓取
-     */
-    @JsonProperty("allow_repeat")
-    public Boolean allowRepeat;
-
-    /**
-     * 任务优先级
-     */
-    @JsonProperty("priority")
-    public Integer priority;
-
-    /**
      * 最大抓取深度
      */
     @JsonProperty("max_depth")
@@ -77,23 +65,13 @@ public class PlanUpdateRequest implements Serializable {
     public Integer category;
 
     /**
-     * 抓取方式
-     */
-    @JsonProperty("fetch_method")
-    public Integer fetchMethod;
-
-    /**
      * 检测有效性
      * 无效抛出异常
      */
     public void check() {
         if (StringUtils.isEmpty(planId)) throw new BadRequestException("计划ID为空");
-        if (allowRepeat == null && StringUtils.isEmpty(name) && maxDepth == null &&
-                priority == null && category == null && fetchMethod == null) {
+        if (StringUtils.isEmpty(name) && maxDepth == null && category == null) {
             throw new BadRequestException("更新计划信息为空");
-        }
-        if (fetchMethod != null && !Constants.SUPPORT_FETCH_METHODS.containsKey(fetchMethod)) {
-            throw new BadRequestException("不支持的抓取方式");
         }
         if (category != null && !Constants.SUPPORT_PLAN_CATEGORIES.containsKey(category)) {
             throw new BadRequestException("不支持的计划类型");

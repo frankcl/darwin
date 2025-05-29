@@ -2,7 +2,6 @@ package xin.manong.darwin.common.model;
 
 import org.junit.Assert;
 import org.junit.Test;
-import xin.manong.darwin.common.Constants;
 
 /**
  * @author frankcl
@@ -17,9 +16,7 @@ public class JobTest {
         job.planId = "zzz";
         job.name = "test";
         job.status = true;
-        job.allowRepeat = true;
         job.appId = 1;
-        job.priority = Constants.PRIORITY_HIGH;
         Assert.assertTrue(job.check());
     }
 
@@ -30,8 +27,6 @@ public class JobTest {
         job.planId = "zzz";
         job.name = "test";
         job.status = true;
-        job.allowRepeat = true;
-        job.priority = Constants.PRIORITY_HIGH;
         Assert.assertFalse(job.check());
     }
 }

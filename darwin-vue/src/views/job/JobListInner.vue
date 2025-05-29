@@ -22,7 +22,6 @@ import {
 import TableHead from '@/components/data/TableHead'
 import JobDetail from '@/views/job/JobDetail'
 import JobStat from '@/views/job/JobStat'
-import { priorityMap } from '@/common/Constants'
 
 const router = useRouter()
 const props = defineProps(['planId'])
@@ -36,12 +35,10 @@ const total = ref(0)
 const query = reactive(newSearchQuery({
   plan_id: props.planId,
   status: 'all',
-  priority: 'all'
 }))
 
 const search = async () => {
   const request = newSearchRequest(query)
-  if (query.priority !== undefined && query.priority !== 'all') request.priority = query.priority
   if (query.status && query.status !== 'all') request.status = query.status
   if (query.plan_id) request.plan_id = query.plan_id
   const pager = await asyncSearchJob(request)
@@ -93,14 +90,6 @@ watchEffect(async () => await search())
         <el-radio-button value="false">结束</el-radio-button>
       </el-radio-group>
     </el-form-item>
-    <el-form-item label="优先级" prop="priority">
-      <el-radio-group v-model="query.priority">
-        <el-radio-button value="all">全部</el-radio-button>
-        <el-radio-button v-for="key in Object.keys(priorityMap)" :value="parseInt(key)" :key="key">
-          {{ priorityMap[key] }}
-        </el-radio-button>
-      </el-radio-group>
-    </el-form-item>
     <el-row>
       <el-col :span="12">
         <el-form-item label="创建时间" prop="create_time">
@@ -136,9 +125,6 @@ watchEffect(async () => await search())
           <span>结束</span>
         </div>
       </template>
-    </el-table-column>
-    <el-table-column prop="priority" label="优先级" width="70" show-overflow-tooltip>
-      <template #default="scope">{{ priorityMap[scope.row.priority] }}</template>
     </el-table-column>
     <el-table-column prop="executor" label="执行人" width="70" show-overflow-tooltip>
       <template #default="scope">

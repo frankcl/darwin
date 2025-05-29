@@ -261,11 +261,13 @@ public class URLRecord extends SeedRecord {
 
     public URLRecord() {
         super();
+        allowRepeat = false;
         status = Constants.URL_STATUS_UNKNOWN;
     }
 
     public URLRecord(String url) {
         super(url);
+        allowRepeat = false;
         status = Constants.URL_STATUS_UNKNOWN;
     }
 
@@ -323,6 +325,7 @@ public class URLRecord extends SeedRecord {
             return false;
         }
         if (depth == null || depth < 0) depth = 0;
+        if (allowRepeat == null) allowRepeat = false;
         if (status == null) status = Constants.URL_STATUS_UNKNOWN;
         return true;
     }

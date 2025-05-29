@@ -1,6 +1,5 @@
 package xin.manong.darwin.web.convert;
 
-import xin.manong.darwin.common.Constants;
 import xin.manong.darwin.common.model.*;
 import xin.manong.darwin.web.request.*;
 import xin.manong.hylian.model.User;
@@ -92,10 +91,7 @@ public class Converter {
         plan.appId = request.appId;
         plan.appName = request.appName;
         plan.name = request.name;
-        plan.allowRepeat = request.allowRepeat != null && request.allowRepeat;
         plan.status = false;
-        plan.fetchMethod = request.fetchMethod == null ? Constants.FETCH_METHOD_COMMON : request.fetchMethod;
-        plan.priority = request.priority == null ? Constants.PRIORITY_NORMAL : request.priority;
         plan.maxDepth = request.maxDepth == null ? 3 : request.maxDepth;
         plan.category = request.category;
         plan.crontabExpression = request.crontabExpression;
@@ -113,10 +109,7 @@ public class Converter {
         Plan plan = new Plan();
         plan.planId = request.planId;
         plan.name = request.name;
-        plan.allowRepeat = request.allowRepeat;
-        plan.priority = request.priority;
         plan.category = request.category;
-        plan.fetchMethod = request.fetchMethod;
         plan.maxDepth = request.maxDepth;
         plan.appId = request.appId;
         plan.appName = request.appName;

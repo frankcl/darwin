@@ -19,7 +19,6 @@ public class PlanTest {
         plan.name = "test_job";
         plan.status = false;
         plan.category = Constants.PLAN_CATEGORY_ONCE;
-        plan.priority = Constants.PRIORITY_HIGH;
         Assert.assertTrue(plan.check());
     }
 }

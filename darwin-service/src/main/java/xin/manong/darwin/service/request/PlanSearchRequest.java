@@ -35,21 +35,9 @@ public class PlanSearchRequest extends SearchRequest {
     @QueryParam("name")
     public String name;
     /**
-     * 优先级：高0，正常1，低2
-     */
-    @JsonProperty("priority")
-    @QueryParam("priority")
-    public Integer priority;
-    /**
      * 计划状态
      */
     @JsonProperty("status")
     @QueryParam("status")
     public Boolean status;
-    /**
-     * 抓取方式：普通0，长效代理1，短效代理2，渲染3
-     */
-    @JsonProperty("fetch_method")
-    @QueryParam("fetch_method")
-    public Integer fetchMethod;
 }

@@ -37,7 +37,6 @@ public class JobServiceImpl extends JobService {
     private static final String KEY_PLAN_ID = "plan_id";
     private static final String KEY_NAME = "name";
     private static final String KEY_STATUS = "status";
-    private static final String KEY_PRIORITY = "priority";
     private static final String KEY_CREATE_TIME = "create_time";
 
     @Resource
@@ -113,13 +112,17 @@ public class JobServiceImpl extends JobService {
     }
 
     @Override
+    public int deleteExpired(long expiredTime) {
+        throw new UnsupportedOperationException("Unsupported this method");
+    }
+
+    @Override
     public Pager<Job> search(JobSearchRequest searchRequest) {
         searchRequest = prepareSearchRequest(searchRequest);
         int offset = (searchRequest.pageNum - 1) * searchRequest.pageSize;
         BoolQuery boolQuery = new BoolQuery();
         List<Query> queryList = new ArrayList<>();
         if (searchRequest.status != null) queryList.add(SearchQueryBuilder.buildTermQuery(KEY_STATUS, searchRequest.status));
-        if (searchRequest.priority != null) queryList.add(SearchQueryBuilder.buildTermQuery(KEY_PRIORITY, searchRequest.priority));
         if (!StringUtils.isEmpty(searchRequest.planId)) queryList.add(SearchQueryBuilder.buildTermQuery(KEY_PLAN_ID, searchRequest.planId));
         if (!StringUtils.isEmpty(searchRequest.name)) queryList.add(SearchQueryBuilder.buildMatchPhraseQuery(KEY_NAME, searchRequest.name));
         if (searchRequest.createTimeRange != null) queryList.add(SearchQueryBuilder.buildRangeQuery(KEY_CREATE_TIME, searchRequest.createTimeRange));

@@ -9,7 +9,6 @@ import org.springframework.test.annotation.Rollback;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.transaction.annotation.Transactional;
-import xin.manong.darwin.common.Constants;
 import xin.manong.darwin.common.model.Job;
 import xin.manong.darwin.common.model.Pager;
 import xin.manong.darwin.service.ApplicationTest;
@@ -38,7 +37,6 @@ public class JobServiceImplTest {
         job.appId = 1;
         job.jobId = RandomID.build();
         job.planId = RandomID.build();
-        job.priority = Constants.PRIORITY_HIGH;
         Assert.assertTrue(job.check());
         Assert.assertTrue(jobService.add(job));
 
@@ -47,18 +45,15 @@ public class JobServiceImplTest {
         Assert.assertEquals("测试任务", jobInDB.name);
         Assert.assertEquals(1, jobInDB.appId.intValue());
         Assert.assertEquals(job.planId, jobInDB.planId);
-        Assert.assertEquals(job.priority.intValue(), jobInDB.priority.intValue());
 
         Job updateJob = new Job();
         updateJob.jobId = job.jobId;
-        updateJob.priority = Constants.PRIORITY_LOW;
         Assert.assertTrue(jobService.update(updateJob));
 
         jobInDB = jobService.get(job.jobId);
         Assert.assertNotNull(jobInDB);
         Assert.assertEquals("测试任务", jobInDB.name);
         Assert.assertEquals(job.planId, jobInDB.planId);
-        Assert.assertEquals(Constants.PRIORITY_LOW, jobInDB.priority.intValue());
 
         jobInDB = jobService.getCache(job.jobId);
         Assert.assertNotNull(jobInDB);

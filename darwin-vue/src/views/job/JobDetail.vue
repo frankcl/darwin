@@ -2,8 +2,7 @@
 import { ref, watchEffect } from 'vue'
 import { ElDescriptions, ElDescriptionsItem, ElDialog, ElLoading, ElText } from 'element-plus'
 import { pause } from '@/common/Time'
-import { fetchMethodMap, priorityMap } from '@/common/Constants'
-import {asyncGetJob, asyncJobProgress, asyncJobSuccessRate} from '@/common/AsyncRequest'
+import { asyncGetJob, asyncJobProgress, asyncJobSuccessRate } from '@/common/AsyncRequest'
 import DarwinCard from '@/components/data/Card'
 
 const props = defineProps(['id'])
@@ -42,12 +41,9 @@ watchEffect(async () => {
   <el-dialog v-model="open" @close="emits('close')" align-center show-close>
     <darwin-card title="任务详情">
       <el-descriptions v-if="job" direction="vertical" :column="2" border>
-        <el-descriptions-item label="任务名称">{{ job.name }}</el-descriptions-item>
+        <el-descriptions-item label="任务名称" :span="2">{{ job.name }}</el-descriptions-item>
         <el-descriptions-item label="任务状态">{{ job.status ? '运行' : '结束' }}</el-descriptions-item>
         <el-descriptions-item label="执行人">{{ job.executor ? job.executor : '未知' }}</el-descriptions-item>
-        <el-descriptions-item label="优先级">{{ priorityMap[job.priority] }}</el-descriptions-item>
-        <el-descriptions-item label="重复抓取">{{ job.allow_repeat ? '允许' : '禁止' }}</el-descriptions-item>
-        <el-descriptions-item label="抓取方式">{{ fetchMethodMap[job.fetch_method] }}</el-descriptions-item>
         <el-descriptions-item label="抓取进度">
           <el-text v-loading="job.computeProgress">{{ job.progress }}</el-text>
         </el-descriptions-item>

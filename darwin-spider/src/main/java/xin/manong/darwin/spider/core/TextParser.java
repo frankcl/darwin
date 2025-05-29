@@ -114,10 +114,9 @@ public class TextParser {
             return;
         }
         Integer maxDepth = (Integer) context.get(Constants.MAX_DEPTH);
-        boolean allowRepeat = (boolean) context.get(Constants.ALLOW_REPEAT);
         context.put(Constants.CHILDREN, children.size());
         context.put(Constants.INVALID_CHILDREN, children.stream().filter(
-                child -> !push(child, parent, allowRepeat, maxDepth)).count());
+                child -> !push(child, parent, maxDepth)).count());
     }
 
     /**
@@ -125,12 +124,11 @@ public class TextParser {
      *
      * @param child 子链接
      * @param parent 父链接
-     * @param allowRepeat 任务允许重复抓取
-     * @param jobMaxDepth 任务最大抓取深度
+     * @param planMaxDepth 计划最大抓取深度
      * @return 推动成功返回true，否则返回false
      */
     private boolean push(URLRecord child, URLRecord parent,
-                         boolean allowRepeat, Integer jobMaxDepth) {
+                         Integer planMaxDepth) {
         Context context = new Context();
         try {
             context.put(Constants.DARWIN_STAGE, Constants.PROCESS_STAGE_EXTRACT);
@@ -140,7 +138,7 @@ public class TextParser {
                 logger.warn("Child:{} is invalid", child.url);
                 return false;
             }
-            int maxDepth = jobMaxDepth == null ? spiderConfig.maxDepth : jobMaxDepth;
+            int maxDepth = planMaxDepth == null ? spiderConfig.maxDepth : planMaxDepth;
             if (child.depth >= maxDepth) {
                 context.put(Constants.DARWIN_DEBUG_MESSAGE, "超过最大抽链深度");
                 logger.warn("Depth exceeds max depth for child:{}", child.url);
@@ -156,9 +154,7 @@ public class TextParser {
                 logger.warn("Ignore duplicated child:{}", child.url);
                 return false;
             }
-            if (((child.allowRepeat == null && !allowRepeat) ||
-                    (child.allowRepeat != null && !child.allowRepeat)) &&
-                    urlService.isFetched(child)) {
+            if ((child.allowRepeat == null || !child.allowRepeat) && urlService.isFetched(child)) {
                 context.put(Constants.DARWIN_DEBUG_MESSAGE, "忽略已抓取链接");
                 logger.warn("Ignore fetched child:{}", child.url);
                 return false;

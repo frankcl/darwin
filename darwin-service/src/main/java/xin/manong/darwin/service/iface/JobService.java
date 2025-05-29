@@ -134,36 +134,20 @@ public abstract class JobService {
     public abstract boolean delete(String jobId);
 
     /**
+     * 删除过期任务：创建时间小于expiredTime
+     *
+     * @param expiredTime 过期时间
+     * @return 删除数量
+     */
+    public abstract int deleteExpired(long expiredTime);
+
+    /**
      * 搜索任务列表
      *
      * @param searchRequest 搜索请求
      * @return 分页列表
      */
     public abstract Pager<Job> search(JobSearchRequest searchRequest);
-
-    /**
-     * 判断任务是否允许重复抓取
-     *
-     * @param jobId 任务ID
-     * @return 允许返回true，否则返回false
-     */
-    public boolean allowRepeat(String jobId) {
-        Job job = get(jobId);
-        if (job == null) return false;
-        return job.allowRepeat != null && job.allowRepeat;
-    }
-
-    /**
-     * 获取最大抓取深度
-     *
-     * @param jobId 任务ID
-     * @return 任务最大抓取深度
-     */
-    public Integer maxDepth(String jobId) {
-        Job job = get(jobId);
-        if (job == null) return null;
-        return job.maxDepth;
-    }
 
     /**
      * 判断任务是否完成

@@ -17,8 +17,8 @@ import xin.manong.darwin.queue.CrawlDelayControl;
 import xin.manong.darwin.queue.PushResult;
 import xin.manong.darwin.service.event.JobEventListener;
 import xin.manong.darwin.service.event.URLEventListener;
-import xin.manong.darwin.service.iface.JobService;
 import xin.manong.darwin.service.iface.OSSService;
+import xin.manong.darwin.service.iface.PlanService;
 import xin.manong.darwin.service.iface.URLService;
 import xin.manong.darwin.spider.input.HTTPInput;
 import xin.manong.darwin.spider.input.Input;
@@ -60,7 +60,7 @@ public class Router {
     @Resource
     private HttpClientFactory httpClientFactory;
     @Resource
-    private JobService jobService;
+    private PlanService planService;
     @Resource
     private URLService urlService;
     @Resource
@@ -87,12 +87,10 @@ public class Router {
             if (!passConcurrency) return;
             concurrencyControl.putConnection(record.concurrencyUnit, record.key);
             crawlDelayCheck(record);
-            Integer maxDepth = jobService.maxDepth(record.jobId);
-            boolean allowRepeat = jobService.allowRepeat(record.jobId);
+            Integer maxDepth = planService.maxDepth(record.planId);
             context.put(Constants.MAX_DEPTH, maxDepth);
-            context.put(Constants.ALLOW_REPEAT, allowRepeat);
             record.fetchTime = System.currentTimeMillis();
-            URLRecord prevRecord = fetchedRecord(record, context);
+            URLRecord prevRecord = fetchedRecord(record);
             MediaType mediaType;
             try (Input input = openInput(record, prevRecord)) {
                 Spider spider = route(record.mediaType);
@@ -198,28 +196,14 @@ public class Router {
      * 2. 时间范围内存在抓取过的数据
      *
      * @param record URL数据
-     * @param context 上下文
      * @return 如果存在则返回抓取过的数据，否则返回null
      */
-    private URLRecord fetchedRecord(URLRecord record, Context context) {
-        if (allowRepeat(record, context)) return null;
+    private URLRecord fetchedRecord(URLRecord record) {
+        if (record.allowRepeat != null && record.allowRepeat) return null;
         long startTime = System.currentTimeMillis() - spiderConfig.maxRepeatFetchTimeIntervalMs;
         URLRecord prevRecord = urlService.getFetched(record, startTime);
         if (prevRecord == null || StringUtils.isEmpty(prevRecord.fetchContentURL)) return null;
         return ossService.existsByURL(prevRecord.fetchContentURL) ? prevRecord : null;
-    }
-
-    /**
-     * 是否允许重复抓取
-     *
-     * @param record 数据
-     * @param context 上下文
-     * @return 允许返回true，否则返回false
-     */
-    private boolean allowRepeat(URLRecord record, Context context) {
-        if (record.allowRepeat != null) return record.allowRepeat;
-        if (context.contains(Constants.ALLOW_REPEAT)) return (boolean) context.get(Constants.ALLOW_REPEAT);
-        return false;
     }
 
     /**

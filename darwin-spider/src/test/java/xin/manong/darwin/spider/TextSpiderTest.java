@@ -92,11 +92,9 @@ public class TextSpiderTest {
         Job job = new Job();
         job.jobId = "aaa";
         job.name = "测试任务";
-        job.priority = Constants.PRIORITY_NORMAL;
         job.planId = plan.planId;
         job.appId = 1;
         job.status = true;
-        job.allowRepeat = false;
         Assert.assertTrue(jobService.add(job));
         return job;
     }

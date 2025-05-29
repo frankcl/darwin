@@ -34,28 +34,12 @@ public class Plan extends BaseModel {
     private static final Logger logger = LoggerFactory.getLogger(Plan.class);
 
     /**
-     * 允许重复抓取
-     */
-    @TableField(value = "allow_repeat")
-    @JSONField(name = "allow_repeat")
-    @JsonProperty("allow_repeat")
-    public Boolean allowRepeat;
-
-    /**
      * 计划状态
      */
     @TableField(value = "status")
     @JSONField(name = "status")
     @JsonProperty("status")
     public Boolean status;
-
-    /**
-     * 任务优先级
-     */
-    @TableField(value = "priority")
-    @JSONField(name = "priority")
-    @JsonProperty("priority")
-    public Integer priority;
 
     /**
      * 最大抓取深度
@@ -123,14 +107,6 @@ public class Plan extends BaseModel {
     public Integer category;
 
     /**
-     * 抓取方式
-     */
-    @TableField(value = "fetch_method")
-    @JSONField(name = "fetch_method")
-    @JsonProperty("fetch_method")
-    public Integer fetchMethod;
-
-    /**
      * 创建人
      */
     @TableField(value = "creator")
@@ -175,19 +151,13 @@ public class Plan extends BaseModel {
             logger.error("Not supported plan category:{}", category);
             return false;
         }
-        if (fetchMethod != null && !Constants.SUPPORT_FETCH_METHODS.containsKey(fetchMethod)) {
-            logger.error("Not supported fetch method:{}", fetchMethod);
-            return false;
-        }
         if (category == Constants.PLAN_CATEGORY_PERIOD && (StringUtils.isEmpty(crontabExpression) ||
                 !CronExpression.isValidExpression(crontabExpression))) {
             logger.error("Crontab expression:{} is invalid", crontabExpression);
             return false;
         }
         if (status == null) status = false;
-        if (allowRepeat == null) allowRepeat = false;
         if (maxDepth == null) maxDepth = 3;
-        if (priority == null) priority = Constants.PRIORITY_NORMAL;
         return true;
     }
 }

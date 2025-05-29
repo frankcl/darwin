@@ -22,7 +22,7 @@ import {
   newSearchQuery,
   newSearchRequest
 } from '@/common/AsyncRequest'
-import { fetchMethodMap, planCategoryMap, priorityMap } from '@/common/Constants'
+import { planCategoryMap } from '@/common/Constants'
 import { asyncExecuteAfterConfirming, ERROR, showMessage, SUCCESS } from '@/common/Feedback'
 import DarwinCard from '@/components/data/Card'
 import TableHead from '@/components/data/TableHead'
@@ -42,8 +42,6 @@ const total = ref(0)
 const query = reactive(newSearchQuery({
   app_ids: 'all',
   category: 'all',
-  priority: 'all',
-  fetch_method: 'all',
   status: 'all'
 }))
 
@@ -53,9 +51,7 @@ const search = async () => {
   if (query.name) request.name = query.name
   if (query.app_id) request.app_id = query.app_id
   if (query.category !== undefined && query.category !== 'all') request.category = query.category
-  if (query.priority !== undefined && query.priority !== 'all') request.priority = query.priority
   if (query.status && query.status !== 'all') request.status = query.status
-  if (query.fetch_method !== undefined && query.fetch_method !== 'all') request.fetch_method = query.fetch_method
   if (query.app_ids && query.app_ids !== 'all') request.app_ids = query.app_ids
   const pager = await asyncSearchPlan(request)
   total.value = pager.total
@@ -164,13 +160,8 @@ watchEffect(() => search())
           </el-form-item>
         </el-col>
         <el-col :span="10">
-          <el-form-item label="优先级" prop="priority">
-            <el-radio-group v-model="query.priority">
-              <el-radio-button value="all">全部</el-radio-button>
-              <el-radio-button v-for="key in Object.keys(priorityMap)" :value="parseInt(key)" :key="key">
-                {{ priorityMap[key] }}
-              </el-radio-button>
-            </el-radio-group>
+          <el-form-item label="所属应用" prop="app_id">
+            <app-search v-model="query.app_id" placeholder="根据应用名搜索" />
           </el-form-item>
         </el-col>
         <el-col v-if="!showMore" :span="2">
@@ -180,12 +171,7 @@ watchEffect(() => search())
         </el-col>
       </el-row>
       <el-row v-if="showMore" :gutter="20">
-        <el-col :span="10">
-          <el-form-item label="所属应用" prop="app_id">
-            <app-search v-model="query.app_id" placeholder="根据应用名搜索" />
-          </el-form-item>
-        </el-col>
-        <el-col :span="10">
+        <el-col :span="20">
           <el-form-item label="搜索计划" prop="name">
             <el-input v-model="query.name" clearable placeholder="根据计划名搜索" />
           </el-form-item>
@@ -211,27 +197,21 @@ watchEffect(() => search())
       <el-table-column prop="name" label="计划名" show-overflow-tooltip>
         <template #default="scope">{{ scope.row.name }}</template>
       </el-table-column>
-      <el-table-column prop="category" label="类型" width="80" show-overflow-tooltip>
+      <el-table-column prop="category" label="类型" min-width="80" show-overflow-tooltip>
         <template #default="scope">{{ planCategoryMap[scope.row.category] }}</template>
       </el-table-column>
-      <el-table-column prop="status" label="状态" width="80" show-overflow-tooltip>
+      <el-table-column prop="status" label="状态" min-width="80" show-overflow-tooltip>
         <template #default="scope">
           <el-switch v-model="scope.row.status" @change="openClose(scope.row)"
                      style="--el-switch-on-color: #409eff; --el-switch-off-color: #8b8c8c"
                      inline-prompt size="large" active-text="开启" inactive-text="关闭" />
         </template>
       </el-table-column>
-      <el-table-column prop="modifier" label="变更人" width="80" show-overflow-tooltip>
+      <el-table-column prop="modifier" label="变更人" show-overflow-tooltip>
         <template #default="scope">{{ scope.row.modifier }}</template>
-      </el-table-column>
-      <el-table-column prop="fetch_method" label="抓取方式" show-overflow-tooltip>
-        <template #default="scope">{{ fetchMethodMap[scope.row.fetch_method] }}</template>
       </el-table-column>
       <el-table-column prop="app_name" label="所属应用" show-overflow-tooltip>
         <template #default="scope">{{ scope.row.app_name }}</template>
-      </el-table-column>
-      <el-table-column prop="priority" label="优先级" show-overflow-tooltip>
-        <template #default="scope">{{ priorityMap[scope.row.priority] }}</template>
       </el-table-column>
       <el-table-column width="330">
         <template #header>操作</template>

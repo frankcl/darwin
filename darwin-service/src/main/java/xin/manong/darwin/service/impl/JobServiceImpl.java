@@ -90,12 +90,18 @@ public class JobServiceImpl extends JobService {
     }
 
     @Override
+    public int deleteExpired(long expiredTime) {
+        LambdaQueryWrapper<Job> query = new LambdaQueryWrapper<>();
+        query.lt(Job::getCreateTime, expiredTime);
+        return jobMapper.delete(query);
+    }
+
+    @Override
     public Pager<Job> search(JobSearchRequest searchRequest) {
         searchRequest = prepareSearchRequest(searchRequest);
         ModelValidator.validateOrderBy(Job.class, searchRequest);
         QueryWrapper<Job> query = new QueryWrapper<>();
         searchRequest.prepareOrderBy(query);
-        if (searchRequest.priority != null) query.eq("priority", searchRequest.priority);
         if (searchRequest.status != null) query.eq("status", searchRequest.status);
         if (searchRequest.planId != null) query.eq("plan_id", searchRequest.planId);
         if (StringUtils.isNotEmpty(searchRequest.name)) {

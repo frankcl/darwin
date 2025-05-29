@@ -207,7 +207,6 @@ public class Constants {
     public static final String STATUS = "status";
     public static final String CATEGORY = "category";
     public static final String PRIORITY = "priority";
-    public static final String ALLOW_REPEAT = "allow_repeat";
     public static final String MAX_DEPTH = "max_depth";
     public static final String CRONTAB_EXPRESSION = "crontab_expression";
 

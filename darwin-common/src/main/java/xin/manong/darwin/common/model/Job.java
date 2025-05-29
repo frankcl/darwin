@@ -12,7 +12,6 @@ import lombok.experimental.Accessors;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import xin.manong.darwin.common.Constants;
 import xin.manong.weapon.aliyun.ots.annotation.Column;
 import xin.manong.weapon.aliyun.ots.annotation.PrimaryKey;
 
@@ -33,15 +32,6 @@ public class Job extends BaseModel {
     private static final Logger logger = LoggerFactory.getLogger(Job.class);
 
     /**
-     * 允许重复抓取
-     */
-    @TableField(value = "allow_repeat")
-    @Column(name = "allow_repeat")
-    @JSONField(name = "allow_repeat")
-    @JsonProperty("allow_repeat")
-    public Boolean allowRepeat = false;
-
-    /**
      * 应用ID
      */
     @TableField(value = "app_id")
@@ -58,33 +48,6 @@ public class Job extends BaseModel {
     @JSONField(name = "status")
     @JsonProperty("status")
     public Boolean status;
-
-    /**
-     * 抓取方式
-     */
-    @TableField(value = "fetch_method")
-    @Column(name = "fetch_method")
-    @JSONField(name = "fetch_method")
-    @JsonProperty("fetch_method")
-    public Integer fetchMethod;
-
-    /**
-     * 任务优先级
-     */
-    @TableField(value = "priority")
-    @Column(name = "priority")
-    @JSONField(name = "priority")
-    @JsonProperty("priority")
-    public Integer priority;
-
-    /**
-     * 最大抓取深度
-     */
-    @TableField(value = "max_depth")
-    @Column(name = "max_depth")
-    @JSONField(name = "max_depth")
-    @JsonProperty("max_depth")
-    public Integer maxDepth;
 
     /**
      * 任务ID
@@ -147,13 +110,7 @@ public class Job extends BaseModel {
             logger.error("Job name is empty");
             return false;
         }
-        if (fetchMethod != null && !Constants.SUPPORT_FETCH_METHODS.containsKey(fetchMethod)) {
-            logger.error("Not supported fetch method:{}", fetchMethod);
-            return false;
-        }
         if (status == null) status = true;
-        if (maxDepth == null) maxDepth = 3;
-        if (priority == null) priority = Constants.PRIORITY_NORMAL;
         return true;
     }
 }
