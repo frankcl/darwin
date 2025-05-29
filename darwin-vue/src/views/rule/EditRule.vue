@@ -2,7 +2,7 @@
 import { IconEdit, IconHelp, IconRefresh, IconTrash } from '@tabler/icons-vue'
 import { ref, useTemplateRef, watch, watchEffect } from 'vue'
 import {
-  ElButton, ElForm, ElFormItem, ElInput, ElOption, ElSelect, ElTooltip
+  ElButton, ElCol, ElForm, ElFormItem, ElInput, ElOption, ElRow, ElSelect, ElTooltip
 } from 'element-plus'
 import { useUserStore } from '@/store'
 import TextEditor from '@/components/data/TextEditor'
@@ -71,12 +71,21 @@ watchEffect(() => emits('change', rule.value))
       </template>
       <el-input v-model.trim="rule.regex" clearable />
     </el-form-item>
-    <el-form-item label="脚本类型" prop="script_type">
-      <el-select v-model="rule.script_type">
-        <el-option key="1" label="Groovy" :value="1" />
-        <el-option key="2" label="JavaScript" :value="2" />
-      </el-select>
-    </el-form-item>
+    <el-row :gutter="20">
+      <el-col :span="12">
+        <el-form-item label="脚本类型" prop="script_type">
+          <el-select v-model="rule.script_type">
+            <el-option key="1" label="Groovy" :value="1" />
+            <el-option key="2" label="JavaScript" :value="2" />
+          </el-select>
+        </el-form-item>
+      </el-col>
+      <el-col :span="12">
+        <el-form-item label="变更人" prop="modifier" label-position="right">
+          <el-input v-model="rule.modifier" disabled />
+        </el-form-item>
+      </el-col>
+    </el-row>
     <el-form-item prop="script" label-position="top">
       <text-editor title="代码编辑器" v-model="rule.script" :lang="langMap[rule.script_type]" :refresh="refreshEditor" />
     </el-form-item>
