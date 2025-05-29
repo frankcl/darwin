@@ -8,6 +8,7 @@ import org.slf4j.LoggerFactory;
 import xin.manong.darwin.common.model.Message;
 import xin.manong.darwin.runner.core.DashboardRunner;
 import xin.manong.darwin.runner.monitor.ConcurrencyQueueMonitor;
+import xin.manong.darwin.runner.monitor.ExpiredCleaner;
 import xin.manong.darwin.runner.monitor.ProxyMonitor;
 import xin.manong.darwin.runner.core.Allocator;
 import xin.manong.darwin.runner.core.PlanRunner;
@@ -47,7 +48,8 @@ public class ExecuteRunnerShell implements EventListener {
     public static final String LOCK_KEY_ALLOCATOR = LOCK_KEY_PREFIX + Allocator.ID;
     public static final String LOCK_KEY_DASHBOARD_RUNNER = LOCK_KEY_PREFIX + DashboardRunner.ID;
     public static final String LOCK_KEY_CONCURRENCY_QUEUE_MONITOR = LOCK_KEY_PREFIX + ConcurrencyQueueMonitor.ID;
-    public static final String LOCK_KEY_PROXY_MONITOR = LOCK_KEY_PREFIX + ProxyMonitor.KEY;
+    public static final String LOCK_KEY_EXPIRED_CLEANER = LOCK_KEY_PREFIX + ExpiredCleaner.ID;
+    public static final String LOCK_KEY_PROXY_MONITOR = LOCK_KEY_PREFIX + ProxyMonitor.ID;
 
     @Getter
     private final int runnerType;

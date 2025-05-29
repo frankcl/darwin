@@ -139,6 +139,11 @@ public class URLServiceImpl extends URLService {
     }
 
     @Override
+    public int deleteExpired(long expiredTime) {
+        throw new UnsupportedOperationException("Unsupported this method");
+    }
+
+    @Override
     public Pager<URLRecord> search(URLSearchRequest searchRequest) {
         OTSSearchResponse response = searchURL(searchRequest);
         return Converter.convert(response, URLRecord.class, searchRequest.pageNum, searchRequest.pageSize);

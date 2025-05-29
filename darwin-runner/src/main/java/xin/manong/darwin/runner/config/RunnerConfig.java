@@ -11,6 +11,7 @@ import xin.manong.darwin.runner.core.PlanRunner;
 import xin.manong.darwin.runner.manage.ExecuteRunnerRegistry;
 import xin.manong.darwin.runner.manage.ExecuteRunnerShell;
 import xin.manong.darwin.runner.monitor.ConcurrencyQueueMonitor;
+import xin.manong.darwin.runner.monitor.ExpiredCleaner;
 import xin.manong.darwin.runner.monitor.ProxyMonitor;
 import xin.manong.darwin.service.iface.MessageService;
 import xin.manong.weapon.base.etcd.EtcdClient;
@@ -26,21 +27,25 @@ import xin.manong.weapon.base.etcd.EtcdClient;
 @ConfigurationProperties(prefix = "app.runner")
 public class RunnerConfig {
 
-    private static final Long DEFAULT_MAX_OVERFLOW_INTERVAL_MS = 7200000L;
-    private static final Long DEFAULT_ALLOCATOR_EXECUTE_INTERVAL_MS = 10000L;
-    private static final Long DEFAULT_PLAN_RUNNER_EXECUTE_INTERVAL_MS = 60000L;
-    private static final Long DEFAULT_DASHBOARD_RUNNER_EXECUTE_INTERVAL_MS = 600000L;
+    private static final long DEFAULT_MAX_OVERFLOW_INTERVAL_MS = 7200000L;
+    private static final long DEFAULT_ALLOCATOR_EXECUTE_INTERVAL_MS = 10000L;
+    private static final long DEFAULT_PLAN_RUNNER_EXECUTE_INTERVAL_MS = 60000L;
+    private static final long DEFAULT_DASHBOARD_RUNNER_EXECUTE_INTERVAL_MS = 600000L;
     private static final long DEFAULT_CONCURRENCY_QUEUE_EXECUTE_TIME_INTERVAL_MS = 300000;
     private static final long DEFAULT_CONCURRENCY_QUEUE_EXPIRED_TIME_INTERVAL_MS = 600000;
     private static final long DEFAULT_PROXY_EXECUTE_TIME_INTERVAL_MS = 300000L;
+    private static final long DEFAULT_EXPIRED_CLEANER_EXECUTE_INTERVAL_MS = 3600000L;
+    private static final long DEFAULT_MAX_EXPIRED_INTERVAL_MS = 86400000L * 30;
 
-    public Long maxOverflowIntervalMs = DEFAULT_MAX_OVERFLOW_INTERVAL_MS;
-    public Long planRunnerExecuteIntervalMs = DEFAULT_PLAN_RUNNER_EXECUTE_INTERVAL_MS;
-    public Long allocatorExecuteIntervalMs = DEFAULT_ALLOCATOR_EXECUTE_INTERVAL_MS;
-    public Long dashboardRunnerExecuteIntervalMs = DEFAULT_DASHBOARD_RUNNER_EXECUTE_INTERVAL_MS;
+    public long maxOverflowIntervalMs = DEFAULT_MAX_OVERFLOW_INTERVAL_MS;
+    public long planRunnerExecuteIntervalMs = DEFAULT_PLAN_RUNNER_EXECUTE_INTERVAL_MS;
+    public long allocatorExecuteIntervalMs = DEFAULT_ALLOCATOR_EXECUTE_INTERVAL_MS;
+    public long dashboardRunnerExecuteIntervalMs = DEFAULT_DASHBOARD_RUNNER_EXECUTE_INTERVAL_MS;
     public long concurrencyQueueExecuteTimeIntervalMs = DEFAULT_CONCURRENCY_QUEUE_EXECUTE_TIME_INTERVAL_MS;
     public long concurrencyQueueExpiredTimeIntervalMs = DEFAULT_CONCURRENCY_QUEUE_EXPIRED_TIME_INTERVAL_MS;
     public long proxyExecuteTimeIntervalMs = DEFAULT_PROXY_EXECUTE_TIME_INTERVAL_MS;
+    public long expiredCleanerExecuteIntervalMs = DEFAULT_EXPIRED_CLEANER_EXECUTE_INTERVAL_MS;
+    public long maxExpiredIntervalMs = DEFAULT_MAX_EXPIRED_INTERVAL_MS;
     public String topicURL;
     @Resource
     private MessageService messageService;
@@ -108,6 +113,21 @@ public class RunnerConfig {
                 monitor, ExecuteRunnerShell.RUNNER_TYPE_MONITOR,
                 messageService, etcdClient));
         return monitor;
+    }
+
+    /**
+     * 构建过期数据清理器
+     *
+     * @return 过期数据清理器
+     */
+    @Bean(destroyMethod = "stop")
+    public ExpiredCleaner buildExpiredCleaner() {
+        ExpiredCleaner cleaner = new ExpiredCleaner(maxExpiredIntervalMs, expiredCleanerExecuteIntervalMs);
+        registry.register(new ExecuteRunnerShell(
+                ExecuteRunnerShell.LOCK_KEY_EXPIRED_CLEANER,
+                cleaner, ExecuteRunnerShell.RUNNER_TYPE_MONITOR,
+                messageService, etcdClient));
+        return cleaner;
     }
 
     /**

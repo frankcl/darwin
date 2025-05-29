@@ -123,6 +123,13 @@ public class URLServiceImpl extends URLService {
     }
 
     @Override
+    public int deleteExpired(long expiredTime) {
+        LambdaQueryWrapper<URLRecord> query = new LambdaQueryWrapper<>();
+        query.lt(URLRecord::getCreateTime, expiredTime);
+        return urlMapper.delete(query);
+    }
+
+    @Override
     public Pager<URLRecord> search(URLSearchRequest searchRequest) {
         searchRequest = prepareSearchRequest(searchRequest);
         ModelValidator.validateOrderBy(URLRecord.class, searchRequest);

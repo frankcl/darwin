@@ -24,13 +24,13 @@ public class ProxyMonitor extends ExecuteRunner {
 
     private static final Logger logger = LoggerFactory.getLogger(ProxyMonitor.class);
 
-    public static final String KEY = "ProxyMonitor";
+    public static final String ID = "ProxyMonitor";
 
     @Resource
     private ProxyService proxyService;
 
     public ProxyMonitor(long executeTimeIntervalMs) {
-        super(KEY, executeTimeIntervalMs);
+        super(ID, executeTimeIntervalMs);
         this.setName("代理监控器");
         this.setDescription("负责定时刷新短效代理并更新代理缓存");
     }

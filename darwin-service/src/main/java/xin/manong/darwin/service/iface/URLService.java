@@ -92,6 +92,14 @@ public abstract class URLService {
     public abstract boolean delete(String key);
 
     /**
+     * 删除过期数据：创建时间小于expiredTime
+     *
+     * @param expiredTime 过期时间
+     * @return 删除数量
+     */
+    public abstract int deleteExpired(long expiredTime);
+
+    /**
      * 搜索URL列表
      *
      * @param searchRequest 搜索请求
