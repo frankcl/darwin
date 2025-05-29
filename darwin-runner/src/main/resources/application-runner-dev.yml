@@ -1,3 +1,4 @@
 app:
   runner:
     topicURL: TEST-DARWIN-FETCH-URL
+    max-expired-interval-ms: 259200000
