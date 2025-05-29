@@ -60,4 +60,11 @@ public class TrendServiceImpl implements TrendService {
         query.lt(Trend::getKey, maxKey);
         trendMapper.delete(query);
     }
+
+    @Override
+    public int delete(long expiredTime) {
+        LambdaQueryWrapper<Trend> query = new LambdaQueryWrapper<>();
+        query.lt(Trend::getCreateTime, expiredTime);
+        return trendMapper.delete(query);
+    }
 }

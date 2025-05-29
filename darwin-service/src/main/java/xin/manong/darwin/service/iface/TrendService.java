@@ -45,4 +45,12 @@ public interface TrendService {
      * @param maxKey 最大key
      */
     void delete(String maxKey);
+
+    /**
+     * 删除过期数据：创建时间小于expiredTime
+     *
+     * @param expiredTime 过期时间
+     * @return 删除数量
+     */
+    int delete(long expiredTime);
 }
