@@ -1,5 +1,7 @@
 package xin.manong.darwin.parser.sdk;
 
+import org.apache.commons.lang3.exception.ExceptionUtils;
+
 import java.util.UUID;
 
 /**
@@ -27,6 +29,11 @@ public abstract class HTMLParser {
             String debugLog = logger.getLogContent();
             if (response != null && debugLog != null) response.debugLog = debugLog;
             return response;
+        } catch (Exception e) {
+            ParseResponse response = ParseResponse.buildError("解析异常");
+            response.debugLog = logger.getLogContent();
+            response.stderr = ExceptionUtils.getStackTrace(e);
+            return response;
         } finally {
             logger.close();
         }
@@ -38,5 +45,5 @@ public abstract class HTMLParser {
      * @param request 解析请求
      * @return 解析响应
      */
-    public abstract ParseResponse parse(ParseRequest request);
+    public abstract ParseResponse parse(ParseRequest request) throws Exception;
 }

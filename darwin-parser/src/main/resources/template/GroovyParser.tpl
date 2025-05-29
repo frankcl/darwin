@@ -11,6 +11,8 @@ import xin.manong.darwin.parser.sdk.HTMLParser;
 import xin.manong.darwin.parser.sdk.ParseRequest;
 import xin.manong.darwin.parser.sdk.ParseResponse;
 
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.text.SimpleDateFormat;
 
 public class GroovyParser extends HTMLParser {

@@ -89,7 +89,7 @@ public abstract class Script implements AutoCloseable {
             throw e;
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
-            ParseResponse response = ParseResponse.buildError(String.format("执行脚本异常[%s]", e.getMessage()));
+            ParseResponse response = ParseResponse.buildError(String.format("执行脚本异常:%s", e.getMessage()));
             response.stdout = getStdout();
             response.stderr = getStderr();
             return response;

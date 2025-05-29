@@ -1,4 +1,6 @@
 /**
+ * 支持使用java.net.URL进行URL解析
+ *
  * 支持Jsoup进行DOM解析
  *   Document document = Jsoup.parse(request.text, request.url);
  *
@@ -16,6 +18,19 @@
  *   buildError(String message)
  * 可通过如下方法打印日志，支持info, warn和error方法(底层为slf4j实现，支持可变参数日志打印)
  *   logger.info("this is a test log: {}", message);
+ *
+ * URL数据结构
+ * {
+ *   url: URL链接,
+ *   headers: HTTP请求头, 默认为空
+ *   httpRequest: HTTP请求方式, 支持POST和GET, 默认GET,
+ *   postMediaType: POST数据类型, 支持JSON和FORM, 默认JSON,
+ *   requestBody: POST请求体,
+ *   allowRepeat: 是否允许重复抓取, 布尔值, 默认false,
+ *   allowDispatch: 是否允许分发, 布尔值, 默认true,
+ *   fieldMap: 结构化数据
+ *   customMap: 自定义数据
+ * }
  *
  * 解析请求ParseRequest数据结构
  * {
