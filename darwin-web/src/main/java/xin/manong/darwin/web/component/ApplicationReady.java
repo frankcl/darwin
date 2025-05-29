@@ -12,6 +12,10 @@ import xin.manong.darwin.runner.core.DashboardRunner;
 import xin.manong.darwin.runner.core.PlanRunner;
 import xin.manong.darwin.runner.manage.ExecuteRunnerRegistry;
 import xin.manong.darwin.runner.monitor.ConcurrencyQueueMonitor;
+import xin.manong.darwin.runner.monitor.ExpiredCleaner;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * 应用启动后处理
@@ -25,15 +29,22 @@ public class ApplicationReady implements ApplicationListener<ApplicationReadyEve
 
     private static final Logger logger = LoggerFactory.getLogger(ApplicationReady.class);
 
+    private final List<String> runnerIds;
     @Resource
     private ExecuteRunnerRegistry registry;
+
+    public ApplicationReady() {
+        runnerIds = new ArrayList<>();
+        runnerIds.add(Allocator.ID);
+        runnerIds.add(PlanRunner.ID);
+        runnerIds.add(DashboardRunner.ID);
+        runnerIds.add(ConcurrencyQueueMonitor.ID);
+        runnerIds.add(ExpiredCleaner.ID);
+    }
 
     @Override
     public void onApplicationEvent(@NotNull ApplicationReadyEvent event) {
         logger.info("After application ready, bootstrap execute runners");
-        registry.start(Allocator.ID);
-        registry.start(PlanRunner.ID);
-        registry.start(DashboardRunner.ID);
-        registry.start(ConcurrencyQueueMonitor.ID);
+        for (String runnerId : runnerIds) registry.start(runnerId);
     }
 }
