@@ -58,7 +58,7 @@ public class ApplicationReady implements ApplicationListener<ApplicationReadyEve
      * @param count 计数
      */
     private void startRunner(String runnerId, int count) {
-        if (count >= RETRY_COUNT) throw new RuntimeException(String.format("Start runner:%s failed", runnerId));
+        if (count >= RETRY_COUNT) throw new IllegalStateException(String.format("Start runner:%s failed", runnerId));
         try {
             registry.start(runnerId);
         } catch (Exception e) {
