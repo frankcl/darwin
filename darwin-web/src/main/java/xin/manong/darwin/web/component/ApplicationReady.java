@@ -29,6 +29,9 @@ public class ApplicationReady implements ApplicationListener<ApplicationReadyEve
 
     private static final Logger logger = LoggerFactory.getLogger(ApplicationReady.class);
 
+    private static final int RETRY_COUNT = 3;
+    private static final long PAUSE_TIME = 10000L;
+
     private final List<String> runnerIds;
     @Resource
     private ExecuteRunnerRegistry registry;
@@ -45,6 +48,34 @@ public class ApplicationReady implements ApplicationListener<ApplicationReadyEve
     @Override
     public void onApplicationEvent(@NotNull ApplicationReadyEvent event) {
         logger.info("After application ready, bootstrap execute runners");
-        for (String runnerId : runnerIds) registry.start(runnerId);
+        for (String runnerId : runnerIds) startRunner(runnerId, 0);
+    }
+
+    /**
+     * 启动Runner
+     *
+     * @param runnerId runner ID
+     * @param count 计数
+     */
+    private void startRunner(String runnerId, int count) {
+        if (count >= RETRY_COUNT) throw new RuntimeException(String.format("Start runner:%s failed", runnerId));
+        try {
+            registry.start(runnerId);
+        } catch (Exception e) {
+            logger.error(e.getMessage(), e);
+            pause();
+            startRunner(runnerId, count + 1);
+        }
+    }
+
+    /**
+     * 暂停
+     */
+    private void pause() {
+        try {
+            Thread.sleep(PAUSE_TIME);
+        } catch (InterruptedException e) {
+            logger.error(e.getMessage(), e);
+        }
     }
 }
