@@ -1,17 +1,17 @@
 /*
  Navicat Premium Data Transfer
 
- Source Server         : frankcl的MySQL
+ Source Server         : 阿里云ECS
  Source Server Type    : MySQL
- Source Server Version : 80030 (8.0.30)
- Source Host           : localhost:3306
+ Source Server Version : 80041 (8.0.41)
+ Source Host           : 118.178.141.32:3306
  Source Schema         : darwin
 
  Target Server Type    : MySQL
- Target Server Version : 80030 (8.0.30)
+ Target Server Version : 80041 (8.0.41)
  File Encoding         : 65001
 
- Date: 29/05/2025 13:47:54
+ Date: 15/06/2025 16:52:52
 */
 
 SET NAMES utf8mb4;
@@ -42,7 +42,7 @@ DROP TABLE IF EXISTS `app_user`;
 CREATE TABLE `app_user` (
   `id` int NOT NULL AUTO_INCREMENT,
   `app_id` int NOT NULL,
-  `user_id` varchar(32) COLLATE utf8mb4_general_ci NOT NULL,
+  `user_id` varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
   `nick_name` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
   `create_time` bigint NOT NULL,
   `update_time` bigint NOT NULL,
@@ -102,9 +102,9 @@ CREATE TABLE `plan` (
   `app_id` int NOT NULL,
   `create_time` bigint NOT NULL,
   `update_time` bigint NOT NULL,
-  `app_name` varchar(100) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `app_name` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
   `plan_id` varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-  `name` varchar(100) COLLATE utf8mb4_general_ci NOT NULL,
+  `name` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
   `category` int DEFAULT NULL,
   `crontab_expression` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
   `status` tinyint DEFAULT '0',
@@ -127,13 +127,13 @@ CREATE TABLE `plan` (
 DROP TABLE IF EXISTS `proxy`;
 CREATE TABLE `proxy` (
   `id` int NOT NULL AUTO_INCREMENT,
-  `address` varchar(50) COLLATE utf8mb4_general_ci NOT NULL,
+  `address` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
   `port` int NOT NULL,
   `create_time` bigint NOT NULL,
   `update_time` bigint NOT NULL,
   `category` int NOT NULL,
-  `username` varchar(50) COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `password` varchar(50) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `username` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `password` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
   `expired_time` bigint DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `INDEX_ADDRESS` (`address`) USING BTREE,
@@ -150,9 +150,9 @@ CREATE TABLE `proxy` (
 DROP TABLE IF EXISTS `rule`;
 CREATE TABLE `rule` (
   `id` int NOT NULL AUTO_INCREMENT,
-  `name` varchar(255) COLLATE utf8mb4_general_ci NOT NULL,
-  `regex` text COLLATE utf8mb4_general_ci,
-  `script` mediumtext COLLATE utf8mb4_general_ci,
+  `name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+  `regex` text CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci,
+  `script` mediumtext CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci,
   `script_type` int DEFAULT NULL,
   `create_time` bigint NOT NULL,
   `update_time` bigint NOT NULL,
@@ -243,7 +243,7 @@ DROP TABLE IF EXISTS `url`;
 CREATE TABLE `url` (
   `key` varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
   `job_id` varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-  `url` text COLLATE utf8mb4_general_ci NOT NULL,
+  `url` text CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
   `timeout` int DEFAULT NULL,
   `priority` int DEFAULT '1',
   `create_time` bigint NOT NULL,
@@ -255,15 +255,15 @@ CREATE TABLE `url` (
   `concurrency_level` int DEFAULT NULL,
   `headers` json DEFAULT NULL,
   `fetch_time` bigint DEFAULT NULL,
-  `parent_url` text COLLATE utf8mb4_general_ci,
-  `fetch_content_url` text COLLATE utf8mb4_general_ci,
+  `parent_url` text CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci,
+  `fetch_content_url` text CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci,
   `status` int NOT NULL,
   `custom_map` json DEFAULT NULL,
   `field_map` json DEFAULT NULL,
   `hash` varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
   `fetch_method` int DEFAULT NULL,
   `app_id` int NOT NULL,
-  `redirect_url` text COLLATE utf8mb4_general_ci,
+  `redirect_url` text CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci,
   `plan_id` varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL,
   `link_scope` int DEFAULT NULL,
   `http_code` int DEFAULT NULL,
@@ -283,6 +283,7 @@ CREATE TABLE `url` (
   `http_request` varchar(10) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
   `request_hash` varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
   `post_media_type` varchar(10) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `parent_key` varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
   PRIMARY KEY (`key`),
   KEY `INDEX_JOB_ID` (`job_id`) USING BTREE,
   KEY `INDEX_HASH` (`hash`),
@@ -304,7 +305,8 @@ CREATE TABLE `url` (
   KEY `INDEX_DOWN_TIME` (`down_time`) USING BTREE,
   KEY `INDEX_CONTENT_TYPE` (`content_type`) USING BTREE,
   KEY `INDEX_HTTP_REQUEST` (`http_request`),
-  KEY `INDEX_REQUEST_HASH` (`request_hash`) USING BTREE
+  KEY `INDEX_REQUEST_HASH` (`request_hash`) USING BTREE,
+  KEY `INDEX_PARENT_KEY` (`parent_key`) USING BTREE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 SET FOREIGN_KEY_CHECKS = 1;
