@@ -116,6 +116,14 @@ public class URLServiceImpl extends URLService {
     }
 
     @Override
+    public List<URLRecord> getChildren(String parentKey) {
+        if (StringUtils.isEmpty(parentKey)) return new ArrayList<>();
+        LambdaQueryWrapper<URLRecord> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(URLRecord::getParentKey, parentKey);
+        return urlMapper.selectList(queryWrapper);
+    }
+
+    @Override
     public boolean delete(String key) {
         URLRecord record = urlMapper.selectById(key);
         if (record == null) throw new NotFoundException("URL记录不存在");

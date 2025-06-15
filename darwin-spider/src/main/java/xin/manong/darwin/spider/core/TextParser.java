@@ -193,6 +193,7 @@ public class TextParser {
         child.jobId = parent.jobId;
         child.planId = parent.planId;
         child.parentURL = parent.url;
+        child.parentKey = parent.key;
         child.depth = parent.depth + 1;
         child.status = Constants.URL_STATUS_UNKNOWN;
         if (child.mustNormalize()) {

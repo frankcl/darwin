@@ -129,6 +129,11 @@ public class URLServiceImpl extends URLService {
     }
 
     @Override
+    public List<URLRecord> getChildren(String parentKey) {
+        throw new UnsupportedOperationException("Unsupported this method");
+    }
+
+    @Override
     public boolean delete(String key) {
         URLRecord prevRecord = get(key);
         if (prevRecord == null) throw new NotFoundException("URL记录不存在");

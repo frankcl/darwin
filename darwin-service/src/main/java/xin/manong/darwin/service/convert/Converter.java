@@ -2,6 +2,7 @@ package xin.manong.darwin.service.convert;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import xin.manong.darwin.common.model.*;
+import xin.manong.darwin.service.lineage.Node;
 import xin.manong.weapon.aliyun.ots.OTSConverter;
 import xin.manong.weapon.aliyun.ots.OTSSearchResponse;
 import xin.manong.weapon.base.record.KVRecord;
@@ -21,6 +22,18 @@ import java.util.HashMap;
 public class Converter {
 
     private static final String DATE_TIME_FORMAT = "yyyy_MM_dd_HH_mm_ss";
+
+    /**
+     * 转换URLRecord为Node
+     *
+     * @param record 数据
+     * @return 血统节点
+     */
+    public static Node convert(URLRecord record) {
+        Node node = new Node(record.key, record.url);
+        node.setParentKey(record.parentKey);
+        return node;
+    }
 
     /**
      * 转换种子记录为URL记录

@@ -179,6 +179,7 @@ public class Constants {
     public static final String HASH = "hash";
     public static final String URL = "url";
     public static final String PARENT_URL = "parent_url";
+    public static final String PARENT_KEY = "parent_key";
     public static final String REDIRECT_URL = "redirect_url";
     public static final String FETCH_CONTENT_URL = "fetch_content_url";
     public static final String FETCH_TIME = "fetch_time";

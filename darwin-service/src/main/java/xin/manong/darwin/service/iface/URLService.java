@@ -1,12 +1,15 @@
 package xin.manong.darwin.service.iface;
 
 import com.alibaba.fastjson.JSON;
+import jakarta.ws.rs.NotFoundException;
 import xin.manong.darwin.common.Constants;
 import xin.manong.darwin.common.model.Pager;
 import xin.manong.darwin.common.model.RangeValue;
 import xin.manong.darwin.common.model.URLGroupCount;
 import xin.manong.darwin.common.model.URLRecord;
 import xin.manong.darwin.service.component.ExcelDocumentExporter;
+import xin.manong.darwin.service.convert.Converter;
+import xin.manong.darwin.service.lineage.Node;
 import xin.manong.darwin.service.request.OrderByRequest;
 import xin.manong.darwin.service.request.URLSearchRequest;
 import xin.manong.darwin.service.util.ModelValidator;
@@ -82,6 +85,14 @@ public abstract class URLService {
      * @return URL记录，无记录返回null
      */
     public abstract URLRecord get(String key);
+
+    /**
+     * 根据父key获取孩子列表
+     *
+     * @param parentKey 父key
+     * @return 孩子列表
+     */
+    public abstract List<URLRecord> getChildren(String parentKey);
 
     /**
      * 根据key删除URL记录
@@ -399,6 +410,29 @@ public abstract class URLService {
         Pager<URLRecord> pager = search(searchRequest);
         if (pager == null || pager.records.isEmpty()) return new ArrayList<>();
         return pager.records;
+    }
+
+    /**
+     * 根据key获取血缘节点
+     *
+     * @param key 数据key
+     * @return 血缘节点
+     */
+    public Node getLineageNode(String key) {
+        URLRecord record = get(key);
+        if (record == null) throw new NotFoundException("数据不存在");
+        return Converter.convert(record);
+    }
+
+    /**
+     * 根据父key获取血统孩子列表
+     *
+     * @param parentKey 父key
+     * @return 血统孩子列表
+     */
+    public List<Node> getLineageChildren(String parentKey) {
+        List<URLRecord> children = getChildren(parentKey);
+        return children.stream().map(Converter::convert).toList();
     }
 
     /**

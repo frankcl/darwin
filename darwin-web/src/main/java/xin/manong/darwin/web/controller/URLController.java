@@ -16,6 +16,7 @@ import xin.manong.darwin.common.model.URLRecord;
 import xin.manong.darwin.service.component.ExcelDocumentExporter;
 import xin.manong.darwin.service.iface.OSSService;
 import xin.manong.darwin.service.iface.URLService;
+import xin.manong.darwin.service.lineage.Node;
 import xin.manong.darwin.service.request.URLSearchRequest;
 import xin.manong.darwin.service.util.HTMLMender;
 
@@ -23,6 +24,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.util.List;
 
 /**
  * URL控制器
@@ -50,7 +52,7 @@ public class URLController {
     /**
      * 根据key获取URL记录
      *
-     * @param key url key
+     * @param key 数据key
      * @return URL记录
      */
     @GET
@@ -63,6 +65,36 @@ public class URLController {
         if (record == null) throw new NotFoundException("数据不存在");
         record.mimeType = record.mediaType == null ? null : record.mediaType.toString();
         return record;
+    }
+
+    /**
+     * 根据key获取血统节点
+     *
+     * @param key 数据key
+     * @return 血统节点
+     */
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("getLineageNode")
+    @GetMapping("getLineageNode")
+    public Node getLineageNode(@QueryParam("key") String key) {
+        if (StringUtils.isEmpty(key)) throw new BadRequestException("数据key缺失");
+        return urlService.getLineageNode(key);
+    }
+
+    /**
+     * 根据父key获取血统节点列表
+     *
+     * @param parentKey 父数据key
+     * @return 血统节点列表
+     */
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("getLineageChildren")
+    @GetMapping("getLineageChildren")
+    public List<Node> getLineageChildren(@QueryParam("parent_key") String parentKey) {
+        if (StringUtils.isEmpty(parentKey)) throw new BadRequestException("父数据key缺失");
+        return urlService.getLineageChildren(parentKey);
     }
 
     /**

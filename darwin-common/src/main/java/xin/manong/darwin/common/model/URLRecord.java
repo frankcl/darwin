@@ -57,6 +57,15 @@ public class URLRecord extends SeedRecord {
     public String parentURL;
 
     /**
+     * 父key
+     */
+    @TableField(value = "parent_key")
+    @Column(name = "parent_key")
+    @JSONField(name = "parent_key")
+    @JsonProperty("parent_key")
+    public String parentKey;
+
+    /**
      * 并发级别
      * domain:0
      * host:1
@@ -281,6 +290,7 @@ public class URLRecord extends SeedRecord {
         pushTime = record.pushTime;
         popTime = record.popTime;
         parentURL = record.parentURL;
+        parentKey = record.parentKey;
         redirectURL = record.redirectURL;
         fetchContentURL = record.fetchContentURL;
         mediaType = record.mediaType;

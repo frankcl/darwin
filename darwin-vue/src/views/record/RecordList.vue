@@ -1,8 +1,8 @@
 <script setup>
 import {
   IconChevronDown, IconChevronUp, IconClearAll,
-  IconClock, IconCopy, IconCopyCheck,
-  IconDownload, IconEye, IconFileDescription
+  IconClock, IconCopy, IconCopyCheck, IconDownload,
+  IconEye, IconFileDescription, IconHierarchy3
 } from '@tabler/icons-vue'
 import { reactive, ref, useTemplateRef, watch, watchEffect } from 'vue'
 import { useRoute } from 'vue-router'
@@ -16,7 +16,7 @@ import { useUserStore } from '@/store'
 import { formatDate } from '@/common/Time'
 import { writeClipboard } from '@/common/Clipboard'
 import { ERROR, showMessage, SUCCESS } from '@/common/Feedback'
-import {contentTypeMap, fetchMethodMap, httpRequestMap, priorityMap, statusMap} from '@/common/Constants'
+import { contentTypeMap, fetchMethodMap, httpRequestMap, priorityMap, statusMap } from '@/common/Constants'
 import {
   asyncSearchURL,
   changeSearchQuerySort,
@@ -29,6 +29,7 @@ import AppSearch from '@/components/app/AppSearch'
 import JobSearch from '@/components/job/JobSearch'
 import PlanSearch from '@/components/plan/PlanSearch'
 import ViewRecord from '@/views/record/ViewRecord'
+import ViewLineage from '@/views/record/ViewLineage'
 import PreviewImage from '@/views/record/PreviewImage'
 import PreviewVideo from '@/views/record/PreviewVideo'
 import PreviewPdf from '@/views/record/PreviewPdf'
@@ -42,6 +43,7 @@ const formRef = useTemplateRef('form')
 const vLoading = ElLoading.directive
 const loading = ref(true)
 const openView = ref(false)
+const openLineage = ref(false)
 const openPreviewJson = ref(false)
 const openPreviewPdf = ref(false)
 const openPreviewText = ref(false)
@@ -100,6 +102,11 @@ const exportData = async () => {
   } finally {
     exporting.value = false
   }
+}
+
+const lineage = record => {
+  openLineage.value = true
+  viewKey.value = record.key
 }
 
 const view = record => {
@@ -307,12 +314,16 @@ watchEffect(async () => await search())
           </div>
         </template>
       </el-table-column>
-      <el-table-column width="220">
+      <el-table-column width="300">
         <template #header>操作</template>
         <template #default="scope">
           <el-button type="primary" @click="view(scope.row)">
             <IconFileDescription size="20" class="mr-1" />
             <span>查看</span>
+          </el-button>
+          <el-button type="primary" plain @click="lineage(scope.row)">
+            <IconHierarchy3 size="20" class="mr-1" />
+            <span>血源</span>
           </el-button>
           <el-button type="success" @click="preview(scope.row)" :disabled="scope.row.status !== 0">
             <IconEye size="20" class="mr-1" />
@@ -329,7 +340,8 @@ watchEffect(async () => await search())
       </el-config-provider>
     </el-row>
   </darwin-card>
-  <view-record v-model="openView" :record-key="viewKey" />
+  <view-record v-if="openView" v-model="openView" :record-key="viewKey" />
+  <view-lineage v-if="openLineage" v-model="openLineage" :record-key="viewKey" />
   <preview-image v-if="openPreviewImage" v-model="openPreviewImage" :record-key="previewKey" />
   <preview-video v-if="openPreviewVideo" v-model="openPreviewVideo" :record-key="previewKey" />
   <preview-audio v-if="openPreviewAudio" v-model="openPreviewAudio" :record-key="previewKey" />

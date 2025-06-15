@@ -56,6 +56,8 @@ hylian:
         - /api/seed/get
         - /api/seed/search
         - /api/url/get
+        - /api/url/getLineageNode
+        - /api/url/getLineageChildren
         - /api/url/preview
         - /api/url/previewHTML
         - /api/url/previewStream
