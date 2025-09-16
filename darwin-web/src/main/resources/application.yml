@@ -23,7 +23,7 @@ server:
   ssl:
     key-store: classpath:darwin.manong.xin.jks
     key-store-type: jks
-    key-password: cwf8af0x
+    key-password: 6s23y98l
   jetty:
     threads:
       acceptors: 2

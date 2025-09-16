@@ -8,7 +8,6 @@ import org.apache.ibatis.type.JdbcType;
 import org.apache.ibatis.type.MappedJdbcTypes;
 import org.apache.ibatis.type.MappedTypes;
 import xin.manong.darwin.common.model.MediaType;
-import xin.manong.darwin.common.model.URLRecord;
 
 import java.sql.CallableStatement;
 import java.sql.PreparedStatement;
@@ -21,7 +20,7 @@ import java.sql.SQLException;
  * @author frankcl
  * @date 2025-04-28 16:01:49
  */
-@MappedTypes({ URLRecord.class })
+@MappedTypes({ MediaType.class })
 @MappedJdbcTypes({ JdbcType.VARCHAR })
 public class JSONMediaTypeHandler extends BaseTypeHandler<MediaType> {
 
