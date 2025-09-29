@@ -62,7 +62,7 @@ public class ProxyController {
         if (id == null) throw new BadRequestException("代理ID缺失");
         Proxy proxy = proxyService.get(id);
         if (proxy == null) throw new NotFoundException("代理未找到");
-        String requestURL = "https://darwin.manong.xin/api/health/check";
+        String requestURL = "https://darwin.junctionmagic.com/api/health/check";
         SingleProxySelector proxySelector = new SingleProxySelector(proxy);
         HttpClient httpClient = new HttpClient(new HttpClientConfig(), proxySelector, authenticator);
         HttpRequest httpRequest = HttpRequest.buildGetRequest(requestURL, null);

@@ -6,7 +6,7 @@ weapon:
         sasl-mechanism: SCRAM-SHA-256
         sasl-jaas-config: ${weapon/kafka/jaas-config}
       consumer:
-        servers: 172.29.49.95:9092
+        servers: 172.25.130.27:9092
         group-id: GID-PROD-DARWIN-FETCH-URL
         name: url_consumer
         processor-name: URLReceiver
