@@ -18,7 +18,7 @@ public class ExpiredCleaner extends ExecuteRunner {
 
     private static final Logger logger = LoggerFactory.getLogger(ExpiredCleaner.class);
 
-    public static final String ID = "ExpiredCleaner";
+    public static final String ID = "expired_cleaner";
 
     private final long maxExpiredIntervalMs;
     @Resource
