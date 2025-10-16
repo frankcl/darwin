@@ -14,6 +14,7 @@ import xin.manong.darwin.service.component.PlanExecutor;
 import xin.manong.darwin.service.iface.*;
 import xin.manong.darwin.service.request.PlanSearchRequest;
 import xin.manong.darwin.web.convert.Converter;
+import xin.manong.darwin.web.request.PlanExecuteRequest;
 import xin.manong.darwin.web.request.PlanRequest;
 import xin.manong.darwin.web.request.PlanUpdateRequest;
 import xin.manong.darwin.web.component.PermissionSupport;
@@ -198,6 +199,20 @@ public class PlanController {
         return true;
     }
 
+    public Boolean execute(@RequestBody PlanExecuteRequest request) {
+        if (request == null) throw new BadRequestException("执行计划请求为空");
+        request.check();
+        Plan plan = planService.get(request.planId);
+        if (plan == null) throw new NotFoundException("计划不存在");
+        permissionSupport.checkAppPermission(plan.appId);
+        if (plan.status == null || !plan.status) throw new IllegalStateException("计划处于关闭状态");
+        List<SeedRecord> seedRecords = request.seeds.stream().map(Converter::convert).toList();
+        checkBeforeOpenExecute(plan.planId, seedRecords);
+        if (!planExecutor.checkBeforeExecute()) throw new IllegalStateException("并发队列内存处于危险状态");
+        if (!planExecutor.execute(plan, seedRecords)) throw new InternalServerErrorException("执行计划失败");
+        return true;
+    }
+
     /**
      * 删除计划
      *
@@ -226,6 +241,18 @@ public class PlanController {
      */
     private void checkBeforeOpenExecute(String planId) {
         List<SeedRecord> seedRecords = seedService.getList(planId);
+        checkBeforeOpenExecute(planId, seedRecords);
+    }
+
+    /**
+     * 计划开启执行前检测
+     * 1. 检测是否配置种子URL
+     * 2. 检测种子URL是否存在匹配脚本规则，且规则唯一
+     *
+     * @param planId 计划ID
+     * @param seedRecords 种子列表
+     */
+    private void checkBeforeOpenExecute(String planId, List<SeedRecord> seedRecords) {
         if (seedRecords == null || seedRecords.isEmpty()) throw new IllegalStateException("尚未配置种子URL，请完善计划");
         List<Rule> rules = ruleService.getRules(planId);
         for (SeedRecord seedRecord : seedRecords) {
