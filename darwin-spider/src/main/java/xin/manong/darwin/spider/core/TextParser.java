@@ -144,7 +144,7 @@ public class TextParser {
                 logger.warn("Depth exceeds max depth for child:{}", child.url);
                 return false;
             }
-            if (child.url.equals(parent.url)) {
+            if (child.requestHash.equals(parent.requestHash)) {
                 context.put(Constants.DARWIN_DEBUG_MESSAGE, "父链接相同");
                 logger.warn("Ignore child:{} same with parent", child.url);
                 return false;
