@@ -6,6 +6,8 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
+import xin.manong.darwin.common.model.HTTPRequest;
+import xin.manong.darwin.common.model.PostMediaType;
 import xin.manong.darwin.common.model.URLRecord;
 import xin.manong.darwin.parser.sdk.HTMLParser;
 import xin.manong.darwin.parser.sdk.ParseRequest;
