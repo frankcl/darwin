@@ -1,6 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import Home from '@/views/main/Home.vue'
 import AppList from '@/views/app/AppList'
+import AppSecretList from '@/views/app_secret/AppSecretList'
 import PlanList from '@/views/plan/PlanList'
 import PlanTabs from '@/views/plan/PlanTabs'
 import JobList from '@/views/job/JobList'
@@ -22,6 +23,11 @@ const routes = [
     path: '/app/search',
     name: 'AppList',
     component: AppList
+  },
+  {
+    path: '/app_secret/search',
+    name: 'AppSecretList',
+    component: AppSecretList
   },
   {
     path: '/plan/search',

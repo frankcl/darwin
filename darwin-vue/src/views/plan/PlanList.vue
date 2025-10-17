@@ -1,7 +1,7 @@
 <script setup>
 import {
-  IconClearAll, IconFileDescription, IconDatabase,
-  IconPlayerPlay, IconPlus, IconSpider, IconTrash, IconChevronDown, IconChevronUp
+  IconClearAll, IconFileDescription, IconDatabase, IconPlayerPlay,
+  IconPlus, IconSpider, IconTrash, IconChevronDown, IconChevronUp, IconCopy, IconCopyCheck
 } from '@tabler/icons-vue'
 import { reactive, ref, useTemplateRef, watchEffect } from 'vue'
 import { useRouter } from 'vue-router'
@@ -23,6 +23,7 @@ import {
   newSearchRequest
 } from '@/common/AsyncRequest'
 import { planCategoryMap } from '@/common/Constants'
+import { writeClipboard } from '@/common/Clipboard'
 import { asyncExecuteAfterConfirming, ERROR, showMessage, SUCCESS } from '@/common/Feedback'
 import DarwinCard from '@/components/data/Card'
 import TableHead from '@/components/data/TableHead'
@@ -37,6 +38,7 @@ const loading = ref(true)
 const showMore = ref(false)
 const openAddDialog = ref(false)
 const executing = ref()
+const copiedID = ref()
 const plans = ref([])
 const total = ref(0)
 const query = reactive(newSearchQuery({
@@ -44,6 +46,12 @@ const query = reactive(newSearchQuery({
   category: 'all',
   status: 'all'
 }))
+
+const copy = async plan => {
+  await writeClipboard(plan.plan_id)
+  copiedID.value = `ID#${plan.plan_id}`
+  showMessage('复制计划ID成功', SUCCESS)
+}
 
 const search = async () => {
   loading.value = true
@@ -195,7 +203,13 @@ watchEffect(() => search())
               @sort-change="event => changeSearchQuerySort(event.prop, event.order, query)">
       <template #empty>暂无计划数据</template>
       <el-table-column prop="name" label="计划名" show-overflow-tooltip>
-        <template #default="scope">{{ scope.row.name }}</template>
+        <template #default="scope">
+          <span class="d-flex align-items-center">
+            <IconCopyCheck v-if="copiedID === `ID#${scope.row.plan_id}`" class="flex-shrink-0"  size="16" />
+            <IconCopy v-else class="flex-shrink-0" @click="copy(scope.row)" size="16" />
+            <span class="ml-2">{{ scope.row.name }}</span>
+          </span>
+        </template>
       </el-table-column>
       <el-table-column prop="category" label="类型" min-width="80" show-overflow-tooltip>
         <template #default="scope">{{ planCategoryMap[scope.row.category] }}</template>

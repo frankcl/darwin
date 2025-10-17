@@ -241,7 +241,7 @@ public class SeedRecord extends BaseModel {
         }
         if (StringUtils.isEmpty(host)) host = CommonUtil.getHost(url);
         if (StringUtils.isEmpty(domain)) domain = DomainUtil.getDomain(host);
-        if (allowDispatch == null) allowDispatch = true;
+        if (allowDispatch == null) allowDispatch = false;
         if (priority == null) priority = Constants.PRIORITY_NORMAL;
         if (fetchMethod == null) fetchMethod = Constants.FETCH_METHOD_COMMON;
         if (httpRequest == null) httpRequest = HTTPRequest.GET;
@@ -263,7 +263,7 @@ public class SeedRecord extends BaseModel {
 
     public SeedRecord() {
         key = RandomID.build();
-        allowDispatch = true;
+        allowDispatch = false;
         httpRequest = HTTPRequest.GET;
         createTime = System.currentTimeMillis();
     }

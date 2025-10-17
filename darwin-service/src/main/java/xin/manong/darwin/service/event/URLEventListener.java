@@ -1,7 +1,5 @@
 package xin.manong.darwin.service.event;
 
-import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.serializer.SerializerFeature;
 import jakarta.annotation.Resource;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.kafka.clients.producer.RecordMetadata;
@@ -13,9 +11,6 @@ import xin.manong.darwin.common.model.URLRecord;
 import xin.manong.darwin.service.config.ServiceConfig;
 import xin.manong.darwin.service.iface.URLService;
 import xin.manong.weapon.base.common.Context;
-import xin.manong.weapon.base.kafka.KafkaProducer;
-
-import java.nio.charset.StandardCharsets;
 
 /**
  * URL抓取结束通知
@@ -32,8 +27,6 @@ public class URLEventListener implements EventListener<String> {
     private ServiceConfig config;
     @Resource
     private URLService urlService;
-    @Resource
-    private KafkaProducer producer;
 
     @Override
     public void onComplete(String key, Context context) {
@@ -57,12 +50,9 @@ public class URLEventListener implements EventListener<String> {
      */
     private void pushMessage(URLRecord record, Context context) {
         if (record == null || !record.allowDispatch || record.status != Constants.URL_STATUS_FETCH_SUCCESS) return;
-        String recordString = JSON.toJSONString(record, SerializerFeature.DisableCircularReferenceDetect);
-        RecordMetadata metadata = producer.send(record.key,
-                recordString.getBytes(StandardCharsets.UTF_8), config.mq.topicURL);
+        RecordMetadata metadata = urlService.dispatch(record);
         if (metadata == null) {
             context.put(Constants.DARWIN_DEBUG_MESSAGE, "推送消息失败");
-            logger.warn("Push completed record message failed for key:{}", record.key);
             return;
         }
         context.put(Constants.DARWIN_MESSAGE_KEY, record.key);

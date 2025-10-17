@@ -40,48 +40,53 @@ hylian:
         - api/health/*
         - api/app/get
         - api/app/search
+        - api/app_secret/get
+        - api/app_secret/search
+        - api/app_secret/randomAccessKey
+        - api/app_secret/randomSecretKey
         - api/app_user/getAppUsers
         - api/user/allUsers
         - api/plan/get
         - api/plan/search
+        - api/plan/submit
         - api/job/get
         - api/job/progress
         - api/job/successRate
         - api/job/search
-        - /api/rule/get
-        - /api/rule/planRules
-        - /api/rule/history/search
-        - /api/rule/history/get
-        - /api/rule/getTemplate
-        - /api/seed/get
-        - /api/seed/search
-        - /api/url/get
-        - /api/url/getLineageNode
-        - /api/url/getLineageChildren
-        - /api/url/preview
-        - /api/url/previewHTML
-        - /api/url/previewStream
-        - /api/url/search
-        - /api/runner/getList
-        - /api/runner/isRunning
-        - /api/runner/messageCount
-        - /api/proxy/search
-        - /api/concurrency/getConcurrencyUnit
-        - /api/concurrency/getConcurrencyQueueWait
-        - /api/concurrency/waitConcurrencyUnits
-        - /api/concurrency/getDefaultCrawlDelay
-        - /api/concurrency/getCrawlDelayMap
-        - /api/concurrency/getDefaultConcurrency
-        - /api/concurrency/getConcurrencyConnectionMap
-        - /api/dashboard/fetchCountTrend
-        - /api/dashboard/getQueueMemory
-        - /api/dashboard/getQueueWait
-        - /api/dashboard/queueWaitPriority
-        - /api/dashboard/getDownAnalysis
-        - /api/dashboard/getFetchAnalysis
-        - /api/dashboard/statusGroupCount
-        - /api/dashboard/contentGroupCount
-        - /api/dashboard/hostFetchCount
+        - api/rule/get
+        - api/rule/planRules
+        - api/rule/history/search
+        - api/rule/history/get
+        - api/rule/getTemplate
+        - api/seed/get
+        - api/seed/search
+        - api/url/get
+        - api/url/getLineageNode
+        - api/url/getLineageChildren
+        - api/url/preview
+        - api/url/previewHTML
+        - api/url/previewStream
+        - api/url/search
+        - api/runner/getList
+        - api/runner/isRunning
+        - api/runner/messageCount
+        - api/proxy/search
+        - api/concurrency/getConcurrencyUnit
+        - api/concurrency/getConcurrencyQueueWait
+        - api/concurrency/waitConcurrencyUnits
+        - api/concurrency/getDefaultCrawlDelay
+        - api/concurrency/getCrawlDelayMap
+        - api/concurrency/getDefaultConcurrency
+        - api/concurrency/getConcurrencyConnectionMap
+        - api/dashboard/fetchCountTrend
+        - api/dashboard/getQueueMemory
+        - api/dashboard/getQueueWait
+        - api/dashboard/queueWaitPriority
+        - api/dashboard/getDownAnalysis
+        - api/dashboard/getFetchAnalysis
+        - api/dashboard/statusGroupCount
+        - api/dashboard/contentGroupCount
+        - api/dashboard/hostFetchCount
         - favicon.ico
 
 app:

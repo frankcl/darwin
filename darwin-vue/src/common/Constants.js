@@ -17,7 +17,8 @@ export const priorityMap = {
 
 export const fetchMethodMap = {
   0: '本地IP',
-  1: '代理IP'
+  1: '长效代理',
+  2: '短效代理',
 }
 
 export const contentTypeMap = {

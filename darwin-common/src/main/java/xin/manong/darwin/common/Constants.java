@@ -11,6 +11,8 @@ import java.util.Map;
  */
 public class Constants {
 
+    public static final String CONTEXT_APP_SECRET = "__app_secret__";
+
     public static final int DEFAULT_PAGE_NUM = 1;
     public static final int DEFAULT_PAGE_SIZE = 20;
 

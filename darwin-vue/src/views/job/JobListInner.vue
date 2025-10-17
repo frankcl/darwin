@@ -1,18 +1,19 @@
 <script setup>
 import {
   IconChartBar, IconCircleCheck, IconClearAll, IconClock,
-  IconDatabase, IconFileDescription, IconProgress
+  IconDatabase, IconFileDescription, IconProgress, IconSend2
 } from '@tabler/icons-vue'
 import { reactive, ref, useTemplateRef, watch, watchEffect } from 'vue'
 import { useRouter } from 'vue-router'
 import zhCn from 'element-plus/dist/locale/zh-cn.mjs'
 import {
-  ElButton, ElCol, ElConfigProvider, ElDatePicker, ElForm,
+  ElButton, ElCol, ElConfigProvider, ElDatePicker, ElDropdown, ElDropdownItem, ElDropdownMenu, ElForm,
   ElFormItem, ElLoading, ElPagination, ElRadioButton,
   ElRadioGroup, ElRow, ElTable, ElTableColumn, ElText
 } from 'element-plus'
 import { formatDate, pause } from '@/common/Time'
 import {
+  asyncDispatchJob,
   asyncJobProgress, asyncJobSuccessRate,
   asyncSearchJob,
   changeSearchQuerySort,
@@ -22,6 +23,7 @@ import {
 import TableHead from '@/components/data/TableHead'
 import JobDetail from '@/views/job/JobDetail'
 import JobStat from '@/views/job/JobStat'
+import { asyncExecuteAfterConfirming, ERROR, showMessage, SUCCESS } from '@/common/Feedback'
 
 const router = useRouter()
 const props = defineProps(['planId'])
@@ -76,6 +78,24 @@ const stat = id => {
 }
 
 const viewData = job_id => router.push({ path: '/record/search', query: { job_id: job_id } })
+
+const dispatch = async job_id => {
+  const success = await asyncExecuteAfterConfirming(asyncDispatchJob, job_id)
+  if (success === undefined) return
+  if (!success) {
+    showMessage('分发任务数据失败', ERROR)
+    return
+  }
+  showMessage('分发任务数据成功', SUCCESS)
+}
+
+const handleCommand = async (command, job_id) => {
+  if (command === 'data') {
+    await viewData(job_id)
+  } else if (command === 'dispatch') {
+    await dispatch(job_id)
+  }
+}
 
 watch(() => props.planId, () => query.plan_id = props.planId, { immediate: true })
 watchEffect(async () => await search())
@@ -153,7 +173,7 @@ watchEffect(async () => await search())
         </el-text>
       </template>
     </el-table-column>
-    <el-table-column width="300">
+    <el-table-column width="330">
       <template #header>操作</template>
       <template #default="scope">
         <el-button type="primary" plain @click="view(scope.row.job_id)">
@@ -164,10 +184,24 @@ watchEffect(async () => await search())
           <IconChartBar size="20" class="mr-1" />
           <span>统计</span>
         </el-button>
-        <el-button type="primary" @click="viewData(scope.row.job_id)">
-          <IconDatabase size="20" class="mr-1" />
-          <span>数据</span>
-        </el-button>
+        <el-dropdown trigger="click" placement="bottom-end" style="margin-left: 12px"
+                     @command="c => handleCommand(c, scope.row.job_id)">
+          <el-button type="primary">
+            <span>更多操作</span>
+          </el-button>
+          <template #dropdown>
+            <el-dropdown-menu>
+              <el-dropdown-item command="data">
+                <IconDatabase size="20" class="mr-2" />
+                <span>数据</span>
+              </el-dropdown-item>
+              <el-dropdown-item command="dispatch">
+                <IconSend2 size="20" class="mr-2" />
+                <span>分发</span>
+              </el-dropdown-item>
+            </el-dropdown-menu>
+          </template>
+        </el-dropdown>
       </template>
     </el-table-column>
   </el-table>

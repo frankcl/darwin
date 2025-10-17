@@ -2,22 +2,23 @@
 import {
   IconChevronDown, IconChevronUp, IconClearAll,
   IconClock, IconCopy, IconCopyCheck, IconDownload,
-  IconEye, IconFileDescription, IconHierarchy3
+  IconEye, IconFileDescription, IconHierarchy3, IconSend2
 } from '@tabler/icons-vue'
 import { reactive, ref, useTemplateRef, watch, watchEffect } from 'vue'
 import { useRoute } from 'vue-router'
 import zhCn from 'element-plus/dist/locale/zh-cn.mjs'
 import {
   ElBreadcrumb, ElBreadcrumbItem, ElButton, ElCol, ElConfigProvider,
-  ElDatePicker, ElForm, ElFormItem, ElInput, ElLink, ElLoading, ElOption,
+  ElDatePicker, ElDropdown, ElDropdownItem, ElDropdownMenu, ElForm, ElFormItem, ElInput, ElLink, ElLoading, ElOption,
   ElPagination, ElRadioButton, ElRadioGroup, ElRow, ElSelect, ElTable, ElTableColumn
 } from 'element-plus'
 import { useUserStore } from '@/store'
 import { formatDate } from '@/common/Time'
 import { writeClipboard } from '@/common/Clipboard'
-import { ERROR, showMessage, SUCCESS } from '@/common/Feedback'
+import { asyncExecuteAfterConfirming, ERROR, showMessage, SUCCESS } from '@/common/Feedback'
 import { contentTypeMap, fetchMethodMap, httpRequestMap, priorityMap, statusMap } from '@/common/Constants'
 import {
+  asyncDispatchURL,
   asyncSearchURL,
   changeSearchQuerySort,
   newSearchQuery,
@@ -109,6 +110,16 @@ const lineage = record => {
   viewKey.value = record.key
 }
 
+const dispatch = async record => {
+  const success = await asyncExecuteAfterConfirming(asyncDispatchURL, record.key)
+  if (success === undefined) return
+  if (!success) {
+    showMessage('分发数据失败', ERROR)
+    return
+  }
+  showMessage('分发数据成功', SUCCESS)
+}
+
 const view = record => {
   viewKey.value = record.key
   openView.value = true
@@ -132,6 +143,14 @@ const copy = async record => {
   await writeClipboard(record.url)
   copiedURL.value = `URL#${record.key}`
   showMessage('复制成功', SUCCESS)
+}
+
+const handleCommand = async (command, record) => {
+  if (command === 'lineage') {
+    await lineage(record)
+  } else if (command === 'dispatch') {
+    await dispatch(record)
+  }
 }
 
 watch(() => route.query, async () => {
@@ -314,21 +333,35 @@ watchEffect(async () => await search())
           </div>
         </template>
       </el-table-column>
-      <el-table-column width="300">
+      <el-table-column width="330">
         <template #header>操作</template>
         <template #default="scope">
-          <el-button type="primary" @click="view(scope.row)">
+          <el-button type="primary" plain @click="view(scope.row)">
             <IconFileDescription size="20" class="mr-1" />
             <span>查看</span>
-          </el-button>
-          <el-button type="primary" plain @click="lineage(scope.row)">
-            <IconHierarchy3 size="20" class="mr-1" />
-            <span>血源</span>
           </el-button>
           <el-button type="success" @click="preview(scope.row)" :disabled="scope.row.status !== 0">
             <IconEye size="20" class="mr-1" />
             <span>预览</span>
           </el-button>
+          <el-dropdown trigger="click" placement="bottom-end" style="margin-left: 12px"
+                       @command="c => handleCommand(c, scope.row)">
+            <el-button type="primary">
+              <span>更多操作</span>
+            </el-button>
+            <template #dropdown>
+              <el-dropdown-menu>
+                <el-dropdown-item command="lineage">
+                  <IconHierarchy3 size="20" class="mr-2" />
+                  <span>血缘关系</span>
+                </el-dropdown-item>
+                <el-dropdown-item command="dispatch">
+                  <IconSend2 size="20" class="mr-2" />
+                  <span>分发数据</span>
+                </el-dropdown-item>
+              </el-dropdown-menu>
+            </template>
+          </el-dropdown>
         </template>
       </el-table-column>
     </el-table>

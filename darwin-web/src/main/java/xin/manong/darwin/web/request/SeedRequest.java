@@ -88,7 +88,7 @@ public class SeedRequest implements Serializable {
      * 允许分发
      */
     @JsonProperty("allow_dispatch")
-    public Boolean allowDispatch = true;
+    public Boolean allowDispatch = false;
 
     /**
      * URL正规化
@@ -123,7 +123,7 @@ public class SeedRequest implements Serializable {
         if (StringUtils.isEmpty(planId)) throw new BadRequestException("计划ID为空");
         if (fetchMethod == null) fetchMethod = Constants.FETCH_METHOD_COMMON;
         if (priority == null) priority = Constants.PRIORITY_NORMAL;
-        if (allowDispatch == null) allowDispatch = true;
+        if (allowDispatch == null) allowDispatch = false;
         if (normalize == null) normalize = true;
         if (httpRequest == null) httpRequest = HTTPRequest.GET;
         if (postMediaType == null && httpRequest == HTTPRequest.POST) postMediaType = PostMediaType.JSON;

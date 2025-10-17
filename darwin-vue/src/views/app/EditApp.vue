@@ -45,7 +45,7 @@ watchEffect(async () => await resetAppForm())
           <el-input type="textarea" :rows="5" v-model="app.comment" />
         </el-form-item>
         <el-form-item>
-          <el-button type="primary" @click="update(appFormRef)" :disabled="!userStore.injected">
+          <el-button type="primary" @click="update" :disabled="!userStore.injected">
             <IconEdit size="20" class="mr-1" />
             <span>编辑</span>
           </el-button>

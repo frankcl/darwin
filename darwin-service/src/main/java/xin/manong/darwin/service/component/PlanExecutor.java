@@ -6,10 +6,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.interceptor.TransactionAspectSupport;
 import xin.manong.darwin.common.Constants;
-import xin.manong.darwin.common.model.Job;
-import xin.manong.darwin.common.model.Plan;
-import xin.manong.darwin.common.model.SeedRecord;
-import xin.manong.darwin.common.model.URLRecord;
+import xin.manong.darwin.common.model.*;
 import xin.manong.darwin.log.core.AspectLogSupport;
 import xin.manong.darwin.queue.ConcurrencyConstants;
 import xin.manong.darwin.queue.ConcurrencyQueue;
@@ -63,18 +60,21 @@ public class PlanExecutor {
         return true;
     }
 
-    public boolean execute(Plan plan) {
-        if (!plan.status) {
-            logger.warn("Plan:{} is not opened", plan.planId);
-            return false;
-        }
+    /**
+     * 执行计划
+     *
+     * @param plan 计划
+     * @param seedRecords 种子列表
+     * @return 执行成功返回true，否则返回false
+     */
+    public boolean execute(Plan plan, List<SeedRecord> seedRecords) {
+        if (!check(plan)) return false;
         Job job = Converter.convert(plan);
-        User user = ContextManager.getUser();
-        job.executor = user == null ? "系统" : user.name;
+        job.executor = getExecutor();
         List<URLRecord> pushRecords = new ArrayList<>(), commitRecords = new ArrayList<>();
         try {
             if (!jobService.add(job)) throw new IllegalStateException("添加任务失败");
-            handleSeeds(plan, job, pushRecords, commitRecords);
+            handleSeeds(plan, job, seedRecords, pushRecords, commitRecords);
             return true;
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
@@ -85,17 +85,57 @@ public class PlanExecutor {
     }
 
     /**
+     * 执行计划
+     *
+     * @param plan 计划
+     * @return 执行成功返回true，否则返回false
+     */
+    public boolean execute(Plan plan) {
+        if (!check(plan)) return false;
+        List<SeedRecord> seedRecords = seedService.getList(plan.planId);
+        return execute(plan, seedRecords);
+    }
+
+    /**
+     * 获取计划执行人
+     *
+     * @return 计划执行人
+     */
+    private String getExecutor() {
+        User user = ContextManager.getUser();
+        if (user != null) return user.name;
+        AppSecret appSecret = ContextManager.getValue(Constants.CONTEXT_APP_SECRET, AppSecret.class);
+        if (appSecret != null) return String.format("API-%s", appSecret.accessKey);
+        return "系统";
+    }
+
+    /**
+     * 检测计划状态
+     *
+     * @param plan 计划
+     * @return 计划状态
+     */
+    private boolean check(Plan plan) {
+        if (!plan.status) {
+            logger.warn("Plan:{} is not opened", plan.planId);
+            return false;
+        }
+        return true;
+    }
+
+    /**
      * 处理任务种子
      *
      * @param plan 计划
      * @param job 任务
+     * @param seedRecords 种子列表
      * @param pushRecords 成功推送并发队列数据
      * @param commitRecords 成功提交数据库数据
      */
     private void handleSeeds(Plan plan, Job job,
+                             List<SeedRecord> seedRecords,
                              List<URLRecord> pushRecords,
                              List<URLRecord> commitRecords) {
-        List<SeedRecord> seedRecords = seedService.getList(plan.planId);
         for (SeedRecord seedRecord : seedRecords) {
             Context context = new Context();
             context.put(Constants.DARWIN_STAGE, Constants.PROCESS_STAGE_PUSH);

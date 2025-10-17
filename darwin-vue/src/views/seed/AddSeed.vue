@@ -20,7 +20,7 @@ const userStore = useUserStore()
 const formRef = useTemplateRef('form')
 const more = ref(false)
 const seed = reactive({
-  allow_dispatch: true,
+  allow_dispatch: false,
   normalize: true,
   priority: 1,
   fetch_method: 0,
@@ -67,7 +67,7 @@ watchEffect(() => seed.plan_id = props.planId)
 </script>
 
 <template>
-  <el-dialog v-model="open" align-center show-close>
+  <el-dialog v-model="open" align-center show-close width="60%">
     <el-form ref="form" :model="seed" :rules="seedFormRules" label-width="100px" label-position="top">
       <el-scrollbar max-height="800px">
         <darwin-card>
