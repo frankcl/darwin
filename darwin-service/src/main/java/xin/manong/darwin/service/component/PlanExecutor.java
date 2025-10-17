@@ -6,10 +6,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.interceptor.TransactionAspectSupport;
 import xin.manong.darwin.common.Constants;
-import xin.manong.darwin.common.model.Job;
-import xin.manong.darwin.common.model.Plan;
-import xin.manong.darwin.common.model.SeedRecord;
-import xin.manong.darwin.common.model.URLRecord;
+import xin.manong.darwin.common.model.*;
 import xin.manong.darwin.log.core.AspectLogSupport;
 import xin.manong.darwin.queue.ConcurrencyConstants;
 import xin.manong.darwin.queue.ConcurrencyQueue;
@@ -73,8 +70,7 @@ public class PlanExecutor {
     public boolean execute(Plan plan, List<SeedRecord> seedRecords) {
         if (!check(plan)) return false;
         Job job = Converter.convert(plan);
-        User user = ContextManager.getUser();
-        job.executor = user == null ? "系统" : user.name;
+        job.executor = getExecutor();
         List<URLRecord> pushRecords = new ArrayList<>(), commitRecords = new ArrayList<>();
         try {
             if (!jobService.add(job)) throw new IllegalStateException("添加任务失败");
@@ -98,6 +94,19 @@ public class PlanExecutor {
         if (!check(plan)) return false;
         List<SeedRecord> seedRecords = seedService.getList(plan.planId);
         return execute(plan, seedRecords);
+    }
+
+    /**
+     * 获取计划执行人
+     *
+     * @return 计划执行人
+     */
+    private String getExecutor() {
+        User user = ContextManager.getUser();
+        if (user != null) return user.name;
+        AppSecret appSecret = ContextManager.getValue(Constants.CONTEXT_APP_SECRET, AppSecret.class);
+        if (appSecret != null) return String.format("API-%s", appSecret.accessKey);
+        return "系统";
     }
 
     /**

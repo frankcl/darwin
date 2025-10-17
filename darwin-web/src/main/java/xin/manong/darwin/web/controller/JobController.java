@@ -11,10 +11,13 @@ import org.springframework.web.bind.annotation.RestController;
 import xin.manong.darwin.common.Constants;
 import xin.manong.darwin.common.model.Job;
 import xin.manong.darwin.common.model.Pager;
+import xin.manong.darwin.common.model.URLRecord;
+import xin.manong.darwin.service.component.RecordDispatcher;
 import xin.manong.darwin.service.iface.JobService;
 import xin.manong.darwin.service.iface.URLService;
 import xin.manong.darwin.service.request.JobSearchRequest;
 import xin.manong.darwin.service.request.URLSearchRequest;
+import xin.manong.darwin.web.component.PermissionSupport;
 
 import java.util.ArrayList;
 
@@ -34,6 +37,10 @@ public class JobController {
     private JobService jobService;
     @Resource
     private URLService urlService;
+    @Resource
+    private RecordDispatcher dispatcher;
+    @Resource
+    private PermissionSupport permissionSupport;
 
     /**
      * 根据ID获取任务
@@ -112,5 +119,35 @@ public class JobController {
     @GetMapping("search")
     public Pager<Job> search(@BeanParam JobSearchRequest request) {
         return jobService.search(request);
+    }
+
+    /**
+     * 分发任务抓取数据
+     *
+     * @param id 任务ID
+     * @return 成功返回true，否则返回false
+     */
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("dispatch")
+    @GetMapping("dispatch")
+    public boolean dispatch(@QueryParam("id") String id) {
+        if (StringUtils.isEmpty(id)) throw new BadRequestException("任务ID为空");
+        Job job = jobService.get(id);
+        if (job == null) throw new NotFoundException("任务不存在");
+        if (job.status == null || !job.status) throw new IllegalStateException("任务未完成");
+        permissionSupport.checkAppPermission(job.appId);
+        URLSearchRequest searchRequest = new URLSearchRequest();
+        searchRequest.jobId = id;
+        searchRequest.statusList = new ArrayList<>();
+        searchRequest.statusList.add(Constants.URL_STATUS_FETCH_SUCCESS);
+        searchRequest.pageNum = 1;
+        searchRequest.pageSize = 100;
+        while (true) {
+            Pager<URLRecord> pager = urlService.search(searchRequest);
+            if (pager.records == null || pager.records.size() < searchRequest.pageSize) break;
+            pager.records.forEach(record -> dispatcher.push(record));
+        }
+        return true;
     }
 }

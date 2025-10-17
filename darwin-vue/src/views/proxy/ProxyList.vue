@@ -3,8 +3,8 @@ import { IconClock, IconCircleDashedCheck, IconEdit, IconPlus, IconTrash } from 
 import { reactive, ref, watchEffect } from 'vue'
 import zhCn from 'element-plus/dist/locale/zh-cn.mjs'
 import {
-  ElBreadcrumb, ElBreadcrumbItem, ElButton, ElConfigProvider,
-  ElPagination, ElRow, ElTable, ElTableColumn
+  ElBreadcrumb, ElBreadcrumbItem, ElButton, ElCol, ElConfigProvider, ElForm, ElFormItem,
+  ElPagination, ElRadioButton, ElRadioGroup, ElRow, ElTable, ElTableColumn
 } from 'element-plus'
 import { useUserStore } from '@/store'
 import { formatDate } from '@/common/Time'
@@ -34,12 +34,15 @@ const checking = ref()
 const total = ref(0)
 const query = reactive(newSearchQuery({
   category: 1,
+  expired: 'all',
   sort_field: 'update_time',
   sort_order: 'descending'
 }))
 
 const search = async () => {
   const request = newSearchRequest(query)
+  if (query.category) request.category = query.category
+  if (query.expired !== 'all') request.expired = query.expired
   const pager = await asyncSearchProxy(request)
   total.value = pager.total
   proxies.value = pager.records
@@ -86,6 +89,27 @@ watchEffect(() => search())
         <el-breadcrumb-item>代理管理</el-breadcrumb-item>
       </el-breadcrumb>
     </template>
+    <el-form :model="query" ref="form" label-width="80px" class="mb-4">
+      <el-row :gutter="20">
+        <el-col :span="10">
+          <el-form-item label="代理类型" prop="category">
+            <el-radio-group v-model="query.category">
+              <el-radio-button :value="1">长效代理</el-radio-button>
+              <el-radio-button :value="2">短效代理</el-radio-button>
+            </el-radio-group>
+          </el-form-item>
+        </el-col>
+        <el-col :span="10" v-if="query.category === 2">
+          <el-form-item label="是否过期" prop="expired">
+            <el-radio-group v-model="query.expired">
+              <el-radio-button value="all">全部</el-radio-button>
+              <el-radio-button :value="false">有效</el-radio-button>
+              <el-radio-button :value="true">过期</el-radio-button>
+            </el-radio-group>
+          </el-form-item>
+        </el-col>
+      </el-row>
+    </el-form>
     <table-head title="代理列表">
       <template #right>
         <el-button type="primary" @click="openAdd = true" :disabled="!userStore.superAdmin">
@@ -111,10 +135,20 @@ watchEffect(() => search())
           </div>
         </template>
       </el-table-column>
-      <el-table-column width="320">
+      <el-table-column v-if="query.category === 2" label="过期时间" prop="expired_time"
+                       sortable="custom" show-overflow-tooltip>
+        <template #default="scope">
+          <div class="d-flex align-items-center">
+            <IconClock size="16" class="mr-1" />
+            <span>{{ formatDate(scope.row['expired_time']) }}</span>
+          </div>
+        </template>
+      </el-table-column>
+      <el-table-column :width="query.category === 1 ? 320 : 220">
         <template #header>操作</template>
         <template #default="scope">
-          <el-button type="primary" @click="edit(scope.row.id)" :disabled="!userStore.superAdmin">
+          <el-button v-if="query.category === 1" type="primary"
+                     @click="edit(scope.row.id)" :disabled="!userStore.superAdmin">
             <IconEdit size="20" class="mr-1" />
             <span>编辑</span>
           </el-button>

@@ -1,7 +1,7 @@
 <script setup>
 import {
   IconApps, IconClockHour9, IconCpu, IconDashboard,
-  IconDatabase, IconDeviceHeartMonitor, IconNetwork,
+  IconDatabase, IconDeviceHeartMonitor, IconKey, IconNetwork,
   IconSettings, IconSpider, IconStackFront
 } from '@tabler/icons-vue'
 import { ref, watch } from 'vue'
@@ -86,7 +86,7 @@ watch(() => route.fullPath, () => activeLink.value = route.fullPath)
           <span>代理管理</span>
         </a>
       </li>
-      <li class="sidebar-menu-cap">后台进程</li>
+      <li class="sidebar-menu-cap">平台管理</li>
       <li class="sidebar-menu-item">
         <a class="sidebar-menu-link" :class="{ active: activeLink === '/runner/getList?type=1'}"
            @click="handleClick('/runner/getList', { type: 1 })">
@@ -99,6 +99,13 @@ watch(() => route.fullPath, () => activeLink.value = route.fullPath)
            @click="handleClick('/runner/getList', { type: 2 })">
           <IconDeviceHeartMonitor size="22" />
           <span>监控进程</span>
+        </a>
+      </li>
+      <li class="sidebar-menu-item">
+        <a class="sidebar-menu-link" :class="{ active: activeLink === '/app_secret/search'}"
+           @click="handleClick('/app_secret/search')">
+          <IconKey size="22" />
+          <span>应用秘钥</span>
         </a>
       </li>
     </ul>

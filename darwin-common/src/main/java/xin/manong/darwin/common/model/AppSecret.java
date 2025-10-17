@@ -44,6 +44,14 @@ public class AppSecret extends BaseModel {
     public Integer appId;
 
     /**
+     * 应用名
+     */
+    @TableField(exist = false)
+    @JSONField(name = "app_name")
+    @JsonProperty("app_name")
+    public String appName;
+
+    /**
      * 名称
      */
     @TableField(value = "name")

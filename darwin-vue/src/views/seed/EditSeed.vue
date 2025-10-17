@@ -67,7 +67,7 @@ watchEffect(() => resetSeedForm())
 </script>
 
 <template>
-  <el-dialog v-model="open" align-center show-close>
+  <el-dialog v-model="open" align-center show-close width="60%">
     <el-form ref="form" :model="seed" :rules="seedFormRules" label-width="100px" label-position="top">
       <el-scrollbar max-height="800px">
         <darwin-card>

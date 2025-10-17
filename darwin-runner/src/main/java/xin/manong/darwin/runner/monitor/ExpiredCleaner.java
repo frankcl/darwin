@@ -4,6 +4,7 @@ import jakarta.annotation.Resource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import xin.manong.darwin.service.iface.JobService;
+import xin.manong.darwin.service.iface.ProxyService;
 import xin.manong.darwin.service.iface.TrendService;
 import xin.manong.darwin.service.iface.URLService;
 import xin.manong.weapon.base.executor.ExecuteRunner;
@@ -27,6 +28,8 @@ public class ExpiredCleaner extends ExecuteRunner {
     private URLService urlService;
     @Resource
     private TrendService trendService;
+    @Resource
+    private ProxyService proxyService;
 
     public ExpiredCleaner(long maxExpiredIntervalMs, long executeTimeIntervalMs) {
         super(ID, executeTimeIntervalMs);
@@ -44,5 +47,7 @@ public class ExpiredCleaner extends ExecuteRunner {
         logger.info("Delete expired job count:{}", expiredJobs);
         int expiredTrends = trendService.delete(System.currentTimeMillis() - 86400000L * 7);
         logger.info("Delete expired trend count:{}", expiredTrends);
+        int expiredProxies = proxyService.deleteExpired();
+        logger.info("Delete expired proxies count:{}", expiredProxies);
     }
 }

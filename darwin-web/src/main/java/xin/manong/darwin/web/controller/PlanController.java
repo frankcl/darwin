@@ -199,12 +199,24 @@ public class PlanController {
         return true;
     }
 
-    public Boolean execute(@RequestBody PlanExecuteRequest request) {
+    /**
+     * 提交计划执行请求
+     *
+     * @param request 计划执行请求
+     * @return 成功返回true，否则返回false
+     */
+    @POST
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("submit")
+    @PostMapping("submit")
+    @EnableWebLogAspect
+    public Boolean submit(@RequestBody PlanExecuteRequest request) {
         if (request == null) throw new BadRequestException("执行计划请求为空");
         request.check();
         Plan plan = planService.get(request.planId);
         if (plan == null) throw new NotFoundException("计划不存在");
-        permissionSupport.checkAppPermission(plan.appId);
+        permissionSupport.checkAuthPermission(plan.appId, request);
         if (plan.status == null || !plan.status) throw new IllegalStateException("计划处于关闭状态");
         List<SeedRecord> seedRecords = request.seeds.stream().map(Converter::convert).toList();
         checkBeforeOpenExecute(plan.planId, seedRecords);

@@ -1,8 +1,8 @@
 package xin.manong.darwin.service.iface;
 
 import xin.manong.darwin.common.model.AppSecret;
-
-import java.util.List;
+import xin.manong.darwin.common.model.Pager;
+import xin.manong.darwin.service.request.AppSecretSearchRequest;
 
 /**
  * 应用秘钥服务接口
@@ -37,6 +37,15 @@ public interface AppSecretService {
     boolean delete(Integer id);
 
     /**
+     * 是否存在应用秘钥
+     *
+     * @param accessKey Access key
+     * @param secretKey Secret key
+     * @return 存在返回true，否则返回false
+     */
+    boolean exists(String accessKey, String secretKey);
+
+    /**
      * 生成随机AccessKey
      *
      * @return 随机AccessKey
@@ -59,10 +68,19 @@ public interface AppSecretService {
     AppSecret get(Integer id);
 
     /**
-     * 获取应用相关秘钥列表
+     * 根据AccessKey和SecretKey获取秘钥
      *
-     * @param appId 应用ID
-     * @return 秘钥列表
+     * @param accessKey AccessKey
+     * @param secretKey SecretKey
+     * @return 应用秘钥
      */
-    List<AppSecret> getAppSecrets(Integer appId);
+    AppSecret get(String accessKey, String secretKey);
+
+    /**
+     * 搜索应用秘钥
+     *
+     * @param searchRequest 搜索请求
+     * @return 秘钥分页列表
+     */
+    Pager<AppSecret> search(AppSecretSearchRequest searchRequest);
 }

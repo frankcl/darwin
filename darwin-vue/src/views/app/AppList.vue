@@ -1,5 +1,7 @@
 <script setup>
-import { IconClock, IconEdit, IconPlus, IconTrash, IconUsersGroup } from '@tabler/icons-vue'
+import {
+  IconClock, IconCopy, IconCopyCheck, IconEdit,
+  IconPlus, IconTrash, IconUsersGroup } from '@tabler/icons-vue'
 import { reactive, ref, watchEffect } from 'vue'
 import zhCn from 'element-plus/dist/locale/zh-cn.mjs'
 import {
@@ -9,6 +11,7 @@ import {
 } from 'element-plus'
 import { useUserStore } from '@/store'
 import { formatDate } from '@/common/Time'
+import { writeClipboard } from '@/common/Clipboard'
 import {
   asyncRemoveApp,
   asyncResetUserApps,
@@ -35,12 +38,19 @@ const loading = ref(true)
 const openAddDialog = ref(false)
 const openEditDialog = ref(false)
 const openAppUserDialog = ref(false)
+const copiedID = ref()
 const app = reactive({})
 const query = reactive(newSearchQuery({ app_ids: 'all' }))
 
 const refresh = async () => {
   await asyncResetUserApps()
   await search()
+}
+
+const copy = async app => {
+  await writeClipboard(app.id)
+  copiedID.value = `ID#${app.id}`
+  showMessage('复制应用ID成功', SUCCESS)
 }
 
 const search = async () => {
@@ -110,10 +120,16 @@ watchEffect(() => search())
       </template>
     </table-head>
     <el-table ref="appTable" :data="apps" max-height="600" class="w-100p mb-4" v-loading="loading"
-              stripe @sort-change="event => changeSearchQuerySort(event.field, event.order, query)">
+              stripe @sort-change="event => changeSearchQuerySort(event.prop, event.order, query)">
       <template #empty>没有应用数据</template>
       <el-table-column prop="name" label="应用名" show-overflow-tooltip>
-        <template #default="scope">{{ scope.row.name }}</template>
+        <template #default="scope">
+          <span class="d-flex align-items-center">
+            <IconCopyCheck v-if="copiedID === `ID#${scope.row.id}`" class="flex-shrink-0"  size="16" />
+            <IconCopy v-else class="flex-shrink-0" @click="copy(scope.row)" size="16" />
+            <span class="ml-2">{{ scope.row.name }}</span>
+          </span>
+        </template>
       </el-table-column>
       <el-table-column prop="creator" label="创建人" show-overflow-tooltip>
         <template #default="scope">{{ scope.row.creator }}</template>

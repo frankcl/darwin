@@ -46,6 +46,39 @@ public class Converter {
     }
 
     /**
+     * 转换应用秘钥添加请求为应用秘钥
+     *
+     * @param request 应用秘钥添加请求
+     * @return 应用秘钥
+     */
+    public static AppSecret convert(AppSecretRequest request) {
+        if (request == null) return null;
+        AppSecret appSecret = new AppSecret();
+        appSecret.appId = request.appId;
+        appSecret.name = request.name;
+        appSecret.accessKey = request.accessKey;
+        appSecret.secretKey = request.secretKey;
+        return appSecret;
+    }
+
+    /**
+     * 转换应用秘钥更新请求为应用秘钥
+     *
+     * @param request 应用秘钥更新请求
+     * @return 应用秘钥
+     */
+    public static AppSecret convert(AppSecretUpdateRequest request) {
+        if (request == null) return null;
+        AppSecret appSecret = new AppSecret();
+        appSecret.id = request.id;
+        appSecret.appId = request.appId;
+        appSecret.name = request.name;
+        appSecret.accessKey = request.accessKey;
+        appSecret.secretKey = request.secretKey;
+        return appSecret;
+    }
+
+    /**
      * 转换应用用户关系请求为应用用户关系对象
      *
      * @param request 应用用户关系请求

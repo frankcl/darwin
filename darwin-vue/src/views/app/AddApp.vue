@@ -39,7 +39,7 @@ const add = async () => {
           <el-input type="textarea" :rows="5" v-model="app.comment" />
         </el-form-item>
         <el-form-item>
-          <el-button type="primary" @click="add(appFormRef)" :disabled="!userStore.injected">
+          <el-button type="primary" @click="add" :disabled="!userStore.injected">
             <IconPlus size="20" class="mr-1" />
             <span>新增</span>
           </el-button>

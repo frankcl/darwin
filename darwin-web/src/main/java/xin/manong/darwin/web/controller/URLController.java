@@ -19,6 +19,7 @@ import xin.manong.darwin.service.iface.URLService;
 import xin.manong.darwin.service.lineage.Node;
 import xin.manong.darwin.service.request.URLSearchRequest;
 import xin.manong.darwin.service.util.HTMLMender;
+import xin.manong.darwin.web.component.PermissionSupport;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -48,6 +49,27 @@ public class URLController {
     private OSSService ossService;
     @Resource
     private URLService urlService;
+    @Resource
+    private PermissionSupport permissionSupport;
+
+    /**
+     * 分发数据
+     *
+     * @param key 数据key
+     * @return 成功返回true，否则返回false
+     */
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("dispatch")
+    @GetMapping("dispatch")
+    public boolean dispatch(@QueryParam("key") String key) {
+        if (StringUtils.isEmpty(key)) throw new BadRequestException("数据key缺失");
+        URLRecord record = urlService.get(key);
+        if (record == null) throw new NotFoundException("数据不存在");
+        if (record.status != Constants.URL_STATUS_FETCH_SUCCESS) throw new IllegalStateException("数据抓取失败");
+        permissionSupport.checkAppPermission(record.appId);
+        return urlService.dispatch(record) != null;
+    }
 
     /**
      * 根据key获取URL记录

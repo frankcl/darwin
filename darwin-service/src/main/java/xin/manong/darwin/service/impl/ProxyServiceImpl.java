@@ -85,7 +85,7 @@ public class ProxyServiceImpl implements ProxyService {
     @Override
     public int deleteExpired() {
         LambdaQueryWrapper<Proxy> query = new LambdaQueryWrapper<>();
-        query.lt(Proxy::getExpiredTime, System.currentTimeMillis());
+        query.isNotNull(Proxy::getExpiredTime).lt(Proxy::getExpiredTime, System.currentTimeMillis());
         return proxyMapper.delete(query);
     }
 
