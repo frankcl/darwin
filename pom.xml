@@ -34,7 +34,7 @@
         <snappy.version>1.1.10.7</snappy.version>
         <graalvm.version>24.2.1</graalvm.version>
         <okhttp3.version>4.12.0</okhttp3.version>
-        <poi-ooxml.version>5.3.0</poi-ooxml.version>
+        <poi-ooxml.version>5.4.1</poi-ooxml.version>
         <jsoup.version>1.15.3</jsoup.version>
         <mysql-connector-j.version>9.1.0</mysql-connector-j.version>
         <guava.version>33.3.1-jre</guava.version>
