@@ -4,7 +4,6 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.serializer.SerializerFeature;
 import jakarta.annotation.Resource;
 import jakarta.ws.rs.NotFoundException;
-import org.apache.kafka.clients.producer.RecordMetadata;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import xin.manong.darwin.common.Constants;
@@ -13,13 +12,15 @@ import xin.manong.darwin.common.model.RangeValue;
 import xin.manong.darwin.common.model.URLGroupCount;
 import xin.manong.darwin.common.model.URLRecord;
 import xin.manong.darwin.service.component.ExcelDocumentExporter;
+import xin.manong.darwin.service.component.Message;
+import xin.manong.darwin.service.component.MessagePusher;
+import xin.manong.darwin.service.component.PushResult;
 import xin.manong.darwin.service.config.ServiceConfig;
 import xin.manong.darwin.service.convert.Converter;
 import xin.manong.darwin.service.lineage.Node;
 import xin.manong.darwin.service.request.OrderByRequest;
 import xin.manong.darwin.service.request.URLSearchRequest;
 import xin.manong.darwin.service.util.ModelValidator;
-import xin.manong.weapon.base.kafka.KafkaProducer;
 
 import java.io.IOException;
 import java.io.Serial;
@@ -39,7 +40,7 @@ public abstract class URLService {
     @Resource
     private ServiceConfig config;
     @Resource
-    private KafkaProducer producer;
+    private MessagePusher pusher;
 
     protected static List<String> EXPORT_COLUMNS = new ArrayList<>() {
         @Serial
@@ -486,12 +487,13 @@ public abstract class URLService {
      * @param record URL数据
      * @return 分发结果
      */
-    public RecordMetadata dispatch(URLRecord record) {
+    public PushResult dispatch(URLRecord record) {
         if (record == null) return null;
         String recordString = JSON.toJSONString(record, SerializerFeature.DisableCircularReferenceDetect);
-        RecordMetadata metadata = producer.send(record.key,
-                recordString.getBytes(StandardCharsets.UTF_8), config.mq.topicURL);
-        if (metadata == null) logger.error("Push record message failed for key:{}", record.key);
-        return metadata;
+        Message message = new Message(config.mq.topicURL, record.appId == null ? null : String.valueOf(record.appId),
+                record.key, recordString.getBytes(StandardCharsets.UTF_8));
+        PushResult pushResult = pusher.pushMessage(message);
+        if (pushResult == null) logger.error("Push record message failed for key:{}", record.key);
+        return pushResult;
     }
 }

@@ -52,7 +52,7 @@
         <druid.version>1.2.23</druid.version>
         <redisson.version>3.38.1</redisson.version>
         <oss.version>3.18.1</oss.version>
-        <ons-client.version>1.8.0.Final</ons-client.version>
+        <ons-client.version>2.0.8.Final</ons-client.version>
         <tablestore.version>5.13.10</tablestore.version>
         <weapon.version>0.2.0</weapon.version>
         <hylian.version>0.0.1</hylian.version>
