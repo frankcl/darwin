@@ -1,13 +1,14 @@
 package xin.manong.darwin.service.event;
 
 import jakarta.annotation.Resource;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
-import org.apache.kafka.clients.producer.RecordMetadata;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import xin.manong.darwin.common.Constants;
 import xin.manong.darwin.common.model.URLRecord;
+import xin.manong.darwin.service.component.PushResult;
 import xin.manong.darwin.service.config.ServiceConfig;
 import xin.manong.darwin.service.iface.URLService;
 import xin.manong.weapon.base.common.Context;
@@ -50,11 +51,12 @@ public class URLEventListener implements EventListener<String> {
      */
     private void pushMessage(URLRecord record, Context context) {
         if (record == null || !record.allowDispatch || record.status != Constants.URL_STATUS_FETCH_SUCCESS) return;
-        RecordMetadata metadata = urlService.dispatch(record);
-        if (metadata == null) {
+        PushResult pushResult = urlService.dispatch(record);
+        if (pushResult == null) {
             context.put(Constants.DARWIN_DEBUG_MESSAGE, "推送消息失败");
             return;
         }
-        context.put(Constants.DARWIN_MESSAGE_KEY, record.key);
+        if (StringUtils.isNotEmpty(pushResult.messageKey)) context.put(Constants.DARWIN_MESSAGE_KEY, pushResult.messageKey);
+        if (StringUtils.isNotEmpty(pushResult.messageId)) context.put(Constants.DARWIN_MESSAGE_ID, pushResult.messageId);
     }
 }

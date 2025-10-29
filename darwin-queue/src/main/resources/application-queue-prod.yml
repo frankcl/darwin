@@ -5,5 +5,5 @@ weapon:
         mode: SINGLE
         connection-pool-size: 200
         password: ${weapon/redis/password}
-        address: 172.29.49.95:6379
+        address: 172.25.130.27:6379
         db: 0

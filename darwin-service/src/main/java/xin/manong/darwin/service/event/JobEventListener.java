@@ -3,18 +3,20 @@ package xin.manong.darwin.service.event;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.serializer.SerializerFeature;
 import jakarta.annotation.Resource;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
-import org.apache.kafka.clients.producer.RecordMetadata;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import xin.manong.darwin.common.Constants;
 import xin.manong.darwin.common.model.Job;
 import xin.manong.darwin.log.core.AspectLogSupport;
+import xin.manong.darwin.service.component.Message;
+import xin.manong.darwin.service.component.MessagePusher;
+import xin.manong.darwin.service.component.PushResult;
 import xin.manong.darwin.service.config.ServiceConfig;
 import xin.manong.darwin.service.iface.JobService;
 import xin.manong.weapon.base.common.Context;
-import xin.manong.weapon.base.kafka.KafkaProducer;
 
 import java.nio.charset.StandardCharsets;
 
@@ -34,7 +36,7 @@ public class JobEventListener implements EventListener<String> {
     @Resource
     private JobService jobService;
     @Resource
-    private KafkaProducer producer;
+    private MessagePusher pusher;
     @Resource
     private AspectLogSupport aspectLogSupport;
 
@@ -66,13 +68,15 @@ public class JobEventListener implements EventListener<String> {
     private void pushMessage(Job job, Context context) {
         if (!serviceConfig.dispatch) return;
         String jobString = JSON.toJSONString(job, SerializerFeature.DisableCircularReferenceDetect);
-        RecordMetadata metadata = producer.send(job.jobId,
-                jobString.getBytes(StandardCharsets.UTF_8), serviceConfig.mq.topicJob);
-        if (metadata == null) {
+        Message message = new Message(serviceConfig.mq.topicJob, job.appId == null ? null : String.valueOf(job.appId),
+                job.jobId, jobString.getBytes(StandardCharsets.UTF_8));
+        PushResult pushResult = pusher.pushMessage(message);
+        if (pushResult == null) {
             context.put(Constants.DARWIN_DEBUG_MESSAGE, "推送消息失败");
             logger.warn("Push completed job message failed for id:{}", job.jobId);
             return;
         }
-        context.put(Constants.DARWIN_MESSAGE_KEY, job.jobId);
+        if (StringUtils.isNotEmpty(pushResult.messageKey)) context.put(Constants.DARWIN_MESSAGE_KEY, pushResult.messageKey);
+        if (StringUtils.isNotEmpty(pushResult.messageId)) context.put(Constants.DARWIN_MESSAGE_ID, pushResult.messageId);
     }
 }

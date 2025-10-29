@@ -4,7 +4,6 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.serializer.SerializerFeature;
 import jakarta.annotation.Resource;
 import org.apache.commons.lang3.exception.ExceptionUtils;
-import org.apache.kafka.clients.producer.RecordMetadata;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import xin.manong.darwin.common.Constants;
@@ -12,13 +11,15 @@ import xin.manong.darwin.common.model.URLRecord;
 import xin.manong.darwin.log.core.AspectLogSupport;
 import xin.manong.darwin.queue.ConcurrencyControl;
 import xin.manong.darwin.queue.ConcurrencyQueue;
+import xin.manong.darwin.service.component.Message;
+import xin.manong.darwin.service.component.MessagePusher;
+import xin.manong.darwin.service.component.PushResult;
 import xin.manong.darwin.service.event.URLEventListener;
 import xin.manong.darwin.service.iface.URLService;
 import xin.manong.darwin.service.event.JobEventListener;
 import xin.manong.weapon.base.common.Context;
 import xin.manong.weapon.base.event.ErrorEvent;
 import xin.manong.weapon.base.executor.ExecuteRunner;
-import xin.manong.weapon.base.kafka.KafkaProducer;
 
 import java.nio.charset.StandardCharsets;
 import java.util.List;
@@ -49,7 +50,7 @@ public class Allocator extends ExecuteRunner {
     @Resource
     private JobEventListener jobEventListener;
     @Resource
-    private KafkaProducer producer;
+    private MessagePusher pusher;
     @Resource
     private AspectLogSupport aspectLogSupport;
 
@@ -178,8 +179,9 @@ public class Allocator extends ExecuteRunner {
     private boolean pushMessage(URLRecord record) {
         byte[] bytes = JSON.toJSONString(record, SerializerFeature.DisableCircularReferenceDetect).
                 getBytes(StandardCharsets.UTF_8);
-        RecordMetadata metadata = producer.send(record.key, bytes, topic);
-        if (metadata != null) return true;
+        Message message = new Message(topic, record.key, bytes);
+        PushResult pushResult = pusher.pushMessage(message);
+        if (pushResult != null) return true;
         logger.warn("Push fetching message failed for url:{}", record.url);
         return false;
     }
