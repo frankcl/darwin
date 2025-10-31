@@ -4,7 +4,6 @@ import jakarta.annotation.Resource;
 import org.apache.kafka.clients.producer.RecordMetadata;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.stereotype.Component;
 import xin.manong.weapon.base.kafka.KafkaProducer;
 
 /**
@@ -13,7 +12,6 @@ import xin.manong.weapon.base.kafka.KafkaProducer;
  * @author frankcl
  * @date 2025-10-29 10:01:23
  */
-@Component
 public class KafkaPusher implements MessagePusher {
 
     private static final Logger logger = LoggerFactory.getLogger(KafkaPusher.class);

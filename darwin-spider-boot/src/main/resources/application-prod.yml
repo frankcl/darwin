@@ -1,5 +1,13 @@
 weapon:
   common:
+    rocketmq:
+      consumer:
+        endpoints: rmq-cn-1wy4i653l01-vpc.cn-hangzhou.rmq.aliyuncs.com:8080
+        consume-id: GID-PROD-DARWIN-FETCH-URL
+        listener: URLReceiver
+        consume-thread-num: 10
+        subscribes:
+          - topic: PROD_DARWIN_FETCH_URL
     kafka:
       auth:
         security-protocol: SASL_PLAINTEXT
