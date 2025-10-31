@@ -1,4 +1,4 @@
 app:
   spider:
-    oss-directory: darwin/prod/content
+    oss-directory: prod/content
     temp-directory: ./temp/
