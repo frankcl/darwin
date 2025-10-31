@@ -21,7 +21,7 @@ server:
   port: 10001
   insecure-port: 10000
   ssl:
-    key-store: classpath:darwin.lumychip.com.jks
+    key-store: classpath:darwin.manong.xin.jks
     key-store-type: jks
     key-password: 8rpg9ojb
   jetty:
