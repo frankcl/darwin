@@ -5,11 +5,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.PropertySource;
 import xin.manong.hylian.client.annotation.EnableCORSFilter;
 import xin.manong.hylian.client.annotation.EnableHylianGuard;
-import xin.manong.weapon.spring.boot.annotation.EnableEtcdClient;
-import xin.manong.weapon.spring.boot.annotation.EnableJettySupportSSL;
-import xin.manong.weapon.spring.boot.annotation.EnableKafkaProducer;
-import xin.manong.weapon.spring.boot.annotation.EnableOSSClient;
-import xin.manong.weapon.spring.boot.annotation.EnableRedisClient;
+import xin.manong.weapon.spring.boot.annotation.*;
 import xin.manong.weapon.spring.boot.aspect.EnableWebLogAspect;
 import xin.manong.weapon.spring.boot.etcd.EnableWatchValueBeanProcessor;
 import xin.manong.weapon.spring.boot.io.EtcdPropertySourceFactory;
@@ -24,7 +20,7 @@ import xin.manong.weapon.spring.boot.io.EtcdPropertySourceFactory;
 @EnableEtcdClient
 @EnableRedisClient
 @EnableJettySupportSSL
-@EnableKafkaProducer
+@EnableRocketMQProducer
 @EnableOSSClient
 @EnableWatchValueBeanProcessor
 @EnableWebLogAspect

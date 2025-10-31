@@ -19,6 +19,11 @@ weapon:
         password: xmjjyhy28p
         endpoints:
           - http://172.25.130.27:2379
+    rocketmq:
+      producer:
+        endpoints: rmq-cn-1wy4i653l01-vpc.cn-hangzhou.rmq.aliyuncs.com:8080
+        retry-cnt: 3
+        send-msg-timeout: 3000
     kafka:
       auth:
         security-protocol: SASL_PLAINTEXT
@@ -39,8 +44,8 @@ weapon:
 app:
   service:
     mq:
-      topicJob: PROD-DARWIN-DISPATCH-JOB
-      topicURL: PROD-DARWIN-DISPATCH-RECORD
+      topicJob: PROD_DARWIN_DISPATCH_JOB
+      topicURL: PROD_DARWIN_DISPATCH_RECORD
     oss:
       region: cn-hangzhou
       bucket: lumy

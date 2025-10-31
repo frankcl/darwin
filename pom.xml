@@ -45,6 +45,7 @@
         <groovy.version>3.0.16</groovy.version>
         <quartz.version>2.3.2</quartz.version>
         <jersey.version>3.1.9</jersey.version>
+        <grpc.version>1.66.0</grpc.version>
         <ffmpeg-platform.version>5.0-1.5.7</ffmpeg-platform.version>
         <jackson.version>2.17.2</jackson.version>
         <velocity.version>2.3</velocity.version>
@@ -52,7 +53,8 @@
         <druid.version>1.2.23</druid.version>
         <redisson.version>3.38.1</redisson.version>
         <oss.version>3.18.1</oss.version>
-        <ons-client.version>2.0.8.Final</ons-client.version>
+        <fastjson.version>2.0.35</fastjson.version>
+        <rocketmq-client.version>5.3.3</rocketmq-client.version>
         <tablestore.version>5.13.10</tablestore.version>
         <weapon.version>0.2.0</weapon.version>
         <hylian.version>0.0.1</hylian.version>
@@ -165,6 +167,16 @@
                 <artifactId>jakarta.servlet-api</artifactId>
                 <version>${java-servlet.version}</version>
                 <scope>compile</scope>
+            </dependency>
+            <dependency>
+                <groupId>io.grpc</groupId>
+                <artifactId>grpc-core</artifactId>
+                <version>${grpc.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.grpc</groupId>
+                <artifactId>grpc-api</artifactId>
+                <version>${grpc.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.glassfish.jaxb</groupId>
@@ -357,6 +369,11 @@
             </dependency>
             <dependency>
                 <groupId>com.alibaba</groupId>
+                <artifactId>fastjson</artifactId>
+                <version>${fastjson.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.alibaba</groupId>
                 <artifactId>druid-spring-boot-3-starter</artifactId>
                 <version>${druid.version}</version>
                 <exclusions>
@@ -372,9 +389,15 @@
                 <version>${oss.version}</version>
             </dependency>
             <dependency>
-                <groupId>com.aliyun.openservices</groupId>
-                <artifactId>ons-client</artifactId>
-                <version>${ons-client.version}</version>
+                <groupId>org.apache.rocketmq</groupId>
+                <artifactId>rocketmq-client</artifactId>
+                <version>${rocketmq-client.version}</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>org.apache.tomcat</groupId>
+                        <artifactId>annotations-api</artifactId>
+                    </exclusion>
+                </exclusions>
             </dependency>
             <dependency>
                 <groupId>com.aliyun.openservices</groupId>

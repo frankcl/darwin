@@ -55,10 +55,6 @@
             <version>4.1.110.Final</version>
         </dependency>
         <dependency>
-            <groupId>com.aliyun.openservices</groupId>
-            <artifactId>ons-client</artifactId>
-        </dependency>
-        <dependency>
             <groupId>xin.manong</groupId>
             <artifactId>darwin-spider</artifactId>
             <version>${darwin.version}</version>
