@@ -1,7 +1,7 @@
 spring:
   datasource:
-    url: jdbc:mysql://172.29.49.95:3306/darwin?useUnicode=true&characterEncoding=utf-8
-    username: root
+    url: jdbc:mysql://rm-bp1jzevz9n51nnybryo.mysql.rds.aliyuncs.com:3306/darwin?useUnicode=true&characterEncoding=utf-8
+    username: frankcl
     password: ${weapon/mysql/password}
     druid:
       public-key: ${weapon/mysql/public-key}
@@ -18,7 +18,7 @@ weapon:
         username: root
         password: xmjjyhy28p
         endpoints:
-          - http://172.29.49.95:2379
+          - http://172.25.130.27:2379
     rocketmq:
       producer:
         endpoints: rmq-cn-1wy4i653l01-vpc.cn-hangzhou.rmq.aliyuncs.com:8080
@@ -30,7 +30,7 @@ weapon:
         sasl-mechanism: SCRAM-SHA-256
         sasl-jaas-config: ${weapon/kafka/jaas-config}
       producer:
-        servers: 172.29.49.95:9092
+        servers: 172.25.130.27:9092
         request-timeout-ms: 3000
         retry-cnt: 2
   aliyun:
@@ -48,4 +48,4 @@ app:
       topicURL: PROD_DARWIN_DISPATCH_RECORD
     oss:
       region: cn-hangzhou
-      bucket: darwin-spider
+      bucket: lumy
