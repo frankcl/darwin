@@ -14,7 +14,7 @@ import xin.manong.darwin.service.iface.SeedService;
 import xin.manong.darwin.service.request.SeedSearchRequest;
 import xin.manong.darwin.web.component.PermissionSupport;
 import xin.manong.darwin.web.convert.Converter;
-import xin.manong.darwin.web.request.SeedRequest;
+import xin.manong.darwin.common.request.SeedRequest;
 import xin.manong.darwin.web.request.SeedUpdateRequest;
 import xin.manong.weapon.spring.boot.aspect.EnableWebLogAspect;
 

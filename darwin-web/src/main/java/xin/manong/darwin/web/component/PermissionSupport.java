@@ -8,7 +8,7 @@ import xin.manong.darwin.common.model.AppSecret;
 import xin.manong.darwin.service.iface.AppSecretService;
 import xin.manong.darwin.service.iface.AppUserService;
 import xin.manong.darwin.web.config.WebConfig;
-import xin.manong.darwin.web.request.AuthenticateRequest;
+import xin.manong.darwin.common.request.AuthenticateRequest;
 import xin.manong.hylian.client.component.UserServiceSupport;
 import xin.manong.hylian.client.core.ContextManager;
 import xin.manong.hylian.model.User;

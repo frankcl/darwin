@@ -11,6 +11,7 @@
 
     <modules>
         <module>darwin-common</module>
+        <module>darwin-client</module>
         <module>darwin-log</module>
         <module>darwin-service</module>
         <module>darwin-queue</module>

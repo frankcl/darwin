@@ -1,6 +1,7 @@
 package xin.manong.darwin.web.convert;
 
 import xin.manong.darwin.common.model.*;
+import xin.manong.darwin.common.request.SeedRequest;
 import xin.manong.darwin.web.request.*;
 import xin.manong.hylian.model.User;
 

@@ -1,4 +1,4 @@
-package xin.manong.darwin.web.request;
+package xin.manong.darwin.common.request;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
