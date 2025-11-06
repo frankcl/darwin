@@ -1,4 +1,4 @@
 app:
   runner:
-    topicURL: PROD_DARWIN_FETCH_URL
+    topicURL: PROD-DARWIN-FETCH-URL
     max-expired-interval-ms: 2592000000

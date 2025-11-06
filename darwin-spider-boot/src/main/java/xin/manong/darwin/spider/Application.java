@@ -16,8 +16,8 @@ import xin.manong.weapon.spring.boot.io.EtcdPropertySourceFactory;
  */
 @EnableOSSClient
 @EnableEtcdClient
-@EnableRocketMQConsumer
-@EnableRocketMQProducer
+@EnableKafkaConsumer
+@EnableKafkaProducer
 @EnableRedisClient
 @EnableWatchValueBeanProcessor
 @PropertySource(

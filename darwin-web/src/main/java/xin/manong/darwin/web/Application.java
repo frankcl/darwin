@@ -20,7 +20,7 @@ import xin.manong.weapon.spring.boot.io.EtcdPropertySourceFactory;
 @EnableEtcdClient
 @EnableRedisClient
 @EnableJettySupportSSL
-@EnableRocketMQProducer
+@EnableKafkaProducer
 @EnableOSSClient
 @EnableWatchValueBeanProcessor
 @EnableWebLogAspect

@@ -7,7 +7,7 @@ weapon:
         listener: URLReceiver
         consume-thread-num: 10
         subscribes:
-          - topic: PROD_DARWIN_FETCH_URL
+          - topic: PROD-DARWIN-FETCH-URL
     kafka:
       auth:
         security-protocol: SASL_PLAINTEXT

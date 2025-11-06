@@ -4,7 +4,6 @@ import jakarta.annotation.Resource;
 import org.apache.rocketmq.client.producer.SendResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.stereotype.Component;
 import xin.manong.weapon.base.rocketmq.RocketMQProducer;
 
 /**
@@ -13,7 +12,6 @@ import xin.manong.weapon.base.rocketmq.RocketMQProducer;
  * @author frankcl
  * @date 2025-10-29 10:04:11
  */
-@Component
 public class RocketMQPusher implements MessagePusher {
 
     private static final Logger logger = LoggerFactory.getLogger(RocketMQPusher.class);

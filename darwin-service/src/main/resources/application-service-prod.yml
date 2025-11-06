@@ -44,8 +44,8 @@ weapon:
 app:
   service:
     mq:
-      topicJob: PROD_DARWIN_DISPATCH_JOB
-      topicURL: PROD_DARWIN_DISPATCH_RECORD
+      topicJob: PROD-DARWIN-DISPATCH-JOB
+      topicURL: PROD-DARWIN-DISPATCH-RECORD
     oss:
       region: cn-hangzhou
       bucket: darwin-spider
