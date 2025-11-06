@@ -1,8 +1,12 @@
 package xin.manong.darwin.service.config;
 
 import lombok.Data;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import xin.manong.darwin.service.component.KafkaPusher;
+import xin.manong.darwin.service.component.RocketMQPusher;
 
 /**
  * 服务层配置
@@ -20,4 +24,25 @@ public class ServiceConfig {
     public OTSConfig ots;
     public OSSConfig oss;
 
+    /**
+     * 构建kafka消息推送
+     *
+     * @return kafka消息推送
+     */
+    @Bean
+    @ConditionalOnProperty(name = "app.service.mq.enable", havingValue = "kafka", matchIfMissing = true)
+    public KafkaPusher buildKafkaPusher() {
+        return new KafkaPusher();
+    }
+
+    /**
+     * 构建RocketMQ消息推送
+     *
+     * @return RocketMQ消息推送
+     */
+    @Bean
+    @ConditionalOnProperty(name = "app.service.mq.enable", havingValue = "rocketmq")
+    public RocketMQPusher buildRocketMQPusher() {
+        return new RocketMQPusher();
+    }
 }
