@@ -19,6 +19,7 @@ import xin.manong.darwin.web.request.AppSecretRequest;
 import xin.manong.darwin.web.request.AppSecretUpdateRequest;
 
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
 
 /**
  * 应用秘钥控制器
@@ -40,6 +41,8 @@ public class AppSecretController {
     private AppSecretService appSecretService;
     @Resource
     private PermissionSupport permissionSupport;
+    @Resource
+    private ExecutorService executorService;
 
     /**
      * 根据ID获取应用秘钥
@@ -127,13 +130,15 @@ public class AppSecretController {
         Pager<AppSecret> pager = appSecretService.search(searchRequest);
         if (pager.records != null) {
             CountDownLatch countDownLatch = new CountDownLatch(pager.records.size());
-            pager.records.stream().parallel().forEach(appSecret -> {
-                try {
-                    App app = appService.get(appSecret.appId);
-                    if (app != null) appSecret.appName = app.name;
-                } finally {
-                    countDownLatch.countDown();
-                }
+            pager.records.forEach(appSecret -> {
+                executorService.submit(() -> {
+                    try {
+                        App app = appService.get(appSecret.appId);
+                        if (app != null) appSecret.appName = app.name;
+                    } finally {
+                        countDownLatch.countDown();
+                    }
+                });
             });
             try {
                 countDownLatch.await();
