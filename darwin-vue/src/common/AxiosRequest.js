@@ -60,6 +60,7 @@ const handleAxiosResponse = async response => {
   if (contentType !== 'application/json') return Promise.reject(`不支持content-type:${contentType}`)
   switch (response.data.code) {
     case 200: return response.data.data
+    case 405: return repeatAxiosRequest(response)
     case 401:
       showMessage('请重新登录认证', WARNING)
       useUserStore().$reset()
