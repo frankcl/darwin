@@ -16,7 +16,7 @@ weapon:
     etcd:
       client:
         username: root
-        password: xmjjyhy28p
+        password: zhuomai@2025!
         endpoints:
           - http://172.25.130.27:2379
     rocketmq:

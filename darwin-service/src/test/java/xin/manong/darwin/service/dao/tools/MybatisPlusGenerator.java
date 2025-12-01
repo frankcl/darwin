@@ -28,7 +28,7 @@ public class MybatisPlusGenerator {
     private final static String SCHEMA = "plan";
     private final static String JDBC_URL = "jdbc:mysql://localhost:3306/%s?useUnicode=true&characterEncoding=utf-8";
     private final static String USERNAME = "root";
-    private final static String PASSWORD = "xmjjyhy28p";
+    private final static String PASSWORD = "zhuomai@2025!";
     private final static String PARENT_PACKAGE = "xin.manong.darwin.service.dao";
     private final static String MODEL_PACKAGE = "model";
     private final static String MAPPER_PACKAGE = "mapper";
