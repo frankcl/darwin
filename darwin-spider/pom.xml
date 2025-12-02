@@ -9,6 +9,8 @@
         <version>0.0.1</version>
     </parent>
 
+    <name>darwin-spider</name>
+    <description>data spider core of darwin</description>
     <artifactId>darwin-spider</artifactId>
 
     <dependencies>

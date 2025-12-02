@@ -7,7 +7,6 @@
     <groupId>xin.manong</groupId>
     <artifactId>darwin</artifactId>
     <packaging>pom</packaging>
-    <version>0.0.1</version>
 
     <modules>
         <module>darwin-common</module>
@@ -21,6 +20,33 @@
         <module>darwin-spider-boot</module>
         <module>darwin-web</module>
     </modules>
+
+    <version>0.0.1</version>
+    <name>darwin</name>
+    <description>data crawler</description>
+    <url>https://github.com/frankcl/darwin</url>
+
+    <licenses>
+        <license>
+            <name>The Apache License, Version 2.0</name>
+            <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+        </license>
+    </licenses>
+
+    <developers>
+        <developer>
+            <name>frankcl</name>
+            <email>frank.lichen@gmail.com</email>
+            <organization>frankcl</organization>
+            <organizationUrl>https://github.com/frankcl</organizationUrl>
+        </developer>
+    </developers>
+
+    <scm>
+        <connection>https://github.com/frankcl/darwin.git</connection>
+        <developerConnection>https://github.com/frankcl/darwin.git</developerConnection>
+        <url>https://github.com/frankcl/darwin</url>
+    </scm>
 
     <properties>
         <jdk.version>17</jdk.version>
@@ -111,6 +137,65 @@
                     </delimiters>
                     <useDefaultDelimiters>false</useDefaultDelimiters>
                     <encoding>UTF-8</encoding>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-source-plugin</artifactId>
+                <version>2.2.1</version>
+                <executions>
+                    <execution>
+                        <id>attach-sources</id>
+                        <goals>
+                            <goal>jar-no-fork</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <version>2.9.1</version>
+                <configuration>
+                    <additionalJOptions>
+                        <additionalJOption>-Xdoclint:none</additionalJOption>
+                    </additionalJOptions>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>attach-javadocs</id>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-gpg-plugin</artifactId>
+                <version>1.5</version>
+                <executions>
+                    <execution>
+                        <id>sign-artifacts</id>
+                        <phase>verify</phase>
+                        <goals>
+                            <goal>sign</goal>
+                        </goals>
+                        <configuration>
+                            <keyname>9893D73D</keyname>
+                            <passphrase></passphrase>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.sonatype.central</groupId>
+                <artifactId>central-publishing-maven-plugin</artifactId>
+                <version>0.9.0</version>
+                <extensions>true</extensions>
+                <configuration>
+                    <publishingServerId>central</publishingServerId>
+                    <autoPublish>true</autoPublish>
                 </configuration>
             </plugin>
         </plugins>
@@ -520,4 +605,15 @@
             </dependency>
         </dependencies>
     </dependencyManagement>
+
+    <distributionManagement>
+        <snapshotRepository>
+            <id>central</id>
+            <url>https://s01.oss.sonatype.org/content/repositories/snapshots</url>
+        </snapshotRepository>
+        <repository>
+            <id>central</id>
+            <url>https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+        </repository>
+    </distributionManagement>
 </project>

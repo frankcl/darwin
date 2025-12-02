@@ -9,6 +9,8 @@
         <version>0.0.1</version>
     </parent>
 
+    <name>darwin-web</name>
+    <description>web server of darwin</description>
     <artifactId>darwin-web</artifactId>
 
     <build>

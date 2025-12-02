@@ -9,6 +9,8 @@
         <version>0.0.1</version>
     </parent>
 
+    <name>darwin-parser</name>
+    <description>script parse engine of darwin</description>
     <artifactId>darwin-parser</artifactId>
 
     <dependencies>

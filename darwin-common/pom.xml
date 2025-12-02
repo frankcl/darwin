@@ -9,6 +9,8 @@
         <version>0.0.1</version>
     </parent>
 
+    <name>darwin-common</name>
+    <description>common base library of darwin</description>
     <artifactId>darwin-common</artifactId>
 
     <dependencies>

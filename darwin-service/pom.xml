@@ -9,6 +9,8 @@
         <version>0.0.1</version>
     </parent>
 
+    <name>darwin-service</name>
+    <description>darwin service implementation</description>
     <artifactId>darwin-service</artifactId>
 
     <dependencies>

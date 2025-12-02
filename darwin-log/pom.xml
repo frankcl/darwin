@@ -9,6 +9,8 @@
         <version>0.0.1</version>
     </parent>
 
+    <name>darwin-log</name>
+    <description>global aspect log of darwin</description>
     <artifactId>darwin-log</artifactId>
 
     <dependencies>

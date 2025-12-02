@@ -9,6 +9,8 @@
         <version>0.0.1</version>
     </parent>
 
+    <name>darwin-spider-boot</name>
+    <description>data spider bootstrap for darwin</description>
     <artifactId>darwin-spider-boot</artifactId>
 
     <build>

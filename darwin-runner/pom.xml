@@ -9,6 +9,8 @@
         <version>0.0.1</version>
     </parent>
 
+    <name>darwin-runner</name>
+    <description>backend daemon runner of darwin</description>
     <artifactId>darwin-runner</artifactId>
 
     <dependencies>

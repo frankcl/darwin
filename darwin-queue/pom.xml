@@ -9,6 +9,8 @@
         <version>0.0.1</version>
     </parent>
 
+    <name>darwin-queue</name>
+    <description>data queue of darwin</description>
     <artifactId>darwin-queue</artifactId>
 
     <dependencies>
