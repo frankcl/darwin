@@ -1,4 +1,4 @@
-grant codeBase "file:${user.home}/darwin/web/lib/*" {
+grant codeBase "file:/home/admin/darwin/web/lib/*" {
     permission java.security.AllPermission;
 };
 grant {
