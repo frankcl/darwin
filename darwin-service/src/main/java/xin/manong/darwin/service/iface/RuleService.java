@@ -36,7 +36,7 @@ public abstract class RuleService {
                 .recordStats()
                 .concurrencyLevel(1)
                 .maximumSize(cacheConfig.ruleCacheNum)
-                .expireAfterWrite(cacheConfig.ruleExpiredMinutes, TimeUnit.MINUTES)
+                .expireAfterWrite(cacheConfig.ruleExpiredSeconds, TimeUnit.SECONDS)
                 .removalListener(this::onRemoval);
         ruleCache = builder.build();
     }
