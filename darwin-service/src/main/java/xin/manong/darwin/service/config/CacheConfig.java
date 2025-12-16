@@ -16,12 +16,12 @@ import org.springframework.context.annotation.Configuration;
 public class CacheConfig {
 
     private static final int DEFAULT_RULE_CACHE_NUM = 100;
-    private static final int DEFAULT_RULE_EXPIRED_MINUTES = 5;
+    private static final int DEFAULT_RULE_EXPIRED_SECONDS = 30;
     private static final int DEFAULT_JOB_CACHE_NUM = 100;
     private static final int DEFAULT_JOB_EXPIRED_MINUTES = 5;
 
     public int ruleCacheNum = DEFAULT_RULE_CACHE_NUM;
-    public int ruleExpiredMinutes = DEFAULT_RULE_EXPIRED_MINUTES;
+    public int ruleExpiredSeconds = DEFAULT_RULE_EXPIRED_SECONDS;
     public int jobCacheNum = DEFAULT_JOB_CACHE_NUM;
     public int jobExpiredMinutes = DEFAULT_JOB_EXPIRED_MINUTES;
 }
