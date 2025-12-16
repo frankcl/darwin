@@ -19,6 +19,6 @@ app:
       enable: rocketmq
     cache:
       rule-cache-num: 100
-      rule-expired-minutes: 5
+      rule-expired-seconds: 30
       job-cache-num: 100
       job-expired-minutes: 5
