@@ -5,5 +5,5 @@ weapon:
         mode: SINGLE
         connection-pool-size: 200
         password: ${weapon/redis/password}
-        address: 172.25.130.27:6379
+        address: r-bp1zhcujlmuqz1sr6j.redis.rds.aliyuncs.com:6379
         db: 0
