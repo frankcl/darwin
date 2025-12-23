@@ -135,7 +135,7 @@ public class JobController {
         if (StringUtils.isEmpty(id)) throw new BadRequestException("任务ID为空");
         Job job = jobService.get(id);
         if (job == null) throw new NotFoundException("任务不存在");
-        if (job.status == null || !job.status) throw new IllegalStateException("任务未完成");
+        if (job.status == null || job.status) throw new IllegalStateException("任务未完成");
         permissionSupport.checkAppPermission(job.appId);
         URLSearchRequest searchRequest = new URLSearchRequest();
         searchRequest.jobId = id;
