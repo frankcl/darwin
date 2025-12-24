@@ -61,6 +61,7 @@ public class MediaType {
     public static MediaType APPLICATION_XML = new MediaType("application", "xml");
     public static MediaType APPLICATION_PDF = new MediaType("application", "pdf");
     public static MediaType APPLICATION_JAVASCRIPT = new MediaType("application", "javascript");
+    public static MediaType APPLICATION_X_JAVASCRIPT = new MediaType("application", "x-javascript");
     public static MediaType APPLICATION_XHTML = new MediaType("application", "xhtml+xml");
     public static MediaType APPLICATION_DOC = new MediaType("application", "msword");
     public static MediaType APPLICATION_DOCX = new MediaType("application", "vnd.openxmlformats-officedocument.wordprocessingml.document");

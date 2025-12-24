@@ -60,7 +60,8 @@ public class TextSpider extends Spider {
     public List<MediaType> supportedMediaTypes() {
         return List.of(MediaType.TEXT_HTML, MediaType.TEXT_PLAIN, MediaType.APPLICATION_XHTML,
                 MediaType.APPLICATION_JSON, MediaType.TEXT_XML, MediaType.TEXT_CSS, MediaType.TEXT_CSV,
-                MediaType.TEXT_JAVASCRIPT, MediaType.APPLICATION_JAVASCRIPT, MediaType.APPLICATION_XML);
+                MediaType.TEXT_JAVASCRIPT, MediaType.APPLICATION_JAVASCRIPT, MediaType.APPLICATION_X_JAVASCRIPT,
+                MediaType.APPLICATION_XML);
     }
 
     /**
