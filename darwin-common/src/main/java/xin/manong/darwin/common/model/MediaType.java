@@ -189,7 +189,7 @@ public class MediaType {
                 alias = "CSS";
                 suffix = "css";
             }
-            case "javascript" -> {
+            case "x-javascript", "javascript" -> {
                 alias = "JAVASCRIPT";
                 suffix = "js";
             }
