@@ -10,7 +10,6 @@ import xin.manong.darwin.common.Constants;
 import xin.manong.darwin.common.model.HTTPRequest;
 import xin.manong.darwin.common.model.PostMediaType;
 
-import java.io.Serializable;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.HashMap;
@@ -24,7 +23,7 @@ import java.util.Map;
  */
 @XmlAccessorType(XmlAccessType.FIELD)
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class SeedRequest implements Serializable {
+public class SeedRequest extends AuthenticateRequest {
 
     /**
      * 超时时间（毫秒）

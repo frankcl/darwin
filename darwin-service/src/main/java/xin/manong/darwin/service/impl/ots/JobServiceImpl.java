@@ -7,16 +7,16 @@ import jakarta.ws.rs.BadRequestException;
 import jakarta.ws.rs.InternalServerErrorException;
 import jakarta.ws.rs.NotFoundException;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import xin.manong.darwin.common.model.Job;
 import xin.manong.darwin.common.model.Pager;
-import xin.manong.darwin.common.model.URLRecord;
 import xin.manong.darwin.service.config.CacheConfig;
 import xin.manong.darwin.service.config.ServiceConfig;
 import xin.manong.darwin.service.convert.Converter;
 import xin.manong.darwin.service.iface.JobService;
 import xin.manong.darwin.service.request.JobSearchRequest;
-import xin.manong.darwin.service.request.URLSearchRequest;
 import xin.manong.weapon.aliyun.ots.*;
 import xin.manong.weapon.base.record.KVRecord;
 
@@ -32,6 +32,8 @@ import java.util.Map;
  * @date 2023-03-21 20:23:03
  */
 public class JobServiceImpl extends JobService {
+
+    private static final Logger logger = LoggerFactory.getLogger(JobServiceImpl.class);
 
     private static final String KEY_JOB_ID = "job_id";
     private static final String KEY_PLAN_ID = "plan_id";
@@ -102,13 +104,15 @@ public class JobServiceImpl extends JobService {
         keyMap.put(KEY_JOB_ID, jobId);
         KVRecord kvRecord = otsClient.get(serviceConfig.ots.jobTable, keyMap);
         if (kvRecord == null) throw new NotFoundException("任务不存在");
-        URLSearchRequest searchRequest = new URLSearchRequest();
-        searchRequest.jobId = jobId;
-        Pager<URLRecord> pager = urlService.search(searchRequest);
-        if (pager.total > 0) throw new IllegalStateException("任务URL记录不为空");
-        OTSStatus status = otsClient.delete(serviceConfig.ots.jobTable, keyMap, null);
-        if (status == OTSStatus.SUCCESS) jobCache.invalidate(jobId);
-        return status == OTSStatus.SUCCESS;
+        Boolean status = kvRecord.get(KEY_STATUS, Boolean.class);
+        if (status != null && status) throw new IllegalStateException("任务处于运行状态");
+        if (!urlService.deleteByJob(jobId)) {
+            logger.error("Delete records failed for job:{}", jobId);
+            return false;
+        }
+        OTSStatus otsStatus = otsClient.delete(serviceConfig.ots.jobTable, keyMap, null);
+        if (otsStatus == OTSStatus.SUCCESS) jobCache.invalidate(jobId);
+        return otsStatus == OTSStatus.SUCCESS;
     }
 
     @Override

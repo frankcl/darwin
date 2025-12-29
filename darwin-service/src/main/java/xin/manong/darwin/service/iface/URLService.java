@@ -119,6 +119,14 @@ public abstract class URLService {
     public abstract boolean delete(String key);
 
     /**
+     * 删除任务相关数据
+     *
+     * @param jobId 任务ID
+     * @return 删除成功返回true，否则返回false
+     */
+    public abstract boolean deleteByJob(String jobId);
+
+    /**
      * 删除过期数据：创建时间小于expiredTime
      *
      * @param expiredTime 过期时间

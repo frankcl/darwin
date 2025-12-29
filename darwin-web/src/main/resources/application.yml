@@ -38,6 +38,7 @@ hylian:
     guard:
       excludePatterns:
         - api/health/*
+        - api/auth/*
         - api/app/get
         - api/app/search
         - api/app_secret/get
@@ -48,7 +49,6 @@ hylian:
         - api/user/allUsers
         - api/plan/get
         - api/plan/search
-        - api/plan/submit
         - api/job/get
         - api/job/progress
         - api/job/successRate

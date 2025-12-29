@@ -1,7 +1,7 @@
 <script setup>
 import {
-  IconChartBar, IconCircleCheck, IconClearAll, IconClock,
-  IconDatabase, IconFileDescription, IconProgress, IconSend2
+  IconChartBar, IconCircleCheck, IconClearAll, IconClock, IconDatabase,
+  IconFileDescription, IconProgress, IconSend2, IconTrash
 } from '@tabler/icons-vue'
 import { reactive, ref, useTemplateRef, watch, watchEffect } from 'vue'
 import { useRouter } from 'vue-router'
@@ -14,7 +14,9 @@ import {
 import { formatDate, pause } from '@/common/Time'
 import {
   asyncDispatchJob,
-  asyncJobProgress, asyncJobSuccessRate,
+  asyncJobProgress,
+  asyncJobSuccessRate,
+  asyncRemoveJob,
   asyncSearchJob,
   changeSearchQuerySort,
   newSearchQuery,
@@ -79,6 +81,17 @@ const stat = id => {
 
 const viewData = job_id => router.push({ path: '/record/search', query: { job_id: job_id } })
 
+const remove = async job_id => {
+  const success = await asyncExecuteAfterConfirming(asyncRemoveJob, job_id)
+  if (success === undefined) return
+  if (!success) {
+    showMessage('删除任务失败', ERROR)
+    return
+  }
+  showMessage('删除任务成功', SUCCESS)
+  await search()
+}
+
 const dispatch = async job_id => {
   const success = await asyncExecuteAfterConfirming(asyncDispatchJob, job_id)
   if (success === undefined) return
@@ -94,6 +107,8 @@ const handleCommand = async (command, job_id) => {
     await viewData(job_id)
   } else if (command === 'dispatch') {
     await dispatch(job_id)
+  } else if (command === 'remove') {
+    await remove(job_id)
   }
 }
 
@@ -198,6 +213,10 @@ watchEffect(async () => await search())
               <el-dropdown-item command="dispatch">
                 <IconSend2 size="20" class="mr-2" />
                 <span>分发</span>
+              </el-dropdown-item>
+              <el-dropdown-item command="remove">
+                <IconTrash size="20" class="mr-2" />
+                <span>删除</span>
               </el-dropdown-item>
             </el-dropdown-menu>
           </template>
