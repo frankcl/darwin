@@ -119,6 +119,7 @@ const remove = async record => {
     return
   }
   showMessage('删除数据成功', SUCCESS)
+  await search()
 }
 
 const dispatch = async record => {

@@ -89,6 +89,7 @@ const remove = async job_id => {
     return
   }
   showMessage('删除任务成功', SUCCESS)
+  await search()
 }
 
 const dispatch = async job_id => {
