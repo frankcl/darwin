@@ -4,8 +4,6 @@ import jakarta.annotation.Resource;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import xin.manong.darwin.common.Constants;
@@ -14,7 +12,6 @@ import xin.manong.darwin.service.component.PlanExecutor;
 import xin.manong.darwin.service.iface.*;
 import xin.manong.darwin.service.request.PlanSearchRequest;
 import xin.manong.darwin.web.convert.Converter;
-import xin.manong.darwin.common.request.PlanExecuteRequest;
 import xin.manong.darwin.web.request.PlanRequest;
 import xin.manong.darwin.web.request.PlanUpdateRequest;
 import xin.manong.darwin.web.component.PermissionSupport;
@@ -37,14 +34,10 @@ import java.util.List;
 @RequestMapping("/api/plan")
 public class PlanController {
 
-    private static final Logger logger = LoggerFactory.getLogger(PlanController.class);
-
     @Resource
     private AppService appService;
     @Resource
     private PlanService planService;
-    @Resource
-    private RuleService ruleService;
     @Resource
     private SeedService seedService;
     @Resource
@@ -65,7 +58,8 @@ public class PlanController {
     @EnableWebLogAspect
     public Boolean open(@QueryParam("id") String id) {
         checkPermission(id);
-        checkBeforeOpenExecute(id);
+        List<SeedRecord> seedRecords = seedService.getList(id);
+        planService.beforeOpenExecute(id, seedRecords);
         Plan plan = new Plan();
         plan.planId = id;
         plan.status = true;
@@ -193,35 +187,10 @@ public class PlanController {
         if (plan == null) throw new NotFoundException("计划不存在");
         permissionSupport.checkAppPermission(plan.appId);
         if (plan.status == null || !plan.status) throw new IllegalStateException("计划处于关闭状态");
-        checkBeforeOpenExecute(plan.planId);
+        List<SeedRecord> seedRecords = seedService.getList(plan.planId);
+        planService.beforeOpenExecute(plan.planId, seedRecords);
         if (!planExecutor.checkBeforeExecute()) throw new IllegalStateException("并发队列内存处于危险状态");
         if (!planExecutor.execute(plan)) throw new InternalServerErrorException("执行计划失败");
-        return true;
-    }
-
-    /**
-     * 提交计划执行请求
-     *
-     * @param request 计划执行请求
-     * @return 成功返回true，否则返回false
-     */
-    @POST
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
-    @Path("submit")
-    @PostMapping("submit")
-    @EnableWebLogAspect
-    public Boolean submit(@RequestBody PlanExecuteRequest request) {
-        if (request == null) throw new BadRequestException("执行计划请求为空");
-        request.check();
-        Plan plan = planService.get(request.planId);
-        if (plan == null) throw new NotFoundException("计划不存在");
-        permissionSupport.checkAuthPermission(plan.appId, request);
-        if (plan.status == null || !plan.status) throw new IllegalStateException("计划处于关闭状态");
-        List<SeedRecord> seedRecords = request.seeds.stream().map(Converter::convert).toList();
-        checkBeforeOpenExecute(plan.planId, seedRecords);
-        if (!planExecutor.checkBeforeExecute()) throw new IllegalStateException("并发队列内存处于危险状态");
-        if (!planExecutor.execute(plan, seedRecords)) throw new InternalServerErrorException("执行计划失败");
         return true;
     }
 
@@ -242,39 +211,6 @@ public class PlanController {
         if (plan == null) throw new NotFoundException("计划不存在");
         permissionSupport.checkAppPermission(plan.appId);
         return planService.delete(id);
-    }
-
-    /**
-     * 计划开启执行前检测
-     * 1. 检测是否配置种子URL
-     * 2. 检测种子URL是否存在匹配脚本规则，且规则唯一
-     *
-     * @param planId 计划ID
-     */
-    private void checkBeforeOpenExecute(String planId) {
-        List<SeedRecord> seedRecords = seedService.getList(planId);
-        checkBeforeOpenExecute(planId, seedRecords);
-    }
-
-    /**
-     * 计划开启执行前检测
-     * 1. 检测是否配置种子URL
-     * 2. 检测种子URL是否存在匹配脚本规则，且规则唯一
-     *
-     * @param planId 计划ID
-     * @param seedRecords 种子列表
-     */
-    private void checkBeforeOpenExecute(String planId, List<SeedRecord> seedRecords) {
-        if (seedRecords == null || seedRecords.isEmpty()) throw new IllegalStateException("尚未配置种子URL，请完善计划");
-        List<Rule> rules = ruleService.getRules(planId);
-        for (SeedRecord seedRecord : seedRecords) {
-            if (seedRecord.isScopeExtract()) continue;
-            long matchCount = rules.stream().filter(rule -> rule.match(seedRecord.url)).count();
-            if (matchCount == 0) logger.warn("no matched rule found for url:{}", seedRecord.url);
-            if (matchCount > 1) {
-                throw new IllegalStateException(String.format("种子%s存在多条匹配规则", seedRecord.url));
-            }
-        }
     }
 
     /**

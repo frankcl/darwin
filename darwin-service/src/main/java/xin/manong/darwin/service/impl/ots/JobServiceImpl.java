@@ -12,13 +12,11 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import xin.manong.darwin.common.model.Job;
 import xin.manong.darwin.common.model.Pager;
-import xin.manong.darwin.common.model.URLRecord;
 import xin.manong.darwin.service.config.CacheConfig;
 import xin.manong.darwin.service.config.ServiceConfig;
 import xin.manong.darwin.service.convert.Converter;
 import xin.manong.darwin.service.iface.JobService;
 import xin.manong.darwin.service.request.JobSearchRequest;
-import xin.manong.darwin.service.request.URLSearchRequest;
 import xin.manong.weapon.aliyun.ots.*;
 import xin.manong.weapon.base.record.KVRecord;
 
@@ -108,13 +106,9 @@ public class JobServiceImpl extends JobService {
         if (kvRecord == null) throw new NotFoundException("任务不存在");
         Boolean status = kvRecord.get(KEY_STATUS, Boolean.class);
         if (status != null && status) throw new IllegalStateException("任务处于运行状态");
-        URLSearchRequest searchRequest = new URLSearchRequest();
-        searchRequest.jobId = jobId;
-        Pager<URLRecord> pager = urlService.search(searchRequest);
-        if (pager.records != null) {
-            for (URLRecord record : pager.records) {
-                if (!urlService.delete(record.key)) logger.warn("Delete url record failed for key:{}", record.key);
-            }
+        if (!urlService.deleteByJob(jobId)) {
+            logger.error("Delete records failed for job:{}", jobId);
+            return false;
         }
         OTSStatus otsStatus = otsClient.delete(serviceConfig.ots.jobTable, keyMap, null);
         if (otsStatus == OTSStatus.SUCCESS) jobCache.invalidate(jobId);

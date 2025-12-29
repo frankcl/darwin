@@ -2,6 +2,7 @@ package xin.manong.darwin.service.iface;
 
 import xin.manong.darwin.common.model.Pager;
 import xin.manong.darwin.common.model.Plan;
+import xin.manong.darwin.common.model.SeedRecord;
 import xin.manong.darwin.service.request.PlanSearchRequest;
 
 import java.util.List;
@@ -86,4 +87,13 @@ public interface PlanService {
      * @return 计划列表
      */
     List<Plan> getOpenPlanList(int pageNum, int pageSize);
+
+    /**
+     * 计划打开执行前检测
+     * 检测失败抛出异常
+     *
+     * @param planId 计划ID
+     * @param seedRecords 种子列表
+     */
+    void beforeOpenExecute(String planId, List<SeedRecord> seedRecords);
 }

@@ -155,4 +155,16 @@ public class PlanServiceImpl implements PlanService {
         if (pager == null || pager.records == null) return new ArrayList<>();
         return pager.records;
     }
+
+    @Override
+    public void beforeOpenExecute(String planId, List<SeedRecord> seedRecords) {
+        if (seedRecords == null || seedRecords.isEmpty()) throw new IllegalStateException("尚未配置种子URL，请完善计划");
+        List<Rule> rules = ruleService.getRules(planId);
+        for (SeedRecord seedRecord : seedRecords) {
+            if (seedRecord.isScopeExtract()) continue;
+            long matchCount = rules.stream().filter(rule -> rule.match(seedRecord.url)).count();
+            if (matchCount == 0) logger.warn("no matched rule found for url:{}", seedRecord.url);
+            if (matchCount > 1) throw new IllegalStateException(String.format("种子%s存在多条匹配规则", seedRecord.url));
+        }
+    }
 }

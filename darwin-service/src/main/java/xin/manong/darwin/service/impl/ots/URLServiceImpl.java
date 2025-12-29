@@ -144,6 +144,24 @@ public class URLServiceImpl extends URLService {
     }
 
     @Override
+    public boolean deleteByJob(String jobId) {
+        URLSearchRequest searchRequest = new URLSearchRequest();
+        searchRequest.jobId = jobId;
+        searchRequest.pageNum = 1;
+        searchRequest.pageSize = 100;
+        while (true) {
+            Pager<URLRecord> pager = search(searchRequest);
+            if (pager.records == null) break;
+            for (URLRecord record : pager.records) {
+                if (!delete(record.key)) logger.warn("Delete record:{} failed for job:{}", record.key, jobId);
+            }
+            if (pager.records.size() < pager.pageSize) break;
+            searchRequest.pageNum++;
+        }
+        return true;
+    }
+
+    @Override
     public int deleteExpired(long expiredTime) {
         throw new UnsupportedOperationException("Unsupported this method");
     }

@@ -131,6 +131,15 @@ public class URLServiceImpl extends URLService {
     }
 
     @Override
+    public boolean deleteByJob(String jobId) {
+        if (StringUtils.isEmpty(jobId)) throw new BadRequestException("任务ID为空");
+        LambdaQueryWrapper<URLRecord> query = new LambdaQueryWrapper<>();
+        query.eq(URLRecord::getJobId, jobId);
+        if (urlMapper.selectCount(query) == 0) return true;
+        return urlMapper.delete(query) > 0;
+    }
+
+    @Override
     public int deleteExpired(long expiredTime) {
         LambdaQueryWrapper<URLRecord> query = new LambdaQueryWrapper<>();
         query.lt(URLRecord::getCreateTime, expiredTime);

@@ -7,7 +7,6 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import jakarta.annotation.Resource;
 import jakarta.ws.rs.BadRequestException;
-import jakarta.ws.rs.ForbiddenException;
 import jakarta.ws.rs.NotFoundException;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -17,13 +16,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import xin.manong.darwin.common.model.Job;
 import xin.manong.darwin.common.model.Pager;
-import xin.manong.darwin.common.model.URLRecord;
 import xin.manong.darwin.service.config.CacheConfig;
 import xin.manong.darwin.service.convert.Converter;
 import xin.manong.darwin.service.dao.mapper.JobMapper;
 import xin.manong.darwin.service.iface.JobService;
 import xin.manong.darwin.service.request.JobSearchRequest;
-import xin.manong.darwin.service.request.URLSearchRequest;
 import xin.manong.darwin.service.util.ModelValidator;
 
 /**
@@ -86,16 +83,9 @@ public class JobServiceImpl extends JobService {
         Job job = jobMapper.selectById(jobId);
         if (job == null) throw new NotFoundException("任务不存在");
         if (job.status != null && job.status) throw new IllegalStateException("任务处于运行状态");
-        URLSearchRequest searchRequest = new URLSearchRequest();
-        searchRequest.jobId = jobId;
-        Pager<URLRecord> pager = urlService.search(searchRequest);
-        if (pager.records != null) {
-            for (URLRecord record : pager.records) {
-                if (!urlService.delete(record.key)) {
-                    logger.error("Delete url record failed for key:{}", record.key);
-                    throw new IllegalStateException("删除抓取数据失败");
-                }
-            }
+        if (!urlService.deleteByJob(jobId)) {
+            logger.error("Delete records failed for job:{}", jobId);
+            return false;
         }
         if (jobMapper.deleteById(jobId) > 0) {
             jobCache.invalidate(jobId);
