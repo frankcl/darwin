@@ -90,6 +90,24 @@ public class URLController {
     }
 
     /**
+     * 删除数据
+     *
+     * @param key 数据Key
+     * @return 成功返回true，否则返回false
+     */
+    @DELETE
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("delete")
+    @GetMapping("delete")
+    public Boolean delete(@QueryParam("key") String key) {
+        if (StringUtils.isEmpty(key)) throw new BadRequestException("数据key缺失");
+        URLRecord record = urlService.get(key);
+        if (record == null) throw new NotFoundException("抓取数据不存在");
+        permissionSupport.checkAppPermission(record.appId);
+        return urlService.delete(key);
+    }
+
+    /**
      * 根据key获取血统节点
      *
      * @param key 数据key

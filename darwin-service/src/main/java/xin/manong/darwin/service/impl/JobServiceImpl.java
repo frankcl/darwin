@@ -10,8 +10,11 @@ import jakarta.ws.rs.BadRequestException;
 import jakarta.ws.rs.ForbiddenException;
 import jakarta.ws.rs.NotFoundException;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import xin.manong.darwin.common.model.Job;
 import xin.manong.darwin.common.model.Pager;
 import xin.manong.darwin.common.model.URLRecord;
@@ -31,6 +34,8 @@ import xin.manong.darwin.service.util.ModelValidator;
  */
 @Service
 public class JobServiceImpl extends JobService {
+
+    private static final Logger logger = LoggerFactory.getLogger(JobServiceImpl.class);
 
     @Resource
     private JobMapper jobMapper;
@@ -76,17 +81,27 @@ public class JobServiceImpl extends JobService {
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public boolean delete(String jobId) {
-        if (jobMapper.selectById(jobId) == null) throw new NotFoundException("任务不存在");
+        Job job = jobMapper.selectById(jobId);
+        if (job == null) throw new NotFoundException("任务不存在");
+        if (job.status != null && job.status) throw new IllegalStateException("任务处于运行状态");
         URLSearchRequest searchRequest = new URLSearchRequest();
         searchRequest.jobId = jobId;
         Pager<URLRecord> pager = urlService.search(searchRequest);
-        if (pager.total > 0) throw new ForbiddenException("任务URL记录不为空");
+        if (pager.records != null) {
+            for (URLRecord record : pager.records) {
+                if (!urlService.delete(record.key)) {
+                    logger.error("Delete url record failed for key:{}", record.key);
+                    throw new IllegalStateException("删除抓取数据失败");
+                }
+            }
+        }
         if (jobMapper.deleteById(jobId) > 0) {
             jobCache.invalidate(jobId);
             return true;
         }
-        return false;
+        throw new IllegalStateException("删除任务失败");
     }
 
     @Override

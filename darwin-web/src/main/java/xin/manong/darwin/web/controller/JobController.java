@@ -81,6 +81,24 @@ public class JobController {
     }
 
     /**
+     * 删除任务
+     *
+     * @param id 任务ID
+     * @return 成功返回true，否则返回false
+     */
+    @DELETE
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("delete")
+    @GetMapping("delete")
+    public Boolean delete(@QueryParam("id") String id) {
+        if (StringUtils.isEmpty(id)) throw new BadRequestException("任务ID缺失");
+        Job job = jobService.get(id);
+        if (job == null) throw new NotFoundException("任务不存在");
+        permissionSupport.checkAppPermission(job.appId);
+        return jobService.delete(id);
+    }
+
+    /**
      * 获取任务抓取成功率
      *
      * @param id 任务ID

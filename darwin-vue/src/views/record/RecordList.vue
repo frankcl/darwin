@@ -1,8 +1,8 @@
 <script setup>
 import {
   IconChevronDown, IconChevronUp, IconClearAll,
-  IconClock, IconCopy, IconCopyCheck, IconDownload,
-  IconEye, IconFileDescription, IconHierarchy3, IconSend2
+  IconClock, IconCopy, IconCopyCheck, IconDownload, IconEye,
+  IconFileDescription, IconHierarchy3, IconSend2, IconTrash
 } from '@tabler/icons-vue'
 import { reactive, ref, useTemplateRef, watch, watchEffect } from 'vue'
 import { useRoute } from 'vue-router'
@@ -19,6 +19,7 @@ import { asyncExecuteAfterConfirming, ERROR, showMessage, SUCCESS } from '@/comm
 import { contentTypeMap, fetchMethodMap, httpRequestMap, priorityMap, statusMap } from '@/common/Constants'
 import {
   asyncDispatchURL,
+  asyncRemoveURL,
   asyncSearchURL,
   changeSearchQuerySort,
   newSearchQuery,
@@ -110,6 +111,16 @@ const lineage = record => {
   viewKey.value = record.key
 }
 
+const remove = async record => {
+  const success = await asyncExecuteAfterConfirming(asyncRemoveURL, record.key)
+  if (success === undefined) return
+  if (!success) {
+    showMessage('删除数据失败', ERROR)
+    return
+  }
+  showMessage('删除数据成功', SUCCESS)
+}
+
 const dispatch = async record => {
   const success = await asyncExecuteAfterConfirming(asyncDispatchURL, record.key)
   if (success === undefined) return
@@ -150,6 +161,8 @@ const handleCommand = async (command, record) => {
     await lineage(record)
   } else if (command === 'dispatch') {
     await dispatch(record)
+  } else if (command === 'remove') {
+    await remove(record)
   }
 }
 
@@ -358,6 +371,10 @@ watchEffect(async () => await search())
                 <el-dropdown-item command="dispatch">
                   <IconSend2 size="20" class="mr-2" />
                   <span>分发数据</span>
+                </el-dropdown-item>
+                <el-dropdown-item command="remove">
+                  <IconTrash size="20" class="mr-2" />
+                  <span>删除数据</span>
                 </el-dropdown-item>
               </el-dropdown-menu>
             </template>
