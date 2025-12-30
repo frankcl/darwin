@@ -99,8 +99,8 @@ watchEffect(async () => await search())
         <IconPlus size="20" class="mr-1" />
         <span>新增</span>
       </el-button>
-      <el-button type="warning" @click="removePlanSeeds(props.planId)" :disabled="!userStore.injected">
-        <IconPlus size="20" class="mr-1" />
+      <el-button type="danger" @click="removePlanSeeds(props.planId)" :disabled="!userStore.injected">
+        <IconTrash size="20" class="mr-1" />
         <span>删除所有种子</span>
       </el-button>
     </template>
