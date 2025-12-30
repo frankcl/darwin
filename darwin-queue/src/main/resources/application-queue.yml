@@ -8,7 +8,7 @@ weapon:
 app:
   queue:
     concurrencyQueue:
-      max-queue-capacity: 5000
+      max-queue-capacity: 50000
       danger-memory-used-ratio: 0.95
       waring-memory-used-ratio: 0.90
     concurrencyControl:
