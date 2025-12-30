@@ -82,7 +82,7 @@ export const asyncCrawlDelayMap = async () => await AxiosRequest.get('/api/concu
 export const asyncUpdateDefaultCrawlDelay = async request => await AxiosRequest.post('/api/concurrency/updateDefaultCrawlDelay', request)
 export const asyncUpdateCrawlDelayMap = async request => await AxiosRequest.post('/api/concurrency/updateCrawlDelayMap', request)
 export const asyncFetchCountTrend = async () => await AxiosRequest.get('/api/dashboard/fetchCountTrend')
-export const asyncDownAnalysis = async content_type => await AxiosRequest.get('/api/dashboard/getDownAnalysis', {params: {content_type: content_type}, timeout: 20000})
+export const asyncDownAnalysis = async content_type => await AxiosRequest.get('/api/dashboard/getDownAnalysis', {params: {content_type: content_type}})
 export const asyncFetchAnalysis = async content_type => await AxiosRequest.get('/api/dashboard/getFetchAnalysis', {params: {content_type: content_type}})
 export const asyncStatusGroupCount = async request => await AxiosRequest.get('/api/dashboard/statusGroupCount', {params: request})
 export const asyncContentGroupCount = async request => await AxiosRequest.get('/api/dashboard/contentGroupCount', {params: request})
