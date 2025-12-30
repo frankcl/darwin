@@ -12,6 +12,7 @@ import { fetchMethodMap, priorityMap } from '@/common/Constants'
 import { asyncExecuteAfterConfirming, ERROR, showMessage, SUCCESS } from '@/common/Feedback'
 import {
   asyncRemoveSeed,
+  asyncRemovePlanSeeds,
   asyncSearchSeed,
   changeSearchQuerySort,
   newSearchQuery,
@@ -63,6 +64,17 @@ const remove = async key => {
   await search()
 }
 
+const removePlanSeeds = async plan_id => {
+  const success = await asyncExecuteAfterConfirming(asyncRemovePlanSeeds, plan_id)
+  if (success === undefined) return
+  if (!success) {
+    showMessage('删除计划相关种子失败', ERROR)
+    return
+  }
+  showMessage('删除计划相关种子成功', SUCCESS)
+  await search()
+}
+
 const copy = async seed => {
   await writeClipboard(seed.url)
   copiedURL.value = `URL#${seed.key}`
@@ -86,6 +98,10 @@ watchEffect(async () => await search())
       <el-button type="primary" @click="openAdd = true" :disabled="!userStore.injected">
         <IconPlus size="20" class="mr-1" />
         <span>新增</span>
+      </el-button>
+      <el-button type="warning" @click="removePlanSeeds(props.planId)" :disabled="!userStore.injected">
+        <IconPlus size="20" class="mr-1" />
+        <span>删除所有种子</span>
       </el-button>
     </template>
   </table-head>

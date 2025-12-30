@@ -148,6 +148,25 @@ public class SeedController {
     }
 
     /**
+     * 删除计划相关种子
+     *
+     * @param planId 计划ID
+     * @return 成功返回true，否则返回false
+     */
+    @DELETE
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("deleteByPlan")
+    @DeleteMapping("deleteByPlan")
+    @EnableWebLogAspect
+    public Boolean deleteByPlan(@QueryParam("plan_id") String planId) {
+        if (StringUtils.isEmpty(planId)) throw new BadRequestException("计划ID缺失");
+        Plan plan = planService.get(planId);
+        if (plan == null) throw new NotFoundException("计划不存在");
+        permissionSupport.checkAppPermission(plan.appId);
+        return seedService.deleteByPlan(planId);
+    }
+
+    /**
      * 检测应用权限
      *
      * @param record 种子
