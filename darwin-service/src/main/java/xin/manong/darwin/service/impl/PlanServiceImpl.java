@@ -49,6 +49,9 @@ public class PlanServiceImpl implements PlanService {
     @Resource
     @Lazy
     private JobService jobService;
+    @Resource
+    @Lazy
+    private SeedService seedService;
 
     @Override
     public Plan get(String planId) {
@@ -109,7 +112,8 @@ public class PlanServiceImpl implements PlanService {
         JobSearchRequest searchRequest = new JobSearchRequest();
         searchRequest.planId = planId;
         Pager<Job> pager = jobService.search(searchRequest);
-        if (pager.total > 0) throw new ForbiddenException("计划任务不为空");
+        if (pager.total > 0) throw new ForbiddenException("相关任务存在");
+        if (!seedService.deleteByPlan(planId)) throw new IllegalStateException("删除种子失败");
         if (!ruleService.deleteRules(planId)) throw new IllegalStateException("删除规则失败");
         return planMapper.deleteById(planId) > 0;
     }
