@@ -23,6 +23,8 @@ import xin.manong.darwin.service.util.ModelValidator;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 /**
  * MySQL URL服务实现
@@ -245,6 +247,40 @@ public class URLServiceImpl extends URLService {
         return URLGroupCountMapper.selectList(query);
     }
 
+    @Override
+    public long avgDownTime(Integer contentType, RangeValue<Long> timeRange) {
+        List<Integer> statusList = new ArrayList<>();
+        statusList.add(Constants.URL_STATUS_FETCH_SUCCESS);
+        statusList.add(Constants.URL_STATUS_FETCH_FAIL);
+        statusList.add(Constants.URL_STATUS_ERROR);
+        QueryWrapper<URLRecord> query = new QueryWrapper<>();
+        query.in("status", statusList);
+        if (contentType != null) query.eq("content_type", contentType);
+        if (timeRange != null) prepareFetchTimeRange(query, timeRange);
+        String fieldName = "avg_down_time";
+        query.select("AVG(down_time) AS " + fieldName);
+        List<Map<String, Object>> results = urlMapper.selectMaps(query);
+        if (results.isEmpty()) return 0L;
+        return Optional.ofNullable(results.get(0).get(fieldName)).map(Object::toString)
+                .map(Long::parseLong).orElse(0L);
+    }
+
+    @Override
+    public long avgContentLength(Integer contentType, RangeValue<Long> timeRange) {
+        List<Integer> statusList = new ArrayList<>();
+        statusList.add(Constants.URL_STATUS_FETCH_SUCCESS);
+        QueryWrapper<URLRecord> query = new QueryWrapper<>();
+        query.in("status", statusList);
+        if (contentType != null) query.eq("content_type", contentType);
+        if (timeRange != null) prepareFetchTimeRange(query, timeRange);
+        String fieldName = "avg_content_length";
+        query.select("AVG(content_length) AS " + fieldName);
+        List<Map<String, Object>> results = urlMapper.selectMaps(query);
+        if (results.isEmpty()) return 0L;
+        return Optional.ofNullable(results.get(0).get(fieldName)).map(Object::toString)
+                .map(Long::parseLong).orElse(0L);
+    }
+
     /**
      * 准备创建时间范围查询条件
      *
@@ -276,6 +312,23 @@ public class URLServiceImpl extends URLService {
         if (timeRange.end != null) {
             if (timeRange.includeLower) query.le("create_time", timeRange.end);
             else query.lt("create_time", timeRange.end);
+        }
+    }
+
+    /**
+     * 准备抓取时间范围查询条件
+     *
+     * @param query SQL查询
+     * @param timeRange 时间范围
+     */
+    private void prepareFetchTimeRange(QueryWrapper<? extends BaseModel> query, RangeValue<Long> timeRange) {
+        if (timeRange.start != null) {
+            if (timeRange.includeLower) query.ge("fetch_time", timeRange.start);
+            else query.gt("fetch_time", timeRange.start);
+        }
+        if (timeRange.end != null) {
+            if (timeRange.includeLower) query.le("fetch_time", timeRange.end);
+            else query.lt("fetch_time", timeRange.end);
         }
     }
 
