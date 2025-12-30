@@ -261,8 +261,7 @@ public class URLServiceImpl extends URLService {
         query.select("AVG(down_time) AS " + fieldName);
         List<Map<String, Object>> results = urlMapper.selectMaps(query);
         if (results.isEmpty()) return 0L;
-        return Optional.ofNullable(results.get(0).get(fieldName)).map(Object::toString)
-                .map(Long::parseLong).orElse(0L);
+        return convertLongAvgValue(results.get(0).get(fieldName));
     }
 
     @Override
@@ -277,8 +276,18 @@ public class URLServiceImpl extends URLService {
         query.select("AVG(content_length) AS " + fieldName);
         List<Map<String, Object>> results = urlMapper.selectMaps(query);
         if (results.isEmpty()) return 0L;
-        return Optional.ofNullable(results.get(0).get(fieldName)).map(Object::toString)
-                .map(Long::parseLong).orElse(0L);
+        return convertLongAvgValue(results.get(0).get(fieldName));
+    }
+
+    /**
+     * 转换平均值为Long类型
+     *
+     * @param value 平均値
+     * @return Long类型平均値
+     */
+    private long convertLongAvgValue(Object value) {
+        return Optional.ofNullable(value).map(Object::toString)
+                .map(Double::parseDouble).map(Double::longValue).orElse(0L);
     }
 
     /**
