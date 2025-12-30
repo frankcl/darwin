@@ -260,7 +260,7 @@ public class URLServiceImpl extends URLService {
         String fieldName = "avg_down_time";
         query.select("AVG(down_time) AS " + fieldName);
         List<Map<String, Object>> results = urlMapper.selectMaps(query);
-        if (results.isEmpty()) return 0L;
+        if (results.isEmpty() || results.get(0) == null) return 0L;
         return convertLongAvgValue(results.get(0).get(fieldName));
     }
 
@@ -275,7 +275,7 @@ public class URLServiceImpl extends URLService {
         String fieldName = "avg_content_length";
         query.select("AVG(content_length) AS " + fieldName);
         List<Map<String, Object>> results = urlMapper.selectMaps(query);
-        if (results.isEmpty()) return 0L;
+        if (results.isEmpty() || results.get(0) == null) return 0L;
         return convertLongAvgValue(results.get(0).get(fieldName));
     }
 
