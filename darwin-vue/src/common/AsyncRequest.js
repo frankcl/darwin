@@ -51,6 +51,7 @@ export const asyncSearchSeed = async request => await AxiosRequest.get('/api/see
 export const asyncAddSeed = async seed => await AxiosRequest.put('/api/seed/add', seed)
 export const asyncUpdateSeed = async seed => await AxiosRequest.post('/api/seed/update', seed)
 export const asyncRemoveSeed = async key => await AxiosRequest.delete('/api/seed/delete', {params: {key : key}})
+export const asyncRemovePlanSeeds = async plan_id => await AxiosRequest.delete('/api/seed/deleteByPlan', {params: {plan_id : plan_id}})
 export const asyncGetURL = async key => await AxiosRequest.get('/api/url/get', {params: {key: key}})
 export const asyncRemoveURL = async key => await AxiosRequest.delete('/api/url/delete', {params: {key: key}})
 export const asyncGetLineageNode = async key => await AxiosRequest.get('/api/url/getLineageNode', {params: {key: key}})

@@ -26,6 +26,7 @@ const NO_PERMISSION_REQUESTS = [
   '/api/seed/add',
   '/api/seed/update',
   '/api/seed/delete',
+  '/api/seed/deleteByPlan',
   '/api/url/dispatch',
   '/api/url/delete',
   '/api/job/dispatch',
