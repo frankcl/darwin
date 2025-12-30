@@ -6,6 +6,7 @@ import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import jakarta.annotation.Resource;
+import jakarta.ws.rs.BadRequestException;
 import jakarta.ws.rs.NotFoundException;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -65,6 +66,15 @@ public class SeedServiceImpl implements SeedService {
     public boolean delete(String key) {
         if (seedMapper.selectById(key) == null) throw new NotFoundException("种子记录不存在");
         return seedMapper.deleteById(key) > 0;
+    }
+
+    @Override
+    public boolean deleteByPlan(String planId) {
+        if (StringUtils.isEmpty(planId)) throw new BadRequestException("计划ID为空");
+        LambdaQueryWrapper<SeedRecord> query = new LambdaQueryWrapper<>();
+        query.eq(SeedRecord::getPlanId, planId);
+        if (seedMapper.selectCount(query) == 0) return true;
+        return seedMapper.delete(query) > 0;
     }
 
     @Override

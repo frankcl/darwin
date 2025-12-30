@@ -47,6 +47,14 @@ public interface SeedService {
     boolean delete(String key);
 
     /**
+     * 删除计划相关种子
+     *
+     * @param planId 计划ID
+     * @return 成功返回true，否则返回false
+     */
+    boolean deleteByPlan(String planId);
+
+    /**
      * 获取计划相关种子列表
      *
      * @param planId 计划ID
