@@ -245,7 +245,7 @@ public abstract class URLService {
     public long avgDownTime(Integer contentType, RangeValue<Long> timeRange) {
         long downTime = 0L, recordCount = 0L;
         URLSearchRequest searchRequest = new URLSearchRequest();
-        searchRequest.pageSize = 100;
+        searchRequest.pageSize = 5000;
         searchRequest.statusList = new ArrayList<>();
         searchRequest.statusList.add(Constants.URL_STATUS_FETCH_SUCCESS);
         searchRequest.statusList.add(Constants.URL_STATUS_FETCH_FAIL);
@@ -275,7 +275,7 @@ public abstract class URLService {
     public long avgContentLength(Integer contentType, RangeValue<Long> timeRange) {
         long contentLength = 0L, recordCount = 0L;
         URLSearchRequest searchRequest = new URLSearchRequest();
-        searchRequest.pageSize = 100;
+        searchRequest.pageSize = 5000;
         searchRequest.statusList = new ArrayList<>();
         searchRequest.statusList.add(Constants.URL_STATUS_FETCH_SUCCESS);
         searchRequest.fetchTimeRange = timeRange;
