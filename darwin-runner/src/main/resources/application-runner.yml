@@ -5,6 +5,6 @@ app:
     proxy-execute-time-interval-ms: 30000
     concurrency-queue-execute-time-interval-ms: 300000
     concurrency-queue-expired-time-interval-ms: 600000
-    max-overflow-interval-ms: 7200000
+    max-overflow-interval-ms: 86400000
     expired-cleaner-execute-interval-ms: 3600000
     max-expired-interval-ms: 2592000000
