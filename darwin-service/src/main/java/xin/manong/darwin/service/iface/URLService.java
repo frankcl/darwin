@@ -425,7 +425,6 @@ public abstract class URLService {
         searchRequest.pageNum = 1;
         searchRequest.pageSize = size <= 0 ? Constants.DEFAULT_PAGE_SIZE : size;
         searchRequest.statusList = new ArrayList<>();
-        searchRequest.statusList.add(Constants.URL_STATUS_QUEUING);
         searchRequest.statusList.add(Constants.URL_STATUS_FETCHING);
         searchRequest.createTimeRange = new RangeValue<>();
         searchRequest.createTimeRange.end = endTime;
