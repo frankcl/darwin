@@ -72,7 +72,7 @@ export const asyncAddProxy = async proxy => await AxiosRequest.put('/api/proxy/a
 export const asyncUpdateProxy = async proxy => await AxiosRequest.post('/api/proxy/update', proxy)
 export const asyncSearchProxy = async request => await AxiosRequest.get('/api/proxy/search', {params: request})
 export const asyncGetConcurrencyUnit = async name => await AxiosRequest.get('/api/concurrency/getConcurrencyUnit', {params: {name: name}})
-export const asyncConcurrencyQueueWait = async name => await AxiosRequest.get('/api/concurrency/getConcurrencyQueueWait', {params: {name: name}, timeout: 30000})
+export const asyncConcurrencyQueueWait = async name => await AxiosRequest.get('/api/concurrency/getConcurrencyQueueWait', {params: {name: name}})
 export const asyncWaitConcurrencyUnits = async n => await AxiosRequest.get('/api/concurrency/waitConcurrencyUnits', {params: {n: n}})
 export const asyncDefaultConcurrency = async () => await AxiosRequest.get('/api/concurrency/getDefaultConcurrency')
 export const asyncConcurrencyConnectionMap = async () => await AxiosRequest.get('/api/concurrency/getConcurrencyConnectionMap')
@@ -90,7 +90,7 @@ export const asyncContentGroupCount = async request => await AxiosRequest.get('/
 export const asyncQueueWaitPriority = async () => await AxiosRequest.get('/api/dashboard/queueWaitPriority')
 export const asyncHostFetchCount = async () => await AxiosRequest.get('/api/dashboard/hostFetchCount')
 export const asyncGetQueueMemory = async () => await AxiosRequest.get('/api/dashboard/getQueueMemory')
-export const asyncGetQueueWait = async () => await AxiosRequest.get('/api/dashboard/getQueueWait')
+export const asyncGetQueueWait = async () => await AxiosRequest.get('/api/dashboard/getQueueWait', { timeout: 30000 })
 
 export const asyncResetUserApps = async () => {
   const userStore = useUserStore()
