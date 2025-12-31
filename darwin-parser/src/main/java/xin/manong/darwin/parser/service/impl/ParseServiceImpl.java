@@ -109,11 +109,12 @@ public class ParseServiceImpl implements ParseService {
     @Override
     public ParseResponse parse(@NonNull ScriptParseRequest request) {
         if (request.isScopeExtract()) return linkExtractService.extract(request);
-        String key = DigestUtils.md5Hex(request.scriptCode);
+        String key = null;
         if (request.scriptType == Constants.SCRIPT_TYPE_JAVASCRIPT) {
             key = DigestUtils.md5Hex(String.format("%d_%s", Thread.currentThread().getId(), request.scriptCode));
         } else if (request.scriptType == Constants.SCRIPT_TYPE_GROOVY) {
             request.scriptCode = formatGroovy(request.scriptCode);
+            key = DigestUtils.md5Hex(request.scriptCode);
         }
         for (int i = 0; i < RETRY_COUNT; i++) {
             Script script = buildScript(key, request);
