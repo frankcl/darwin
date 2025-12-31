@@ -49,7 +49,8 @@ public abstract class RuleService {
     private void onRemoval(RemovalNotification<Integer, Optional<Rule>> notification) {
         Objects.requireNonNull(notification.getValue());
         if (notification.getValue().isEmpty()) return;
-        logger.info("Rule:{} is removed from cache", notification.getValue().get().id);
+        logger.info("Rule:{} is removed from cache, cause:{}",
+                notification.getValue().get().id, notification.getCause().name());
     }
 
     /**
