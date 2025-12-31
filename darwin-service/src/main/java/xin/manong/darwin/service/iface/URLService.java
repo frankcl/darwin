@@ -336,7 +336,7 @@ public abstract class URLService {
         long currentTime = System.currentTimeMillis();
         URLSearchRequest searchRequest = new URLSearchRequest();
         searchRequest.pageNum = 1;
-        searchRequest.pageSize = 100;
+        searchRequest.pageSize = 10000;
         searchRequest.concurrencyUnit = concurrencyUnit;
         searchRequest.statusList = new ArrayList<>();
         searchRequest.statusList.add(Constants.URL_STATUS_QUEUING);
