@@ -98,6 +98,8 @@ public class ConcurrencyQueueMonitor extends ExecuteRunner {
         List<Job> jobs = jobService.getRunningJobs(minExpiredTime, BATCH_GET_SIZE);
         int sweepCount = 0;
         for (Job job : jobs) {
+            if (jobService.isLive(job.jobId)) continue;
+            logger.info("Job:{} is suspected as death", job.jobId);
             List<URLRecord> records = urlService.getExpiredRecords(job.jobId, minExpiredTime, BATCH_GET_SIZE);
             sweepCount += records.size();
             for (URLRecord record : records) handleExpiredRecord(record);
@@ -139,10 +141,12 @@ public class ConcurrencyQueueMonitor extends ExecuteRunner {
         Context context = new Context();
         try {
             context.put(Constants.DARWIN_STAGE, Constants.PROCESS_STAGE_MONITOR);
-            if (!urlService.updateStatus(record.key, Constants.URL_STATUS_TIMEOUT)) {
-                logger.warn("Update timeout status failed for url:{}", record.url);
+            if (!urlService.updateStatus(record.key, Constants.URL_STATUS_WAIT_TIMEOUT)) {
+                logger.warn("Update wait timeout status failed for url:{}", record.url);
+            } else {
+                logger.info("Wait timeout for url:{}", record.url);
             }
-            record.status = Constants.URL_STATUS_TIMEOUT;
+            record.status = Constants.URL_STATUS_WAIT_TIMEOUT;
             urlEventListener.onComplete(record.key, context);
         } finally {
             aspectLogSupport.commitAspectLog(context, record);
