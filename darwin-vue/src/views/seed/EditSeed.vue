@@ -11,7 +11,7 @@ import MutableTable from '@/components/data/MutableTable'
 import { fetchMethodMap, httpRequestMap, linkScopeMap, postMediaTypeMap, priorityMap } from '@/common/Constants'
 import { ERROR, showMessage, SUCCESS } from '@/common/Feedback'
 import { asyncGetSeed, asyncUpdateSeed } from '@/common/AsyncRequest'
-import { seedFormRules, fillMap } from '@/views/seed/common'
+import { fieldTypes, fillMap, fillRequestBody, isObject, seedFormRules } from '@/views/seed/common'
 
 const open = defineModel()
 const emits = defineEmits(['close'])
@@ -25,13 +25,19 @@ const customOptions = reactive([])
 const requestBody = reactive([])
 const headerColumns = [{ name: '请求头名' }, { name: '请求头值' }]
 const customOptionColumns = [{ name: '字段名' }, { name: '字段值' }]
-const requestBodyColumns = [{ name: '字段名' }, { name: '字段值' }]
+const requestBodyColumns = [
+  { name: '字段名' },
+  { name: '字段值' },
+  { name: '类型', type: 'select', default: 'string', items: fieldTypes }
+]
 
 const update = async () => {
   if (!await formRef.value.validate(v => v)) return
   fillMap(seed.value, 'headers', headers)
   fillMap(seed.value, 'custom_map', customOptions)
-  if (seed.value.http_request === 'POST') fillMap(seed.value, 'request_body', requestBody)
+  if (seed.value.http_request === 'POST') {
+    if (!fillRequestBody(seed.value,  requestBody)) return
+  }
   if (seed.value.http_request === 'GET') {
     seed.value.post_media_type = null
     seed.value.request_body = {}
@@ -48,7 +54,11 @@ const update = async () => {
 const initOptionsWithMap = (options, map) => {
   options.splice(0, options.length)
   if (!map) return
-  for (const key in map) options.push([key, map[key]])
+  for (const key in map) {
+    let v = map[key].toString()
+    if (isObject(map[key])) v = JSON.stringify(map[key])
+    options.push([key, v, typeof map[key]])
+  }
 }
 
 const resetSeedForm = async () => {

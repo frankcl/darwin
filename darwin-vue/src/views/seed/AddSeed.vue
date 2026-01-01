@@ -11,7 +11,7 @@ import MutableTable from '@/components/data/MutableTable'
 import { fetchMethodMap, httpRequestMap, linkScopeMap, postMediaTypeMap, priorityMap } from '@/common/Constants'
 import { ERROR, showMessage, SUCCESS } from '@/common/Feedback'
 import { asyncAddSeed } from '@/common/AsyncRequest'
-import { fillMap, seedFormRules } from '@/views/seed/common'
+import { fieldTypes, fillMap, fillRequestBody, seedFormRules } from '@/views/seed/common'
 
 const open = defineModel()
 const emits = defineEmits(['close'])
@@ -32,13 +32,18 @@ const customOptions = reactive([])
 const requestBody = reactive([])
 const headerColumns = [{ name: '请求头名' }, { name: '请求头值' }]
 const customOptionColumns = [{ name: '字段名' }, { name: '字段值' }]
-const requestBodyColumns = [{ name: '字段名' }, { name: '字段值' }]
+const requestBodyColumns = [
+  { name: '字段名' },
+  { name: '字段值' },
+  { name: '类型', type: 'select', default: 'string', items: fieldTypes }]
 
 const add = async () => {
   if (!await formRef.value.validate(v => v)) return
   fillMap(seed, 'headers', headers)
   fillMap(seed, 'custom_map', customOptions)
-  if (seed.http_request === 'POST') fillMap(seed, 'request_body', requestBody)
+  if (seed.http_request === 'POST') {
+    if (!fillRequestBody(seed,  requestBody)) return
+  }
   if (seed.http_request === 'GET') {
     seed.post_media_type = null
     seed.request_body = {}
