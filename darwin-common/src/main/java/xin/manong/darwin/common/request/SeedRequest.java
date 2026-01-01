@@ -99,7 +99,7 @@ public class SeedRequest extends AuthenticateRequest {
      * HTTP请求体
      */
     @JsonProperty("request_body")
-    public Map<String, String> requestBody = new HashMap<>();
+    public Map<String, Object> requestBody = new HashMap<>();
 
     /**
      * HTTP header信息

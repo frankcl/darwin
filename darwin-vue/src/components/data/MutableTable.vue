@@ -2,7 +2,10 @@
 import { IconDeviceFloppy, IconEdit, IconTextPlus, IconTrash } from '@tabler/icons-vue'
 import { onMounted, onUpdated, ref, watch } from 'vue'
 import { ERROR, showMessage } from '@/common/Feedback'
-import { ElButton, ElInput, ElInputNumber, ElTable, ElTableColumn, ElText } from 'element-plus'
+import {
+  ElButton, ElInput, ElInputNumber, ElOption,
+  ElSelect, ElTable, ElTableColumn, ElText
+} from 'element-plus'
 
 const props = defineProps({
   columns: {
@@ -91,6 +94,10 @@ onMounted(() => init())
                   :min="column.min" :max="column.max" :step="column.step" v-model="scope.row[index]" clearable />
         <el-input v-else-if="scope.$index === prepareIndex && (column.type === 'input' || column.type === undefined)"
                   v-model="scope.row[index]" clearable :placeholder="`请输入${columns[index].name}`" />
+        <el-select v-else-if="scope.$index === prepareIndex && (column.type === 'select')"
+                  v-model="scope.row[index]">
+          <el-option v-for="item in column.items" :key="item" :label="item" :value="item" />
+        </el-select>
         <el-text v-else>{{ scope.row[index] }}</el-text>
       </template>
     </el-table-column>
