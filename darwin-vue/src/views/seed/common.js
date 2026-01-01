@@ -48,7 +48,7 @@ export const fillRequestBody = (seed, options) => {
           showMessage(`请求体非法布尔值：${option[0]}`, ERROR)
           return false
         }
-        seed[mapKey][option[0]] = Boolean(v)
+        seed[mapKey][option[0]] = (v === 'true')
       } else if (option[2] === 'number') {
         if (!isNumber(option[1])) {
           showMessage(`请求体非法数值：${option[0]}`, ERROR)
