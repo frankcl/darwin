@@ -226,6 +226,19 @@ public class URLServiceImpl extends URLService {
     }
 
     @Override
+    public long queueWaitTime(String concurrencyUnit) {
+        List<Integer> statusList = new ArrayList<>();
+        statusList.add(Constants.URL_STATUS_QUEUING);
+        QueryWrapper<URLRecord> query = new QueryWrapper<>();
+        String fieldName = "avg_wait_time";
+        query.select(String.format("AVG(%d - push_time) as %s", System.currentTimeMillis(), fieldName));
+        query.in("status", statusList).isNotNull("push_time");
+        List<Map<String, Object>> results = urlMapper.selectMaps(query);
+        if (results.isEmpty() || results.get(0) == null) return 0L;
+        return convertLongAvgValue(results.get(0).get(fieldName));
+    }
+
+    @Override
     public List<URLGroupCount> queueWaitPriority() {
         List<Integer> statusList = new ArrayList<>();
         statusList.add(Constants.URL_STATUS_QUEUING);

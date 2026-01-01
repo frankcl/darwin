@@ -191,4 +191,20 @@ public abstract class JobService {
         if (pager == null || pager.records == null) return new ArrayList<>();
         return pager.records;
     }
+
+    /**
+     * 判断任务是否存活
+     * 半小时内存在抓取活动
+     *
+     * @param jobId 任务ID
+     * @return 存活返回true，否则返回false
+     */
+    public boolean isLive(String jobId) {
+        URLSearchRequest searchRequest = new URLSearchRequest();
+        searchRequest.jobId = jobId;
+        searchRequest.fetchTimeRange = new RangeValue<>();
+        searchRequest.fetchTimeRange.includeLower = true;
+        searchRequest.fetchTimeRange.start = System.currentTimeMillis() - 1800L * 1000L;
+        return urlService.selectCount(searchRequest) > 0;
+    }
 }

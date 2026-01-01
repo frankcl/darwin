@@ -337,7 +337,7 @@ public class MediaType {
                 alias = "PDF";
                 suffix = "pdf";
             }
-            case "javascript" -> {
+            case "x-javascript", "javascript" -> {
                 alias = "JAVASCRIPT";
                 suffix = "js";
             }

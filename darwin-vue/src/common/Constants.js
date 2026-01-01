@@ -6,7 +6,8 @@ export const statusMap = {
   4: '抓取超时',
   5: '过期',
   6: '错误',
-  7: '溢出'
+  7: '溢出',
+  8: '排队超时'
 }
 
 export const priorityMap = {
