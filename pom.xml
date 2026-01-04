@@ -57,7 +57,7 @@
         <fastjson.version>2.0.35</fastjson.version>
         <rocketmq-client.version>5.3.3</rocketmq-client.version>
         <tablestore.version>5.13.10</tablestore.version>
-        <weapon.version>0.2.1</weapon.version>
+        <weapon.version>0.2.7</weapon.version>
         <hylian.version>0.0.1</hylian.version>
         <darwin.version>0.0.1</darwin.version>
     </properties>
