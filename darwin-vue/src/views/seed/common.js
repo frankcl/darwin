@@ -14,7 +14,7 @@ export const fieldTypes = ['number', 'string', 'boolean', 'object']
 export const fillMap = (seed, mapKey, options) => {
   seed[mapKey] = {}
   options.forEach(option => {
-    if (Array.isArray(option) && option.length === 2) {
+    if (Array.isArray(option) && option.length >= 2) {
       seed[mapKey][option[0]] = option[1]
     }
   })
