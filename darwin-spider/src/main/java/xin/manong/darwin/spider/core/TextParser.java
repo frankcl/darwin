@@ -149,7 +149,7 @@ public class TextParser {
                 logger.warn("Ignore child:{} same with parent", child.url);
                 return false;
             }
-            if (urlService.isDuplicate(child)) {
+            if ((child.allowRepeat == null || !child.allowRepeat) && urlService.isDuplicate(child)) {
                 context.put(Constants.DARWIN_DEBUG_MESSAGE, "重复子链接");
                 logger.warn("Ignore duplicated child:{}", child.url);
                 return false;
