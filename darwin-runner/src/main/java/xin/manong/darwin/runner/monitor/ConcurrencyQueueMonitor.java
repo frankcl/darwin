@@ -31,7 +31,8 @@ public class ConcurrencyQueueMonitor extends ExecuteRunner {
 
     private static final Logger logger = LoggerFactory.getLogger(ConcurrencyQueueMonitor.class);
 
-    private static final int BATCH_GET_SIZE = 100;
+    private static final int BATCH_GET_JOB_SIZE = 200;
+    private static final int BATCH_GET_URL_SIZE = 10000;
     public static final String ID = "concurrency_queue_monitor";
 
     private final long expiredTimeIntervalMs;
@@ -95,12 +96,12 @@ public class ConcurrencyQueueMonitor extends ExecuteRunner {
      */
     private void sweepExpiredJobs() {
         long minExpiredTime = System.currentTimeMillis() - expiredTimeIntervalMs;
-        List<Job> jobs = jobService.getRunningJobs(minExpiredTime, BATCH_GET_SIZE);
+        List<Job> jobs = jobService.getRunningJobs(minExpiredTime, BATCH_GET_JOB_SIZE);
         int sweepCount = 0;
         for (Job job : jobs) {
             if (jobService.isLive(job.jobId)) continue;
             logger.info("Job:{} is suspected as death", job.jobId);
-            List<URLRecord> records = urlService.getExpiredRecords(job.jobId, minExpiredTime, BATCH_GET_SIZE);
+            List<URLRecord> records = urlService.getExpiredRecords(job.jobId, minExpiredTime, BATCH_GET_URL_SIZE);
             sweepCount += records.size();
             for (URLRecord record : records) handleExpiredRecord(record);
             jobEventListener.onComplete(job.jobId, null);
