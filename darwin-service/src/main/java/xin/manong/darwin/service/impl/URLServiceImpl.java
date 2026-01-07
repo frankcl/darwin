@@ -233,6 +233,7 @@ public class URLServiceImpl extends URLService {
         String fieldName = "avg_wait_time";
         query.select(String.format("AVG(%d - push_time) as %s", System.currentTimeMillis(), fieldName));
         query.in("status", statusList).isNotNull("push_time");
+        if (StringUtils.isNotEmpty(concurrencyUnit)) query.eq("concurrency_unit", concurrencyUnit);
         List<Map<String, Object>> results = urlMapper.selectMaps(query);
         if (results.isEmpty() || results.get(0) == null) return 0L;
         return convertLongAvgValue(results.get(0).get(fieldName));
