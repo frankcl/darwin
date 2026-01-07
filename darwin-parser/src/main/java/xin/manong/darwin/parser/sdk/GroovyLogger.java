@@ -30,8 +30,8 @@ public class GroovyLogger {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(GroovyLogger.class);
     private final ThreadLocal<Logger> logger = new ThreadLocal<>();
-    private String name;
-    private GroovyLogAppender appender;
+    private final ThreadLocal<String> name = new ThreadLocal<>();
+    private final ThreadLocal<GroovyLogAppender> appender = new ThreadLocal<>();
 
     /**
      * INFO日志
@@ -69,8 +69,8 @@ public class GroovyLogger {
      * @return 日志内容
      */
     String getLogContent() {
-        if (appender == null) return null;
-        return appender.getLogContent();
+        if (appender.get() == null) return null;
+        return appender.get().getLogContent();
     }
 
     /**
@@ -79,12 +79,12 @@ public class GroovyLogger {
      * @param name 日志名称
      */
     void open(String name) {
-        this.name = name;
+        this.name.set(name);
         Logger loggerWrapper = LoggerFactory.getLogger(name);
         Layout layout = new PatternLayout(LAYOUT_PATTERN);
-        appender = new GroovyLogAppender(layout);
+        appender.set(new GroovyLogAppender(layout));
         org.apache.log4j.Logger log4jLogger = LogManager.getLogger(loggerWrapper.getName());
-        log4jLogger.addAppender(appender);
+        log4jLogger.addAppender(appender.get());
         log4jLogger.setAdditivity(false);
         log4jLogger.setLevel(Level.INFO);
         logger.set(loggerWrapper);
@@ -95,15 +95,15 @@ public class GroovyLogger {
      */
     void close() {
         logger.remove();
-        if (name != null) {
+        if (name.get() != null) {
             sweepLog4JLogger();
             sweepLoggerWrapper();
         }
-        if (appender != null) {
-            appender.close();
-            appender = null;
+        if (appender.get() != null) {
+            appender.get().close();
+            appender.remove();
         }
-        name = null;
+        name.remove();
     }
 
     /**
@@ -119,8 +119,8 @@ public class GroovyLogger {
                 LOGGER.warn("Field:{} is not found in SLF4J log factory", SLF4J_FIELD_LOGGER_MAP);
                 return;
             }
-            if (logMap.containsKey(name)) logMap.remove(name);
-            else LOGGER.warn("Logger:{} is not found in SLF4J log map", name);
+            if (logMap.containsKey(name.get())) logMap.remove(name.get());
+            else LOGGER.warn("Logger:{} is not found in SLF4J log map", name.get());
         } catch (Exception e) {
             LOGGER.error(e.getMessage(), e);
         }
@@ -139,10 +139,10 @@ public class GroovyLogger {
                 LOGGER.warn("Field:{} is not found in Log4J log manager", LOG4J_FIELD_LOGGER_HASH_TABLE);
                 return;
             }
-            ReflectArgs args = new ReflectArgs(new Class[] { String.class }, new Object[] { name });
+            ReflectArgs args = new ReflectArgs(new Class[] { String.class }, new Object[] { name.get() });
             Object key = ReflectUtil.newInstance(LOG4J_CATEGORY_KEY_CLASS, args);
             if (logTable.containsKey(key)) logTable.remove(key);
-            else LOGGER.warn("Logger:{} is not found in Log4J hash table", name);
+            else LOGGER.warn("Logger:{} is not found in Log4J hash table", name.get());
         } catch (Exception e) {
             LOGGER.error(e.getMessage(), e);
         }
