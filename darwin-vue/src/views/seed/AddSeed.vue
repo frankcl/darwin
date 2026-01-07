@@ -125,7 +125,7 @@ watchEffect(() => seed.plan_id = props.planId)
                     </el-tooltip>
                   </span>
                 </template>
-                <el-input-number v-model="seed.timeout" :min="0" :max="20000" :step="100" class="w-100p" />
+                <el-input-number v-model="seed.timeout" :min="0" :max="60000" :step="100" class="w-100p" />
               </el-form-item>
             </el-col>
           </el-row>
