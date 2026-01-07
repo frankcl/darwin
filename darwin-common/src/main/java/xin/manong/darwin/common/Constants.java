@@ -40,6 +40,7 @@ public class Constants {
     public static final int URL_STATUS_ERROR = 6;                   //错误
     public static final int URL_STATUS_OVERFLOW = 7;                //溢出
     public static final int URL_STATUS_WAIT_TIMEOUT = 8;            //等待超时
+    public static final int URL_STATUS_PARSE_ERROR = 9;             //解析错误
     public static final Map<Integer, String> SUPPORT_URL_STATUSES = new HashMap<>() {
         {
             put(URL_STATUS_FETCH_SUCCESS, "抓取成功");
@@ -51,6 +52,7 @@ public class Constants {
             put(URL_STATUS_ERROR, "错误");
             put(URL_STATUS_OVERFLOW, "溢出");
             put(URL_STATUS_WAIT_TIMEOUT, "排队超时");
+            put(URL_STATUS_PARSE_ERROR, "解析错误");
         }
     };
 

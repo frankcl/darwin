@@ -69,6 +69,7 @@ public class TextParser {
             if (!response.status) {
                 logger.error("Parse failed for url:{}, cause:{}", record.url, response.stderr);
                 context.put(Constants.DARWIN_DEBUG_MESSAGE, String.format("解析失败：%s", response.message));
+                record.status = Constants.URL_STATUS_PARSE_ERROR;
                 return;
             }
             if (response.fieldMap != null && !response.fieldMap.isEmpty()) record.fieldMap = response.fieldMap;

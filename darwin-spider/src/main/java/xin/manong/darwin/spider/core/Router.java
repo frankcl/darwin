@@ -104,8 +104,10 @@ public class Router {
                         String.format("不支持的媒体类型:%s", mediaType));
                 mediaType = spider.handle(record, context);
             }
-            record.status = Constants.URL_STATUS_FETCH_SUCCESS;
-            logger.info("Fetch success for url: {}", record.url);
+            if (record.status != Constants.URL_STATUS_PARSE_ERROR) {
+                record.status = Constants.URL_STATUS_FETCH_SUCCESS;
+                logger.info("Fetch success for url: {}", record.url);
+            }
         } catch (IOException e) {
             record.status = Constants.URL_STATUS_FETCH_FAIL;
             if (e instanceof SocketTimeoutException) {
