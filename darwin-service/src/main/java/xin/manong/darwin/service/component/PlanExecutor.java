@@ -4,6 +4,7 @@ import jakarta.annotation.Resource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.interceptor.TransactionAspectSupport;
 import xin.manong.darwin.common.Constants;
 import xin.manong.darwin.common.model.*;
@@ -67,6 +68,7 @@ public class PlanExecutor {
      * @param seedRecords 种子列表
      * @return 执行成功返回true，否则返回false
      */
+    @Transactional(rollbackFor = Exception.class)
     public boolean execute(Plan plan, List<SeedRecord> seedRecords) {
         if (!check(plan)) return false;
         Job job = Converter.convert(plan);
@@ -90,6 +92,7 @@ public class PlanExecutor {
      * @param plan 计划
      * @return 执行成功返回true，否则返回false
      */
+    @Transactional(rollbackFor = Exception.class)
     public boolean execute(Plan plan) {
         if (!check(plan)) return false;
         List<SeedRecord> seedRecords = seedService.getList(plan.planId);
