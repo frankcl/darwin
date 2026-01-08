@@ -2,8 +2,6 @@ package xin.manong.darwin.parser.sdk;
 
 import org.apache.commons.lang3.exception.ExceptionUtils;
 
-import java.util.UUID;
-
 /**
  * HTML/JSON解析器
  * 用户自定义解析器需要继承此类，实现parse接口
@@ -23,8 +21,7 @@ public abstract class HTMLParser {
      */
     public final ParseResponse execute(ParseRequest request) {
         try {
-            String name = String.format("%s$%s", HTMLParser.class.getName(), UUID.randomUUID());
-            logger.open(name);
+            logger.open();
             ParseResponse response = parse(request);
             String debugLog = logger.getLogContent();
             if (response != null && debugLog != null) response.debugLog = debugLog;
@@ -35,7 +32,7 @@ public abstract class HTMLParser {
             response.stderr = ExceptionUtils.getStackTrace(e);
             return response;
         } finally {
-            logger.close();
+            logger.reset();
         }
     }
 
