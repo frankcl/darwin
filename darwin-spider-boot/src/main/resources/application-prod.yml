@@ -5,7 +5,7 @@ weapon:
         endpoints: rmq-cn-1wy4i653l01-vpc.cn-hangzhou.rmq.aliyuncs.com:8080
         consume-id: GID-PROD-DARWIN-FETCH-URL
         listener: URLReceiver
-        consume-thread-num: 5
+        consume-thread-num: 10
         subscribes:
           - topic: PROD-DARWIN-FETCH-URL
     kafka:
