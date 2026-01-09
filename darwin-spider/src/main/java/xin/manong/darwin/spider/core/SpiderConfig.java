@@ -28,7 +28,7 @@ public class SpiderConfig {
     private static final long DEFAULT_CONNECT_TIMEOUT_SECONDS = 5L;
     private static final long DEFAULT_READ_TIMEOUT_SECONDS = 10L;
     private static final String DEFAULT_USER_AGENT =
-            "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/109.0.0.0 Safari/537.36";
+            "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36";
 
     public long maxRepeatFetchTimeIntervalMs = DEFAULT_MAX_REPEAT_FETCH_TIME_INTERVAL_MS;
     public long connectTimeoutSeconds = DEFAULT_CONNECT_TIMEOUT_SECONDS;
