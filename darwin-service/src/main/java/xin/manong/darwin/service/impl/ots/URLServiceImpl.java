@@ -136,7 +136,10 @@ public class URLServiceImpl extends URLService {
     @Override
     public boolean delete(String key) {
         URLRecord prevRecord = get(key);
-        if (prevRecord == null) throw new NotFoundException("URL记录不存在");
+        if (prevRecord == null) {
+            logger.warn("Record is not found in OTS for {}", key);
+            return false;
+        }
         Map<String, Object> keyMap = new HashMap<>();
         keyMap.put(KEY_KEY, key);
         OTSStatus status = otsClient.delete(serviceConfig.ots.urlTable, keyMap, null);

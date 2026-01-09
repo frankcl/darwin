@@ -8,9 +8,10 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import jakarta.annotation.Resource;
 import jakarta.ws.rs.BadRequestException;
-import jakarta.ws.rs.NotFoundException;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import xin.manong.darwin.common.Constants;
 import xin.manong.darwin.common.model.*;
@@ -34,6 +35,8 @@ import java.util.Optional;
  */
 @Service
 public class URLServiceImpl extends URLService {
+
+    private static final Logger logger = LoggerFactory.getLogger(URLServiceImpl.class);
 
     @Resource
     private URLMapper urlMapper;
@@ -128,7 +131,10 @@ public class URLServiceImpl extends URLService {
     @Override
     public boolean delete(String key) {
         URLRecord record = urlMapper.selectById(key);
-        if (record == null) throw new NotFoundException("URL记录不存在");
+        if (record == null) {
+            logger.warn("Record is not found for {}", key);
+            return false;
+        }
         return urlMapper.deleteById(key) > 0;
     }
 

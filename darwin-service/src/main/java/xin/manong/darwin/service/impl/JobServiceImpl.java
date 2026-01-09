@@ -51,7 +51,7 @@ public class JobServiceImpl extends JobService {
     @Override
     public boolean add(Job job) {
         LambdaQueryWrapper<Job> query = new LambdaQueryWrapper<>();
-        query.eq(Job::getName, job.getName()).eq(Job::getPlanId, job.getPlanId());
+        query.eq(Job::getJobId, job.jobId).eq(Job::getPlanId, job.planId);
         if (jobMapper.selectCount(query) > 0) throw new IllegalStateException("任务已存在");
         return jobMapper.insert(job) > 0;
     }
@@ -81,7 +81,10 @@ public class JobServiceImpl extends JobService {
     @Transactional(rollbackFor = Exception.class)
     public boolean delete(String jobId) {
         Job job = jobMapper.selectById(jobId);
-        if (job == null) throw new NotFoundException("任务不存在");
+        if (job == null) {
+            logger.warn("Job is not found for {}", jobId);
+            return false;
+        }
         if (job.status != null && job.status) throw new IllegalStateException("任务处于运行状态");
         if (!urlService.deleteByJob(jobId)) {
             logger.error("Delete records failed for job:{}", jobId);

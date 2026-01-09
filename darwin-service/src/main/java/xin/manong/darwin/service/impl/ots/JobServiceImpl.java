@@ -65,7 +65,7 @@ public class JobServiceImpl extends JobService {
     public boolean add(Job job) {
         BoolQuery boolQuery = new BoolQuery();
         List<Query> queryList = new ArrayList<>();
-        queryList.add(SearchQueryBuilder.buildTermQuery(KEY_NAME, job.name));
+        queryList.add(SearchQueryBuilder.buildTermQuery(KEY_JOB_ID, job.jobId));
         queryList.add(SearchQueryBuilder.buildTermQuery(KEY_PLAN_ID, job.planId));
         boolQuery.setFilterQueries(queryList);
         OTSSearchRequest request = new OTSSearchRequest.Builder().indexName(serviceConfig.ots.jobTable).
@@ -103,7 +103,10 @@ public class JobServiceImpl extends JobService {
         Map<String, Object> keyMap = new HashMap<>();
         keyMap.put(KEY_JOB_ID, jobId);
         KVRecord kvRecord = otsClient.get(serviceConfig.ots.jobTable, keyMap);
-        if (kvRecord == null) throw new NotFoundException("任务不存在");
+        if (kvRecord == null) {
+            logger.warn("Job is not found for {}", jobId);
+            return false;
+        }
         Boolean status = kvRecord.get(KEY_STATUS, Boolean.class);
         if (status != null && status) throw new IllegalStateException("任务处于运行状态");
         if (!urlService.deleteByJob(jobId)) {
