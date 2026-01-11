@@ -42,6 +42,7 @@ const getWaitConcurrencyUnits = async () => {
     const queueWait = await asyncConcurrencyQueueWait(conUnit.concurrency_unit)
     conUnit.wait_time = normalizeTime(queueWait.wait_time)
     conUnit.queue_ratio = queueWait.queue_ratio
+    conUnit.five_minutes_fetch_count = queueWait.five_minutes_fetch_count
     conUnit.computing = false
   })
 }
@@ -92,6 +93,11 @@ onMounted(async () => await getWaitConcurrencyUnits() )
       <el-table-column label="平均等待时间" show-overflow-tooltip>
         <template #default="scope">
           <el-text v-loading="scope.row.computing">{{ scope.row.wait_time }}</el-text>
+        </template>
+      </el-table-column>
+      <el-table-column label="最近5分钟抓取数量" show-overflow-tooltip>
+        <template #default="scope">
+          <el-text v-loading="scope.row.computing">{{ scope.row.five_minutes_fetch_count }}</el-text>
         </template>
       </el-table-column>
       <el-table-column width="160">

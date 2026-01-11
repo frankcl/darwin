@@ -324,6 +324,28 @@ public abstract class URLService {
     }
 
     /**
+     * 抓取时间范围内抓取数量
+     * 并发单元为null代表所有
+     * 抓取数量计算范围：抓取成功、抓取失败、抓取超时、解析失败、错误
+     *
+     * @param concurrencyUnit 并发单元
+     * @param fetchTimeRange 抓取时间范围
+     * @return 抓取数量
+     */
+    public long fetchTimeRangeFetchCount(String concurrencyUnit, RangeValue<Long> fetchTimeRange) {
+        URLSearchRequest searchRequest = new URLSearchRequest();
+        searchRequest.concurrencyUnit = concurrencyUnit;
+        searchRequest.statusList = new ArrayList<>();
+        searchRequest.statusList.add(Constants.URL_STATUS_FETCH_SUCCESS);
+        searchRequest.statusList.add(Constants.URL_STATUS_FETCH_FAIL);
+        searchRequest.statusList.add(Constants.URL_STATUS_PARSE_ERROR);
+        searchRequest.statusList.add(Constants.URL_STATUS_ERROR);
+        searchRequest.statusList.add(Constants.URL_STATUS_TIMEOUT);
+        searchRequest.fetchTimeRange = fetchTimeRange;
+        return selectCount(searchRequest);
+    }
+
+    /**
      * 计算并发单元平均排队等待时间
      * 如果并发单元为null，则计算所有排队数据平均等待时间
      *
