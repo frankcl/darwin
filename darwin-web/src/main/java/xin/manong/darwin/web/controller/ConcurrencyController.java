@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import xin.manong.darwin.common.model.RangeValue;
 import xin.manong.darwin.common.model.URLGroupCount;
 import xin.manong.darwin.queue.ConcurrencyControl;
 import xin.manong.darwin.queue.ConcurrencyQueue;
@@ -88,6 +89,10 @@ public class ConcurrencyController {
         QueueWait queueWait = new QueueWait();
         queueWait.waitCount = urlService.queueWaitCount(name);
         queueWait.waitTime = urlService.queueWaitTime(name);
+        RangeValue<Long> fetchTimeRange = new RangeValue<>();
+        fetchTimeRange.start = System.currentTimeMillis() - 5 * 60 * 1000L;
+        fetchTimeRange.includeLower = true;
+        queueWait.fiveMinutesFetchCount = urlService.fetchTimeRangeFetchCount(name, fetchTimeRange);
         long fetchingCount = urlService.fetchingCount(name);
         long totalCount = fetchingCount + queueWait.waitCount;
         queueWait.queueRatio = totalCount == 0L ? 0d : queueWait.waitCount * 1.0d / totalCount;

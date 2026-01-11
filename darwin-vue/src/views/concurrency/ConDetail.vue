@@ -29,6 +29,7 @@ watch(() => props.conUnit, async () => {
         <el-descriptions-item label="闲置连接">{{ conUnit.spare_records }}</el-descriptions-item>
         <el-descriptions-item label="排队比例">{{ queueWait.queue_ratio }}%</el-descriptions-item>
         <el-descriptions-item label="平均等待时间">{{ queueWait.wait_time }}</el-descriptions-item>
+        <el-descriptions-item label="最近5分钟抓取数量">{{ queueWait.five_minutes_fetch_count }}</el-descriptions-item>
       </el-descriptions>
     </darwin-card>
   </el-dialog>

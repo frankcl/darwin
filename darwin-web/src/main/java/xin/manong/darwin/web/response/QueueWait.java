@@ -37,4 +37,9 @@ public class QueueWait implements Serializable {
      */
     @JsonProperty("queue_ratio")
     public Double queueRatio;
+    /**
+     * 最近5分钟抓取数量
+     */
+    @JsonProperty("five_minutes_fetch_count")
+    public Long fiveMinutesFetchCount;
 }
