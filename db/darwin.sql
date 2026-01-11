@@ -11,7 +11,7 @@
  Target Server Version : 80041 (8.0.41)
  File Encoding         : 65001
 
- Date: 10/01/2026 19:57:45
+ Date: 11/01/2026 12:19:42
 */
 
 SET NAMES utf8mb4;
@@ -255,7 +255,7 @@ CREATE TABLE `trend` (
   PRIMARY KEY (`id`),
   KEY `INDEX_CATEGORY` (`category`) USING BTREE,
   KEY `INDEX_KEY` (`key`) USING BTREE
-) ENGINE=InnoDB AUTO_INCREMENT=5737 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=5754 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- ----------------------------
 -- Table structure for url
@@ -332,7 +332,8 @@ CREATE TABLE `url` (
   KEY `INDEX_STATUS_PLAN_ID_FETCH_TIME` (`status`,`plan_id`,`fetch_time` DESC) USING BTREE,
   KEY `INDEX_STATUS_CONTENT_TYPE_CREATE_TIME` (`status`,`content_type`,`create_time`) USING BTREE,
   KEY `INDEX_JOB_ID_STATUS_CREATE_TIME` (`job_id`,`status`,`create_time`) USING BTREE,
-  KEY `INDEX_CONCURRENCY_STATUS_PUSH_TIME` (`concurrency_unit`,`status`,`push_time`) USING BTREE
+  KEY `INDEX_CONCURRENCY_STATUS_PUSH_TIME` (`concurrency_unit`,`status`,`push_time`) USING BTREE,
+  KEY `INDEX_CONCURRENCY_STATUS_FETCH_TIME` (`concurrency_unit`,`status`,`fetch_time`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 SET FOREIGN_KEY_CHECKS = 1;
