@@ -276,7 +276,7 @@ public class URLController {
      */
     private void checkPreviewRecord(URLRecord record) {
         if (record == null) throw new NotFoundException("预览数据不存在");
-        if (record.status != Constants.URL_STATUS_FETCH_SUCCESS) throw new IllegalStateException("抓取失败");
+        if (record.httpCode != 200) throw new IllegalStateException("抓取失败");
         if (!ossService.existsByURL(record.fetchContentURL)) throw new IllegalStateException("数据失效");
     }
 }
