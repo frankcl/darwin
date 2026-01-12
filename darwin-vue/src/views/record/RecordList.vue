@@ -354,7 +354,7 @@ watchEffect(async () => await search())
             <IconFileDescription size="20" class="mr-1" />
             <span>查看</span>
           </el-button>
-          <el-button type="success" @click="preview(scope.row)" :disabled="scope.row.status !== 0">
+          <el-button type="success" @click="preview(scope.row)" :disabled="scope.row.http_code !== 200">
             <IconEye size="20" class="mr-1" />
             <span>预览</span>
           </el-button>
