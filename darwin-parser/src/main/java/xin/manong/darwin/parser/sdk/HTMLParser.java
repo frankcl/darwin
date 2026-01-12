@@ -11,7 +11,7 @@ import org.apache.commons.lang3.exception.ExceptionUtils;
  */
 public abstract class HTMLParser {
 
-    protected final GroovyLogger logger = new GroovyLogger();
+    protected static final GroovyLogger logger = new GroovyLogger();
 
     /**
      * 脚本解析

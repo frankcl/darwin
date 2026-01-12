@@ -29,8 +29,8 @@ public class GroovyLogger {
     private static final String LAYOUT_PATTERN = "%-d{yyyy-MM-dd HH:mm:ss,SSS}-%r [%p] [%t] [%X{GC}:%X{GL}] - %m%n";
 
     private static final Logger LOGGER = LoggerFactory.getLogger(GroovyLogger.class);
-    private final ThreadLocal<Logger> logger = new ThreadLocal<>();
-    private final ThreadLocal<GroovyLogAppender> appender = new ThreadLocal<>();
+    private static final ThreadLocal<Logger> logger = new ThreadLocal<>();
+    private static final ThreadLocal<GroovyLogAppender> appender = new ThreadLocal<>();
 
     /**
      * INFO日志
