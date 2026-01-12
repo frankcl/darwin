@@ -66,9 +66,11 @@ public class TextParser {
             if (rule != null) builder.ruleId(rule.id);
             RuleParseRequest request = builder.build();
             ParseResponse response = parseService.parse(request);
-            if (!response.status) {
-                logger.error("Parse failed for url:{}, cause:{}", record.url, response.stderr);
-                context.put(Constants.DARWIN_DEBUG_MESSAGE, String.format("解析失败：%s", response.message));
+            if (response == null || !response.status) {
+                logger.error("Parse failed for url:{}, cause:{}", record.url,
+                        response == null ? null : response.stderr);
+                context.put(Constants.DARWIN_DEBUG_MESSAGE, String.format(
+                        "解析失败：%s", response == null ? "" : response.message));
                 record.status = Constants.URL_STATUS_PARSE_ERROR;
                 return;
             }
