@@ -218,6 +218,7 @@ public class URLController {
         if (record.mediaType.equals(xin.manong.darwin.common.model.MediaType.APPLICATION_JSON) ||
                 record.mediaType.equals(xin.manong.darwin.common.model.MediaType.APPLICATION_XML) ||
                 record.mediaType.equals(xin.manong.darwin.common.model.MediaType.APPLICATION_JAVASCRIPT) ||
+                record.mediaType.equals(xin.manong.darwin.common.model.MediaType.APPLICATION_X_JAVASCRIPT) ||
                 record.mediaType.equals(xin.manong.darwin.common.model.MediaType.APPLICATION_XHTML) ||
                 record.mediaType.isText()) {
             byte[] byteArray = ossService.getByURL(record.fetchContentURL);
