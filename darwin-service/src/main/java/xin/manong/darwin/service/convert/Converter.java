@@ -49,6 +49,7 @@ public class Converter {
         record.linkScope = seedRecord.linkScope;
         record.planId = seedRecord.planId;
         record.allowDispatch = seedRecord.allowDispatch;
+        record.allowDispatchFail = seedRecord.allowDispatchFail;
         record.allowRepeat = true;
         record.normalize = seedRecord.normalize;
         record.httpRequest = seedRecord.httpRequest;

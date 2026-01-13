@@ -11,7 +11,7 @@
  Target Server Version : 80041 (8.0.41)
  File Encoding         : 65001
 
- Date: 11/01/2026 12:19:42
+ Date: 13/01/2026 11:07:25
 */
 
 SET NAMES utf8mb4;
@@ -133,6 +133,7 @@ CREATE TABLE `plan` (
   `creator` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
   `modifier` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
   `max_depth` int DEFAULT '3',
+  `allow_dispatch_fail` tinyint DEFAULT '0',
   PRIMARY KEY (`plan_id`),
   KEY `INDEX_APP_ID` (`app_id`) USING BTREE,
   KEY `INDEX_CREATE_TIME` (`create_time`) USING BTREE,
@@ -228,7 +229,7 @@ CREATE TABLE `seed` (
   `plan_id` varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL,
   `link_scope` int DEFAULT NULL,
   `hash` varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-  `allow_dispatch` tinyint DEFAULT '1',
+  `allow_dispatch` tinyint DEFAULT '0',
   `host` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
   `domain` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
   `normalize` tinyint DEFAULT NULL,
@@ -236,6 +237,7 @@ CREATE TABLE `seed` (
   `request_body` json DEFAULT NULL,
   `request_hash` varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
   `post_media_type` varchar(10) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `allow_dispatch_fail` tinyint DEFAULT '0',
   PRIMARY KEY (`key`),
   KEY `INDEX_HASH` (`hash`) USING BTREE,
   KEY `INDEX_HTTP_REQUEST` (`http_request`) USING BTREE
@@ -255,7 +257,7 @@ CREATE TABLE `trend` (
   PRIMARY KEY (`id`),
   KEY `INDEX_CATEGORY` (`category`) USING BTREE,
   KEY `INDEX_KEY` (`key`) USING BTREE
-) ENGINE=InnoDB AUTO_INCREMENT=5754 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=5801 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- ----------------------------
 -- Table structure for url
@@ -289,7 +291,7 @@ CREATE TABLE `url` (
   `link_scope` int DEFAULT NULL,
   `http_code` int DEFAULT NULL,
   `content_length` bigint DEFAULT NULL,
-  `allow_dispatch` tinyint DEFAULT '1',
+  `allow_dispatch` tinyint DEFAULT '0',
   `concurrency_unit` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
   `host` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
   `domain` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
@@ -305,6 +307,7 @@ CREATE TABLE `url` (
   `request_hash` varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
   `post_media_type` varchar(10) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
   `parent_key` varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `allow_dispatch_fail` tinyint DEFAULT '0',
   PRIMARY KEY (`key`),
   KEY `INDEX_HASH` (`hash`),
   KEY `INDEX_CREATE_TIME` (`create_time`) USING BTREE,

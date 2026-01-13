@@ -90,6 +90,12 @@ public class SeedRequest extends AuthenticateRequest {
     public Boolean allowDispatch = false;
 
     /**
+     * 允许分发失败数据
+     */
+    @JsonProperty("allow_dispatch_fail")
+    public Boolean allowDispatchFail = false;
+
+    /**
      * URL正规化
      */
     @JsonProperty("normalize")
@@ -123,6 +129,7 @@ public class SeedRequest extends AuthenticateRequest {
         if (fetchMethod == null) fetchMethod = Constants.FETCH_METHOD_COMMON;
         if (priority == null) priority = Constants.PRIORITY_NORMAL;
         if (allowDispatch == null) allowDispatch = false;
+        if (allowDispatchFail == null) allowDispatchFail = false;
         if (normalize == null) normalize = true;
         if (httpRequest == null) httpRequest = HTTPRequest.GET;
         if (postMediaType == null && httpRequest == HTTPRequest.POST) postMediaType = PostMediaType.JSON;
