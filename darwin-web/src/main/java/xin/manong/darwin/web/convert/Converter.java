@@ -127,6 +127,7 @@ public class Converter {
         plan.name = request.name;
         plan.status = false;
         plan.maxDepth = request.maxDepth == null ? 3 : request.maxDepth;
+        plan.allowDispatchFail = request.allowDispatchFail != null && request.allowDispatchFail;
         plan.category = request.category;
         plan.crontabExpression = request.crontabExpression;
         return plan;
@@ -147,6 +148,7 @@ public class Converter {
         plan.maxDepth = request.maxDepth;
         plan.appId = request.appId;
         plan.appName = request.appName;
+        plan.allowDispatchFail = request.allowDispatchFail;
         plan.crontabExpression = request.crontabExpression;
         return plan;
     }

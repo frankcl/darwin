@@ -50,6 +50,14 @@ public class Plan extends BaseModel {
     public Integer maxDepth;
 
     /**
+     * 允许分发抓取失败数据
+     */
+    @TableField(value = "allow_dispatch_fail")
+    @JSONField(name = "allow_dispatch_fail")
+    @JsonProperty("allow_dispatch_fail")
+    public Boolean allowDispatchFail;
+
+    /**
      * 应用ID
      */
     @TableField(value = "app_id")

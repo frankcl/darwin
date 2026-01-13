@@ -60,6 +60,12 @@ public class PlanRequest implements Serializable {
     public Integer category;
 
     /**
+     * 允许分发抓取失败数据
+     */
+    @JsonProperty("allow_dispatch_fail")
+    public Boolean allowDispatchFail;
+
+    /**
      * 检测有效性
      * 无效抛出异常
      */

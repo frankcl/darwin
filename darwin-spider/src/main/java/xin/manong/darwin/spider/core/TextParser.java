@@ -117,9 +117,10 @@ public class TextParser {
             return;
         }
         Integer maxDepth = (Integer) context.get(Constants.MAX_DEPTH);
+        Boolean allowDispatchFail = (Boolean) context.get(Constants.ALLOW_DISPATCH_FAIL);
         context.put(Constants.CHILDREN, children.size());
         context.put(Constants.INVALID_CHILDREN, children.stream().filter(
-                child -> !push(child, parent, maxDepth)).count());
+                child -> !push(child, parent, maxDepth, allowDispatchFail)).count());
     }
 
     /**
@@ -128,13 +129,15 @@ public class TextParser {
      * @param child 子链接
      * @param parent 父链接
      * @param planMaxDepth 计划最大抓取深度
+     * @param allowDispatchFail 允许分发失败数据
      * @return 推动成功返回true，否则返回false
      */
     private boolean push(URLRecord child, URLRecord parent,
-                         Integer planMaxDepth) {
+                         Integer planMaxDepth, Boolean allowDispatchFail) {
         Context context = new Context();
         try {
             context.put(Constants.DARWIN_STAGE, Constants.PROCESS_STAGE_EXTRACT);
+            child.allowDispatchFail = allowDispatchFail;
             fillChild(child, parent);
             if (!child.check()) {
                 context.put(Constants.DARWIN_DEBUG_MESSAGE, "链接非法");

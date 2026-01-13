@@ -146,6 +146,14 @@ public class SeedRecord extends BaseModel {
     public Boolean allowDispatch;
 
     /**
+     * 允许分发抓取失败数据
+     */
+    @TableField(value = "allow_dispatch_fail")
+    @JSONField(name = "allow_dispatch_fail")
+    @JsonProperty("allow_dispatch_fail")
+    public Boolean allowDispatchFail;
+
+    /**
      * 是否对URL进行正规化，默认进行normalize
      */
     @TableField(value = "normalize")
@@ -242,6 +250,7 @@ public class SeedRecord extends BaseModel {
         if (StringUtils.isEmpty(host)) host = CommonUtil.getHost(url);
         if (StringUtils.isEmpty(domain)) domain = DomainUtil.getDomain(host);
         if (allowDispatch == null) allowDispatch = false;
+        if (allowDispatchFail == null) allowDispatchFail = false;
         if (priority == null) priority = Constants.PRIORITY_NORMAL;
         if (fetchMethod == null) fetchMethod = Constants.FETCH_METHOD_COMMON;
         if (httpRequest == null) httpRequest = HTTPRequest.GET;
@@ -264,6 +273,7 @@ public class SeedRecord extends BaseModel {
     public SeedRecord() {
         key = RandomID.build();
         allowDispatch = false;
+        allowDispatchFail = false;
         httpRequest = HTTPRequest.GET;
         createTime = System.currentTimeMillis();
     }
@@ -290,6 +300,7 @@ public class SeedRecord extends BaseModel {
         priority = record.priority;
         linkScope = record.linkScope;
         allowDispatch = record.allowDispatch;
+        allowDispatchFail = record.allowDispatchFail;
         normalize = record.normalize;
         httpRequest = record.httpRequest;
         postMediaType = record.postMediaType;

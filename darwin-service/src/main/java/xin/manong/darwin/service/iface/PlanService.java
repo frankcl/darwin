@@ -64,14 +64,6 @@ public interface PlanService {
     boolean delete(String planId);
 
     /**
-     * 最大抓取深度
-     *
-     * @param planId 计划ID
-     * @return 最大抓取深度
-     */
-    Integer maxDepth(String planId);
-
-    /**
      * 搜索计划列表
      *
      * @param searchRequest 搜索请求

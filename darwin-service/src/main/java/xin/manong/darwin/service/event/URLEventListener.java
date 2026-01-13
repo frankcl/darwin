@@ -50,7 +50,9 @@ public class URLEventListener implements EventListener<String> {
      * @param context 上下文对象
      */
     private void pushMessage(URLRecord record, Context context) {
-        if (record == null || !record.allowDispatch || record.status != Constants.URL_STATUS_FETCH_SUCCESS) return;
+        if (record == null || !record.allowDispatch) return;
+        if ((record.allowDispatchFail == null || !record.allowDispatchFail) &&
+                record.status != Constants.URL_STATUS_FETCH_SUCCESS) return;
         PushResult pushResult = urlService.dispatch(record);
         if (pushResult == null) {
             context.put(Constants.DARWIN_DEBUG_MESSAGE, "推送消息失败");

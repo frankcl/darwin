@@ -93,7 +93,7 @@ watchEffect( async () => await resetPlanForm())
       </el-col>
     </el-row>
     <el-row :gutter="20">
-      <el-col :span="12">
+      <el-col :span="8">
         <el-form-item prop="category" required>
           <template #label>
             <span>计划类型</span>
@@ -109,7 +109,22 @@ watchEffect( async () => await resetPlanForm())
           </el-radio-group>
         </el-form-item>
       </el-col>
-      <el-col :span="12">
+      <el-col :span="8">
+        <el-form-item prop="allow_dispatch_fail">
+          <template #label>
+            <span>允许分发失败数据</span>
+            <el-tooltip effect="dark" placement="top"
+                        content="默认只分发抓取成功数据，允许则抓取失败数据也会分发">
+              <IconHelp size="12" class="ml-2"/>
+            </el-tooltip>
+          </template>
+          <el-radio-group v-model="plan.allow_dispatch_fail">
+            <el-radio :value="true">允许</el-radio>
+            <el-radio :value="false">禁止</el-radio>
+          </el-radio-group>
+        </el-form-item>
+      </el-col>
+      <el-col :span="8">
         <el-form-item prop="max_depth">
           <template #label>
             <span class="d-flex align-items-center">

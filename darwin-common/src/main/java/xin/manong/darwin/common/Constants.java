@@ -203,6 +203,7 @@ public class Constants {
     public static final String CHARSET = "charset";
     public static final String MEDIA_TYPE = "media_type";
     public static final String ALLOW_DISPATCH = "allow_dispatch";
+    public static final String ALLOW_DISPATCH_FAIL = "allow_dispatch_fail";
     public static final String FETCHED = "fetched";
 
     /**

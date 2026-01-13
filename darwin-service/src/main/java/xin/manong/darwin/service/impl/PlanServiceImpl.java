@@ -119,13 +119,6 @@ public class PlanServiceImpl implements PlanService {
     }
 
     @Override
-    public Integer maxDepth(String planId) {
-        Plan plan = get(planId);
-        if (plan == null) return null;
-        return plan.maxDepth;
-    }
-
-    @Override
     public Pager<Plan> search(PlanSearchRequest searchRequest) {
         if (searchRequest == null) searchRequest = new PlanSearchRequest();
         if (searchRequest.pageNum == null || searchRequest.pageNum < 1) searchRequest.pageNum = Constants.DEFAULT_PAGE_NUM;
