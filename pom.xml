@@ -21,7 +21,7 @@
         <module>darwin-web</module>
     </modules>
 
-    <version>0.0.2</version>
+    <version>0.0.3</version>
     <name>darwin</name>
     <description>data crawler</description>
     <url>https://github.com/frankcl/darwin</url>
@@ -85,7 +85,7 @@
         <tablestore.version>5.13.10</tablestore.version>
         <weapon.version>0.2.7</weapon.version>
         <hylian.version>0.0.1</hylian.version>
-        <darwin.version>0.0.2</darwin.version>
+        <darwin.version>0.0.3</darwin.version>
     </properties>
 
     <profiles>
