@@ -18,6 +18,7 @@ const emits = defineEmits(['close'])
 const userStore = useUserStore()
 const formRef = useTemplateRef('form')
 const plan = reactive({
+  allow_dispatch_fail: false,
   max_depth: 3,
   category: 0
 })
@@ -55,7 +56,7 @@ const add = async () => {
           <el-input v-model="plan.crontab_expression" clearable placeholder="0 0/10 * * * ?   从0分开始每10分钟调度1次" />
         </el-form-item>
         <el-row>
-          <el-col :span="12">
+          <el-col :span="8">
             <el-form-item prop="category">
               <template #label>
                 <span>计划类型</span>
@@ -71,7 +72,22 @@ const add = async () => {
               </el-radio-group>
             </el-form-item>
           </el-col>
-          <el-col :span="12">
+          <el-col :span="8">
+            <el-form-item prop="allow_dispatch_fail">
+              <template #label>
+                <span>允许分发失败数据</span>
+                <el-tooltip effect="dark" placement="top"
+                            content="默认只分发抓取成功数据，允许则抓取失败数据也会分发">
+                  <IconHelp size="12" class="ml-2"/>
+                </el-tooltip>
+              </template>
+              <el-radio-group v-model="plan.allow_dispatch_fail">
+                <el-radio :value="true">允许</el-radio>
+                <el-radio :value="false">禁止</el-radio>
+              </el-radio-group>
+            </el-form-item>
+          </el-col>
+          <el-col :span="8">
             <el-form-item prop="max_depth">
               <template #label>
                 <span class="d-flex align-items-center">

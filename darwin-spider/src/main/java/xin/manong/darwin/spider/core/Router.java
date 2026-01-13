@@ -9,6 +9,7 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import xin.manong.darwin.common.Constants;
 import xin.manong.darwin.common.model.MediaType;
+import xin.manong.darwin.common.model.Plan;
 import xin.manong.darwin.common.model.URLRecord;
 import xin.manong.darwin.log.core.AspectLogSupport;
 import xin.manong.darwin.queue.ConcurrencyControl;
@@ -87,8 +88,11 @@ public class Router {
             if (!passConcurrency) return;
             concurrencyControl.putConnection(record.concurrencyUnit, record.key);
             crawlDelayCheck(record);
-            Integer maxDepth = planService.maxDepth(record.planId);
-            context.put(Constants.MAX_DEPTH, maxDepth);
+            Plan plan = planService.get(record.planId);
+            if (plan != null) {
+                context.put(Constants.MAX_DEPTH, plan.maxDepth);
+                context.put(Constants.ALLOW_DISPATCH_FAIL, plan.allowDispatchFail);
+            }
             record.fetchTime = System.currentTimeMillis();
             URLRecord prevRecord = fetchedRecord(record);
             MediaType mediaType;

@@ -65,12 +65,18 @@ public class PlanUpdateRequest implements Serializable {
     public Integer category;
 
     /**
+     * 允许分发抓取失败数据
+     */
+    @JsonProperty("allow_dispatch_fail")
+    public Boolean allowDispatchFail;
+
+    /**
      * 检测有效性
      * 无效抛出异常
      */
     public void check() {
         if (StringUtils.isEmpty(planId)) throw new BadRequestException("计划ID为空");
-        if (StringUtils.isEmpty(name) && maxDepth == null && category == null) {
+        if (StringUtils.isEmpty(name) && maxDepth == null && category == null && allowDispatchFail == null) {
             throw new BadRequestException("更新计划信息为空");
         }
         if (category != null && !Constants.SUPPORT_PLAN_CATEGORIES.containsKey(category)) {
