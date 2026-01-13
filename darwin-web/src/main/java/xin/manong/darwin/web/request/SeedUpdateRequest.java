@@ -89,6 +89,12 @@ public class SeedUpdateRequest implements Serializable {
     public Boolean allowDispatch;
 
     /**
+     * 允许分发失败数据
+     */
+    @JsonProperty("allow_dispatch_fail")
+    public Boolean allowDispatchFail;
+
+    /**
      * URL正规化
      */
     @JsonProperty("normalize")
@@ -119,8 +125,9 @@ public class SeedUpdateRequest implements Serializable {
     public void check() {
         if (StringUtils.isEmpty(key)) throw new BadRequestException("种子key为空");
         if (StringUtils.isEmpty(url) && fetchMethod == null && priority == null && postMediaType == null &&
-                timeout == null && linkScope == null && allowDispatch == null && httpRequest == null &&
-                normalize == null && headers.isEmpty() && customMap.isEmpty() && requestBody.isEmpty()) {
+                timeout == null && linkScope == null && allowDispatch == null && allowDispatchFail == null &&
+                httpRequest == null && normalize == null && headers.isEmpty() &&
+                customMap.isEmpty() && requestBody.isEmpty()) {
             throw new BadRequestException("种子更新信息为空");
         }
         if (fetchMethod != null && !Constants.SUPPORT_FETCH_METHODS.containsKey(fetchMethod)) {

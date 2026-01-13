@@ -167,6 +167,7 @@ public class Converter {
         record.linkScope = request.linkScope;
         record.priority = request.priority;
         record.allowDispatch = request.allowDispatch;
+        record.allowDispatchFail = request.allowDispatchFail;
         record.normalize = request.normalize;
         record.httpRequest = request.httpRequest;
         record.postMediaType = request.postMediaType;
@@ -193,6 +194,7 @@ public class Converter {
         record.priority = request.priority;
         record.timeout = request.timeout;
         record.allowDispatch = request.allowDispatch;
+        record.allowDispatchFail = request.allowDispatchFail;
         record.normalize = request.normalize;
         record.httpRequest = request.httpRequest;
         record.postMediaType = request.postMediaType;
