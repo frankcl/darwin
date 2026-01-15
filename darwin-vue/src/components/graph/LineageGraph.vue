@@ -1,10 +1,64 @@
 <script setup>
 import go, { Routing, TextOverflow, Wrap } from 'gojs'
 import { onUnmounted, shallowRef, watch } from 'vue'
+import { writeClipboard } from '@/common/Clipboard'
+import { showMessage, SUCCESS } from '@/common/Feedback'
 import { asyncGetLineageChildren, asyncGetLineageNode } from '@/common/AsyncRequest'
+
+go.Shape.defineFigureGenerator('Document', (shape, w, h) => {
+  const geo = new go.Geometry()
+  h = h / 0.8
+  const fig = new go.PathFigure(0, 0.7 * h, true)
+  geo.add(fig)
+  fig.add(new go.PathSegment(go.SegmentType.Line, 0, 0))
+  fig.add(new go.PathSegment(go.SegmentType.Line, w, 0))
+  fig.add(new go.PathSegment(go.SegmentType.Line, w, 0.7 * h))
+  fig.add(new go.PathSegment(go.SegmentType.Bezier, 0, 0.7 * h, 0.5 * w, 0.4 * h, 0.5 * w, h).close())
+  geo.spot1 = go.Spot.TopLeft
+  geo.spot2 = new go.Spot(1, 0.6)
+  return geo
+})
+
+go.Shape.defineFigureGenerator('MultiDocument', (shape, w, h) => {
+  const geo = new go.Geometry()
+  h = h / 0.8
+  const fig = new go.PathFigure(w, 0, true)
+  geo.add(fig)
+  // Outline
+  fig.add(new go.PathSegment(go.SegmentType.Line, w, 0.5 * h))
+  fig.add(new go.PathSegment(go.SegmentType.Bezier, 0.9 * w, 0.44 * h, 0.96 * w, 0.47 * h, 0.93 * w, 0.45 * h))
+  fig.add(new go.PathSegment(go.SegmentType.Line, 0.9 * w, 0.6 * h))
+  fig.add(new go.PathSegment(go.SegmentType.Bezier, 0.8 * w, 0.54 * h, 0.86 * w, 0.57 * h, 0.83 * w, 0.55 * h))
+  fig.add(new go.PathSegment(go.SegmentType.Line, 0.8 * w, 0.7 * h))
+  fig.add(new go.PathSegment(go.SegmentType.Bezier, 0, 0.7 * h, 0.4 * w, 0.4 * h, 0.4 * w, h))
+  fig.add(new go.PathSegment(go.SegmentType.Line, 0, 0.2 * h))
+  fig.add(new go.PathSegment(go.SegmentType.Line, 0.1 * w, 0.2 * h))
+  fig.add(new go.PathSegment(go.SegmentType.Line, 0.1 * w, 0.1 * h))
+  fig.add(new go.PathSegment(go.SegmentType.Line, 0.2 * w, 0.1 * h))
+  fig.add(new go.PathSegment(go.SegmentType.Line, 0.2 * w, 0).close())
+  const fig2 = new go.PathFigure(0.1 * w, 0.2 * h, false)
+  geo.add(fig2)
+  // Inside lines
+  fig2.add(new go.PathSegment(go.SegmentType.Line, 0.8 * w, 0.2 * h))
+  fig2.add(new go.PathSegment(go.SegmentType.Line, 0.8 * w, 0.54 * h))
+  fig2.add(new go.PathSegment(go.SegmentType.Move, 0.2 * w, 0.1 * h))
+  fig2.add(new go.PathSegment(go.SegmentType.Line, 0.9 * w, 0.1 * h))
+  fig2.add(new go.PathSegment(go.SegmentType.Line, 0.9 * w, 0.44 * h))
+  geo.spot1 = new go.Spot(0, 0.25)
+  geo.spot2 = new go.Spot(0.8, 0.77)
+  return geo
+})
 
 const props = defineProps({ node: Object })
 const diagram = shallowRef()
+
+const copyURL = async btn => {
+  if (btn.elements.count > 0) btn.removeAt(btn.elements.count - 1)
+  btn.add(new go.Shape('MultiDocument', { width: 14, height: 14, fill: null }))
+  const node = btn.part.adornedPart.data
+  await writeClipboard(node.text)
+  showMessage('复制链接成功', SUCCESS)
+}
 
 const findParent = async node => {
   if (!node.parent_key || node.parent) return
@@ -87,7 +141,22 @@ const initDiagram = async () => {
     .add(
       new go.Panel('Auto').add(
         new go.Shape('RoundedRectangle', { fill: null, stroke: colors.pink, strokeWidth: 3 }),
-        new go.Placeholder()))
+        new go.Placeholder()
+      ),
+      go.GraphObject.build('Button', {
+        alignment: go.Spot.TopRight,
+        '_buttonFillOver': 'transparent',
+        '_buttonFillNormal': 'transparent',
+        '_buttonFillPressed': 'transparent',
+        '_buttonStrokeWidth': 0,
+        '_buttonStrokeOver': null,
+        '_buttonStrokeNormal': null,
+        '_buttonStrokePressed': null,
+        click: (e, btn) => copyURL(btn),
+        toolTip: go.GraphObject.build('ToolTip').add(new go.TextBlock({ margin: 8, text: '点击复制' }))
+      }).add(
+        new go.Shape('Document', { width: 14, height: 14, fill: null }))
+    )
 
   const linkTemplate = new go.Link({
     isShadowed: true,

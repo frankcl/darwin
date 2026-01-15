@@ -114,6 +114,7 @@ public class Router {
             }
         } catch (IOException e) {
             record.status = Constants.URL_STATUS_FETCH_FAIL;
+            if (record.httpCode == null) record.httpCode = -1;
             if (e instanceof SocketTimeoutException) {
                 record.status = Constants.URL_STATUS_TIMEOUT;
                 context.put(Constants.DARWIN_DEBUG_MESSAGE, "抓取超时");
@@ -125,6 +126,7 @@ public class Router {
             logger.error(e.getMessage(), e);
         } catch (Throwable t) {
             record.status = Constants.URL_STATUS_ERROR;
+            if (record.httpCode == null) record.httpCode = -1;
             context.put(Constants.DARWIN_DEBUG_MESSAGE, "抓取数据异常");
             context.put(Constants.DARWIN_STACK_TRACE, ExceptionUtils.getStackTrace(t));
             logger.error("Fetch error for url: {}", record.url);
