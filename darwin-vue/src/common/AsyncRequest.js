@@ -46,6 +46,7 @@ export const asyncRollbackRule = async request => await AxiosRequest.post('/api/
 export const asyncCompileScript = async request => await AxiosRequest.post('/api/debug/compileScript', request)
 export const asyncDebugScript = async request => await AxiosRequest.post('/api/debug/debugScript', request, {timeout: 30000})
 export const asyncDebugURL = async request => await AxiosRequest.get('/api/debug/debugURL', {params: request, timeout: 30000})
+export const asyncFetchSeed = async key => await AxiosRequest.get('/api/seed/fetch', {params: {key: key}})
 export const asyncGetSeed = async key => await AxiosRequest.get('/api/seed/get', {params: {key: key}})
 export const asyncSearchSeed = async request => await AxiosRequest.get('/api/seed/search', {params: request})
 export const asyncAddSeed = async seed => await AxiosRequest.put('/api/seed/add', seed)

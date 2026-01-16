@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.*;
 import xin.manong.darwin.common.model.Pager;
 import xin.manong.darwin.common.model.Plan;
 import xin.manong.darwin.common.model.SeedRecord;
+import xin.manong.darwin.service.component.PlanExecutor;
 import xin.manong.darwin.service.iface.PlanService;
 import xin.manong.darwin.service.iface.SeedService;
 import xin.manong.darwin.service.request.SeedSearchRequest;
@@ -18,6 +19,7 @@ import xin.manong.darwin.common.request.SeedRequest;
 import xin.manong.darwin.web.request.SeedUpdateRequest;
 import xin.manong.weapon.spring.boot.aspect.EnableWebLogAspect;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -37,7 +39,35 @@ public class SeedController {
     @Resource
     private PlanService planService;
     @Resource
+    private PlanExecutor planExecutor;
+    @Resource
     private PermissionSupport permissionSupport;
+
+    /**
+     * 抓取种子
+     *
+     * @param key 种子key
+     * @return 成功返回true，否则返回false
+     */
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("fetch")
+    @GetMapping("fetch")
+    public Boolean fetch(@QueryParam("key") String key) {
+        if (StringUtils.isEmpty(key)) throw new BadRequestException("种子key缺失");
+        SeedRecord seedRecord = seedService.get(key);
+        if (seedRecord == null) throw new NotFoundException("种子不存在");
+        Plan plan = planService.get(seedRecord.planId);
+        if (plan == null) throw new NotFoundException("计划不存在");
+        permissionSupport.checkAppPermission(plan.appId);
+        if (plan.status == null || !plan.status) throw new IllegalStateException("计划处于关闭状态");
+        List<SeedRecord> seedRecords = new ArrayList<>();
+        seedRecords.add(seedRecord);
+        planService.beforeOpenExecute(seedRecord.planId, seedRecords);
+        if (!planExecutor.checkBeforeExecute()) throw new IllegalStateException("并发队列内存处于危险状态");
+        if (!planExecutor.execute(plan, seedRecords)) throw new InternalServerErrorException("执行种子抓取计划失败");
+        return true;
+    }
 
     /**
      * 根据key获取种子URL记录
@@ -50,7 +80,7 @@ public class SeedController {
     @Path("get")
     @GetMapping("get")
     public SeedRecord get(@QueryParam("key") String key) {
-        if (StringUtils.isEmpty(key)) throw new BadRequestException("key缺失");
+        if (StringUtils.isEmpty(key)) throw new BadRequestException("种子key缺失");
         return seedService.get(key);
     }
 

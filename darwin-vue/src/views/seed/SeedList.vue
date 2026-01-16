@@ -1,5 +1,5 @@
 <script setup>
-import { IconBug, IconCopy, IconCopyCheck, IconEdit, IconPlus, IconTrash } from '@tabler/icons-vue'
+import { IconBug, IconCopy, IconCopyCheck, IconEdit, IconPlus, IconTrash, IconWorldDownload } from '@tabler/icons-vue'
 import { reactive, ref, watchEffect } from 'vue'
 import {
   ElButton, ElCol, ElConfigProvider, ElForm, ElFormItem, ElInput, ElLink,
@@ -11,6 +11,7 @@ import { writeClipboard } from '@/common/Clipboard'
 import { fetchMethodMap, priorityMap } from '@/common/Constants'
 import { asyncExecuteAfterConfirming, ERROR, showMessage, SUCCESS } from '@/common/Feedback'
 import {
+  asyncFetchSeed,
   asyncRemoveSeed,
   asyncRemovePlanSeeds,
   asyncSearchSeed,
@@ -51,6 +52,16 @@ const update = key => {
 const debug = key => {
   seedKey.value = key
   openDebug.value = true
+}
+
+const fetch = async key => {
+  const success = await asyncExecuteAfterConfirming(asyncFetchSeed, key)
+  if (success === undefined) return
+  if (!success) {
+    showMessage('抓取种子失败', ERROR)
+    return
+  }
+  showMessage('抓取种子成功', SUCCESS)
 }
 
 const remove = async key => {
@@ -125,7 +136,7 @@ watchEffect(async () => await search())
     <el-table-column prop="fetch_method" label="抓取方式" width="100" show-overflow-tooltip>
       <template #default="scope">{{ fetchMethodMap[scope.row.fetch_method] }}</template>
     </el-table-column>
-    <el-table-column width="320">
+    <el-table-column width="370">
       <template #header>操作</template>
       <template #default="scope">
         <el-button type="primary" @click="update(scope.row.key)" :disabled="!userStore.injected">
@@ -136,6 +147,10 @@ watchEffect(async () => await search())
                    :disabled="!userStore.injected">
           <IconBug size="20" class="mr-1" />
           <span>调试</span>
+        </el-button>
+        <el-button type="warning" @click="fetch(scope.row.key)" :disabled="!userStore.injected">
+          <IconWorldDownload size="20" class="mr-1" />
+          <span>抓取</span>
         </el-button>
         <el-button type="danger" @click="remove(scope.row.key)" :disabled="!userStore.injected">
           <IconTrash size="20" class="mr-1" />
