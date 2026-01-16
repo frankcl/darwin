@@ -136,7 +136,7 @@ watchEffect(async () => await search())
     <el-table-column prop="fetch_method" label="抓取方式" width="100" show-overflow-tooltip>
       <template #default="scope">{{ fetchMethodMap[scope.row.fetch_method] }}</template>
     </el-table-column>
-    <el-table-column width="370">
+    <el-table-column width="380">
       <template #header>操作</template>
       <template #default="scope">
         <el-button type="primary" @click="update(scope.row.key)" :disabled="!userStore.injected">
