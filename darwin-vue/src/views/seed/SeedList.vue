@@ -1,5 +1,5 @@
 <script setup>
-import { IconBug, IconCopy, IconCopyCheck, IconEdit, IconPlus, IconTrash } from '@tabler/icons-vue'
+import { IconBug, IconCopy, IconCopyCheck, IconEdit, IconPlus, IconTrash, IconWorldDownload } from '@tabler/icons-vue'
 import { reactive, ref, watchEffect } from 'vue'
 import {
   ElButton, ElCol, ElConfigProvider, ElForm, ElFormItem, ElInput, ElLink,
@@ -136,7 +136,7 @@ watchEffect(async () => await search())
     <el-table-column prop="fetch_method" label="抓取方式" width="100" show-overflow-tooltip>
       <template #default="scope">{{ fetchMethodMap[scope.row.fetch_method] }}</template>
     </el-table-column>
-    <el-table-column width="350">
+    <el-table-column width="370">
       <template #header>操作</template>
       <template #default="scope">
         <el-button type="primary" @click="update(scope.row.key)" :disabled="!userStore.injected">
@@ -149,7 +149,7 @@ watchEffect(async () => await search())
           <span>调试</span>
         </el-button>
         <el-button type="warning" @click="fetch(scope.row.key)" :disabled="!userStore.injected">
-          <IconBug size="20" class="mr-1" />
+          <IconWorldDownload size="20" class="mr-1" />
           <span>抓取</span>
         </el-button>
         <el-button type="danger" @click="remove(scope.row.key)" :disabled="!userStore.injected">
