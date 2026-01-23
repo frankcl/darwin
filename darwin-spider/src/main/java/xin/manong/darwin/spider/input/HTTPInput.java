@@ -52,7 +52,9 @@ public class HTTPInput extends Input {
         if (requestMethod == RequestMethod.POST) builder.params(record.requestBody).format(buildRequestFormat());
         HttpRequest httpRequest = builder.build();
         if (!StringUtils.isEmpty(config.userAgent)) httpRequest.headers.put(HEADER_USER_AGENT, config.userAgent);
-        if (!StringUtils.isEmpty(record.parentURL)) httpRequest.headers.put(HEADER_REFERER, record.parentURL);
+        if (!StringUtils.isEmpty(record.parentURL)) {
+            httpRequest.headers.put(HEADER_REFERER, CommonUtil.encodeURL(record.parentURL));
+        }
         String host = CommonUtil.getHost(record.url);
         if (!StringUtils.isEmpty(host) && !CommonUtil.isValidIP(host)) httpRequest.headers.put(HEADER_HOST, host);
         if (record.headers != null && !record.headers.isEmpty()) httpRequest.headers.putAll(record.headers);
