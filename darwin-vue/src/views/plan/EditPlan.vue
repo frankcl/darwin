@@ -134,7 +134,7 @@ watchEffect( async () => await resetPlanForm())
               </el-tooltip>
             </span>
           </template>
-          <el-input-number :min="1" :max="6" v-model="plan.max_depth" clearable />
+          <el-input-number :min="1" :max="10" v-model="plan.max_depth" clearable />
         </el-form-item>
       </el-col>
     </el-row>
