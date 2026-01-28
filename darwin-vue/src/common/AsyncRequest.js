@@ -3,7 +3,7 @@ import AxiosRequest from '@/common/AxiosRequest'
 
 export const asyncLogout = async () => await AxiosRequest.get('/api/logout')
 export const asyncCurrentUser = async () => await AxiosRequest.get('/api/user/currentUser')
-export const asyncAllUsers = async () => await AxiosRequest.get('/api/user/allUsers')
+export const asyncAllUsers = async () => await AxiosRequest.get('/api/user/getAll')
 export const asyncGetApp = async id => await AxiosRequest.get('/api/app/get', {params: {id: id}})
 export const asyncSearchApp = async request => await AxiosRequest.get('/api/app/search', {params: request})
 export const asyncRemoveApp = async id => await AxiosRequest.delete('/api/app/delete', {params: {id: id}})
