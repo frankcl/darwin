@@ -46,7 +46,7 @@ hylian:
         - api/app_secret/randomAccessKey
         - api/app_secret/randomSecretKey
         - api/app_user/getAppUsers
-        - api/user/allUsers
+        - api/user/getAll
         - api/plan/get
         - api/plan/search
         - api/job/get

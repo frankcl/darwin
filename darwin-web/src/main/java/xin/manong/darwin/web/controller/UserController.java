@@ -54,10 +54,10 @@ public class UserController {
      */
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @Path("allUsers")
-    @GetMapping("allUsers")
-    public List<User> allUsers() {
-        return userServiceSupport.getAllUsers();
+    @Path("getAll")
+    @GetMapping("getAll")
+    public List<User> getAll() {
+        return userServiceSupport.getUsers();
     }
 
 }
