@@ -1,5 +1,6 @@
 package xin.manong.darwin.spider.input;
 
+import lombok.Setter;
 import okhttp3.MediaType;
 import okhttp3.Response;
 import okhttp3.ResponseBody;
@@ -7,6 +8,7 @@ import org.apache.commons.lang3.StringUtils;
 import xin.manong.darwin.common.model.HTTPRequest;
 import xin.manong.darwin.common.model.PostMediaType;
 import xin.manong.darwin.common.model.URLRecord;
+import xin.manong.darwin.service.iface.CookieService;
 import xin.manong.darwin.spider.core.SpiderConfig;
 import xin.manong.weapon.base.http.HttpClient;
 import xin.manong.weapon.base.http.HttpRequest;
@@ -28,10 +30,13 @@ public class HTTPInput extends Input {
     private static final String HEADER_USER_AGENT = "User-Agent";
     private static final String HEADER_REFERER = "Referer";
     private static final String HEADER_HOST = "Host";
+    private static final String HEADER_COOKIE = "Cookie";
 
     private final URLRecord record;
     private final HttpClient httpClient;
     private final SpiderConfig config;
+    @Setter
+    private CookieService cookieService;
 
     private Response httpResponse;
 
@@ -54,6 +59,10 @@ public class HTTPInput extends Input {
         if (!StringUtils.isEmpty(config.userAgent)) httpRequest.headers.put(HEADER_USER_AGENT, config.userAgent);
         if (!StringUtils.isEmpty(record.parentURL)) {
             httpRequest.headers.put(HEADER_REFERER, CommonUtil.encodeURL(record.parentURL));
+        }
+        if (cookieService != null && record.systemCookie != null && record.systemCookie) {
+            String cookie = cookieService.getCookie(record);
+            if (StringUtils.isNotEmpty(cookie)) httpRequest.headers.put(HEADER_COOKIE, cookie);
         }
         String host = CommonUtil.getHost(record.url);
         if (!StringUtils.isEmpty(host) && !CommonUtil.isValidIP(host)) httpRequest.headers.put(HEADER_HOST, host);

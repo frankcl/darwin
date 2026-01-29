@@ -36,7 +36,7 @@ onUnmounted(() => window.removeEventListener('resize', setSidebarType))
        :data-sidebartype="sidebarType" data-sidebar-position="fixed" data-header-position="fixed">
     <aside class="left-sidebar">
       <div class="brand-logo align-items-center justify-content-between d-flex">
-        <el-link @click="router.push({ path: '/home' })" :underline="false" class="cursor-pointer">
+        <el-link @click="router.push({ path: '/home' })" underline="never" class="cursor-pointer">
           <el-image :src="ImageLogo" fit="fill" />
         </el-link>
         <div class="d-xl-none cursor-pointer ml-4" @click="hideSidebar"><IconX color="#5a6a85" /></div>

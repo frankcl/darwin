@@ -1,6 +1,6 @@
 <script setup>
 import {
-  IconApps, IconClockHour9, IconCpu, IconDashboard,
+  IconApps, IconClockHour9, IconCookie, IconCpu, IconDashboard,
   IconDatabase, IconDeviceHeartMonitor, IconKey, IconNetwork,
   IconSettings, IconSpider, IconStackFront
 } from '@tabler/icons-vue'
@@ -84,6 +84,13 @@ watch(() => route.fullPath, () => activeLink.value = route.fullPath)
            @click="handleClick('/proxy/search')">
           <IconNetwork size="22" />
           <span>代理管理</span>
+        </a>
+      </li>
+      <li class="sidebar-menu-item">
+        <a class="sidebar-menu-link" :class="{ active: activeLink === '/cookie/control'}"
+           @click="handleClick('/cookie/control')">
+          <IconCookie size="22" />
+          <span>Cookie管理</span>
         </a>
       </li>
       <li class="sidebar-menu-cap">平台管理</li>

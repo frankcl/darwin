@@ -163,6 +163,15 @@ public class SeedRecord extends BaseModel {
     public Boolean normalize;
 
     /**
+     * 系统设置Cookie
+     */
+    @TableField(value = "system_cookie")
+    @Column(name = "system_cookie")
+    @JSONField(name = "system_cookie")
+    @JsonProperty("system_cookie")
+    public Boolean systemCookie;
+
+    /**
      * host
      */
     @TableField(value = "host")
@@ -302,6 +311,7 @@ public class SeedRecord extends BaseModel {
         allowDispatch = record.allowDispatch;
         allowDispatchFail = record.allowDispatchFail;
         normalize = record.normalize;
+        systemCookie = record.systemCookie;
         httpRequest = record.httpRequest;
         postMediaType = record.postMediaType;
         requestHash = record.requestHash;

@@ -5,10 +5,7 @@ import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import xin.manong.darwin.common.model.RangeValue;
 import xin.manong.darwin.common.model.URLGroupCount;
 import xin.manong.darwin.queue.ConcurrencyControl;
@@ -151,7 +148,7 @@ public class ConcurrencyController {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @Path("updateDefaultCrawlDelay")
-    @GetMapping("updateDefaultCrawlDelay")
+    @PostMapping("updateDefaultCrawlDelay")
     public boolean updateDefaultCrawlDelay(@RequestBody CrawlDelayUpdateRequest request) {
         request.check();
         permissionSupport.checkAdmin();
@@ -169,7 +166,7 @@ public class ConcurrencyController {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @Path("updateCrawlDelayMap")
-    @GetMapping("updateCrawlDelayMap")
+    @PostMapping("updateCrawlDelayMap")
     public boolean updateCrawlDelayMap(@RequestBody Map<String, Long> crawlDelayMap) {
         if (crawlDelayMap == null) throw new BadRequestException("抓取间隔配置为空");
         permissionSupport.checkAdmin();
@@ -213,7 +210,7 @@ public class ConcurrencyController {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @Path("updateDefaultConcurrency")
-    @GetMapping("updateDefaultConcurrency")
+    @PostMapping("updateDefaultConcurrency")
     public boolean updateDefaultConcurrency(@RequestBody ConcurrencyUpdateRequest request) {
         request.check();
         permissionSupport.checkAdmin();
@@ -231,7 +228,7 @@ public class ConcurrencyController {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @Path("updateConcurrencyConnectionMap")
-    @GetMapping("updateConcurrencyConnectionMap")
+    @PostMapping("updateConcurrencyConnectionMap")
     public boolean updateConcurrencyConnectionMap(@RequestBody Map<String, Integer> concurrencyConnectionMap) {
         if (concurrencyConnectionMap == null) throw new BadRequestException("并发连接配置为空");
         permissionSupport.checkAdmin();

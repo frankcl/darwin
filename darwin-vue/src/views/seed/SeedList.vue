@@ -124,7 +124,7 @@ watchEffect(async () => await search())
         <span class="d-flex align-items-center">
           <IconCopyCheck v-if="copiedURL === `URL#${scope.row.key}`" class="flex-shrink-0"  size="16" />
           <IconCopy v-else class="flex-shrink-0" @click="copy(scope.row)" size="16" />
-          <el-link class="ml-2" :href="scope.row.url" :underline="false" target="_blank">
+          <el-link class="ml-2" :href="scope.row.url" underline="never" target="_blank">
             {{ scope.row.url }}
           </el-link>
         </span>

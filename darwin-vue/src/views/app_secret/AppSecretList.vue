@@ -95,6 +95,9 @@ watchEffect(() => search())
       <el-table-column prop="name" label="秘钥名称" show-overflow-tooltip>
         <template #default="scope">{{ scope.row.name }}</template>
       </el-table-column>
+      <el-table-column prop="type" label="秘钥类型" show-overflow-tooltip>
+        <template #default="scope">{{ scope.row.app_id === -1 ? '系统秘钥' : '应用秘钥' }}</template>
+      </el-table-column>
       <el-table-column prop="app_name" label="所属应用" show-overflow-tooltip>
         <template #default="scope">{{ scope.row.app_name }}</template>
       </el-table-column>

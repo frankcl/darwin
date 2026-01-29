@@ -28,8 +28,11 @@
  *   httpRequest: HTTP请求方式, 支持POST和GET, 默认GET,
  *   postMediaType: POST数据类型, 支持JSON和FORM, 默认JSON,
  *   requestBody: POST请求体,
+ *   systemCookie: 是否系统设置Cookie，布尔值，默认false
+ *   normalize: 是否进行正规化，布尔值，默认为true
  *   allowRepeat: 是否允许重复抓取, 布尔值, 默认false,
- *   allowDispatch: 是否允许分发, 布尔值, 默认true,
+ *   allowDispatch: 是否允许分发, 布尔值, 默认false,
+ *   allowDispatchFail: 是否允许分发抓取失败数据, 布尔值, 默认false,
  *   fieldMap: 结构化数据
  *   customMap: 自定义数据
  * }

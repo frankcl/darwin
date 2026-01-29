@@ -51,7 +51,7 @@ onUnmounted(() => window.removeEventListener('click', handleClick))
   <nav class="navbar">
     <ul class="navbar-nav">
       <li class="d-xl-none nav-item">
-        <el-link class="nav-link nav-icon-hover" :underline="false" @click="emits('showSidebar')">
+        <el-link class="nav-link nav-icon-hover" underline="never" @click="emits('showSidebar')">
           <IconMenu2 />
         </el-link>
       </li>
@@ -60,7 +60,7 @@ onUnmounted(() => window.removeEventListener('click', handleClick))
       <ul class="navbar-nav">
         <li class="dropdown" :class="{ open: isOpenDropdownMenu }">
           <div ref="navUser" class="d-flex navbar-user align-items-center">
-            <el-link class="nav-link" :underline="false">
+            <el-link class="nav-link" underline="never">
               <el-avatar shape="circle" fit="cover" :src="userStore.avatar || ImageGuest" />
               <div class="flex-grow-1 ml-3">
                 <span class="d-block fs-m fw-500">{{ userStore.name || '游客' }}</span>
@@ -74,17 +74,17 @@ onUnmounted(() => window.removeEventListener('click', handleClick))
           </div>
           <ul ref="dropdownMenu" class="dropdown-menu" :class="{ 'd-none': !isOpenDropdownMenu }">
             <li v-if="checkLogin()">
-              <el-link class="dropdown-link" :underline="false">
+              <el-link class="dropdown-link" underline="never">
                 <IconHelp size="20" /><span class="ml-2">帮助</span>
               </el-link>
             </li>
             <li v-else>
-              <el-link class="dropdown-link" :underline="false" :href="loginURL">
+              <el-link class="dropdown-link" underline="never" :href="loginURL">
                 <IconUserPlus size="20" /><span class="ml-2">注册/登录</span>
               </el-link>
             </li>
             <li v-if="checkLogin()">
-              <el-link class="dropdown-link" :underline="false" @click="handleLogout">
+              <el-link class="dropdown-link" underline="never" @click="handleLogout">
                 <IconPower size="20" /><span class="ml-2">退出</span>
               </el-link>
             </li>

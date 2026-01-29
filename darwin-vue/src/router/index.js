@@ -10,6 +10,7 @@ import ProxyList from '@/views/proxy/ProxyList'
 import CrawlDelay from '@/views/concurrency/CrawlDelay'
 import ConControl from '@/views/concurrency/ConControl'
 import ConcurrencyQueue from '@/views/concurrency/ConQueue'
+import CookieControl from '@/views/cookie/CookieControl'
 import RunnerList from '@/views/runner/RunnerList'
 
 const routes = [
@@ -73,6 +74,11 @@ const routes = [
     path: '/concurrency/queue',
     name: 'ConcurrencyQueue',
     component: ConcurrencyQueue
+  },
+  {
+    path: '/cookie/control',
+    name: 'CookieControl',
+    component: CookieControl
   }
 ]
 const router = createRouter({
