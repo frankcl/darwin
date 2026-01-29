@@ -1,6 +1,6 @@
 <script setup>
 import { IconCircleCheck, IconRefresh } from '@tabler/icons-vue'
-import {computed, onMounted, ref} from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import {
   ElBreadcrumb, ElBreadcrumbItem, ElButton, ElInputNumber, ElRow
 } from 'element-plus'

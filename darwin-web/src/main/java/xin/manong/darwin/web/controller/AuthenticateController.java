@@ -10,7 +10,9 @@ import xin.manong.darwin.common.model.SeedRecord;
 import xin.manong.darwin.common.request.AuthenticateRequest;
 import xin.manong.darwin.common.request.PlanExecuteRequest;
 import xin.manong.darwin.common.request.SeedRequest;
+import xin.manong.darwin.common.request.SetCookieRequest;
 import xin.manong.darwin.service.component.PlanExecutor;
+import xin.manong.darwin.service.iface.CookieService;
 import xin.manong.darwin.service.iface.PlanService;
 import xin.manong.darwin.service.iface.SeedService;
 import xin.manong.darwin.web.component.PermissionSupport;
@@ -32,6 +34,8 @@ import java.util.List;
 public class AuthenticateController {
 
     @Resource
+    private CookieService cookieService;
+    @Resource
     private SeedService seedService;
     @Resource
     private PlanService planService;
@@ -52,7 +56,7 @@ public class AuthenticateController {
     @Path("seed/add")
     @PutMapping("seed/add")
     @EnableWebLogAspect
-    public Boolean add(@RequestBody SeedRequest request) {
+    public Boolean addSeed(@RequestBody SeedRequest request) {
         if (request == null) throw new BadRequestException("种子添加请求为空");
         ((AuthenticateRequest) request).check();
         request.check();
@@ -62,6 +66,27 @@ public class AuthenticateController {
         SeedRecord record = Converter.convert(request);
         record.check();
         return seedService.add(record);
+    }
+
+    /**
+     * 设置Cookie
+     *
+     * @param request 请求
+     * @return 成功返回true，否则返回false
+     */
+    @POST
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("cookie/set")
+    @PostMapping("cookie/set")
+    @EnableWebLogAspect
+    public boolean setCookie(@RequestBody SetCookieRequest request) {
+        if (request == null) throw new BadRequestException("Cookie设置请求为空");
+        ((AuthenticateRequest) request).check();
+        request.check();
+        permissionSupport.checkAuthPermission(-1, request);
+        cookieService.setCookie(request.key, request.cookie);
+        return true;
     }
 
     /**
@@ -76,7 +101,7 @@ public class AuthenticateController {
     @Path("plan/submit")
     @PostMapping("plan/submit")
     @EnableWebLogAspect
-    public Boolean submit(@RequestBody PlanExecuteRequest request) {
+    public Boolean submitPlan(@RequestBody PlanExecuteRequest request) {
         if (request == null) throw new BadRequestException("执行计划请求为空");
         request.check();
         Plan plan = planService.get(request.planId);

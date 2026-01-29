@@ -171,6 +171,7 @@ public class Converter {
         record.normalize = request.normalize;
         record.httpRequest = request.httpRequest;
         record.postMediaType = request.postMediaType;
+        record.systemCookie = request.systemCookie;
         record.timeout = request.timeout != null && request.timeout <= 0 ? null : request.timeout;
         record.headers = request.headers == null ? new HashMap<>() : new HashMap<>(request.headers);
         record.customMap = request.customMap == null ? new HashMap<>() : new HashMap<>(request.customMap);
@@ -198,6 +199,7 @@ public class Converter {
         record.normalize = request.normalize;
         record.httpRequest = request.httpRequest;
         record.postMediaType = request.postMediaType;
+        record.systemCookie = request.systemCookie;
         record.requestBody = request.requestBody == null ? new HashMap<>() : new HashMap<>(request.requestBody);
         record.headers = request.headers == null ? new HashMap<>() : new HashMap<>(request.headers);
         record.customMap = request.customMap == null ? new HashMap<>() : new HashMap<>(request.customMap);

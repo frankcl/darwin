@@ -54,6 +54,7 @@ public class Converter {
         record.normalize = seedRecord.normalize;
         record.httpRequest = seedRecord.httpRequest;
         record.postMediaType = seedRecord.postMediaType;
+        record.systemCookie = seedRecord.systemCookie;
         record.requestHash = seedRecord.requestHash;
         record.requestBody = seedRecord.requestBody == null ? new HashMap<>() : seedRecord.requestBody;
         record.headers = seedRecord.headers == null ? new HashMap<>() : seedRecord.headers;

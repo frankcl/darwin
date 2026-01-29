@@ -9,6 +9,7 @@ import org.slf4j.LoggerFactory;
 import xin.manong.darwin.common.request.AuthenticateRequest;
 import xin.manong.darwin.common.request.PlanExecuteRequest;
 import xin.manong.darwin.common.request.SeedRequest;
+import xin.manong.darwin.common.request.SetCookieRequest;
 import xin.manong.weapon.base.http.HttpClient;
 import xin.manong.weapon.base.http.HttpRequest;
 import xin.manong.weapon.base.http.RequestFormat;
@@ -27,6 +28,7 @@ public class DarwinClient {
 
     private static final String API_SUBMIT_PLAN = "/api/auth/plan/submit";
     private static final String API_ADD_SEED = "/api/auth/seed/add";
+    private static final String API_SET_COOKIE = "/api/auth/cookie/set";
 
     private final DarwinClientConfig config;
     private final HttpClient httpClient;
@@ -41,25 +43,39 @@ public class DarwinClient {
     }
 
     /**
+     * 设置Cookie
+     *
+     * @param request 请求
+     * @return 成功返回true，否则返回false
+     */
+    public boolean setCookie(SetCookieRequest request) {
+        if (request == null) throw new BadRequestException("设置Cookie请求为空");
+        ((AuthenticateRequest) request).check();
+        request.check();
+        String requestURL = String.format("%s%s", config.serverURL, API_SET_COOKIE);
+        HttpRequest httpRequest = new HttpRequest.Builder().requestURL(requestURL).method(RequestMethod.POST).
+                format(RequestFormat.JSON).params(JSON.parseObject(JSON.toJSONString(request))).build();
+        Boolean success = executeHttpRequest(httpRequest, Boolean.class);
+        if (success == null || !success) logger.error("Set cookie failed for key:{}", request.key);
+        return success != null && success;
+    }
+
+    /**
      * 添加种子
      *
      * @param request 添加种子请求
      * @return 成功返回true，否则返回false
      */
     public boolean addSeed(SeedRequest request) {
-        if (request == null) throw new BadRequestException("添加种子为空");
+        if (request == null) throw new BadRequestException("添加种子请求为空");
         ((AuthenticateRequest) request).check();
         request.check();
         String requestURL = String.format("%s%s", config.serverURL, API_ADD_SEED);
         HttpRequest httpRequest = new HttpRequest.Builder().requestURL(requestURL).method(RequestMethod.PUT).
                 format(RequestFormat.JSON).params(JSON.parseObject(JSON.toJSONString(request))).build();
-        WebResponse<Boolean> webResponse = execute(httpRequest, Boolean.class);
-        if (webResponse == null) return false;
-        if (!webResponse.status || !webResponse.data) {
-            logger.error("Add seed failed, http code:{}, message:{}, request id:{}",
-                    webResponse.code, webResponse.message, webResponse.requestId);
-        }
-        return webResponse.status && webResponse.data;
+        Boolean success = executeHttpRequest(httpRequest, Boolean.class);
+        if (success == null || !success) logger.error("Add seed failed");
+        return success != null && success;
     }
 
     /**
@@ -74,29 +90,32 @@ public class DarwinClient {
         String requestURL = String.format("%s%s", config.serverURL, API_SUBMIT_PLAN);
         HttpRequest httpRequest = HttpRequest.buildPostRequest(requestURL,
                 RequestFormat.JSON, JSON.parseObject(JSON.toJSONString(request)));
-        WebResponse<Boolean> webResponse = execute(httpRequest, Boolean.class);
-        if (webResponse == null) return false;
-        if (!webResponse.status || !webResponse.data) {
-            logger.error("Submit plan failed, http code:{}, message:{}, request id:{}",
-                    webResponse.code, webResponse.message, webResponse.requestId);
-        }
-        return webResponse.status && webResponse.data;
+        Boolean success = executeHttpRequest(httpRequest, Boolean.class);
+        if (success == null || !success) logger.error("Submit plan failed for plan:{}", request.planId);
+        return success != null && success;
     }
 
     /**
-     * 执行HTTP请求，返回结构化结果
+     * 执行HTTP请求
      *
      * @param httpRequest HTTP请求
-     * @param recordType 数据类型
-     * @return 成功返回结构化结果，否则返回null
+     * @param recordType 响应数据类型
+     * @return 成功返回响应数据，否则返回null
      */
-    public <T> WebResponse<T> execute(HttpRequest httpRequest, Class<T> recordType) {
-        String body = execute(httpRequest);
-        if (body == null) return null;
+    public <T> T executeHttpRequest(HttpRequest httpRequest, Class<T> recordType) {
         try {
-            return JSON.parseObject(body, new TypeReference<>(recordType) {});
+            String body = executeHttpRequest(httpRequest);
+            if (body == null) return null;
+            WebResponse<T> response = JSON.parseObject(body, new TypeReference<>(recordType) {});
+            if (response == null) return null;
+            if (!response.status) {
+                logger.error("Execute http request failed for http code:{}, cause:{}",
+                        response.code, response.message);
+                return null;
+            }
+            return response.data;
         } catch (Exception e) {
-            logger.error("Unexpected http response:{} for {}", body, recordType.getName());
+            logger.error(e.getMessage(), e);
             return null;
         }
     }
@@ -107,7 +126,7 @@ public class DarwinClient {
      * @param httpRequest HTTP请求
      * @return 成功返回结果，否则返回null
      */
-    private String execute(HttpRequest httpRequest) {
+    private String executeHttpRequest(HttpRequest httpRequest) {
         try (Response httpResponse = httpClient.execute(httpRequest)) {
             if (failHttpResponse(httpRequest, httpResponse)) return null;
             assert httpResponse.body() != null;

@@ -92,6 +92,8 @@ export const asyncQueueWaitPriority = async () => await AxiosRequest.get('/api/d
 export const asyncHostFetchCount = async () => await AxiosRequest.get('/api/dashboard/hostFetchCount')
 export const asyncGetQueueMemory = async () => await AxiosRequest.get('/api/dashboard/getQueueMemory')
 export const asyncGetQueueWait = async () => await AxiosRequest.get('/api/dashboard/getQueueWait', { timeout: 30000 })
+export const asyncGetCookieMap = async () => await AxiosRequest.get( '/api/cookie/getCookieMap')
+export const asyncUpdateCookieMap = async request => await AxiosRequest.post('/api/cookie/updateCookieMap', request)
 
 export const asyncResetUserApps = async () => {
   const userStore = useUserStore()

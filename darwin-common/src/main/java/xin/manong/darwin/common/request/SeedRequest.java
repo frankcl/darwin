@@ -51,6 +51,12 @@ public class SeedRequest extends AuthenticateRequest {
     public Integer fetchMethod;
 
     /**
+     * 系统设置Cookie
+     */
+    @JsonProperty("system_cookie")
+    public Boolean systemCookie;
+
+    /**
      * HTTP请求
      */
     @JsonProperty("http_request")

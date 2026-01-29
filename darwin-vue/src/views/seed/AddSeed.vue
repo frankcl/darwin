@@ -8,7 +8,10 @@ import {
 import { useUserStore } from '@/store'
 import DarwinCard from '@/components/data/Card'
 import MutableTable from '@/components/data/MutableTable'
-import { fetchMethodMap, httpRequestMap, linkScopeMap, postMediaTypeMap, priorityMap } from '@/common/Constants'
+import {
+  fetchMethodMap, httpRequestMap,
+  linkScopeMap, postMediaTypeMap, priorityMap
+} from '@/common/Constants'
 import { ERROR, showMessage, SUCCESS } from '@/common/Feedback'
 import { asyncAddSeed } from '@/common/AsyncRequest'
 import { fieldTypes, fillMap, fillRequestBody, seedFormRules } from '@/views/seed/common'
@@ -88,7 +91,7 @@ watchEffect(() => seed.plan_id = props.planId)
                 <template #label>
                   <span class="d-flex align-items-center">
                     <span>数据分发</span>
-                    <el-tooltip effect="dark" placement="top" content="抓取结果通过消息队列分发，默认进行分发">
+                    <el-tooltip effect="dark" placement="top" content="抓取结果通过消息队列分发，默认禁止分发">
                       <IconHelp size="12" class="ml-2"/>
                     </el-tooltip>
                   </span>
@@ -177,8 +180,8 @@ watchEffect(() => seed.plan_id = props.planId)
                 </el-radio-group>
               </el-form-item>
             </el-col>
-            <el-col v-if="seed.http_request === 'POST'" :span="8">
-              <el-form-item prop="post_media_type">
+            <el-col :span="8">
+              <el-form-item v-if="seed.http_request === 'POST'" prop="post_media_type">
                 <template #label>
                   <span class="d-flex align-items-center">
                     <span>POST媒体类型</span>
@@ -193,6 +196,24 @@ watchEffect(() => seed.plan_id = props.planId)
                     {{ postMediaTypeMap[key] }}
                   </el-radio>
                 </el-radio-group>
+              </el-form-item>
+            </el-col>
+            <el-col :span="8">
+              <el-form-item prop="system_cookie">
+                <template #label>
+                  <span class="d-flex align-items-center">
+                    <span>系统设置Cookie</span>
+                    <el-tooltip effect="dark" placement="top"
+                                content="开启系统设置Cookie，系统根据Cookie管理配置为抓取URL设置Cookie">
+                      <IconHelp size="12" class="ml-2"/>
+                    </el-tooltip>
+                  </span>
+                </template>
+                <el-select v-model="seed.system_cookie" clearable placeholder="请选择"
+                           @clear="seed.system_cookie = false">
+                  <el-option :value="true" label="开启" />
+                  <el-option :value="false" label="关闭" />
+                </el-select>
               </el-form-item>
             </el-col>
           </el-row>

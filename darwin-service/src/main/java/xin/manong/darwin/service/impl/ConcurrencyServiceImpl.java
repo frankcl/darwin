@@ -36,7 +36,7 @@ public class ConcurrencyServiceImpl implements ConcurrencyService {
     public void defaultCrawlDelay(long crawlDelay) {
         if (crawlDelay <= 0) throw new IllegalArgumentException("默认抓取间隔必须大于0");
         if (!etcdClient.put(DEFAULT_CRAWL_DELAY, String.valueOf(crawlDelay))) {
-            throw new RuntimeException("更新默认抓取间隔失败");
+            throw new IllegalStateException("更新默认抓取间隔失败");
         }
     }
 
@@ -47,9 +47,9 @@ public class ConcurrencyServiceImpl implements ConcurrencyService {
     }
 
     @Override
-    public void crawlDelayMap(Map<String, Long> crawlDelayMap) {
+    public void crawlDelayMap(@NotNull Map<String, Long> crawlDelayMap) {
         if (!etcdClient.put(CRAWL_DELAY_MAP, JSON.toJSONString(crawlDelayMap))) {
-            throw new RuntimeException("更新抓取间隔配置失败");
+            throw new IllegalStateException("更新抓取间隔配置失败");
         }
     }
 
@@ -63,7 +63,7 @@ public class ConcurrencyServiceImpl implements ConcurrencyService {
     public void defaultConcurrency(int concurrency) {
         if (concurrency <= 0) throw new IllegalArgumentException("默认并发连接必须大于0");
         if (!etcdClient.put(DEFAULT_CONCURRENCY, String.valueOf(concurrency))) {
-            throw new RuntimeException("更新默认并发连接失败");
+            throw new IllegalStateException("更新默认并发连接失败");
         }
     }
 
@@ -76,7 +76,7 @@ public class ConcurrencyServiceImpl implements ConcurrencyService {
     @Override
     public void concurrencyConnectionMap(@NotNull Map<String, Integer> concurrencyConnectionMap) {
         if (!etcdClient.put(CONCURRENCY_CONNECTION_MAP, JSON.toJSONString(concurrencyConnectionMap))) {
-            throw new RuntimeException("更新并发连接配置失败");
+            throw new IllegalStateException("更新并发连接配置失败");
         }
     }
 }

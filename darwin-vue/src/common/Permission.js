@@ -43,6 +43,8 @@ const NO_PERMISSION_REQUESTS = [
   '/api/concurrency/updateConcurrencyConnectionMap',
   '/api/concurrency/updateDefaultCrawlDelay',
   '/api/concurrency/updateCrawlDelayMap',
+  '/api/cookie/updateCookieMap',
+  '/api/cookie/setCookie',
 ]
 
 export const checkLogin = () => useUserStore().injected

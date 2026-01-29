@@ -78,6 +78,7 @@ hylian:
         - api/concurrency/getCrawlDelayMap
         - api/concurrency/getDefaultConcurrency
         - api/concurrency/getConcurrencyConnectionMap
+        - api/cookie/getCookieMap
         - api/dashboard/fetchCountTrend
         - api/dashboard/getQueueMemory
         - api/dashboard/getQueueWait

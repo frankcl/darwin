@@ -18,7 +18,7 @@ onMounted(async() => hosts.value = await asyncHostFetchCount())
       <el-table-column prop="host" label="站点" show-overflow-tooltip>
         <template #default="scope">
           <el-link @click="router.push({ path: '/record/search', query: { host: scope.row.host } })"
-                   :underline="false">{{ scope.row.host }}</el-link>
+                   underline="never">{{ scope.row.host }}</el-link>
         </template>
       </el-table-column>
       <el-table-column prop="count" label="抓取量" width="100" show-overflow-tooltip>
