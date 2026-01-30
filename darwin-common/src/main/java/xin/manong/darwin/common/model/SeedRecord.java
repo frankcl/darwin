@@ -292,6 +292,7 @@ public class SeedRecord extends BaseModel {
         this.url = url;
         hash = DigestUtils.md5Hex(url);
         host = CommonUtil.getHost(url);
+        if (StringUtils.isEmpty(host)) throw new IllegalArgumentException("Invalid url:" + url);
         domain = DomainUtil.getDomain(host);
     }
 
