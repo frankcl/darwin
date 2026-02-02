@@ -66,8 +66,10 @@ public class HTTPInput extends Input {
         }
         if (cookieService != null && record.systemCookie != null && record.systemCookie) {
             String cookie = cookieService.getCookie(record);
-            logger.info("Set system cookie:{} for url:{}", cookie, record.url);
-            if (StringUtils.isNotEmpty(cookie)) httpRequest.headers.put(HEADER_COOKIE, cookie);
+            if (StringUtils.isNotEmpty(cookie)) {
+                logger.info("Set system cookie:{} for url:{}", cookie, record.url);
+                httpRequest.headers.put(HEADER_COOKIE, cookie);
+            }
         }
         String host = CommonUtil.getHost(record.url);
         if (!StringUtils.isEmpty(host) && !CommonUtil.isValidIP(host)) httpRequest.headers.put(HEADER_HOST, host);
