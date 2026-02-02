@@ -5,6 +5,8 @@ import okhttp3.MediaType;
 import okhttp3.Response;
 import okhttp3.ResponseBody;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import xin.manong.darwin.common.model.HTTPRequest;
 import xin.manong.darwin.common.model.PostMediaType;
 import xin.manong.darwin.common.model.URLRecord;
@@ -26,6 +28,8 @@ import java.nio.charset.Charset;
  * @date 2025-04-11 12:01:27
  */
 public class HTTPInput extends Input {
+
+    private static final Logger logger = LoggerFactory.getLogger(HTTPInput.class);
 
     private static final String HEADER_USER_AGENT = "User-Agent";
     private static final String HEADER_REFERER = "Referer";
@@ -62,6 +66,7 @@ public class HTTPInput extends Input {
         }
         if (cookieService != null && record.systemCookie != null && record.systemCookie) {
             String cookie = cookieService.getCookie(record);
+            logger.info("Set system cookie:{} for url:{}", cookie, record.url);
             if (StringUtils.isNotEmpty(cookie)) httpRequest.headers.put(HEADER_COOKIE, cookie);
         }
         String host = CommonUtil.getHost(record.url);

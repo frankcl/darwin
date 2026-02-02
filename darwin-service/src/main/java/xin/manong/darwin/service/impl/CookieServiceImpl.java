@@ -1,6 +1,7 @@
 package xin.manong.darwin.service.impl;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.serializer.SerializerFeature;
 import jakarta.annotation.Resource;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
@@ -58,7 +59,7 @@ public class CookieServiceImpl implements CookieService {
 
     @Override
     public void cookieMap(@NotNull Map<String, String> cookieMap) {
-        if (!etcdClient.put(COOKIE_MAP, JSON.toJSONString(cookieMap))) {
+        if (!etcdClient.put(COOKIE_MAP, JSON.toJSONString(cookieMap, SerializerFeature.PrettyFormat))) {
             throw new IllegalStateException("更新Cookie配置失败");
         }
     }
