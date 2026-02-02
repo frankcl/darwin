@@ -18,6 +18,7 @@ import xin.manong.darwin.queue.CrawlDelayControl;
 import xin.manong.darwin.queue.PushResult;
 import xin.manong.darwin.service.event.JobEventListener;
 import xin.manong.darwin.service.event.URLEventListener;
+import xin.manong.darwin.service.iface.CookieService;
 import xin.manong.darwin.service.iface.OSSService;
 import xin.manong.darwin.service.iface.PlanService;
 import xin.manong.darwin.service.iface.URLService;
@@ -62,6 +63,8 @@ public class Router {
     private HttpClientFactory httpClientFactory;
     @Resource
     private PlanService planService;
+    @Resource
+    private CookieService cookieService;
     @Resource
     private URLService urlService;
     @Resource
@@ -181,7 +184,8 @@ public class Router {
     private Input openInput(URLRecord record, URLRecord prevRecord) throws IOException {
         if (prevRecord == null) {
             record.fetched = true;
-            Input input = new HTTPInput(record, httpClientFactory.getHttpClient(record), spiderConfig);
+            HTTPInput input = new HTTPInput(record, httpClientFactory.getHttpClient(record), spiderConfig);
+            input.setCookieService(cookieService);
             input.open();
             return input;
         }
