@@ -78,7 +78,6 @@ hylian:
         - api/concurrency/getCrawlDelayMap
         - api/concurrency/getDefaultConcurrency
         - api/concurrency/getConcurrencyConnectionMap
-        - api/cookie/getCookieMap
         - api/dashboard/fetchCountTrend
         - api/dashboard/getQueueMemory
         - api/dashboard/getQueueWait
@@ -88,6 +87,7 @@ hylian:
         - api/dashboard/statusGroupCount
         - api/dashboard/contentGroupCount
         - api/dashboard/hostFetchCount
+        - api/cookie/getCookieMap
         - favicon.ico
 
 app:
