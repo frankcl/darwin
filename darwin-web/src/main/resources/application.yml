@@ -87,6 +87,7 @@ hylian:
         - api/dashboard/statusGroupCount
         - api/dashboard/contentGroupCount
         - api/dashboard/hostFetchCount
+        - api/cookie/getCookieMap
         - favicon.ico
 
 app:
