@@ -9,7 +9,7 @@ app:
     expired-cleaner-execute-interval-ms: 3600000
     max-expired-interval-ms: 2592000000
     proxy-get-config:
-      apiURL: https://api.jiliuip.com/getdip
+      baseURL: https://api.jiliuip.com
       appId: o1uhgo40vwaw5acv5xbx
       appSecret: q2i75nd786pj3jkbit94mv9krs8i30m4
       username: jd3214978026
