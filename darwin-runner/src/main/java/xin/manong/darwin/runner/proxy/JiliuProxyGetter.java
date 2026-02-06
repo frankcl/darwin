@@ -1,5 +1,6 @@
 package xin.manong.darwin.runner.proxy;
 
+import com.alibaba.fastjson.JSONObject;
 import okhttp3.Response;
 import okhttp3.ResponseBody;
 import org.apache.commons.lang3.StringUtils;
@@ -10,8 +11,9 @@ import xin.manong.darwin.common.model.Proxy;
 import xin.manong.weapon.base.http.HttpClient;
 import xin.manong.weapon.base.http.HttpRequest;
 
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 积流代理获取器
@@ -23,9 +25,12 @@ public class JiliuProxyGetter implements ProxyGetter {
 
     private static final Logger logger = LoggerFactory.getLogger(JiliuProxyGetter.class);
 
-    private static final String REQUEST_URL_FORMAT = "%s?app_id=%s&app_secret=%s&num=%d";
+    private static final String RESPONSE_KEY_CODE = "code";
+    private static final String RESPONSE_KEY_MESSAGE = "msg";
+    private static final String RESPONSE_KEY_DATA = "data";
 
-    private String requestURL;
+    private String proxyURL;
+    private String proxyTimeURL;
     private HttpClient httpClient;
     private ProxyGetConfig config;
 
@@ -35,8 +40,12 @@ public class JiliuProxyGetter implements ProxyGetter {
             logger.error("Jiliu proxy get config is invalid");
             return false;
         }
-        requestURL = String.format(REQUEST_URL_FORMAT, config.apiURL,
+        proxyURL = String.format("%s/getdip", config.baseURL);
+        proxyTimeURL = String.format("%s/getiptime", config.baseURL);
+        proxyURL = String.format("%s?app_id=%s&app_secret=%s&num=%d", proxyURL,
                 config.appId, config.appSecret, config.batchSize);
+        proxyTimeURL = String.format("%s?app_id=%s&app_secret=%s", proxyTimeURL,
+                config.appId, config.appSecret);
         httpClient = new HttpClient();
         this.config = config;
         return true;
@@ -44,29 +53,65 @@ public class JiliuProxyGetter implements ProxyGetter {
 
     @Override
     public List<Proxy> batchGet() {
-        HttpRequest request = HttpRequest.buildGetRequest(requestURL, null);
+        HttpRequest request = HttpRequest.buildGetRequest(proxyURL, null);
+        String content = executeHTTPRequest(request);
+        if (StringUtils.isEmpty(content)) return List.of();
+        content = content.replace("\n", ",");
+        request = HttpRequest.buildGetRequest(proxyTimeURL + "&proxy=" + content, null);
+        long startTime = System.currentTimeMillis();
+        content = executeHTTPRequest(request);
+        try {
+            JSONObject jsonResponse = JSONObject.parseObject(content);
+            if (jsonResponse == null) {
+                logger.error("Invalid response:{} for {}", content, proxyTimeURL);
+                return List.of();
+            }
+            Integer code = jsonResponse.getInteger(RESPONSE_KEY_CODE);
+            if (code == null || code != 0) {
+                logger.error("Get proxy time failed, message:{}", jsonResponse.getString(RESPONSE_KEY_MESSAGE));
+                return List.of();
+            }
+            List<Proxy> proxies = new ArrayList<>();
+            Map<String, Object> proxyTimeMap = jsonResponse.getJSONObject(RESPONSE_KEY_DATA);
+            for (Map.Entry<String, Object> entry : proxyTimeMap.entrySet()) {
+                long expiredTime = startTime + (int) entry.getValue() * 1000L;
+                proxies.add(buildProxy(entry.getKey(), expiredTime));
+            }
+            return proxies;
+        } catch (Exception e) {
+            logger.error(e.getMessage(), e);
+            return List.of();
+        }
+    }
+
+    /**
+     * 执行HTTP请求
+     *
+     * @param request HTTP请求
+     * @return 成功返回响应文本，否则返回null
+     */
+    private String executeHTTPRequest(HttpRequest request) {
         try (Response response = httpClient.execute(request)) {
             if (!response.isSuccessful()) {
-                logger.error("Get proxy failed, http code:{}", response.code());
-                return List.of();
+                logger.error("Execute proxy request failed, http code:{} for {}",
+                        response.code(), request.requestURL);
+                return null;
             }
             ResponseBody responseBody = response.body();
             if (responseBody == null) {
-                logger.error("Get proxy failed, response body is null");
-                return List.of();
+                logger.error("Execute proxy request failed, response body is null for {}", request.requestURL);
+                return null;
             }
             String content = responseBody.string();
             if (StringUtils.isEmpty(content)) {
-                logger.error("Get proxy failed, response body is empty");
-                return List.of();
+                logger.error("Execute proxy request failed, response body is empty for {}", request.requestURL);
+                return null;
             }
-            return Arrays.stream(content.split("\n")).
-                    filter(ip -> StringUtils.isNotEmpty(ip.trim())).
-                    map(this::buildProxy).toList();
+            return content;
         } catch (Exception e) {
-            logger.error("Get proxy failed");
+            logger.error("Execute proxy request exception for {}", request.requestURL);
             logger.error(e.getMessage(), e);
-            return List.of();
+            return null;
         }
     }
 
@@ -76,7 +121,7 @@ public class JiliuProxyGetter implements ProxyGetter {
      * @param content 文本
      * @return 代理
      */
-    private Proxy buildProxy(String content) {
+    private Proxy buildProxy(String content, long expiredIntervalMs) {
         content = content.trim();
         int pos = content.lastIndexOf(":");
         Proxy proxy = new Proxy();
@@ -84,7 +129,7 @@ public class JiliuProxyGetter implements ProxyGetter {
         proxy.username = config.username;
         proxy.password = config.password;
         proxy.category = Constants.PROXY_CATEGORY_SHORT;
-        proxy.expiredTime = System.currentTimeMillis() + config.expiredIntervalMs;
+        proxy.expiredTime = expiredIntervalMs;
         if (pos != -1) proxy.port = Integer.parseInt(content.substring(pos + 1));
         return proxy;
     }
