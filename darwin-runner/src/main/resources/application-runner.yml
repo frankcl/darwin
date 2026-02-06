@@ -2,7 +2,7 @@ app:
   runner:
     plan-runner-execute-interval-ms: 60000
     allocator-execute-interval-ms: 10000
-    proxy-execute-time-interval-ms: 30000
+    proxy-execute-time-interval-ms: 90000
     concurrency-queue-execute-time-interval-ms: 300000
     concurrency-queue-expired-time-interval-ms: 600000
     max-overflow-interval-ms: 86400000

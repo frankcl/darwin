@@ -13,6 +13,7 @@ import xin.manong.darwin.runner.core.PlanRunner;
 import xin.manong.darwin.runner.manage.ExecuteRunnerRegistry;
 import xin.manong.darwin.runner.monitor.ConcurrencyQueueMonitor;
 import xin.manong.darwin.runner.monitor.ExpiredCleaner;
+import xin.manong.darwin.runner.monitor.ProxyMonitor;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -43,6 +44,7 @@ public class ApplicationReady implements ApplicationListener<ApplicationReadyEve
         runnerIds.add(DashboardRunner.ID);
         runnerIds.add(ConcurrencyQueueMonitor.ID);
         runnerIds.add(ExpiredCleaner.ID);
+        runnerIds.add(ProxyMonitor.ID);
     }
 
     @Override
