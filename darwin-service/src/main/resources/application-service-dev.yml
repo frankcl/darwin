@@ -41,6 +41,7 @@ app:
     mq:
       topicJob: TEST-DARWIN-DISPATCH-JOB
       topicURL: TEST-DARWIN-DISPATCH-RECORD
+      enable: kafka
     oss:
       region: cn-hangzhou
       bucket: darwin-spider

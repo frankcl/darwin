@@ -2,9 +2,11 @@ package xin.manong.darwin.runner.config;
 
 import jakarta.annotation.Resource;
 import lombok.Data;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
 import xin.manong.darwin.runner.core.Allocator;
 import xin.manong.darwin.runner.core.DashboardRunner;
 import xin.manong.darwin.runner.core.PlanRunner;
@@ -13,6 +15,9 @@ import xin.manong.darwin.runner.manage.ExecuteRunnerShell;
 import xin.manong.darwin.runner.monitor.ConcurrencyQueueMonitor;
 import xin.manong.darwin.runner.monitor.ExpiredCleaner;
 import xin.manong.darwin.runner.monitor.ProxyMonitor;
+import xin.manong.darwin.runner.proxy.JiliuProxyGetter;
+import xin.manong.darwin.runner.proxy.ProxyGetConfig;
+import xin.manong.darwin.runner.proxy.ProxyGetter;
 import xin.manong.darwin.service.iface.MessageService;
 import xin.manong.weapon.base.etcd.EtcdClient;
 
@@ -47,12 +52,22 @@ public class RunnerConfig {
     public long expiredCleanerExecuteIntervalMs = DEFAULT_EXPIRED_CLEANER_EXECUTE_INTERVAL_MS;
     public long maxExpiredIntervalMs = DEFAULT_MAX_EXPIRED_INTERVAL_MS;
     public String topicURL;
+    public ProxyGetConfig proxyGetConfig;
+
     @Resource
     private MessageService messageService;
     @Resource
     private ExecuteRunnerRegistry registry;
     @Resource
     private EtcdClient etcdClient;
+
+    @Bean(destroyMethod = "destroy")
+    @ConditionalOnProperty(name = "app.runner.proxy-get-config.enable", havingValue = "true")
+    public ProxyGetter buildProxyGetter() {
+        ProxyGetter proxyGetter = new JiliuProxyGetter();
+        if (!proxyGetter.init(proxyGetConfig)) throw new IllegalStateException("构建短效代理获取器失败");
+        return proxyGetter;
+    }
 
     /**
      * 构建周期计划运行器

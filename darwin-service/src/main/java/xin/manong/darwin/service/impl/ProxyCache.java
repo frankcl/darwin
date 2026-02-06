@@ -46,7 +46,7 @@ public class ProxyCache {
      * @return 包含返回true，否则返回false
      */
     public boolean contains(int id) {
-        return proxyMap.containsKey(id);
+        return proxyMap != null && proxyMap.containsKey(id);
     }
 
     /**
@@ -55,7 +55,7 @@ public class ProxyCache {
      * @return 代理
      */
     public Proxy randomGet() {
-        if (proxies.isEmpty()) return null;
+        if (proxies == null || proxies.isEmpty()) return null;
         ReentrantReadWriteLock.ReadLock readLock = readWriteLock.readLock();
         try {
             readLock.lock();
@@ -73,7 +73,7 @@ public class ProxyCache {
      * @param id 代理ID
      */
     public void remove(int id) {
-        if (!proxyMap.containsKey(id)) return;
+        if (!contains(id)) return;
         ReentrantReadWriteLock.WriteLock writeLock = readWriteLock.writeLock();
         try {
             writeLock.lock();
@@ -92,7 +92,7 @@ public class ProxyCache {
      * @param proxy 代理
      */
     public void update(Proxy proxy) {
-        Proxy cachedProxy = proxyMap.get(proxy.id);
+        Proxy cachedProxy = proxyMap == null ? null : proxyMap.get(proxy.id);
         if (cachedProxy == null) return;
         ReentrantReadWriteLock.WriteLock writeLock = readWriteLock.writeLock();
         try {

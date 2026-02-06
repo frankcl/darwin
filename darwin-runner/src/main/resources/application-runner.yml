@@ -2,9 +2,17 @@ app:
   runner:
     plan-runner-execute-interval-ms: 60000
     allocator-execute-interval-ms: 10000
-    proxy-execute-time-interval-ms: 30000
+    proxy-execute-time-interval-ms: 90000
     concurrency-queue-execute-time-interval-ms: 300000
     concurrency-queue-expired-time-interval-ms: 600000
     max-overflow-interval-ms: 86400000
     expired-cleaner-execute-interval-ms: 3600000
     max-expired-interval-ms: 2592000000
+    proxy-get-config:
+      apiURL: https://api.jiliuip.com/getdip
+      appId: o1uhgo40vwaw5acv5xbx
+      appSecret: q2i75nd786pj3jkbit94mv9krs8i30m4
+      username: jd3214978026
+      password: 73u9202p
+      expiredIntervalMs: 120000
+      batchSize: 5

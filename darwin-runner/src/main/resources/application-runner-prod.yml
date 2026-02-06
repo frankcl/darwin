@@ -2,3 +2,5 @@ app:
   runner:
     topicURL: PROD-DARWIN-FETCH-URL
     max-expired-interval-ms: 604800000
+    proxy-get-config:
+      enable: true
