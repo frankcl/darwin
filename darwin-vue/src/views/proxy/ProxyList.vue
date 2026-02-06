@@ -144,7 +144,7 @@ watchEffect(() => search())
           </div>
         </template>
       </el-table-column>
-      <el-table-column :width="query.category === 1 ? 320 : 220">
+      <el-table-column :width="query.category === 1 ? 360 : 240">
         <template #header>操作</template>
         <template #default="scope">
           <el-button v-if="query.category === 1" type="primary"
