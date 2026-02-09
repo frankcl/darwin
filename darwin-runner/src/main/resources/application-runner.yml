@@ -10,11 +10,10 @@ app:
     max-expired-interval-ms: 2592000000
     proxy-get-configs:
       -
-        className: xin.manong.darwin.runner.proxy.jiliu.JiliuProxyGetter
-        baseURL: https://api.jiliuip.com
-        appId: o1uhgo40vwaw5acv5xbx
-        appSecret: q2i75nd786pj3jkbit94mv9krs8i30m4
-        username: jd3214978026
-        password: 73u9202p
-        expiredIntervalMs: 120000
+        className: xin.manong.darwin.runner.proxy.zdaye.ZdayeProxyGetter
+        baseURL: http://www.zdopen.com
+        appId: 202602091351125438
+        appSecret: 8ddc5cb8645c1806
+        username: 202602091351125438
+        password: 58142744
         batchSize: 5
