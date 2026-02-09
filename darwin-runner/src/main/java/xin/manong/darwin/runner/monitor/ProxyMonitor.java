@@ -6,7 +6,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import xin.manong.darwin.common.Constants;
 import xin.manong.darwin.common.model.Proxy;
-import xin.manong.darwin.runner.proxy.ProxyGetter;
+import xin.manong.darwin.runner.proxy.ProxyGetterRegistry;
 import xin.manong.darwin.service.iface.ProxyService;
 import xin.manong.weapon.base.etcd.EtcdClient;
 import xin.manong.weapon.base.event.ErrorEvent;
@@ -33,7 +33,7 @@ public class ProxyMonitor extends ExecuteRunner {
     @Resource
     private EtcdClient etcdClient;
     @Autowired(required = false)
-    private ProxyGetter proxyGetter;
+    private ProxyGetterRegistry proxyGetterRegistry;
 
     public ProxyMonitor(long executeTimeIntervalMs) {
         super(ID, executeTimeIntervalMs);
@@ -45,8 +45,8 @@ public class ProxyMonitor extends ExecuteRunner {
     public void execute() {
         int sweepCount = proxyService.deleteExpired();
         logger.info("Sweep expired proxy count:{}", sweepCount);
-        if (proxyGetter == null) return;
-        List<Proxy> shortProxies = proxyGetter.batchGet();
+        if (proxyGetterRegistry == null) return;
+        List<Proxy> shortProxies = proxyGetterRegistry.batchGet();
         long successCount = 0L;
         for (Proxy shortProxy : shortProxies) {
             if (!shortProxy.check() || shortProxy.category != Constants.PROXY_CATEGORY_SHORT) continue;

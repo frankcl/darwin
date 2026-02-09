@@ -23,15 +23,15 @@ import java.util.List;
         "queue", "queue-dev",
         "log", "log-dev" })
 @SpringBootTest(classes = { ApplicationTest.class })
-public class JiliuProxyGetterTest {
+public class ProxyGetterRegistryTest {
 
     @Autowired(required = false)
-    private ProxyGetter getter;
+    private ProxyGetterRegistry registry;
 
     @Test
-    public void getBatchGetProxy() {
-        if (getter == null) return;
-        List<Proxy> proxies = getter.batchGet();
+    public void testBatchGet() {
+        if (registry == null) return;
+        List<Proxy> proxies = registry.batchGet();
         Assert.assertEquals(5, proxies.size());
     }
 }

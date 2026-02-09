@@ -21,6 +21,7 @@ public class ProxyGetConfig {
 
     public int batchSize = DEFAULT_BATCH_SIZE;
     public long expiredIntervalMs = DEFAULT_EXPIRED_INTERVAL_MS;
+    public String className;
     public String baseURL;
     public String appId;
     public String appSecret;
@@ -36,24 +37,27 @@ public class ProxyGetConfig {
         if (batchSize <= 0) batchSize = DEFAULT_BATCH_SIZE;
         if (expiredIntervalMs <= 0) expiredIntervalMs = DEFAULT_EXPIRED_INTERVAL_MS;
         if (StringUtils.isEmpty(baseURL)) {
-            logger.error("baseURL is empty");
+            logger.error("Base URL is empty");
             return false;
         }
         if (StringUtils.isEmpty(appId)) {
-            logger.error("appId is empty");
+            logger.error("App id is empty");
             return false;
         }
         if (StringUtils.isEmpty(appSecret)) {
-            logger.error("appSecret is empty");
+            logger.error("App secret is empty");
             return false;
         }
         if (StringUtils.isEmpty(username)) {
-            logger.error("username is empty");
+            logger.error("Username is empty");
             return false;
         }
         if (StringUtils.isEmpty(password)) {
-            logger.error("password is empty");
+            logger.error("Password is empty");
             return false;
+        }
+        if (StringUtils.isEmpty(className)) {
+            logger.error("Class name is empty");
         }
         if (baseURL.endsWith("/")) baseURL = baseURL.substring(0, baseURL.length() - 1);
         return true;
