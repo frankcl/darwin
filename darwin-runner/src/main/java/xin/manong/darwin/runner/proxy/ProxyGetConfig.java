@@ -17,10 +17,8 @@ public class ProxyGetConfig {
     private static final Logger logger = LoggerFactory.getLogger(ProxyGetConfig.class);
 
     private static final int DEFAULT_BATCH_SIZE = 1;
-    private static final long DEFAULT_EXPIRED_INTERVAL_MS = 120000L;
 
     public int batchSize = DEFAULT_BATCH_SIZE;
-    public long expiredIntervalMs = DEFAULT_EXPIRED_INTERVAL_MS;
     public String className;
     public String baseURL;
     public String appId;
@@ -35,7 +33,6 @@ public class ProxyGetConfig {
      */
     public boolean check() {
         if (batchSize <= 0) batchSize = DEFAULT_BATCH_SIZE;
-        if (expiredIntervalMs <= 0) expiredIntervalMs = DEFAULT_EXPIRED_INTERVAL_MS;
         if (StringUtils.isEmpty(baseURL)) {
             logger.error("Base URL is empty");
             return false;
