@@ -1,13 +1,14 @@
-package xin.manong.darwin.runner.proxy;
+package xin.manong.darwin.runner.proxy.jiliu;
 
 import com.alibaba.fastjson.JSONObject;
-import okhttp3.Response;
-import okhttp3.ResponseBody;
+import com.alibaba.fastjson.TypeReference;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import xin.manong.darwin.common.Constants;
 import xin.manong.darwin.common.model.Proxy;
+import xin.manong.darwin.runner.proxy.ProxyGetConfig;
+import xin.manong.darwin.runner.proxy.ProxyGetter;
 import xin.manong.weapon.base.http.HttpClient;
 import xin.manong.weapon.base.http.HttpRequest;
 
@@ -21,17 +22,12 @@ import java.util.Map;
  * @author frankcl
  * @date 2026-02-06 14:37:50
  */
-public class JiliuProxyGetter implements ProxyGetter {
+public class JiliuProxyGetter extends ProxyGetter {
 
     private static final Logger logger = LoggerFactory.getLogger(JiliuProxyGetter.class);
 
-    private static final String RESPONSE_KEY_CODE = "code";
-    private static final String RESPONSE_KEY_MESSAGE = "msg";
-    private static final String RESPONSE_KEY_DATA = "data";
-
     private String proxyURL;
     private String proxyTimeURL;
-    private HttpClient httpClient;
     private ProxyGetConfig config;
 
     @Override
@@ -61,57 +57,26 @@ public class JiliuProxyGetter implements ProxyGetter {
         long startTime = System.currentTimeMillis();
         content = executeHTTPRequest(request);
         try {
-            JSONObject jsonResponse = JSONObject.parseObject(content);
-            if (jsonResponse == null) {
+            JiliuResponse<Map<String, Integer>> response = JSONObject.parseObject(
+                    content, new TypeReference<>() {});
+            if (response == null) {
                 logger.error("Invalid response:{} for {}", content, proxyTimeURL);
                 return List.of();
             }
-            Integer code = jsonResponse.getInteger(RESPONSE_KEY_CODE);
-            if (code == null || code != 0) {
-                logger.error("Get proxy time failed, message:{}", jsonResponse.getString(RESPONSE_KEY_MESSAGE));
+            if (response.code != 0) {
+                logger.error("Get proxy time failed, message:{}", response.message);
                 return List.of();
             }
             List<Proxy> proxies = new ArrayList<>();
-            Map<String, Object> proxyTimeMap = jsonResponse.getJSONObject(RESPONSE_KEY_DATA);
-            for (Map.Entry<String, Object> entry : proxyTimeMap.entrySet()) {
-                long expiredTime = startTime + (int) entry.getValue() * 1000L;
+            Map<String, Integer> proxyTimeMap = response.data;
+            for (Map.Entry<String, Integer> entry : proxyTimeMap.entrySet()) {
+                long expiredTime = startTime + entry.getValue() * 1000L;
                 proxies.add(buildProxy(entry.getKey(), expiredTime));
             }
             return proxies;
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
             return List.of();
-        }
-    }
-
-    /**
-     * 执行HTTP请求
-     *
-     * @param request HTTP请求
-     * @return 成功返回响应文本，否则返回null
-     */
-    private String executeHTTPRequest(HttpRequest request) {
-        try (Response response = httpClient.execute(request)) {
-            if (!response.isSuccessful()) {
-                logger.error("Execute proxy request failed, http code:{} for {}",
-                        response.code(), request.requestURL);
-                return null;
-            }
-            ResponseBody responseBody = response.body();
-            if (responseBody == null) {
-                logger.error("Execute proxy request failed, response body is null for {}", request.requestURL);
-                return null;
-            }
-            String content = responseBody.string();
-            if (StringUtils.isEmpty(content)) {
-                logger.error("Execute proxy request failed, response body is empty for {}", request.requestURL);
-                return null;
-            }
-            return content;
-        } catch (Exception e) {
-            logger.error("Execute proxy request exception for {}", request.requestURL);
-            logger.error(e.getMessage(), e);
-            return null;
         }
     }
 

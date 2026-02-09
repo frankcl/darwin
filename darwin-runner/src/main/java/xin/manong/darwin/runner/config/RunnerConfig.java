@@ -6,7 +6,6 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Profile;
 import xin.manong.darwin.runner.core.Allocator;
 import xin.manong.darwin.runner.core.DashboardRunner;
 import xin.manong.darwin.runner.core.PlanRunner;
@@ -15,11 +14,12 @@ import xin.manong.darwin.runner.manage.ExecuteRunnerShell;
 import xin.manong.darwin.runner.monitor.ConcurrencyQueueMonitor;
 import xin.manong.darwin.runner.monitor.ExpiredCleaner;
 import xin.manong.darwin.runner.monitor.ProxyMonitor;
-import xin.manong.darwin.runner.proxy.JiliuProxyGetter;
+import xin.manong.darwin.runner.proxy.ProxyGetterRegistry;
 import xin.manong.darwin.runner.proxy.ProxyGetConfig;
-import xin.manong.darwin.runner.proxy.ProxyGetter;
 import xin.manong.darwin.service.iface.MessageService;
 import xin.manong.weapon.base.etcd.EtcdClient;
+
+import java.util.List;
 
 /**
  * 运行线程配置信息
@@ -51,8 +51,9 @@ public class RunnerConfig {
     public long proxyExecuteTimeIntervalMs = DEFAULT_PROXY_EXECUTE_TIME_INTERVAL_MS;
     public long expiredCleanerExecuteIntervalMs = DEFAULT_EXPIRED_CLEANER_EXECUTE_INTERVAL_MS;
     public long maxExpiredIntervalMs = DEFAULT_MAX_EXPIRED_INTERVAL_MS;
+    public boolean enableProxyGetter = false;
     public String topicURL;
-    public ProxyGetConfig proxyGetConfig;
+    public List<ProxyGetConfig> proxyGetConfigs;
 
     @Resource
     private MessageService messageService;
@@ -62,11 +63,13 @@ public class RunnerConfig {
     private EtcdClient etcdClient;
 
     @Bean(destroyMethod = "destroy")
-    @ConditionalOnProperty(name = "app.runner.proxy-get-config.enable", havingValue = "true")
-    public ProxyGetter buildProxyGetter() {
-        ProxyGetter proxyGetter = new JiliuProxyGetter();
-        if (!proxyGetter.init(proxyGetConfig)) throw new IllegalStateException("构建短效代理获取器失败");
-        return proxyGetter;
+    @ConditionalOnProperty(name = "app.runner.enable-proxy-getter", havingValue = "true")
+    public ProxyGetterRegistry buildProxyGetterRegistry() {
+        if (!enableProxyGetter) throw new IllegalStateException("短效代理获取未开启");
+        if (proxyGetConfigs == null || proxyGetConfigs.isEmpty()) throw new IllegalStateException("短效代理配置为空");
+        ProxyGetterRegistry registry = new ProxyGetterRegistry();
+        if (!registry.init(proxyGetConfigs)) throw new IllegalStateException("构建短效代理注册器失败");
+        return registry;
     }
 
     /**
