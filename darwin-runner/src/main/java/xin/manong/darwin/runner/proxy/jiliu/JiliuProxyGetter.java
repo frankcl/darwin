@@ -9,7 +9,6 @@ import xin.manong.darwin.common.Constants;
 import xin.manong.darwin.common.model.Proxy;
 import xin.manong.darwin.runner.proxy.ProxyGetConfig;
 import xin.manong.darwin.runner.proxy.ProxyGetter;
-import xin.manong.weapon.base.http.HttpClient;
 import xin.manong.weapon.base.http.HttpRequest;
 
 import java.util.ArrayList;
@@ -42,7 +41,6 @@ public class JiliuProxyGetter extends ProxyGetter {
                 config.appId, config.appSecret, config.batchSize);
         proxyTimeURL = String.format("%s?app_id=%s&app_secret=%s", proxyTimeURL,
                 config.appId, config.appSecret);
-        httpClient = new HttpClient();
         this.config = config;
         return true;
     }
@@ -59,12 +57,8 @@ public class JiliuProxyGetter extends ProxyGetter {
         try {
             JiliuResponse<Map<String, Integer>> response = JSONObject.parseObject(
                     content, new TypeReference<>() {});
-            if (response == null) {
-                logger.error("Invalid response:{} for {}", content, proxyTimeURL);
-                return List.of();
-            }
             if (response.code != 0) {
-                logger.error("Get proxy time failed, message:{}", response.message);
+                logger.error("Jiliu get proxy time failed, message:{}", response.message);
                 return List.of();
             }
             List<Proxy> proxies = new ArrayList<>();
