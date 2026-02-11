@@ -24,6 +24,8 @@ weapon:
         security-protocol: SASL_PLAINTEXT
         sasl-mechanism: SCRAM-SHA-256
         sasl-jaas-config: ${weapon/kafka/jaas-config}
+      admin:
+        servers: localhost:9092
       producer:
         servers: localhost:9092
         request-timeout-ms: 3000

@@ -21,6 +21,7 @@ import xin.manong.weapon.spring.boot.io.EtcdPropertySourceFactory;
 @EnableRedisClient
 @EnableJettySupportSSL
 @EnableKafkaProducer
+@EnableKafkaAdmin
 @EnableOSSClient
 @EnableWatchValueBeanProcessor
 @EnableWebLogAspect

@@ -12,6 +12,7 @@ import lombok.Data;
 public class MQConfig {
 
     public String enable = "kafka";
+    public String instanceId;
     public String topicJob;
     public String topicURL;
 }
