@@ -18,6 +18,7 @@ import xin.manong.weapon.spring.boot.io.EtcdPropertySourceFactory;
 @EnableEtcdClient
 @EnableKafkaConsumer
 @EnableKafkaProducer
+@EnableKafkaAdmin
 @EnableRedisClient
 @EnableWatchValueBeanProcessor
 @PropertySource(
