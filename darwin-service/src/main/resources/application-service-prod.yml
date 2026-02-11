@@ -20,6 +20,8 @@ weapon:
         endpoints:
           - http://172.25.130.27:2379
     rocketmq:
+      admin:
+        endpoint: rmq-cn-1wy4i653l01-vpc.cn-hangzhou.rmq.aliyuncs.com:8080
       producer:
         endpoints: rmq-cn-1wy4i653l01-vpc.cn-hangzhou.rmq.aliyuncs.com:8080
         retry-cnt: 3

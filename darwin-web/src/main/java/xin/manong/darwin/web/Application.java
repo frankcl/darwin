@@ -21,6 +21,7 @@ import xin.manong.weapon.spring.boot.io.EtcdPropertySourceFactory;
 @EnableRedisClient
 @EnableJettySupportSSL
 @EnableRocketMQProducer
+@EnableRocketMQAdmin
 @EnableOSSClient
 @EnableWatchValueBeanProcessor
 @EnableWebLogAspect

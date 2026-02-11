@@ -53,6 +53,7 @@ public class RunnerConfig {
     public long maxExpiredIntervalMs = DEFAULT_MAX_EXPIRED_INTERVAL_MS;
     public boolean enableProxyGetter = false;
     public String topicURL;
+    public String groupId;
     public List<ProxyGetConfig> proxyGetConfigs;
 
     @Resource
@@ -94,7 +95,7 @@ public class RunnerConfig {
      */
     @Bean(destroyMethod = "stop")
     public Allocator buildAllocator() {
-        Allocator allocator = new Allocator(topicURL, allocatorExecuteIntervalMs, maxOverflowIntervalMs);
+        Allocator allocator = new Allocator(topicURL, groupId, allocatorExecuteIntervalMs, maxOverflowIntervalMs);
         registry.register(new ExecuteRunnerShell(
                 ExecuteRunnerShell.LOCK_KEY_ALLOCATOR,
                 allocator, ExecuteRunnerShell.RUNNER_TYPE_CORE,

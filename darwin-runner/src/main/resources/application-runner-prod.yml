@@ -1,5 +1,6 @@
 app:
   runner:
     topicURL: PROD-DARWIN-FETCH-URL
+    group-id: GID-PROD-DARWIN-FETCH-URL
     max-expired-interval-ms: 604800000
     enable-proxy-getter: true

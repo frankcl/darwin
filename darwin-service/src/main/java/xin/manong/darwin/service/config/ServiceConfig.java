@@ -5,8 +5,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import xin.manong.darwin.service.component.KafkaPusher;
-import xin.manong.darwin.service.component.RocketMQPusher;
+import xin.manong.darwin.service.component.*;
 
 /**
  * 服务层配置
@@ -36,6 +35,17 @@ public class ServiceConfig {
     }
 
     /**
+     * 构建kafka admin
+     *
+     * @return kafka admin
+     */
+    @Bean
+    @ConditionalOnProperty(name = "app.service.mq.enable", havingValue = "kafka", matchIfMissing = true)
+    public KafkaAdmin buildKafkaAdmin() {
+        return new KafkaAdmin();
+    }
+
+    /**
      * 构建RocketMQ消息推送
      *
      * @return RocketMQ消息推送
@@ -44,5 +54,16 @@ public class ServiceConfig {
     @ConditionalOnProperty(name = "app.service.mq.enable", havingValue = "rocketmq")
     public RocketMQPusher buildRocketMQPusher() {
         return new RocketMQPusher();
+    }
+
+    /**
+     * 构建RocketMQ消息推送
+     *
+     * @return RocketMQ消息推送
+     */
+    @Bean
+    @ConditionalOnProperty(name = "app.service.mq.enable", havingValue = "rocketmq")
+    public RocketMQAdmin buildRocketMQAdmin() {
+        return new RocketMQAdmin(mq.instanceId);
     }
 }

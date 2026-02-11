@@ -11,6 +11,7 @@ import xin.manong.darwin.common.model.URLRecord;
 import xin.manong.darwin.log.core.AspectLogSupport;
 import xin.manong.darwin.queue.ConcurrencyControl;
 import xin.manong.darwin.queue.ConcurrencyQueue;
+import xin.manong.darwin.service.component.MQAdmin;
 import xin.manong.darwin.service.component.Message;
 import xin.manong.darwin.service.component.MessagePusher;
 import xin.manong.darwin.service.component.PushResult;
@@ -36,9 +37,11 @@ public class Allocator extends ExecuteRunner {
     private static final Logger logger = LoggerFactory.getLogger(Allocator.class);
 
     public static final String ID = "allocator";
+    private static final long MAX_LAG_COUNT = 2000;
 
     private final long maxOverflowIntervalMs;
     private final String topic;
+    private final String groupId;
     @Resource
     private URLService urlService;
     @Resource
@@ -52,11 +55,15 @@ public class Allocator extends ExecuteRunner {
     @Resource
     private MessagePusher pusher;
     @Resource
+    private MQAdmin mqAdmin;
+    @Resource
     private AspectLogSupport aspectLogSupport;
 
-    public Allocator(String topic, Long executeIntervalMs, Long maxOverflowIntervalMs) {
+    public Allocator(String topic, String groupId,
+                     Long executeIntervalMs, Long maxOverflowIntervalMs) {
         super(ID, executeIntervalMs);
         this.topic = topic;
+        this.groupId = groupId;
         this.maxOverflowIntervalMs = maxOverflowIntervalMs;
         this.setName("爬虫链接分配器");
         this.setDescription("根据并发控制原则从多级队列中以并发单位为粒度分配链接并送入爬虫抓取");
@@ -69,6 +76,11 @@ public class Allocator extends ExecuteRunner {
             return;
         }
         try {
+            long lagCount = mqAdmin.getConsumeTopicLagCount(topic, groupId);
+            if (lagCount > MAX_LAG_COUNT) {
+                logger.warn("Too many lag count:{} for topic:{}", lagCount, topic);
+                return;
+            }
             Set<String> concurrencyUnits = concurrencyQueue.concurrencyUnitsSnapshots();
             for (String concurrencyUnit : concurrencyUnits) allocate(concurrencyUnit);
         } finally {
