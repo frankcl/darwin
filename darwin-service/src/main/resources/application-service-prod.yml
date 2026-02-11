@@ -48,6 +48,7 @@ app:
     mq:
       topicJob: PROD-DARWIN-DISPATCH-JOB
       topicURL: PROD-DARWIN-DISPATCH-RECORD
+      instance-id: rmq-cn-1wy4i653l01
     oss:
       region: cn-hangzhou
       bucket: lumy
