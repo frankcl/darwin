@@ -138,6 +138,26 @@ watchEffect( async () => await resetPlanForm())
         </el-form-item>
       </el-col>
     </el-row>
+    <el-form-item label="数据分发topic" prop="record_topic">
+      <template #label>
+        <span>数据分发topic</span>
+        <el-tooltip effect="dark" placement="top"
+                    content="数据分发MQ topic，不填或为空使用系统默认配置">
+          <IconHelp size="12" class="ml-2"/>
+        </el-tooltip>
+      </template>
+      <el-input v-model.trim="plan.record_topic" clearable />
+    </el-form-item>
+    <el-form-item label="任务分发topic" prop="job_topic">
+      <template #label>
+        <span>任务分发topic</span>
+        <el-tooltip effect="dark" placement="top"
+                    content="任务分发MQ topic，不填或为空使用系统默认配置">
+          <IconHelp size="12" class="ml-2"/>
+        </el-tooltip>
+      </template>
+      <el-input v-model.trim="plan.job_topic" clearable />
+    </el-form-item>
     <el-form-item>
       <el-button type="primary" @click="update" :disabled="!userStore.injected">
         <IconEdit size="20" class="mr-1" />
