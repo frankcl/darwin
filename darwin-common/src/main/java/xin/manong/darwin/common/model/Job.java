@@ -86,6 +86,15 @@ public class Job extends BaseModel {
     public String executor;
 
     /**
+     * 任务分发topic
+     */
+    @TableField(value = "job_topic")
+    @Column(name = "job_topic")
+    @JSONField(name = "job_topic")
+    @JsonProperty("job_topic")
+    public String jobTopic;
+
+    /**
      * 检测任务有效性
      * 1. 计划ID不能为空
      * 2. 任务ID不能为空

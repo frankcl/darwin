@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.serializer.SerializerFeature;
 import jakarta.annotation.Resource;
 import jakarta.ws.rs.NotFoundException;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import xin.manong.darwin.common.Constants;
@@ -520,7 +521,9 @@ public abstract class URLService {
     public PushResult dispatch(URLRecord record) {
         if (record == null) return null;
         String recordString = JSON.toJSONString(record, SerializerFeature.DisableCircularReferenceDetect);
-        Message message = new Message(config.mq.topicURL, record.appId == null ? null : String.valueOf(record.appId),
+        String topic = record.recordTopic;
+        if (StringUtils.isEmpty(topic)) topic = config.mq.topicURL;
+        Message message = new Message(topic, record.appId == null ? null : String.valueOf(record.appId),
                 record.key, recordString.getBytes(StandardCharsets.UTF_8));
         PushResult pushResult = pusher.pushMessage(message);
         if (pushResult == null) logger.error("Push record message failed for key:{}", record.key);

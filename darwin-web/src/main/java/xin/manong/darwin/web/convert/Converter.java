@@ -130,6 +130,8 @@ public class Converter {
         plan.allowDispatchFail = request.allowDispatchFail != null && request.allowDispatchFail;
         plan.category = request.category;
         plan.crontabExpression = request.crontabExpression;
+        plan.recordTopic = request.recordTopic;
+        plan.jobTopic = request.jobTopic;
         return plan;
     }
 
@@ -150,6 +152,8 @@ public class Converter {
         plan.appName = request.appName;
         plan.allowDispatchFail = request.allowDispatchFail;
         plan.crontabExpression = request.crontabExpression;
+        plan.recordTopic = request.recordTopic;
+        plan.jobTopic = request.jobTopic;
         return plan;
     }
 

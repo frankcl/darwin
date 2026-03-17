@@ -8,7 +8,9 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import xin.manong.darwin.common.Constants;
 import xin.manong.darwin.common.model.*;
+import xin.manong.darwin.runner.config.RunnerConfig;
 import xin.manong.darwin.service.component.PlanExecutor;
+import xin.manong.darwin.service.config.ServiceConfig;
 import xin.manong.darwin.service.iface.*;
 import xin.manong.darwin.service.request.PlanSearchRequest;
 import xin.manong.darwin.web.convert.Converter;
@@ -44,6 +46,10 @@ public class PlanController {
     private PlanExecutor planExecutor;
     @Resource
     private PermissionSupport permissionSupport;
+    @Resource
+    private ServiceConfig serviceConfig;
+    @Resource
+    private RunnerConfig runnerConfig;
 
     /**
      * 开启计划
@@ -138,6 +144,7 @@ public class PlanController {
         plan.planId = RandomID.build();
         if (plan.category == Constants.PLAN_CATEGORY_PERIOD) plan.nextTime = System.currentTimeMillis();
         if (!plan.check()) throw new BadRequestException("计划非法");
+        checkTopic(plan);
         return planService.add(plan);
     }
 
@@ -161,6 +168,7 @@ public class PlanController {
         permissionSupport.checkAppPermission(previous.appId);
         if (request.appId != null) permissionSupport.checkAppPermission(request.appId);
         Plan plan = Converter.convert(request);
+        checkTopic(plan);
         User user = ContextManager.getUser();
         if (user != null) plan.modifier = user.name;
         if (previous.category == Constants.PLAN_CATEGORY_ONCE &&
@@ -235,5 +243,25 @@ public class PlanController {
         App app = appService.get(plan.appId);
         if (app == null) throw new NotFoundException("所属应用不存在");
         plan.appName = app.name;
+    }
+
+    /**
+     * 检测topic合法性
+     *
+     * @param plan 计划
+     */
+    private void checkTopic(Plan plan) {
+        if (StringUtils.isNotEmpty(plan.recordTopic)) {
+            if (plan.recordTopic.equals(serviceConfig.mq.topicJob) ||
+                    plan.recordTopic.equals(runnerConfig.topicURL)) {
+                throw new BadRequestException("URL分发topic与系统内部topic冲突");
+            }
+        }
+        if (StringUtils.isNotEmpty(plan.jobTopic)) {
+            if (plan.jobTopic.equals(serviceConfig.mq.topicURL) ||
+                    plan.jobTopic.equals(runnerConfig.topicURL)) {
+                throw new BadRequestException("任务分发topic与系统内部topic冲突");
+            }
+        }
     }
 }

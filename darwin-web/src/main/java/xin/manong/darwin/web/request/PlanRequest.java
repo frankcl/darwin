@@ -66,6 +66,18 @@ public class PlanRequest implements Serializable {
     public Boolean allowDispatchFail;
 
     /**
+     * 数据分发topic
+     */
+    @JsonProperty("record_topic")
+    public String recordTopic;
+
+    /**
+     * 任务分发topic
+     */
+    @JsonProperty("job_topic")
+    public String jobTopic;
+
+    /**
      * 检测有效性
      * 无效抛出异常
      */
