@@ -45,26 +45,6 @@ const add = async () => {
         <el-form-item label="所属应用" prop="app_id">
           <app-search v-model="plan.app_id" :permission-check="true" @change="app => plan.app_name = app.name" />
         </el-form-item>
-        <el-form-item label="数据分发topic" prop="record_topic">
-          <template #label>
-            <span>数据分发topic</span>
-            <el-tooltip effect="dark" placement="top"
-                        content="数据分发MQ topic，不填或为空使用系统默认配置">
-              <IconHelp size="12" class="ml-2"/>
-            </el-tooltip>
-          </template>
-          <el-input v-model.trim="plan.record_topic" clearable />
-        </el-form-item>
-        <el-form-item label="任务分发topic" prop="job_topic">
-          <template #label>
-            <span>任务分发topic</span>
-            <el-tooltip effect="dark" placement="top"
-                        content="任务分发MQ topic，不填或为空使用系统默认配置">
-              <IconHelp size="12" class="ml-2"/>
-            </el-tooltip>
-          </template>
-          <el-input v-model.trim="plan.job_topic" clearable />
-        </el-form-item>
         <el-form-item v-if="plan.category === 1" label="调度计划" prop="crontab_expression">
           <template #label>
             <span>调度计划</span>
