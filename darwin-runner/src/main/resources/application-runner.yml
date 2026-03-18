@@ -12,8 +12,8 @@ app:
       -
         className: xin.manong.darwin.runner.proxy.zdaye.ZdayeProxyGetter
         baseURL: http://www.zdopen.com
-        appId: 202602091351125438
-        appSecret: 8ddc5cb8645c1806
-        username: 202602091351125438
-        password: 58142744
+        appId: 20260318115206270
+        appSecret: 5fbd83169056c6c3
+        username: 202603181152062701
+        password: 68365914
         batchSize: 5
