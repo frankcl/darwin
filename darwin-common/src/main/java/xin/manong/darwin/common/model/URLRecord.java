@@ -268,6 +268,15 @@ public class URLRecord extends SeedRecord {
     @TableField(exist = false)
     public String mimeType;
 
+    /**
+     * 数据分发topic
+     */
+    @TableField(value = "record_topic")
+    @Column(name = "record_topic")
+    @JSONField(name = "record_topic")
+    @JsonProperty("record_topic")
+    public String recordTopic;
+
     public URLRecord() {
         super();
         allowRepeat = false;
@@ -306,6 +315,7 @@ public class URLRecord extends SeedRecord {
         fetched = record.fetched;
         text = record.text;
         mimeType = record.mimeType;
+        recordTopic = record.recordTopic;
         fieldMap = record.fieldMap == null ? new HashMap<>() : new HashMap<>(record.fieldMap);
     }
 

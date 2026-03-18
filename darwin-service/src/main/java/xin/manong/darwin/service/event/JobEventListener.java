@@ -68,7 +68,9 @@ public class JobEventListener implements EventListener<String> {
     private void pushMessage(Job job, Context context) {
         if (!serviceConfig.dispatch) return;
         String jobString = JSON.toJSONString(job, SerializerFeature.DisableCircularReferenceDetect);
-        Message message = new Message(serviceConfig.mq.topicJob, job.appId == null ? null : String.valueOf(job.appId),
+        String topic = job.jobTopic;
+        if (StringUtils.isEmpty(topic)) topic = serviceConfig.mq.topicJob;
+        Message message = new Message(topic, job.appId == null ? null : String.valueOf(job.appId),
                 job.jobId, jobString.getBytes(StandardCharsets.UTF_8));
         PushResult pushResult = pusher.pushMessage(message);
         if (pushResult == null) {

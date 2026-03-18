@@ -206,6 +206,7 @@ public class TextParser {
             String normalizedURL = URLNormalizer.normalize(child.url);
             child.setUrl(normalizedURL);
         }
+        child.recordTopic = parent.recordTopic;
         child.requestHash = child.computeRequestHash();
         concurrencyComputer.compute(child);
         if (child.priority == null) child.priority = parent.priority;

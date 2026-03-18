@@ -147,6 +147,7 @@ public class PlanExecutor {
                 concurrencyComputer.compute(record);
                 record.appId = plan.appId;
                 record.jobId = job.jobId;
+                record.recordTopic = plan.recordTopic;
                 if (record.fetchMethod == null) record.fetchMethod = Constants.FETCH_METHOD_COMMON;
                 if (record.priority == null) record.priority = Constants.PRIORITY_NORMAL;
                 pushRecord(record, commitRecords, pushRecords);

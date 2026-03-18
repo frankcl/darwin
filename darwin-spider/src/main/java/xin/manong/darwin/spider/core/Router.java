@@ -137,7 +137,10 @@ public class Router {
         } finally {
             if (passConcurrency) {
                 concurrencyControl.removeConnection(record.concurrencyUnit, record.key);
-                if (!urlService.updateContent(record)) logger.warn("Update fetching content failed for url:{}", record.url);
+                for (int i = 0; i < 3; i++) {
+                    if (urlService.updateContent(record)) break;
+                    logger.warn("Update fetching content failed for url:{}, retry {} times", record.url, i + 1);
+                }
                 urlEventListener.onComplete(record.key, context);
                 jobEventListener.onComplete(record.jobId, null);
             }

@@ -90,6 +90,7 @@ public class Converter {
         job.createTime = System.currentTimeMillis();
         job.planId = plan.planId;
         job.appId = plan.appId;
+        job.jobTopic = plan.jobTopic;
         job.status = true;
         job.jobId = RandomID.build();
         job.name = String.format("%s_%s", plan.name, CommonUtil.timeToString(System.currentTimeMillis(), DATE_TIME_FORMAT));

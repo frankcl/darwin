@@ -131,6 +131,22 @@ public class Plan extends BaseModel {
     public String modifier;
 
     /**
+     * 数据分发topic
+     */
+    @TableField(value = "record_topic")
+    @JSONField(name = "record_topic")
+    @JsonProperty("record_topic")
+    public String recordTopic;
+
+    /**
+     * 任务分发topic
+     */
+    @TableField(value = "job_topic")
+    @JSONField(name = "job_topic")
+    @JsonProperty("job_topic")
+    public String jobTopic;
+
+    /**
      * 检测计划有效性
      * 1. 计划类型不能为空；如果是周期性计划，crontabExpression必须合法
      * 2. 应用ID和应用名不能为空
