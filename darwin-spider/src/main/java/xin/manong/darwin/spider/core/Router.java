@@ -101,8 +101,10 @@ public class Router {
             MediaType mediaType;
             try (Input input = openInput(record, prevRecord)) {
                 Spider spider = route(record.mediaType);
-                if (spider == null) throw new UnsupportedOperationException(
-                        String.format("不支持的媒体类型:%s", record.mediaType));
+                if (spider == null) {
+                    logger.warn("Unknown media type {}, use ResourceSpider fetching", record.mediaType);
+                    spider = resourceSpider;
+                }
                 mediaType = spider.handle(record, input, context);
             }
             while (mediaType != MediaType.UNKNOWN) {
