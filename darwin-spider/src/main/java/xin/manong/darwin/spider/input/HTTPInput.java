@@ -35,6 +35,7 @@ public class HTTPInput extends Input {
     private static final String HEADER_REFERER = "Referer";
     private static final String HEADER_HOST = "Host";
     private static final String HEADER_COOKIE = "Cookie";
+    private static final String HEADER_CONTENT_DISPOSITION = "Content-Disposition";
 
     private final URLRecord record;
     private final HttpClient httpClient;
@@ -89,6 +90,10 @@ public class HTTPInput extends Input {
         ResponseBody responseBody = httpResponse.body();
         assert responseBody != null;
         record.contentLength = responseBody.contentLength();
+        String contentDisposition = httpResponse.header(HEADER_CONTENT_DISPOSITION, "");
+        if (StringUtils.isNotEmpty(contentDisposition)) {
+            record.customMap.put(HEADER_CONTENT_DISPOSITION, contentDisposition);
+        }
         MediaType mediaType = responseBody.contentType();
         if (mediaType != null) {
             Charset charset = mediaType.charset();
