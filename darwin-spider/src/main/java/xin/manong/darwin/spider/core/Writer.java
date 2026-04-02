@@ -105,6 +105,8 @@ public class Writer {
             String key = item.substring(0, pos).trim();
             if (!key.equals(CONTENT_DISPOSITION_FILENAME)) continue;
             String value = item.substring(pos + 1).trim();
+            if (value.startsWith("\"")) value = value.substring(1);
+            if (value.endsWith("\"")) value = value.substring(0, value.length() - 1);
             pos = value.lastIndexOf(".");
             return pos == -1 ? null : value.substring(pos + 1);
         }
