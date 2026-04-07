@@ -103,7 +103,7 @@ public class Writer {
             int pos = item.indexOf("=");
             if (pos == -1) continue;
             String key = item.substring(0, pos).trim();
-            if (!key.equals(CONTENT_DISPOSITION_FILENAME)) continue;
+            if (!key.equalsIgnoreCase(CONTENT_DISPOSITION_FILENAME)) continue;
             String value = item.substring(pos + 1).trim();
             if (value.startsWith("\"")) value = value.substring(1);
             if (value.endsWith("\"")) value = value.substring(0, value.length() - 1);
