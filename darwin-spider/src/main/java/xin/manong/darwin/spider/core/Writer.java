@@ -25,6 +25,9 @@ import java.util.Map;
 @Component
 public class Writer {
 
+    private static final String HEADER_CONTENT_DISPOSITION = "Content-Disposition";
+    private static final String CONTENT_DISPOSITION_FILENAME = "filename";
+
     @Resource
     private SpiderConfig spiderConfig;
     @Resource
@@ -75,7 +78,38 @@ public class Writer {
         String suffix = record.mediaType == null ? null : record.mediaType.suffix;
         String key = String.format("%s/%s/%s", spiderConfig.ossDirectory,
                 contentTypeMap.get(record.contentType), record.key);
-        if (StringUtils.isEmpty(suffix)) return key;
+        if (StringUtils.isEmpty(suffix)) {
+            String fileSuffix = getSuffixFromContentDisposition(record);
+            if (StringUtils.isEmpty(fileSuffix)) return key;
+            return String.format("%s.%s", key, fileSuffix);
+        }
         return String.format("%s.%s", key, suffix);
+    }
+
+    /**
+     * 从Content-Disposition中获取后缀
+     *
+     * @param record 数据
+     * @return 后缀
+     */
+    private String getSuffixFromContentDisposition(URLRecord record) {
+        if (!record.customMap.containsKey(HEADER_CONTENT_DISPOSITION)) return null;
+        String contentDisposition = (String) record.customMap.get(HEADER_CONTENT_DISPOSITION);
+        if (StringUtils.isEmpty(contentDisposition)) return null;
+        String[] items = contentDisposition.trim().split(";");
+        for (String item : items) {
+            item = item.trim();
+            if (StringUtils.isEmpty(item)) continue;
+            int pos = item.indexOf("=");
+            if (pos == -1) continue;
+            String key = item.substring(0, pos).trim();
+            if (!key.equalsIgnoreCase(CONTENT_DISPOSITION_FILENAME)) continue;
+            String value = item.substring(pos + 1).trim();
+            if (value.startsWith("\"")) value = value.substring(1);
+            if (value.endsWith("\"")) value = value.substring(0, value.length() - 1);
+            pos = value.lastIndexOf(".");
+            return pos == -1 ? null : value.substring(pos + 1);
+        }
+        return null;
     }
 }

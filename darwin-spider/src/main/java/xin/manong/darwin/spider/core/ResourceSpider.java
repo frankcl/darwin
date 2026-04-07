@@ -23,9 +23,9 @@ public class ResourceSpider extends Spider {
     public MediaType handle(URLRecord record, Input input, Context context) throws IOException {
         assert input != null;
         record.contentType = Constants.CONTENT_TYPE_OTHER;
-        if (record.mediaType.isImage()) record.contentType = Constants.CONTENT_TYPE_IMAGE;
-        else if (record.mediaType.isVideo()) record.contentType = Constants.CONTENT_TYPE_VIDEO;
-        else if (record.mediaType.isAudio()) record.contentType = Constants.CONTENT_TYPE_AUDIO;
+        if (record.mediaType != null && record.mediaType.isImage()) record.contentType = Constants.CONTENT_TYPE_IMAGE;
+        else if (record.mediaType != null && record.mediaType.isVideo()) record.contentType = Constants.CONTENT_TYPE_VIDEO;
+        else if (record.mediaType != null && record.mediaType.isAudio()) record.contentType = Constants.CONTENT_TYPE_AUDIO;
         writer.write(record, input, context);
         return MediaType.UNKNOWN;
     }
