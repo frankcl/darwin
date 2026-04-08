@@ -108,7 +108,7 @@ public class Writer {
             if (value.startsWith("\"")) value = value.substring(1);
             if (value.endsWith("\"")) value = value.substring(0, value.length() - 1);
             pos = value.lastIndexOf(".");
-            return pos == -1 ? null : value.substring(pos + 1);
+            return pos == -1 ? null : value.substring(pos + 1).toLowerCase();
         }
         return null;
     }
