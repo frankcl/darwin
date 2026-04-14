@@ -1,7 +1,9 @@
 package xin.manong.darwin.spider;
 
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.context.annotation.PropertySource;
 import xin.manong.weapon.spring.boot.annotation.*;
+import xin.manong.weapon.spring.boot.io.EtcdPropertySourceFactory;
 
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
@@ -17,6 +19,10 @@ import java.nio.charset.StandardCharsets;
 @EnableEtcdClient
 @EnableKafkaProducer
 @EnableOSSClient
+@PropertySource(
+        name="default",
+        value = "classpath:application-service-dev.yml",
+        factory = EtcdPropertySourceFactory.class)
 @SpringBootApplication(scanBasePackages = { "xin.manong.darwin.spider", "xin.manong.darwin.service",
         "xin.manong.darwin.queue", "xin.manong.darwin.parser", "xin.manong.darwin.log" })
 public class ApplicationTest {

@@ -86,8 +86,8 @@
         <rocketmq-client.version>5.3.3</rocketmq-client.version>
         <rocketmq20220801.version>5.0.3</rocketmq20220801.version>
         <tablestore.version>5.13.10</tablestore.version>
-        <weapon.version>0.3.3</weapon.version>
-        <hylian.version>0.0.2</hylian.version>
+        <weapon.version>0.3.9</weapon.version>
+        <hylian.version>0.0.4</hylian.version>
         <darwin.version>0.0.4</darwin.version>
     </properties>
 

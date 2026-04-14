@@ -75,14 +75,11 @@ public class Writer {
      * @return OSS key
      */
     private String buildOSSKey(URLRecord record) {
-        String suffix = record.mediaType == null ? null : record.mediaType.suffix;
+        String suffix = getSuffixFromContentDisposition(record);
+        if (StringUtils.isEmpty(suffix)) suffix = record.mediaType == null ? null : record.mediaType.suffix;
         String key = String.format("%s/%s/%s", spiderConfig.ossDirectory,
                 contentTypeMap.get(record.contentType), record.key);
-        if (StringUtils.isEmpty(suffix)) {
-            String fileSuffix = getSuffixFromContentDisposition(record);
-            if (StringUtils.isEmpty(fileSuffix)) return key;
-            return String.format("%s.%s", key, fileSuffix);
-        }
+        if (StringUtils.isEmpty(suffix)) return key;
         return String.format("%s.%s", key, suffix);
     }
 
@@ -108,7 +105,7 @@ public class Writer {
             if (value.startsWith("\"")) value = value.substring(1);
             if (value.endsWith("\"")) value = value.substring(0, value.length() - 1);
             pos = value.lastIndexOf(".");
-            return pos == -1 ? null : value.substring(pos + 1);
+            return pos == -1 ? null : value.substring(pos + 1).toLowerCase();
         }
         return null;
     }
