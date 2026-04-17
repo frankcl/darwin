@@ -7,6 +7,7 @@ import xin.manong.darwin.common.model.URLRecord;
 import xin.manong.darwin.spider.input.Input;
 import xin.manong.weapon.base.common.Context;
 
+import javax.print.attribute.standard.Media;
 import java.io.IOException;
 import java.util.List;
 
@@ -42,6 +43,6 @@ public class ResourceSpider extends Spider {
                 MediaType.AUDIO_XMPEG, MediaType.AUDIO_WAV, MediaType.AUDIO_WMA, MediaType.APPLICATION_PDF,
                 MediaType.APPLICATION_DOC, MediaType.APPLICATION_DOCX, MediaType.APPLICATION_XLS,
                 MediaType.APPLICATION_XLSX, MediaType.APPLICATION_PPT, MediaType.APPLICATION_PPTX,
-                MediaType.APPLICATION_OCTET);
+                MediaType.APPLICATION_ZIP, MediaType.APPLICATION_OCTET);
     }
 }
