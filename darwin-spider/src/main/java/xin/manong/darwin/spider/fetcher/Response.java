@@ -124,6 +124,12 @@ public class Response<T> implements AutoCloseable {
             String value = parts[i].substring(pos + 1).trim();
             if (!key.equalsIgnoreCase("charset")) continue;
             mediaType.charset = value;
+            if (mediaType.charset.startsWith("\"") || mediaType.charset.startsWith("'")) {
+                mediaType.charset = mediaType.charset.substring(1);
+            }
+            if (mediaType.charset.endsWith("\"") || mediaType.charset.endsWith("'")) {
+                mediaType.charset = mediaType.charset.substring(0, mediaType.charset.length() - 1);
+            }
         }
         return mediaType;
     }
