@@ -373,7 +373,7 @@ public class MediaType {
             case "octet-stream" -> {
                 alias = "OCTET-STREAM";
             }
-            case "zip" -> {
+            case "zip", "x-zip-compressed" -> {
                 alias = "ZIP";
                 suffix = "zip";
             }
