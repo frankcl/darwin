@@ -2,6 +2,8 @@
 
 cd `dirname $0`
 
+export PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=true
+
 mkdir log
 
 pid_file="../pid"

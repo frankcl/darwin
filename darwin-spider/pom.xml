@@ -48,6 +48,10 @@
             <artifactId>ffmpeg-platform</artifactId>
         </dependency>
         <dependency>
+            <groupId>com.microsoft.playwright</groupId>
+            <artifactId>playwright</artifactId>
+        </dependency>
+        <dependency>
             <groupId>xin.manong</groupId>
             <artifactId>darwin-service</artifactId>
             <version>${darwin.version}</version>

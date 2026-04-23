@@ -6,6 +6,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import xin.manong.darwin.common.Constants;
 import xin.manong.darwin.service.iface.ProxyService;
+import xin.manong.darwin.spider.playwright.FeignBrowser;
+import xin.manong.darwin.spider.playwright.FingerprintProfile;
 import xin.manong.darwin.spider.proxy.SpiderProxySelector;
 
 /**
@@ -41,6 +43,11 @@ public class SpiderConfig {
     public String userAgent = DEFAULT_USER_AGENT;
     public String ossDirectory;
     public String tempDirectory;
+
+    @Bean(destroyMethod = "close")
+    public FeignBrowser buildFeignBrowser() {
+        return new FeignBrowser(FingerprintProfile.MAC);
+    }
 
     /**
      * 构建长效代理选择器
