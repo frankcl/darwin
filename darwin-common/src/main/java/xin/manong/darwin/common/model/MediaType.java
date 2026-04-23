@@ -72,6 +72,7 @@ public class MediaType {
     public static MediaType APPLICATION_OCTET = new MediaType("application", "octet-stream");
     public static MediaType APPLICATION_ZIP = new MediaType("application", "zip");
     public static MediaType APPLICATION_X_ZIP = new MediaType("application", "x-zip-compressed");
+    public static MediaType APPLICATION_RAR = new MediaType("application", "vnd.rar");
 
     public static MediaType STREAM_M3U8 = new MediaType("stream", "m3u8");
 
@@ -377,6 +378,10 @@ public class MediaType {
             case "zip", "x-zip-compressed" -> {
                 alias = "ZIP";
                 suffix = "zip";
+            }
+            case "vnd.rar" -> {
+                alias = "RAR";
+                suffix = "rar";
             }
         }
     }
