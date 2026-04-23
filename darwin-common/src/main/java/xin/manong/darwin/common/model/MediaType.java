@@ -71,6 +71,7 @@ public class MediaType {
     public static MediaType APPLICATION_PPTX = new MediaType("application", "vnd.openxmlformats-officedocument.presentationml.presentation");
     public static MediaType APPLICATION_OCTET = new MediaType("application", "octet-stream");
     public static MediaType APPLICATION_ZIP = new MediaType("application", "zip");
+    public static MediaType APPLICATION_X_ZIP = new MediaType("application", "x-zip-compressed");
 
     public static MediaType STREAM_M3U8 = new MediaType("stream", "m3u8");
 
