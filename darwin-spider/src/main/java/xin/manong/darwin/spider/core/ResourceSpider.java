@@ -42,6 +42,6 @@ public class ResourceSpider extends Spider {
                 MediaType.AUDIO_XMPEG, MediaType.AUDIO_WAV, MediaType.AUDIO_WMA, MediaType.APPLICATION_PDF,
                 MediaType.APPLICATION_DOC, MediaType.APPLICATION_DOCX, MediaType.APPLICATION_XLS,
                 MediaType.APPLICATION_XLSX, MediaType.APPLICATION_PPT, MediaType.APPLICATION_PPTX,
-                MediaType.APPLICATION_OCTET);
+                MediaType.APPLICATION_ZIP, MediaType.APPLICATION_X_ZIP, MediaType.APPLICATION_OCTET);
     }
 }
