@@ -13,6 +13,7 @@ import xin.manong.darwin.spider.output.OSSOutput;
 import xin.manong.weapon.base.common.Context;
 
 import java.io.IOException;
+import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -105,8 +106,26 @@ public class Writer {
             if (value.startsWith("\"")) value = value.substring(1);
             if (value.endsWith("\"")) value = value.substring(0, value.length() - 1);
             pos = value.lastIndexOf(".");
-            return pos == -1 ? null : value.substring(pos + 1).toLowerCase();
+            return pos == -1 ? getSuffixFromURL(record) : value.substring(pos + 1).toLowerCase();
         }
-        return null;
+        return getSuffixFromURL(record);
+    }
+
+    /**
+     * 通过URL路径获取文件后缀
+     *
+     * @param record 数据
+     * @return 文件后缀，不存在返回null
+     */
+    private String getSuffixFromURL(URLRecord record) {
+        try {
+            URL url = new URL(record.url);
+            String path = url.getPath();
+            if (StringUtils.isEmpty(path)) return null;
+            int pos = path.lastIndexOf(".");
+            return pos == -1 ? null : path.substring(pos + 1).toLowerCase();
+        } catch (Exception e) {
+            return null;
+        }
     }
 }

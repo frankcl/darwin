@@ -53,10 +53,18 @@ public class Session implements AutoCloseable {
                                 (mimeType.startsWith('application/') || mimeType.startsWith('image/') ||
                                  mimeType.startsWith('video/') || mimeType.startsWith('audio/'));
                     }
+                    function parseFilename(mimeType, disposition) {
+                        const match = disposition.match(/filename[^;=\\n]*=(['"]*)(.*?)\\1/);
+                        if (match) return match[2]
+                        const pos = mimeType.indexOf('/');
+                        let suffix = pos == -1 ? '' : mineType.substring(pos + 1);
+                        if (!/^[a-zA-Z0-9]+$/.test(suffix)) suffix = '';
+                        return suffix === '' ? 'file' : 'file.' + suffix;
+                    }
                     const request = {
                         method: method,
                         credentials: 'include'
-                    }
+                    };
                     if (headers) request.headers = headers;
                     if (requestBody && method.toLowerCase() === 'post') {
                         request.body = requestBody;
@@ -73,11 +81,7 @@ public class Session implements AutoCloseable {
                     const disposition = resp.headers.get('Content-Disposition') || '';
                     if (disposition.toLowerCase().includes('attachment') || isFileType(mimeType)) {
                         const blob = await resp.blob();
-                        const match = disposition.match(/filename[^;=\\n]*=(['"]*)(.*?)\\1/);
-                        const pos = mineType.indexOf('/')
-                        let suffix = pos == -1 ? '' : mineType.substring(pos + 1);
-                        if (!/^[a-zA-Z0-9]+$/.test(suffix)) suffix = ''
-                        const filename = match ? match[2] : (suffix === '' ? 'file' : 'file.' + suffix);
+                        const filename = parseFilename(mimeType, disposition);
                         const blobUrl = URL.createObjectURL(blob);
                         const a = document.createElement('a');
                         a.href = blobUrl;
