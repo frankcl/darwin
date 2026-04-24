@@ -18,6 +18,7 @@ import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -32,19 +33,25 @@ public class Session implements AutoCloseable {
 
     private static final Logger logger = LoggerFactory.getLogger(Session.class);
 
+    private static final Set<String> TEXT_MIME_TYPES = Set.of(
+            "application/json", "application/xhtml+xml",
+            "application/x-javascript", "application/javascript",
+            "application/xml");
     private static final String DOWNLOAD_KEYWORD = "Download is starting";
     private static final String HEADER_CONTENT_TYPE = "Content-Type";
+    private static final String HEADER_CONTENT_DISPOSITION = "Content-Disposition";
     private static final String CONTENT_TYPE_APPLICATION_JSON = "application/json";
     private static final String CONTENT_TYPE_APPLICATION_FORM = "application/x-www-form-urlencoded";
     private static final String CONTENT_TYPE_MULTIPART_FORM = "multipart/form-data";
     private static final String FETCH_SCRIPT = """
             async ({ url, method, requestBody, headers }) => {
                     function isFileType(mimeType) {
+                        mimeType = mimeType.toLowerCase();
                         return mimeType !== 'application/json' && mimeType !== 'application/xhtml+xml' &&
                                 mimeType !== 'application/x-javascript' && mimeType !== 'application/javascript' &&
                                 mimeType !== 'application/xml' && mimeType !== '' &&
-                                (mimeType.startswith('application/') || mimeType.startswith('image/') ||
-                                 mimeType.startswith('video/') || mimeType.startswith('audio/'));
+                                (mimeType.startsWith('application/') || mimeType.startsWith('image/') ||
+                                 mimeType.startsWith('video/') || mimeType.startsWith('audio/'));
                     }
                     const request = {
                         method: method,
@@ -64,7 +71,7 @@ public class Session implements AutoCloseable {
                     const contentType = resp.headers.get('Content-Type') || '';
                     const mimeType = contentType.split(';')[0].trim();
                     const disposition = resp.headers.get('Content-Disposition') || '';
-                    if (disposition.includes('attachment') || isFileType(mimeType)) {
+                    if (disposition.toLowerCase().includes('attachment') || isFileType(mimeType)) {
                         const blob = await resp.blob();
                         const match = disposition.match(/filename[^;=\\n]*=(['"]*)(.*?)\\1/);
                         const pos = mineType.indexOf('/')
@@ -211,6 +218,24 @@ public class Session implements AutoCloseable {
         }
     }
 
+    /**
+     * 判断是否为文件类型
+     *
+     * @param headers HTTP响应头
+     * @return 文件类型返回true，否则返回false
+     */
+    private boolean isFileType(Map<String, String> headers) {
+        String contentType = headers == null ? "" : headers.getOrDefault(HEADER_CONTENT_TYPE,
+                headers.getOrDefault(HEADER_CONTENT_TYPE.toLowerCase(), ""));
+        String disposition = headers == null ? "" : headers.getOrDefault(HEADER_CONTENT_DISPOSITION,
+                headers.getOrDefault(HEADER_CONTENT_DISPOSITION.toLowerCase(), ""));
+        if (disposition.toLowerCase().contains("attachment")) return true;
+        String mimeType = contentType.split(";")[0].trim().toLowerCase();
+        if (TEXT_MIME_TYPES.contains(mimeType)) return false;
+        return mimeType.startsWith("application/") || mimeType.startsWith("image/") ||
+                mimeType.startsWith("video/") || mimeType.startsWith("audio/");
+    }
+
     public FetchResponse execute(FetchRequest request) {
         beforeFetch(request);
         CompletableFuture<Download> downloadFuture = new CompletableFuture<>();
@@ -225,12 +250,17 @@ public class Session implements AutoCloseable {
         });
         Object raw = page.evaluate(FETCH_SCRIPT, buildRequestMap(request));
         Map<String, String> headers = getFutureQuietly(headerFuture, request.getTimeout());
-        String ct = headers.getOrDefault("content-type",
-                headers.getOrDefault("Content-Type", ""));
-        String cd = headers.getOrDefault("content-disposition",
-                headers.getOrDefault("Content-Disposition", ""));
+        if (isFileType(headers)) {
+            Download download = getFutureQuietly(downloadFuture, request.getTimeout());
+            if (download != null) {
+//                return RequestResult.ofDownload(saveDownload(download), ct, headers);
+            } else {
+//                return handleFileFromFetch(raw, ct, headers, url);
+            }
+        }
         return null;
     }
+    
     /**
      * 抓取数据
      *

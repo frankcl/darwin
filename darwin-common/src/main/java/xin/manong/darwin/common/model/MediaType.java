@@ -74,6 +74,7 @@ public class MediaType {
     public static MediaType APPLICATION_X_ZIP = new MediaType("application", "x-zip-compressed");
     public static MediaType APPLICATION_7Z = new MediaType("application", "x-7z-compressed");
     public static MediaType APPLICATION_RAR = new MediaType("application", "vnd.rar");
+    public static MediaType APPLICATION_EXE = new MediaType("application", "x-msdownload");
 
     public static MediaType STREAM_M3U8 = new MediaType("stream", "m3u8");
 
@@ -136,6 +137,15 @@ public class MediaType {
      */
     public boolean isAudio() {
         return mimeType != null && mimeType.equals("audio");
+    }
+
+    /**
+     * 是否为应用
+     *
+     * @return 是返回true，否则返回false
+     */
+    public boolean isApplication() {
+        return mimeType != null && mimeType.equals("application");
     }
 
     @Override
@@ -387,6 +397,10 @@ public class MediaType {
             case "vnd.rar" -> {
                 alias = "RAR";
                 suffix = "rar";
+            }
+            case "x-msdownload" -> {
+                alias = "EXE";
+                suffix = "exe";
             }
         }
     }

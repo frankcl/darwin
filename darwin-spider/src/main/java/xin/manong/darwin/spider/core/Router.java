@@ -174,7 +174,8 @@ public class Router {
         Spider spider = routeTable.get(mediaType);
         if (spider != null) return spider;
         if (mediaType.isText()) return textSpider;
-        if (mediaType.isVideo() || mediaType.isImage() || mediaType.isAudio()) return resourceSpider;
+        if (mediaType.isVideo() || mediaType.isImage() ||
+                mediaType.isAudio() || mediaType.isApplication()) return resourceSpider;
         return null;
     }
 

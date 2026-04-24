@@ -83,6 +83,8 @@ public class FeignBrowser implements AutoCloseable {
                 .setArgs(List.of(
                         "--disable-blink-features=AutomationControlled",
                         "--no-sandbox",
+                        "--disable-web-security",           // 禁用同源策略
+                        "--disable-site-isolation-trials",  // 禁用站点隔离
                         "--disable-dev-shm-usage",
                         "--disable-gpu",
                         "--disable-setuid-sandbox"));
@@ -101,7 +103,7 @@ public class FeignBrowser implements AutoCloseable {
         Session session = sessionManager.acquire();
         try {
             session.setTempDirectory(tempDirectory);
-            return session.fetch(request);
+            return session.execute(request);
         } finally {
             sessionManager.release(session);
         }
