@@ -88,8 +88,7 @@ public class FetchUtils {
      */
     public static Map<String, String> parseContentDisposition(Map<String, String> headers) {
         Map<String, String> itemMap = new HashMap<>();
-        if (headers == null || !headers.containsKey(HEADER_CONTENT_DISPOSITION) ||
-                !headers.containsKey(HEADER_CONTENT_DISPOSITION.toLowerCase())) return itemMap;
+        if (headers == null) return itemMap;
         String contentDisposition = headers.get(HEADER_CONTENT_DISPOSITION);
         if (StringUtils.isEmpty(contentDisposition)) {
             contentDisposition = headers.get(HEADER_CONTENT_DISPOSITION.toLowerCase());
@@ -122,8 +121,7 @@ public class FetchUtils {
      * @return 媒体类型
      */
     public static MediaType parseMediaType(Map<String, String> headers) {
-        if (headers == null || !headers.containsKey(HEADER_CONTENT_TYPE) ||
-                !headers.containsKey(HEADER_CONTENT_TYPE.toLowerCase())) return null;
+        if (headers == null) return null;
         String contentType = headers.get(HEADER_CONTENT_TYPE);
         if (StringUtils.isEmpty(contentType)) contentType = headers.get(HEADER_CONTENT_TYPE.toLowerCase());
         if (StringUtils.isEmpty(contentType)) return null;
