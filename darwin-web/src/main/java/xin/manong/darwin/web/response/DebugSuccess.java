@@ -30,6 +30,11 @@ public class DebugSuccess extends DebugResponse {
     @JsonProperty("custom_map")
     public Map<String, Object> customMap;
     /**
+     * HTTP响应头
+     */
+    @JsonProperty("response_headers")
+    public Map<String, String> responseHeaders;
+    /**
      * 抽链列表
      */
     @JsonProperty("children")

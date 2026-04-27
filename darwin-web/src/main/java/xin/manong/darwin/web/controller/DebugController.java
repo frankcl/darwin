@@ -157,6 +157,7 @@ public class DebugController {
         debugSuccess.debugLog = parseResponse.debugLog;
         debugSuccess.stdout = parseResponse.stdout;
         debugSuccess.stderr = parseResponse.stderr;
+        debugSuccess.responseHeaders = record.responseHeaders;
         return debugSuccess;
     }
 
