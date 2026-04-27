@@ -19,6 +19,7 @@ const reset = () => {
   delete parseResult.field_map
   delete parseResult.custom_map
   delete parseResult.children
+  delete parseResult.response_headers
 }
 
 const refreshTerm = async () => {
@@ -48,6 +49,7 @@ const debug = async () => {
       if (response.field_map) parseResult.field_map = response.field_map
       if (response.custom_map) parseResult.custom_map = response.custom_map
       if (response.children) parseResult.children = response.children
+      if (response.response_headers) parseResult.response_headers = response.response_headers
       return
     }
     termOutput.value += '发生错误 -> ' + response.message + '\n'
@@ -82,7 +84,7 @@ onMounted(() => debug())
       <text-editor class="mb-4" title="调试终端" v-model="termOutput" :refresh="refresh"
                    :height="300" :read-only="true" />
       <debug-result :children="parseResult.children" :custom-map="parseResult.custom_map"
-                    :field-map="parseResult.field_map" />
+                    :field-map="parseResult.field_map" :response-headers="parseResult.response_headers" />
     </darwin-card>
   </el-dialog>
 </template>

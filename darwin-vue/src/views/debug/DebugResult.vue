@@ -2,7 +2,7 @@
 import JsonViewer from 'vue-json-viewer'
 import TableHead from '@/components/data/TableHead'
 
-defineProps(['children', 'fieldMap', 'customMap'])
+defineProps(['children', 'fieldMap', 'customMap', 'responseHeaders'])
 </script>
 
 <template>
@@ -17,6 +17,10 @@ defineProps(['children', 'fieldMap', 'customMap'])
   <div v-if="customMap && Object.keys(customMap).length > 0" class="mb-4">
     <table-head title="自定义数据" />
     <json-viewer class="w-100p" :value="customMap" :expand-depth=0 boxed sort />
+  </div>
+  <div v-if="responseHeaders && Object.keys(responseHeaders).length > 0" class="mb-4">
+    <table-head title="HTTP响应头" />
+    <json-viewer class="w-100p" :value="responseHeaders" :expand-depth=0 boxed sort />
   </div>
 </template>
 
