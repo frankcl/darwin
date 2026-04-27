@@ -1,25 +1,11 @@
 package xin.manong.darwin.spider.input;
 
-import lombok.Setter;
-import okhttp3.MediaType;
-import okhttp3.Response;
-import okhttp3.ResponseBody;
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import xin.manong.darwin.common.model.HTTPRequest;
-import xin.manong.darwin.common.model.PostMediaType;
 import xin.manong.darwin.common.model.URLRecord;
-import xin.manong.darwin.service.iface.CookieService;
-import xin.manong.darwin.spider.core.SpiderConfig;
-import xin.manong.weapon.base.http.HttpClient;
-import xin.manong.weapon.base.http.HttpRequest;
-import xin.manong.weapon.base.http.RequestFormat;
-import xin.manong.weapon.base.http.RequestMethod;
-import xin.manong.weapon.base.util.CommonUtil;
+import xin.manong.darwin.spider.fetcher.Fetcher;
+import xin.manong.darwin.spider.fetcher.Response;
 
 import java.io.IOException;
-import java.nio.charset.Charset;
 
 /**
  * HTTP数据源输入
@@ -29,106 +15,40 @@ import java.nio.charset.Charset;
  */
 public class HTTPInput extends Input {
 
-    private static final Logger logger = LoggerFactory.getLogger(HTTPInput.class);
-
-    private static final String HEADER_USER_AGENT = "User-Agent";
-    private static final String HEADER_REFERER = "Referer";
-    private static final String HEADER_HOST = "Host";
-    private static final String HEADER_COOKIE = "Cookie";
-    private static final String HEADER_CONTENT_DISPOSITION = "Content-Disposition";
-
     private final URLRecord record;
-    private final HttpClient httpClient;
-    private final SpiderConfig config;
-    @Setter
-    private CookieService cookieService;
+    private final Fetcher<?> fetcher;
 
-    private Response httpResponse;
+    private Response<?> response;
 
     public HTTPInput(URLRecord record,
-                     HttpClient httpClient,
-                     SpiderConfig config) {
+                     Fetcher<?> fetcher) {
         this.record = record;
-        this.httpClient = httpClient;
-        this.config = config;
+        this.fetcher = fetcher;
     }
 
     @Override
     public void open() throws IOException {
         close();
-        HttpRequest.Builder builder = new HttpRequest.Builder();
-        RequestMethod requestMethod = buildRequestMethod();
-        builder.requestURL(record.url).method(requestMethod);
-        if (requestMethod == RequestMethod.POST) builder.params(record.requestBody).format(buildRequestFormat());
-        HttpRequest httpRequest = builder.build();
-        if (!StringUtils.isEmpty(config.userAgent)) httpRequest.headers.put(HEADER_USER_AGENT, config.userAgent);
-        if (!StringUtils.isEmpty(record.parentURL)) {
-            httpRequest.headers.put(HEADER_REFERER, CommonUtil.encodeURL(record.parentURL));
+        response = fetcher.fetch(record);
+        record.httpCode = response.getHttpCode();
+        if (!response.isStatus()) {
+            response.close();
+            throw new IOException(String.format("执行HTTP请求失败，http状态码：%d", record.httpCode));
         }
-        if (cookieService != null && record.systemCookie != null && record.systemCookie) {
-            String cookie = cookieService.getCookie(record);
-            if (StringUtils.isNotEmpty(cookie)) {
-                logger.info("Set system cookie:{} for url:{}", cookie, record.url);
-                httpRequest.headers.put(HEADER_COOKIE, cookie);
-            }
-        }
-        String host = CommonUtil.getHost(record.url);
-        if (!StringUtils.isEmpty(host) && !CommonUtil.isValidIP(host)) httpRequest.headers.put(HEADER_HOST, host);
-        if (record.headers != null && !record.headers.isEmpty()) httpRequest.headers.putAll(record.headers);
-        if (record.timeout != null && record.timeout > 0) {
-            httpRequest.connectTimeoutMs = record.timeout;
-            httpRequest.readTimeoutMs = record.timeout;
-        }
-        httpResponse = httpClient.execute(httpRequest);
-        record.httpCode = httpResponse.code();
-        if (!httpResponse.isSuccessful()) {
-            httpResponse.close();
-            throw new IOException(String.format("获取HTTP响应失败，http状态码：%d", record.httpCode));
-        }
-        String targetURL = httpResponse.request().url().url().toString();
+        String targetURL = response.getUrl();
         if (!StringUtils.isEmpty(targetURL) && !targetURL.equals(record.url)) record.redirectURL = targetURL;
-        ResponseBody responseBody = httpResponse.body();
-        assert responseBody != null;
-        record.contentLength = responseBody.contentLength();
-        String contentDisposition = httpResponse.header(HEADER_CONTENT_DISPOSITION, "");
-        if (StringUtils.isNotEmpty(contentDisposition)) {
-            record.customMap.put(HEADER_CONTENT_DISPOSITION, contentDisposition);
-        }
-        MediaType mediaType = responseBody.contentType();
-        if (mediaType != null) {
-            Charset charset = mediaType.charset();
-            record.mediaType = new xin.manong.darwin.common.model.MediaType(mediaType.type(), mediaType.subtype());
-            if (charset != null) record.mediaType.charset = charset.name();
-        }
-        inputStream = responseBody.byteStream();
+        if (response.getHeaders() != null) record.responseHeaders = response.getHeaders();
+        record.contentLength = response.getContentLength();
+        record.mediaType = response.getMediaType();
+        inputStream = response.getResponseBody();
     }
 
     @Override
     public void close() throws IOException {
         super.close();
-        if (httpResponse != null) {
-            httpResponse.close();
-            httpResponse = null;
+        if (response != null) {
+            response.close();
+            response = null;
         }
-    }
-
-    /**
-     * 构建请求方法
-     *
-     * @return 请求方法
-     */
-    private RequestMethod buildRequestMethod() {
-        if (record.httpRequest == HTTPRequest.POST) return RequestMethod.POST;
-        return RequestMethod.GET;
-    }
-
-    /**
-     * 构建POST请求格式
-     *
-     * @return POST请求格式
-     */
-    private RequestFormat buildRequestFormat() {
-        if (record.postMediaType == PostMediaType.FORM) return RequestFormat.FORM;
-        return RequestFormat.JSON;
     }
 }

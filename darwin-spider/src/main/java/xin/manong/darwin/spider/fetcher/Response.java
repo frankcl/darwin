@@ -3,10 +3,11 @@ package xin.manong.darwin.spider.fetcher;
 import kotlin.Pair;
 import lombok.Getter;
 import okhttp3.ResponseBody;
-import org.apache.commons.lang3.StringUtils;
 import xin.manong.darwin.common.model.MediaType;
 import xin.manong.darwin.spider.playwright.FetchResponse;
 
+import java.io.Closeable;
+import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.Charset;
 import java.util.HashMap;
@@ -18,9 +19,7 @@ import java.util.Map;
  * @author frankcl
  * @date 2026-04-22 17:02:07
  */
-public class Response<T> implements AutoCloseable {
-
-    private static final String HEADER_CONTENT_TYPE = "Content-Type";
+public class Response<T> implements Closeable {
 
     private final T httpResponse;
     @Getter
@@ -85,7 +84,7 @@ public class Response<T> implements AutoCloseable {
         response.headers = httpResponse.getHeaders();
         response.contentLength = httpResponse.getContentLength();
         response.responseBody = httpResponse.getResponseBody();
-        response.mediaType = parseMediaType(httpResponse);
+        response.mediaType = FetchUtils.parseMediaType(httpResponse.getHeaders());
         return response;
     }
 
@@ -100,42 +99,8 @@ public class Response<T> implements AutoCloseable {
         return headers.getOrDefault(name, null);
     }
 
-    /**
-     * 从HTTP header中解析媒体类型
-     *
-     * @param httpResponse 浏览器抓取响应
-     * @return 媒体类型
-     */
-    private static MediaType parseMediaType(FetchResponse httpResponse) {
-        Map<String, String> headers = httpResponse.getHeaders();
-        if (headers == null || !headers.containsKey(HEADER_CONTENT_TYPE)) return null;
-        String contentType = headers.get(HEADER_CONTENT_TYPE);
-        if (StringUtils.isEmpty(contentType)) return null;
-        String[] parts = contentType.split(";");
-        String mimeType = parts[0].trim();
-        int pos = mimeType.indexOf("/");
-        String type = pos == -1 ? mimeType : mimeType.substring(0, pos).trim();
-        String subType = pos == -1 ? null : mimeType.substring(pos + 1).trim();
-        MediaType mediaType = new MediaType(type, subType);
-        for (int i = 1; i < parts.length; i++) {
-            pos = parts[i].indexOf("=");
-            if (pos == -1) continue;
-            String key = parts[i].substring(0, pos).trim();
-            String value = parts[i].substring(pos + 1).trim();
-            if (!key.equalsIgnoreCase("charset")) continue;
-            mediaType.charset = value;
-            if (mediaType.charset.startsWith("\"") || mediaType.charset.startsWith("'")) {
-                mediaType.charset = mediaType.charset.substring(1);
-            }
-            if (mediaType.charset.endsWith("\"") || mediaType.charset.endsWith("'")) {
-                mediaType.charset = mediaType.charset.substring(0, mediaType.charset.length() - 1);
-            }
-        }
-        return mediaType;
-    }
-
     @Override
-    public void close() throws Exception {
+    public void close() throws IOException {
         if (httpResponse != null) {
             if (httpResponse instanceof okhttp3.Response) ((okhttp3.Response) httpResponse).close();
             if (httpResponse instanceof FetchResponse) ((FetchResponse) httpResponse).close();

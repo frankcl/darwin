@@ -5,6 +5,8 @@ import com.microsoft.playwright.options.ScreenSize;
 import lombok.Setter;
 import org.apache.commons.lang3.StringUtils;
 
+import java.io.Closeable;
+import java.io.IOException;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
@@ -15,7 +17,7 @@ import java.util.Map;
  * @author frankcl
  * @date 2026-04-21 16:27:08
  */
-public class FeignBrowser implements AutoCloseable {
+public class FeignBrowser implements Closeable {
 
     private static final String TEMP_DIRECTORY = "/tmp/playwright/";
     private static final String FINGERPRINT_SCRIPT_TEMPLATE = """
@@ -70,11 +72,13 @@ public class FeignBrowser implements AutoCloseable {
     private Playwright playwright;
 
     public FeignBrowser(FingerprintProfile profile) {
-        this(profile, null);
+        this(profile, null, 10);
     }
 
     public FeignBrowser(FingerprintProfile profile,
-                        String executablePath) {
+                        String executablePath,
+                        Integer maxSessions) {
+        if (maxSessions == null || maxSessions <= 0) maxSessions = 10;
         this.tempDirectory = TEMP_DIRECTORY;
         this.profile = profile;
         this.playwright = Playwright.create();
@@ -90,7 +94,7 @@ public class FeignBrowser implements AutoCloseable {
                         "--disable-setuid-sandbox"));
         if (StringUtils.isNotEmpty(executablePath)) launchOptions.setExecutablePath(Path.of(executablePath));
         this.browser = playwright.chromium().launch(launchOptions);
-        this.sessionManager = new SessionManager(this, 10);
+        this.sessionManager = new SessionManager(this, maxSessions);
     }
 
     /**
@@ -103,7 +107,7 @@ public class FeignBrowser implements AutoCloseable {
         Session session = sessionManager.acquire();
         try {
             session.setTempDirectory(tempDirectory);
-            return session.execute(request);
+            return session.fetch(request);
         } finally {
             sessionManager.release(session);
         }
@@ -123,10 +127,10 @@ public class FeignBrowser implements AutoCloseable {
     /**
      * 关闭浏览器
      *
-     * @throws Exception 异常
+     * @throws IOException 异常
      */
     @Override
-    public void close() throws Exception {
+    public void close() throws IOException {
         if (browser != null) {
             browser.close();
             browser = null;

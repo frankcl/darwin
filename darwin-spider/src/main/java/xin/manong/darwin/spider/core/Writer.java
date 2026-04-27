@@ -6,6 +6,7 @@ import org.springframework.stereotype.Component;
 import xin.manong.darwin.common.Constants;
 import xin.manong.darwin.common.model.URLRecord;
 import xin.manong.darwin.service.iface.OSSService;
+import xin.manong.darwin.spider.fetcher.FetchUtils;
 import xin.manong.darwin.spider.input.HTTPInput;
 import xin.manong.darwin.spider.input.Input;
 import xin.manong.darwin.spider.input.M3U8Input;
@@ -13,7 +14,6 @@ import xin.manong.darwin.spider.output.OSSOutput;
 import xin.manong.weapon.base.common.Context;
 
 import java.io.IOException;
-import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -25,9 +25,6 @@ import java.util.Map;
  */
 @Component
 public class Writer {
-
-    private static final String HEADER_CONTENT_DISPOSITION = "Content-Disposition";
-    private static final String CONTENT_DISPOSITION_FILENAME = "filename";
 
     @Resource
     private SpiderConfig spiderConfig;
@@ -76,56 +73,12 @@ public class Writer {
      * @return OSS key
      */
     private String buildOSSKey(URLRecord record) {
-        String suffix = getSuffixFromContentDisposition(record);
+        boolean attachment = FetchUtils.isAttachment(record.responseHeaders);
+        String suffix = attachment ? FetchUtils.getSuffix(record) : null;
         if (StringUtils.isEmpty(suffix)) suffix = record.mediaType == null ? null : record.mediaType.suffix;
         String key = String.format("%s/%s/%s", spiderConfig.ossDirectory,
                 contentTypeMap.get(record.contentType), record.key);
         if (StringUtils.isEmpty(suffix)) return key;
         return String.format("%s.%s", key, suffix);
-    }
-
-    /**
-     * 从Content-Disposition中获取后缀
-     *
-     * @param record 数据
-     * @return 后缀
-     */
-    private String getSuffixFromContentDisposition(URLRecord record) {
-        if (!record.customMap.containsKey(HEADER_CONTENT_DISPOSITION)) return null;
-        String contentDisposition = (String) record.customMap.get(HEADER_CONTENT_DISPOSITION);
-        if (StringUtils.isEmpty(contentDisposition)) return null;
-        String[] items = contentDisposition.trim().split(";");
-        for (String item : items) {
-            item = item.trim();
-            if (StringUtils.isEmpty(item)) continue;
-            int pos = item.indexOf("=");
-            if (pos == -1) continue;
-            String key = item.substring(0, pos).trim();
-            if (!key.equalsIgnoreCase(CONTENT_DISPOSITION_FILENAME)) continue;
-            String value = item.substring(pos + 1).trim();
-            if (value.startsWith("\"")) value = value.substring(1);
-            if (value.endsWith("\"")) value = value.substring(0, value.length() - 1);
-            pos = value.lastIndexOf(".");
-            return pos == -1 ? getSuffixFromURL(record) : value.substring(pos + 1).toLowerCase();
-        }
-        return getSuffixFromURL(record);
-    }
-
-    /**
-     * 通过URL路径获取文件后缀
-     *
-     * @param record 数据
-     * @return 文件后缀，不存在返回null
-     */
-    private String getSuffixFromURL(URLRecord record) {
-        try {
-            URL url = new URL(record.url);
-            String path = url.getPath();
-            if (StringUtils.isEmpty(path)) return null;
-            int pos = path.lastIndexOf(".");
-            return pos == -1 ? null : path.substring(pos + 1).toLowerCase();
-        } catch (Exception e) {
-            return null;
-        }
     }
 }

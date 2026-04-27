@@ -219,6 +219,15 @@ public class URLRecord extends SeedRecord {
     public Map<String, Object> fieldMap = new HashMap<>();
 
     /**
+     * HTTP响应header信息
+     */
+    @TableField(value = "response_headers", typeHandler = JSONObjectMapHandler.class)
+    @Column(name = "response_headers")
+    @JSONField(name = "response_headers", deserializeUsing = MapDeserializer.class)
+    @JsonProperty("response_headers")
+    public Map<String, String> responseHeaders = new HashMap<>();
+
+    /**
      * 媒体类型
      */
     @TableField(value = "media_type", typeHandler = JSONMediaTypeHandler.class)
@@ -317,6 +326,7 @@ public class URLRecord extends SeedRecord {
         mimeType = record.mimeType;
         recordTopic = record.recordTopic;
         fieldMap = record.fieldMap == null ? new HashMap<>() : new HashMap<>(record.fieldMap);
+        responseHeaders = record.responseHeaders == null ? new HashMap<>() : new HashMap<>(record.responseHeaders);
     }
 
     /**

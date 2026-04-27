@@ -26,6 +26,7 @@ public class SpiderConfig {
     private static final int DEFAULT_RETRY_CNT = 3;
     private static final int DEFAULT_MAX_DEPTH = 3;
     private static final int DEFAULT_MAX_CONTENT_LENGTH = 10485760;
+    private static final int DEFAULT_MAX_BROWSER_SESSIONS = 10;
     private static final long DEFAULT_MAX_REPEAT_FETCH_TIME_INTERVAL_MS = 86400 * 1000L;
     private static final long DEFAULT_CONNECT_TIMEOUT_SECONDS = 5L;
     private static final long DEFAULT_READ_TIMEOUT_SECONDS = 10L;
@@ -40,13 +41,17 @@ public class SpiderConfig {
     public int maxContentLength = DEFAULT_MAX_CONTENT_LENGTH;
     public int maxDepth = DEFAULT_MAX_DEPTH;
     public int retryCnt = DEFAULT_RETRY_CNT;
+    public int maxBrowserSessions = DEFAULT_MAX_BROWSER_SESSIONS;
     public String userAgent = DEFAULT_USER_AGENT;
     public String ossDirectory;
     public String tempDirectory;
+    public String browserExecutePath;
 
     @Bean(destroyMethod = "close")
     public FeignBrowser buildFeignBrowser() {
-        return new FeignBrowser(FingerprintProfile.MAC);
+        FeignBrowser browser = new FeignBrowser(FingerprintProfile.MAC, browserExecutePath, maxBrowserSessions);
+        browser.setTempDirectory(tempDirectory);
+        return browser;
     }
 
     /**

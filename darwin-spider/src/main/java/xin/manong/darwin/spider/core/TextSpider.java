@@ -8,7 +8,7 @@ import org.springframework.stereotype.Component;
 import xin.manong.darwin.common.Constants;
 import xin.manong.darwin.common.model.MediaType;
 import xin.manong.darwin.common.model.URLRecord;
-import xin.manong.darwin.service.iface.CookieService;
+import xin.manong.darwin.spider.fetcher.FetcherFactory;
 import xin.manong.darwin.spider.input.ByteArrayInput;
 import xin.manong.darwin.spider.input.HTTPInput;
 import xin.manong.darwin.spider.input.Input;
@@ -36,9 +36,7 @@ public class TextSpider extends Spider {
     private static final String M3U8_MARK_END = "#EXT-X-ENDLIST";
 
     @Resource
-    private CookieService cookieService;
-    @Resource
-    private HttpClientFactory httpClientFactory;
+    private FetcherFactory fetcherFactory;
     @Resource
     private TextParser textParser;
 
@@ -74,14 +72,14 @@ public class TextSpider extends Spider {
      * @throws IOException I/O异常
      */
     public void fetch(URLRecord record) throws IOException {
-        HTTPInput input = new HTTPInput(record, httpClientFactory.getHttpClient(record), spiderConfig);
-        input.setCookieService(cookieService);
-        input.open();
-        if (record.mediaType == null || (!record.mediaType.isText() &&
-                !supportedMediaTypes().contains(record.mediaType))) {
-            throw new IOException("不支持的媒体类型：" + record.mediaType);
+        try (HTTPInput input = new HTTPInput(record, fetcherFactory.getFetcher(record))) {
+            input.open();
+            if (record.mediaType == null || (!record.mediaType.isText() &&
+                    !supportedMediaTypes().contains(record.mediaType))) {
+                throw new IOException("不支持的媒体类型：" + record.mediaType);
+            }
+            record.text = fetch(record, input, null);
         }
-        record.text = fetch(record, input, null);
     }
 
     /**

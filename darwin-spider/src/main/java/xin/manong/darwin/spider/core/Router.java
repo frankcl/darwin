@@ -18,10 +18,11 @@ import xin.manong.darwin.queue.CrawlDelayControl;
 import xin.manong.darwin.queue.PushResult;
 import xin.manong.darwin.service.event.JobEventListener;
 import xin.manong.darwin.service.event.URLEventListener;
-import xin.manong.darwin.service.iface.CookieService;
 import xin.manong.darwin.service.iface.OSSService;
 import xin.manong.darwin.service.iface.PlanService;
 import xin.manong.darwin.service.iface.URLService;
+import xin.manong.darwin.spider.fetcher.FetchUtils;
+import xin.manong.darwin.spider.fetcher.FetcherFactory;
 import xin.manong.darwin.spider.input.HTTPInput;
 import xin.manong.darwin.spider.input.Input;
 import xin.manong.darwin.spider.input.OSSInput;
@@ -45,10 +46,6 @@ public class Router {
 
     private static final Logger logger = LoggerFactory.getLogger(Router.class);
 
-    private static final String HEADER_CONTENT_DISPOSITION = "Content-Disposition";
-    private static final String CONTENT_DISPOSITION_ATTACHMENT = "attachment";
-    private static final String CONTENT_DISPOSITION_FILENAME = "filename";
-
     @Resource
     private SpiderConfig spiderConfig;
     @Resource
@@ -64,11 +61,9 @@ public class Router {
     @Resource
     private ConcurrencyQueue concurrencyQueue;
     @Resource
-    private HttpClientFactory httpClientFactory;
+    private FetcherFactory fetcherFactory;
     @Resource
     private PlanService planService;
-    @Resource
-    private CookieService cookieService;
     @Resource
     private URLService urlService;
     @Resource
@@ -186,34 +181,8 @@ public class Router {
      * @return 成功返回spider，否则返回null
      */
     private Spider route(URLRecord record) {
-        if (isAttachment(record)) return resourceSpider;
+        if (FetchUtils.isAttachment(record.responseHeaders)) return resourceSpider;
         return route(record.mediaType);
-    }
-
-    /**
-     * 是否包含附件下载
-     *
-     * @param record 数据
-     * @return 包含返回true，否则返回false
-     */
-    private boolean isAttachment(URLRecord record) {
-        if (!record.customMap.containsKey(HEADER_CONTENT_DISPOSITION)) return false;
-        String contentDisposition = (String) record.customMap.get(HEADER_CONTENT_DISPOSITION);
-        if (StringUtils.isEmpty(contentDisposition)) return false;
-        Map<String, String> itemMap = new HashMap<>();
-        String[] items = contentDisposition.trim().split(";");
-        for (String item : items) {
-            item = item.trim();
-            if (StringUtils.isEmpty(item)) continue;
-            int pos = item.indexOf("=");
-            if (pos == -1) {
-                item = item.trim().toLowerCase();
-                itemMap.put(item, item);
-            } else {
-                itemMap.put(item.substring(0, pos).trim().toLowerCase(), item.substring(pos + 1).trim());
-            }
-        }
-        return itemMap.containsKey(CONTENT_DISPOSITION_ATTACHMENT) && itemMap.containsKey(CONTENT_DISPOSITION_FILENAME);
     }
 
     /**
@@ -229,8 +198,7 @@ public class Router {
     private Input openInput(URLRecord record, URLRecord prevRecord) throws IOException {
         if (prevRecord == null) {
             record.fetched = true;
-            HTTPInput input = new HTTPInput(record, httpClientFactory.getHttpClient(record), spiderConfig);
-            input.setCookieService(cookieService);
+            HTTPInput input = new HTTPInput(record, fetcherFactory.getFetcher(record));
             input.open();
             return input;
         }
@@ -242,10 +210,7 @@ public class Router {
         record.charset = prevRecord.charset;
         record.htmlCharset = prevRecord.htmlCharset;
         record.contentLength = prevRecord.contentLength;
-        if (prevRecord.customMap != null && prevRecord.customMap.containsKey(HEADER_CONTENT_DISPOSITION)) {
-            if (record.customMap == null) record.customMap = new HashMap<>();
-            record.customMap.put(HEADER_CONTENT_DISPOSITION, prevRecord.customMap.get(HEADER_CONTENT_DISPOSITION));
-        }
+        record.responseHeaders = prevRecord.responseHeaders;
         Input input = new OSSInput(prevRecord.fetchContentURL, ossService);
         input.open();
         return input;

@@ -73,10 +73,16 @@ watchEffect(async () => {
         <el-descriptions-item label="内容长度">
           {{ record.content_length ? record.content_length : '暂无' }}
         </el-descriptions-item>
-        <el-descriptions-item label="分发数据">{{ record.allow_dispatch ? '允许' : '禁止' }}</el-descriptions-item>
+        <el-descriptions-item label="下载时长">{{ record.down_time ? record.down_time : '未知' }}</el-descriptions-item>
         <el-descriptions-item label="HTTP抓取">{{ record.fetched ? '是' : '否' }}</el-descriptions-item>
         <el-descriptions-item label="HTTP请求">{{ record.http_request }}</el-descriptions-item>
         <el-descriptions-item label="POST媒体类型">{{ record.post_media_type ? record.post_media_type : '暂无' }}</el-descriptions-item>
+        <el-descriptions-item label="分发Topic" class-name="wide-column" :span="3">
+          {{ record.record_topic ? record.record_topic : '未知' }}
+        </el-descriptions-item>
+        <el-descriptions-item label="分发数据" class-name="wide-column" :span="4">
+          {{ record.allow_dispatch ? '允许' : '禁止' }}
+        </el-descriptions-item>
         <el-descriptions-item v-if="record.request_body && Object.keys(record.request_body).length > 0"
                               label="POST请求体" :span="7">
           <json-viewer :value="record.request_body" :expand-depth=0 sort />
@@ -90,8 +96,12 @@ watchEffect(async () => {
           <json-viewer :value="record.custom_map" :expand-depth=0 sort />
         </el-descriptions-item>
         <el-descriptions-item v-if="record.headers && Object.keys(record.headers).length > 0"
-                              label="HTTP Header" :span="7">
+                              label="HTTP请求头" :span="7">
           <json-viewer :value="record.headers" :expand-depth=0 sort />
+        </el-descriptions-item>
+        <el-descriptions-item v-if="record.response_headers && Object.keys(record.response_headers).length > 0"
+                              label="HTTP响应头" :span="7">
+          <json-viewer :value="record.response_headers" :expand-depth=0 sort />
         </el-descriptions-item>
       </el-descriptions>
     </darwin-card>

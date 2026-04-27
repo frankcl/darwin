@@ -23,6 +23,20 @@ import java.util.Map;
 public class URLSearchRequest extends SearchRequest {
 
     /**
+     * HTTP抓取
+     */
+    @JsonProperty("fetched")
+    @QueryParam("fetched")
+    public Boolean fetched;
+
+    /**
+     * 允许分发
+     */
+    @JsonProperty("allow_dispatch")
+    @QueryParam("allow_dispatch")
+    public Boolean allowDispatch;
+
+    /**
      * URL状态
      */
     @JsonProperty("status")

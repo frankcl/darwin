@@ -5,7 +5,6 @@ import com.alicloud.openservices.tablestore.model.search.query.BoolQuery;
 import com.alicloud.openservices.tablestore.model.search.query.Query;
 import jakarta.annotation.Resource;
 import jakarta.ws.rs.InternalServerErrorException;
-import jakarta.ws.rs.NotFoundException;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -43,6 +42,8 @@ public class URLServiceImpl extends URLService {
     private static final String KEY_HASH = "hash";
     private static final String KEY_REQUEST_HASH = "request_hash";
     private static final String KEY_HTTP_REQUEST = "http_request";
+    private static final String KEY_FETCHED = "fetched";
+    private static final String KEY_ALLOW_DISPATCH = "allow_dispatch";
     private static final String KEY_HOST = "host";
     private static final String KEY_DOMAIN = "domain";
     private static final String KEY_CONCURRENCY_UNIT = "concurrency_unit";
@@ -260,6 +261,12 @@ public class URLServiceImpl extends URLService {
         }
         if (searchRequest.httpRequest != null) {
             queryList.add(SearchQueryBuilder.buildTermQuery(KEY_HTTP_REQUEST, searchRequest.httpRequest.name()));
+        }
+        if (searchRequest.fetched != null) {
+            queryList.add(SearchQueryBuilder.buildTermQuery(KEY_FETCHED, searchRequest.fetched));
+        }
+        if (searchRequest.allowDispatch != null) {
+            queryList.add(SearchQueryBuilder.buildTermQuery(KEY_ALLOW_DISPATCH, searchRequest.allowDispatch));
         }
         if (StringUtils.isNotEmpty(searchRequest.jobId)) {
             queryList.add(SearchQueryBuilder.buildTermQuery(KEY_JOB_ID, searchRequest.jobId));

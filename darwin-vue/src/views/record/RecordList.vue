@@ -65,6 +65,8 @@ const query = reactive(newSearchQuery({
   priority: 'all',
   http_request: 'all',
   fetch_method: 'all',
+  allow_dispatch: 'all',
+  fetched: 'all',
   sort_field: 'fetch_time',
   sort_order: 'descending'
 }))
@@ -80,6 +82,8 @@ const prepareSearchRequest = () => {
   if (query.priority !== undefined && query.priority !== 'all') request.priority = query.priority
   if (query.content_type && query.content_type !== 'all') request.content_type = query.content_type
   if (query.http_request && query.http_request !== 'all') request.http_request = query.http_request
+  if (query.allow_dispatch !== undefined && query.allow_dispatch !== 'all') request.allow_dispatch = query.allow_dispatch
+  if (query.fetched !== undefined && query.fetched !== 'all') request.fetched = query.fetched
   if (query.fetch_method !== undefined && query.fetch_method !== 'all') request.fetch_method = query.fetch_method
   if (query.status && query.status.length > 0) request.status = JSON.stringify(query.status)
   return request
@@ -231,6 +235,26 @@ watchEffect(async () => await search())
               <el-radio-button v-for="key in Object.keys(httpRequestMap)" :key="key" :value="key">
                 {{ httpRequestMap[key] }}
               </el-radio-button>
+            </el-radio-group>
+          </el-form-item>
+        </el-col>
+      </el-row>
+      <el-row :gutter="20">
+        <el-col :span="10">
+          <el-form-item label="数据获取" prop="fetched">
+            <el-radio-group v-model="query.fetched">
+              <el-radio-button value="all">全部</el-radio-button>
+              <el-radio-button :value="true">HTTP抓取</el-radio-button>
+              <el-radio-button :value="false">数据库存量</el-radio-button>
+            </el-radio-group>
+          </el-form-item>
+        </el-col>
+        <el-col :span="10">
+          <el-form-item label="允许分发" prop="allow_dispatch">
+            <el-radio-group v-model="query.allow_dispatch">
+              <el-radio-button value="all">全部</el-radio-button>
+              <el-radio-button :value="true">允许</el-radio-button>
+              <el-radio-button :value="false">禁止</el-radio-button>
             </el-radio-group>
           </el-form-item>
         </el-col>

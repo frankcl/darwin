@@ -5,20 +5,20 @@ import com.microsoft.playwright.*;
 import com.microsoft.playwright.options.WaitUntilState;
 import lombok.Getter;
 import lombok.Setter;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import xin.manong.weapon.base.util.RandomID;
 
 import java.io.ByteArrayInputStream;
+import java.io.Closeable;
 import java.io.FileInputStream;
+import java.io.IOException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -29,20 +29,32 @@ import java.util.stream.Collectors;
  * @author frankcl
  * @date 2026-04-22 10:23:26
  */
-public class Session implements AutoCloseable {
+public class Session implements Closeable {
 
     private static final Logger logger = LoggerFactory.getLogger(Session.class);
 
     private static final Set<String> TEXT_MIME_TYPES = Set.of(
-            "application/json", "application/xhtml+xml",
-            "application/x-javascript", "application/javascript",
-            "application/xml");
+            "application/json", "application/xhtml+xml", "application/xml",
+            "application/x-javascript", "application/javascript");
     private static final String DOWNLOAD_KEYWORD = "Download is starting";
     private static final String HEADER_CONTENT_TYPE = "Content-Type";
     private static final String HEADER_CONTENT_DISPOSITION = "Content-Disposition";
+    private static final String HEADER_HOST = "Host";
     private static final String CONTENT_TYPE_APPLICATION_JSON = "application/json";
     private static final String CONTENT_TYPE_APPLICATION_FORM = "application/x-www-form-urlencoded";
-    private static final String CONTENT_TYPE_MULTIPART_FORM = "multipart/form-data";
+
+    private static final String REQUEST_PARAM_URL = "url";
+    private static final String REQUEST_PARAM_METHOD = "method";
+    private static final String REQUEST_PARAM_HEADERS = "headers";
+    private static final String REQUEST_PARAM_REQUEST_BODY = "requestBody";
+
+    private static final String RESPONSE_PARAM_STATUS = "status";
+    private static final String RESPONSE_PARAM_URL = "url";
+    private static final String RESPONSE_PARAM_MESSAGE = "message";
+    private static final String RESPONSE_PARAM_HTTP_CODE = "httpCode";
+    private static final String RESPONSE_PARAM_HEADERS = "headers";
+    private static final String RESPONSE_PARAM_BASE64 = "base64";
+
     private static final String FETCH_SCRIPT = """
             async ({ url, method, requestBody, headers }) => {
                     function isFileType(mimeType) {
@@ -61,48 +73,59 @@ public class Session implements AutoCloseable {
                         if (!/^[a-zA-Z0-9]+$/.test(suffix)) suffix = '';
                         return suffix === '' ? 'file' : 'file.' + suffix;
                     }
-                    const request = {
-                        method: method,
-                        credentials: 'include'
-                    };
-                    if (headers) request.headers = headers;
-                    if (requestBody && method.toLowerCase() === 'post') {
-                        request.body = requestBody;
-                        const contentType = headers ? headers.get('Content-Type') : '';
-                        if (contentType === 'multipart/form-data') {
-                            const form = new FormData();
-                            Object.entries(fields).forEach(([k, v]) => form.append(k, v));
-                            request.body = form;
-                        }
-                    }
-                    const resp = await fetch(url, request);
-                    const contentType = resp.headers.get('Content-Type') || '';
-                    const mimeType = contentType.split(';')[0].trim();
-                    const disposition = resp.headers.get('Content-Disposition') || '';
-                    if (disposition.toLowerCase().includes('attachment') || isFileType(mimeType)) {
-                        const blob = await resp.blob();
-                        const filename = parseFilename(mimeType, disposition);
-                        const blobUrl = URL.createObjectURL(blob);
-                        const a = document.createElement('a');
-                        a.href = blobUrl;
-                        a.download = filename;
-                        document.body.appendChild(a);
-                        a.click();
-                        document.body.removeChild(a);
-                        URL.revokeObjectURL(blobUrl);
-                        return {
-                            status: resp.status,
-                            headers: Object.fromEntries(resp.headers.entries())
+                    try {
+                        const request = {
+                            method: method,
+                            credentials: 'include'
                         };
-                    } else {
-                        const buf = await resp.arrayBuffer();
-                        const bytes = new Uint8Array(buf);
-                        let bin = '';
-                        bytes.forEach(b => bin += String.fromCharCode(b));
+                        if (headers) request.headers = headers;
+                        if (requestBody && method.toLowerCase() === 'post') {
+                            request.body = requestBody;
+                            const contentType = headers ? headers['Content-Type'] : '';
+                            if (contentType === 'multipart/form-data') {
+                                const form = new FormData();
+                                Object.entries(requestBody).forEach(([k, v]) => form.append(k, v));
+                                request.body = form;
+                            }
+                        }
+                        const resp = await fetch(url, request);
+                        const contentType = resp.headers.get('Content-Type') || '';
+                        const mimeType = contentType.split(';')[0].trim();
+                        const disposition = resp.headers.get('Content-Disposition') || '';
+                        if (disposition.toLowerCase().includes('attachment') || isFileType(mimeType)) {
+                            const blob = await resp.blob();
+                            const filename = parseFilename(mimeType, disposition);
+                            const blobUrl = URL.createObjectURL(blob);
+                            const a = document.createElement('a');
+                            a.href = blobUrl;
+                            a.download = filename;
+                            document.body.appendChild(a);
+                            a.click();
+                            document.body.removeChild(a);
+                            URL.revokeObjectURL(blobUrl);
+                            return {
+                                status: true,
+                                httpCode: resp.status,
+                                url: resp.url,
+                                headers: Object.fromEntries(resp.headers.entries())
+                            };
+                        } else {
+                            const buf = await resp.arrayBuffer();
+                            const bytes = new Uint8Array(buf);
+                            let bin = '';
+                            bytes.forEach(b => bin += String.fromCharCode(b));
+                            return {
+                                status: true,
+                                httpCode: resp.status,
+                                url: resp.url,
+                                headers: Object.fromEntries(resp.headers.entries()),
+                                base64: btoa(bin)
+                            };
+                        }
+                    } catch (e) {
                         return {
-                            status: resp.status,
-                            headers: Object.fromEntries(resp.headers.entries()),
-                            base64: btoa(bin)
+                            status: false,
+                            message: e.message
                         };
                     }
                 }
@@ -134,7 +157,11 @@ public class Session implements AutoCloseable {
         if (!open) throw new IllegalStateException("Session is not open");
         Validate.notNull(request, "Request is null");
         request.check();
-        if (request.getHeaders() != null) page.setExtraHTTPHeaders(request.getHeaders());
+        if (request.getHeaders() != null) {
+            Map<String, String> headers = new HashMap<>(request.getHeaders());
+            headers.remove(HEADER_HOST);
+            page.setExtraHTTPHeaders(headers);
+        }
     }
 
     /**
@@ -164,18 +191,17 @@ public class Session implements AutoCloseable {
      */
     private Map<String, Object> buildRequestMap(FetchRequest request) {
         Map<String, Object> requestMap = new HashMap<>();
-        requestMap.put("url", request.getRequestURL());
-        requestMap.put("method", request.getMethod());
-        if (request.getHeaders() != null) requestMap.put("headers", request.getHeaders());
-        if (request.getRequestBody() != null && request.getMethod().equalsIgnoreCase("post")) {
+        requestMap.put(REQUEST_PARAM_URL, request.getRequestURL());
+        requestMap.put(REQUEST_PARAM_METHOD, request.getMethod());
+        if (request.getHeaders() != null) requestMap.put(REQUEST_PARAM_HEADERS, request.getHeaders());
+        if (request.getRequestBody() != null && request.getMethod().equalsIgnoreCase(FetchRequest.METHOD_POST)) {
             String contentType = getRequestContentType(request);
             Map<String, Object> requestBody = request.getRequestBody();
             switch (contentType) {
-                case CONTENT_TYPE_APPLICATION_JSON: requestMap.put("requestBody", new Gson().toJson(requestBody)); break;
-                case CONTENT_TYPE_APPLICATION_FORM: requestMap.put("requestBody", encodeFormBody(requestBody)); break;
-                case CONTENT_TYPE_MULTIPART_FORM: requestMap.put("requestBody", request.getRequestBody()); break;
+                case CONTENT_TYPE_APPLICATION_JSON: requestMap.put(REQUEST_PARAM_REQUEST_BODY, new Gson().toJson(requestBody)); break;
+                case CONTENT_TYPE_APPLICATION_FORM: requestMap.put(REQUEST_PARAM_REQUEST_BODY, encodeFormBody(requestBody)); break;
                 default: {
-                    requestMap.put("requestBody", new Gson().toJson(requestBody));
+                    requestMap.put(REQUEST_PARAM_REQUEST_BODY, new Gson().toJson(requestBody));
                 }
             }
         }
@@ -240,29 +266,59 @@ public class Session implements AutoCloseable {
                 mimeType.startsWith("video/") || mimeType.startsWith("audio/");
     }
 
-    public FetchResponse execute(FetchRequest request) {
+    /**
+     * 抓取数据
+     *
+     * @param request 抓取请求
+     * @return 抓取响应
+     */
+    public FetchResponse fetch(FetchRequest request) {
         beforeFetch(request);
         CompletableFuture<Download> downloadFuture = new CompletableFuture<>();
-        CompletableFuture<Map<String, String>> headerFuture  = new CompletableFuture<>();
         page.onDownload(download -> {
             if (!downloadFuture.isDone()) downloadFuture.complete(download);
         });
-        page.onResponse(response -> {
-            if (response.url().equals(request.getRequestURL()) && !headerFuture.isDone()) {
-                headerFuture.complete(response.headers());
-            }
-        });
-        Object raw = page.evaluate(FETCH_SCRIPT, buildRequestMap(request));
-        Map<String, String> headers = getFutureQuietly(headerFuture, request.getTimeout());
+        long startTime = System.currentTimeMillis();
+        Object response = page.evaluate(FETCH_SCRIPT, buildRequestMap(request));
+        FetchResponse fetchResponse = parseResponse(response);
+        logger.info("Finish fetching url:{}, cost is {} ms",
+                request.getRequestURL(), System.currentTimeMillis() - startTime);
+        if (!fetchResponse.isStatus()) return fetchResponse;
+        Map<String, String> headers = fetchResponse.getHeaders();
         if (isFileType(headers)) {
             Download download = getFutureQuietly(downloadFuture, request.getTimeout());
             if (download != null) {
-//                return RequestResult.ofDownload(saveDownload(download), ct, headers);
-            } else {
-//                return handleFileFromFetch(raw, ct, headers, url);
+                FetchResponse.Builder builder = FetchResponse.builder().copy(fetchResponse);
+                if (download.failure() != null) return builder.status(false).message(download.failure()).build();
+                if (!saveDownloadedFile(download, builder)) builder.status(false);
+                return builder.build();
             }
         }
-        return null;
+        return fetchResponse;
+    }
+
+    /**
+     * 解析抓取响应
+     *
+     * @param o 浏览器响应
+     * @return 抓取响应
+     */
+    @SuppressWarnings("unchecked")
+    private FetchResponse parseResponse(Object o) {
+        if (!(o instanceof Map)) return FetchResponse.builder().status(false).build();
+        Map<String, Object> response = (Map<String, Object>) o;
+        FetchResponse.Builder builder = FetchResponse.builder();
+        Boolean status = (Boolean) response.get(RESPONSE_PARAM_STATUS);
+        builder.status(status != null ? status : false);
+        if (status == null || !status) return builder.message((String) response.get(RESPONSE_PARAM_MESSAGE)).build();
+        builder.url((String) response.get(RESPONSE_PARAM_URL)).httpCode((Integer) response.get(RESPONSE_PARAM_HTTP_CODE)).
+                headers((Map<String, String>) response.get(RESPONSE_PARAM_HEADERS));
+        String base64 = (String) response.get(RESPONSE_PARAM_BASE64);
+        if (StringUtils.isNotEmpty(base64)) {
+            byte[] bytes = Base64.getDecoder().decode(base64);
+            builder.contentLength(bytes.length).responseBody(new ByteArrayInputStream(bytes));
+        }
+        return builder.build();
     }
     
     /**
@@ -271,7 +327,7 @@ public class Session implements AutoCloseable {
      * @param request 请求
      * @return 响应
      */
-    public FetchResponse fetch(FetchRequest request) {
+    public FetchResponse navigate(FetchRequest request) {
         beforeFetch(request);
         FetchResponse.Builder builder = FetchResponse.builder();
         try {
@@ -336,7 +392,7 @@ public class Session implements AutoCloseable {
     }
 
     @Override
-    public void close() throws Exception {
+    public void close() throws IOException {
         if (!open) return;
         if (download != null) download.delete();
         if (page != null) page.close();

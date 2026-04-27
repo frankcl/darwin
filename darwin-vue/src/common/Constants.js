@@ -21,6 +21,7 @@ export const fetchMethodMap = {
   0: '本地IP',
   1: '长效代理',
   2: '短效代理',
+  3: '浏览器',
 }
 
 export const contentTypeMap = {

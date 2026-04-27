@@ -15,8 +15,8 @@ import java.util.Map;
 public class FetchRequest {
 
     private static final int DEFAULT_TIMEOUT = 30000;
-    private static final String METHOD_GET = "GET";
-    private static final String METHOD_POST = "POST";
+    public static final String METHOD_GET = "GET";
+    public static final String METHOD_POST = "POST";
 
     private final String requestURL;
     private final String method;

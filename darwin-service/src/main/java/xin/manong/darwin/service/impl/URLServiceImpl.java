@@ -374,6 +374,8 @@ public class URLServiceImpl extends URLService {
         if (searchRequest.fetchMethod != null) query.eq("fetch_method", searchRequest.fetchMethod);
         if (searchRequest.appId != null) query.eq("app_id", searchRequest.appId);
         if (searchRequest.httpRequest != null) query.eq("http_request", searchRequest.httpRequest.name());
+        if (searchRequest.fetched != null) query.eq("fetched", searchRequest.fetched);
+        if (searchRequest.allowDispatch != null) query.eq("allow_dispatch", searchRequest.allowDispatch);
         if (StringUtils.isNotEmpty(searchRequest.jobId)) query.eq("job_id", searchRequest.jobId);
         if (StringUtils.isNotEmpty(searchRequest.planId)) query.eq("plan_id", searchRequest.planId);
         if (StringUtils.isNotEmpty(searchRequest.host)) query.eq("host", searchRequest.host);
