@@ -37,6 +37,7 @@ public class AppSecretServiceImpl implements AppSecretService {
         if (exists(appSecret.accessKey, appSecret.secretKey)) {
             throw new IllegalStateException("应用秘钥已存在");
         }
+        if (appSecret.system != null && appSecret.system) appSecret.appId = -1;
         return appSecretMapper.insert(appSecret) > 0;
     }
 
@@ -51,6 +52,7 @@ public class AppSecretServiceImpl implements AppSecretService {
                 throw new IllegalStateException("应用秘钥已存在");
             }
         }
+        if (appSecret.system != null && appSecret.system) appSecret.appId = -1;
         return appSecretMapper.updateById(appSecret) > 0;
     }
 
@@ -89,9 +91,10 @@ public class AppSecretServiceImpl implements AppSecretService {
         if (searchRequest.pageSize == null || searchRequest.pageSize <= 0) searchRequest.pageSize = Constants.DEFAULT_PAGE_SIZE;
         ModelValidator.validateOrderBy(App.class, searchRequest);
         QueryWrapper<AppSecret> query = new QueryWrapper<>();
-        query.select("id", "app_id", "name", "access_key", "create_time", "update_time");
+        query.select("id", "app_id", "name", "`system`", "access_key", "create_time", "update_time");
         searchRequest.prepareOrderBy(query);
         if (searchRequest.appId != null) query.eq("app_id", searchRequest.appId);
+        if (searchRequest.system != null) query.eq("system", searchRequest.system);
         IPage<AppSecret> page = appSecretMapper.selectPage(new Page<>(searchRequest.pageNum, searchRequest.pageSize), query);
         return Converter.convert(page);
     }

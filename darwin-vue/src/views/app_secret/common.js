@@ -5,6 +5,9 @@ export const appSecretFormRules = {
   app_id: [
     { required: true, message: '请选择应用', trigger: 'change' }
   ],
+  system: [
+    { required: true, message: '请选择秘钥类型', trigger: 'change' }
+  ],
   access_key: [
     { required: true, message: '请输入应用AccessKey', trigger: 'change' }
   ],

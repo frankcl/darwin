@@ -57,6 +57,7 @@ public class Converter {
         AppSecret appSecret = new AppSecret();
         appSecret.appId = request.appId;
         appSecret.name = request.name;
+        appSecret.system = request.system;
         appSecret.accessKey = request.accessKey;
         appSecret.secretKey = request.secretKey;
         return appSecret;
@@ -74,6 +75,7 @@ public class Converter {
         appSecret.id = request.id;
         appSecret.appId = request.appId;
         appSecret.name = request.name;
+        appSecret.system = request.system;
         appSecret.accessKey = request.accessKey;
         appSecret.secretKey = request.secretKey;
         return appSecret;

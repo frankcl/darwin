@@ -27,6 +27,11 @@ public class AppSecretRequest implements Serializable {
     /**
      * 名称
      */
+    @JsonProperty("system")
+    public Boolean system;
+    /**
+     * 名称
+     */
     @JsonProperty("name")
     public String name;
     /**
@@ -45,7 +50,7 @@ public class AppSecretRequest implements Serializable {
      * 无效抛出异常
      */
     public void check() {
-        if (appId == null) throw new BadRequestException("应用ID为空");
+        if (system != null && !system && appId == null) throw new BadRequestException("应用ID为空");
         if (StringUtils.isEmpty(name)) throw new BadRequestException("名称为空");
         if (StringUtils.isEmpty(accessKey)) throw new BadRequestException("AccessKey为空");
         if (StringUtils.isEmpty(secretKey)) throw new BadRequestException("SecretKey为空");

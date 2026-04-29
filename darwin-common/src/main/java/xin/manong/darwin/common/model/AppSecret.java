@@ -36,6 +36,14 @@ public class AppSecret extends BaseModel {
     public Integer id;
 
     /**
+     * 是否为系统秘钥
+     */
+    @TableField(value = "`system`")
+    @JSONField(name = "system")
+    @JsonProperty("system")
+    public Boolean system;
+
+    /**
      * 应用ID
      */
     @TableField(value = "app_id")

@@ -22,4 +22,11 @@ public class AppSecretSearchRequest extends SearchRequest {
     @JsonProperty("app_id")
     @QueryParam("app_id")
     public Integer appId;
+
+    /**
+     * 是否为系统秘钥
+     */
+    @JsonProperty("system")
+    @QueryParam("system")
+    public Boolean system;
 }
