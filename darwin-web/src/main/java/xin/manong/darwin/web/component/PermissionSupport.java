@@ -55,7 +55,9 @@ public class PermissionSupport {
     public void checkAuthPermission(int appId, AuthenticateRequest request) {
         if (webConfig.ignoreCheckPermission) return;
         AppSecret appSecret = appSecretService.get(request.accessKey, request.secretKey);
-        if (appSecret == null || appSecret.appId != appId) throw new ForbiddenException("认证失败");
+        if (appSecret == null || (!appSecret.isSystem() && appSecret.appId != appId)) {
+            throw new ForbiddenException("认证失败");
+        }
         ContextManager.setValue(Constants.CONTEXT_APP_SECRET, appSecret);
     }
 

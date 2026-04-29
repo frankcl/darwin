@@ -82,4 +82,13 @@ public class AppSecret extends BaseModel {
     @JSONField(name = "secret_key")
     @JsonProperty("secret_key")
     public String secretKey;
+
+    /**
+     * 是否为系统秘钥
+     *
+     * @return 系统秘钥返回true，否则返回false
+     */
+    public boolean isSystem() {
+        return system != null ? system : false;
+    }
 }
