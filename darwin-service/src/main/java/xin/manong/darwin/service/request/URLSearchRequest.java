@@ -55,11 +55,17 @@ public class URLSearchRequest extends SearchRequest {
     @QueryParam("content_type")
     public Integer contentType;
     /**
-     * 抓取方式：正常抓取0，长效代理1，短效代理2，渲染3
+     * 抓取方式：正常抓取0，长效代理1，短效代理2
      */
     @JsonProperty("fetch_method")
     @QueryParam("fetch_method")
     public Integer fetchMethod;
+    /**
+     * 抓取器类型：HttpClient0，浏览器1
+     */
+    @JsonProperty("fetcher_type")
+    @QueryParam("fetcher_type")
+    public Integer fetcherType;
     /**
      * HTTP请求：PUT, POST, DELETE, GET
      */

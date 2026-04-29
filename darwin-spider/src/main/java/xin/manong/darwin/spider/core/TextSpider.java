@@ -173,7 +173,6 @@ public class TextSpider extends Spider {
             return record.mediaType.charset;
         }
         String charset = HTMLCharsetParser.parse(byteArray);
-        if (StringUtils.isNotEmpty(charset)) record.htmlCharset = charset;
         if (StringUtils.isEmpty(charset)) charset = CharsetSpeculator.speculate(byteArray, 0, 1024);
         if (StringUtils.isNotEmpty(charset)) return charset;
         logger.warn("Speculate charset failed, using UTF-8 charset for url: {}", record.url);

@@ -43,12 +43,19 @@ public class SeedRequest extends AuthenticateRequest {
     /**
      * 抓取方式
      * 普通抓取：0
-     * 代理抓取：1
-     * 无头渲染：2
-     * 有头渲染：3
+     * 长效代理：1
+     * 短效代理：2
      */
     @JsonProperty("fetch_method")
     public Integer fetchMethod;
+
+    /**
+     * 抓取器类型
+     * HttpClient：0
+     * 浏览器：1
+     */
+    @JsonProperty("fetcher_type")
+    public Integer fetcherType;
 
     /**
      * 系统设置Cookie
@@ -133,6 +140,7 @@ public class SeedRequest extends AuthenticateRequest {
         if (StringUtils.isEmpty(url)) throw new BadRequestException("URL为空");
         if (StringUtils.isEmpty(planId)) throw new BadRequestException("计划ID为空");
         if (fetchMethod == null) fetchMethod = Constants.FETCH_METHOD_COMMON;
+        if (fetcherType == null) fetcherType = Constants.FETCHER_TYPE_HTTP_CLIENT;
         if (priority == null) priority = Constants.PRIORITY_NORMAL;
         if (allowDispatch == null) allowDispatch = false;
         if (allowDispatchFail == null) allowDispatchFail = false;

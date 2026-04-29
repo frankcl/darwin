@@ -168,6 +168,7 @@ public class Converter {
         SeedRecord record = new SeedRecord(request.url);
         record.planId = request.planId;
         record.fetchMethod = request.fetchMethod;
+        record.fetcherType = request.fetcherType;
         record.linkScope = request.linkScope;
         record.priority = request.priority;
         record.allowDispatch = request.allowDispatch;
@@ -195,6 +196,7 @@ public class Converter {
         SeedRecord record = new SeedRecord(request.url);
         record.key = request.key;
         record.fetchMethod = request.fetchMethod;
+        record.fetcherType = request.fetcherType;
         record.linkScope = request.linkScope;
         record.priority = request.priority;
         record.timeout = request.timeout;

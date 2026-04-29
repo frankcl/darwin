@@ -208,7 +208,6 @@ public class Router {
         record.redirectURL = prevRecord.redirectURL;
         record.mediaType = prevRecord.mediaType;
         record.charset = prevRecord.charset;
-        record.htmlCharset = prevRecord.htmlCharset;
         record.contentLength = prevRecord.contentLength;
         record.responseHeaders = prevRecord.responseHeaders;
         Input input = new OSSInput(prevRecord.fetchContentURL, ossService);

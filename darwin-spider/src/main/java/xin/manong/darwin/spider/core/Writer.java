@@ -59,7 +59,8 @@ public class Writer {
         } finally {
             long processTime = System.currentTimeMillis() - startTime;
             if (input instanceof HTTPInput || input instanceof M3U8Input) {
-                record.downTime = processTime;
+                if (record.downTime == null) record.downTime = processTime;
+                else record.downTime += processTime;
                 context.put(Constants.DARWIN_DOWN_TIME, processTime);
             }
             context.put(Constants.DARWIN_WRITE_TIME, processTime);

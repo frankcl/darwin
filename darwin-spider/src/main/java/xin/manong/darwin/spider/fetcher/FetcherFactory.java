@@ -34,17 +34,17 @@ public class FetcherFactory {
      * @return 抓取器
      */
     public Fetcher<?> getFetcher(URLRecord record) {
-        int fetchMethod = record.fetchMethod == null ? Constants.FETCH_METHOD_COMMON : record.fetchMethod;
-        if (fetcherMap.containsKey(fetchMethod)) return fetcherMap.get(fetchMethod);
+        int fetcherType = record.fetcherType == null ? Constants.FETCHER_TYPE_HTTP_CLIENT : record.fetcherType;
+        if (fetcherMap.containsKey(fetcherType)) return fetcherMap.get(fetcherType);
         synchronized (this) {
-            if (fetcherMap.containsKey(fetchMethod)) return fetcherMap.get(fetchMethod);
+            if (fetcherMap.containsKey(fetcherType)) return fetcherMap.get(fetcherType);
             Fetcher<?> fetcher;
-            if (fetchMethod == Constants.FETCH_METHOD_RENDER) {
+            if (fetcherType == Constants.FETCHER_TYPE_BROWSER) {
                 fetcher = browserFetcher;
-                fetcherMap.put(fetchMethod, browserFetcher);
+                fetcherMap.put(fetcherType, browserFetcher);
             } else {
                 fetcher = httpClientFetcher;
-                fetcherMap.put(fetchMethod, httpClientFetcher);
+                fetcherMap.put(fetcherType, httpClientFetcher);
             }
             return fetcher;
         }

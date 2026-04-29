@@ -48,8 +48,9 @@ public class SpiderConfig {
     public String browserExecutePath;
 
     @Bean(destroyMethod = "close")
-    public FeignBrowser buildFeignBrowser() {
+    public FeignBrowser buildFeignBrowser(ProxyService proxyService) {
         FeignBrowser browser = new FeignBrowser(FingerprintProfile.MAC, browserExecutePath, maxBrowserSessions);
+        browser.setProxyService(proxyService);
         browser.setTempDirectory(tempDirectory);
         return browser;
     }

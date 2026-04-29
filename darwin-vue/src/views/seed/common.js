@@ -4,8 +4,23 @@ export const seedFormRules = {
   url: [
     { required: true, message: '请输入种子URL', trigger: 'change' }
   ],
-  category: [
-    { required: true, message: '请选择种子类型', trigger: 'change' }
+  fetch_method: [
+    { required: true, message: '请选择抓取方式', trigger: 'change' }
+  ],
+  fetcher_type: [
+    { required: true, message: '请选择抓取器', trigger: 'change' }
+  ],
+  normalize: [
+    { required: true, message: '请选择是否正规化', trigger: 'change' }
+  ],
+  priority: [
+    { required: true, message: '请选择抓取优先级', trigger: 'change' }
+  ],
+  http_request: [
+    { required: true, message: '请选择HTTP请求方式', trigger: 'change' }
+  ],
+  allow_dispatch: [
+    { required: true, message: '请选择数据分发方式', trigger: 'change' }
   ]
 }
 

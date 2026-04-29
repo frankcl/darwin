@@ -4,7 +4,9 @@ import { ref, watchEffect } from 'vue'
 import { ElDescriptions, ElDescriptionsItem, ElDialog } from 'element-plus'
 import { asyncGetApp, asyncGetJob, asyncGetPlan, asyncGetURL } from '@/common/AsyncRequest'
 import { formatDate } from '@/common/Time'
-import { contentTypeMap, concurrentLevelMap, fetchMethodMap, priorityMap, statusMap } from '@/common/Constants'
+import {
+  contentTypeMap, concurrentLevelMap, fetchMethodMap,
+  fetcherTypeMap, priorityMap, statusMap } from '@/common/Constants'
 import DarwinCard from '@/components/data/Card'
 
 const props = defineProps(['recordKey'])
@@ -53,7 +55,7 @@ watchEffect(async () => {
         <el-descriptions-item label="重定向URL" class-name="wide-column" :span="3">
           {{ record.redirect_url ? record.redirect_url : '暂无' }}
         </el-descriptions-item>
-        <el-descriptions-item label="优先级">{{ priorityMap[record.priority] }}</el-descriptions-item>
+        <el-descriptions-item label="抓取器">{{ fetcherTypeMap[record.fetcher_type] }}</el-descriptions-item>
         <el-descriptions-item label="并发级别">{{ concurrentLevelMap[record.concurrency_level] }}</el-descriptions-item>
         <el-descriptions-item label="出队时间">{{ formatDate(record.pop_time) }}</el-descriptions-item>
         <el-descriptions-item label="所属任务">{{ record.job_name }}</el-descriptions-item>
@@ -66,23 +68,25 @@ watchEffect(async () => {
         </el-descriptions-item>
         <el-descriptions-item label="抓取时间">{{ formatDate(record.fetch_time) }}</el-descriptions-item>
         <el-descriptions-item label="MimeType">{{ record.mime_type ? record.mime_type : '未知' }}</el-descriptions-item>
-        <el-descriptions-item label="HTTP编码">
-          {{ record.media_type && record.media_type.charset ? record.media_type.charset : (record.html_charset ? record.html_charset : '未知') }}
-        </el-descriptions-item>
-        <el-descriptions-item label="探测编码">{{ record.charset ? record.charset : '未知' }}</el-descriptions-item>
-        <el-descriptions-item label="内容长度">
-          {{ record.content_length ? record.content_length : '暂无' }}
-        </el-descriptions-item>
-        <el-descriptions-item label="下载时长">{{ record.down_time ? record.down_time : '未知' }}</el-descriptions-item>
-        <el-descriptions-item label="HTTP抓取">{{ record.fetched ? '是' : '否' }}</el-descriptions-item>
-        <el-descriptions-item label="HTTP请求">{{ record.http_request }}</el-descriptions-item>
-        <el-descriptions-item label="POST媒体类型">{{ record.post_media_type ? record.post_media_type : '暂无' }}</el-descriptions-item>
         <el-descriptions-item label="分发Topic" class-name="wide-column" :span="3">
           {{ record.record_topic ? record.record_topic : '未知' }}
         </el-descriptions-item>
-        <el-descriptions-item label="分发数据" class-name="wide-column" :span="4">
-          {{ record.allow_dispatch ? '允许' : '禁止' }}
+        <el-descriptions-item label="允许分发">{{ record.allow_dispatch ? '允许' : '禁止' }}</el-descriptions-item>
+        <el-descriptions-item label="下载时长">{{ record.down_time ? record.down_time : '未知' }}</el-descriptions-item>
+        <el-descriptions-item label="HTTP抓取">{{ record.fetched ? '是' : '否' }}</el-descriptions-item>
+        <el-descriptions-item label="正规化">{{ record.normalize ? '是' : '否' }}</el-descriptions-item>
+        <el-descriptions-item label="探测编码" class-name="wide-column" :span="3">
+          {{ record.charset ? record.charset : '未知' }}
         </el-descriptions-item>
+        <el-descriptions-item label="优先级">{{ priorityMap[record.priority] }}</el-descriptions-item>
+        <el-descriptions-item label="内容长度">
+          {{ record.content_length ? record.content_length : '暂无' }}
+        </el-descriptions-item>
+        <el-descriptions-item label="HTTP请求">{{ record.http_request }}</el-descriptions-item>
+        <el-descriptions-item label="POST媒体类型">
+          {{ record.post_media_type ? record.post_media_type : '暂无' }}
+        </el-descriptions-item>
+
         <el-descriptions-item v-if="record.request_body && Object.keys(record.request_body).length > 0"
                               label="POST请求体" :span="7">
           <json-viewer :value="record.request_body" :expand-depth=0 sort />

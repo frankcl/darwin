@@ -22,6 +22,7 @@ public class FetchRequest {
     private final String method;
     private final Map<String, String> headers;
     private final Map<String, Object> requestBody;
+    private final Integer fetchMethod;
     private final Integer timeout;
 
     private FetchRequest(Builder builder) {
@@ -29,6 +30,7 @@ public class FetchRequest {
         method = StringUtils.isEmpty(builder.method) ? METHOD_GET : builder.method;
         headers = builder.headers;
         requestBody = builder.requestBody;
+        fetchMethod = builder.fetchMethod;
         timeout = builder.timeout == null || builder.timeout <= 0 ? DEFAULT_TIMEOUT : builder.timeout;
     }
 
@@ -59,6 +61,7 @@ public class FetchRequest {
         private String method;
         private Map<String, String> headers;
         private Map<String, Object> requestBody;
+        private Integer fetchMethod;
         private Integer timeout;
 
         public Builder requestURL(String requestURL) {
@@ -83,6 +86,11 @@ public class FetchRequest {
 
         public Builder method(String method) {
             this.method = method;
+            return this;
+        }
+
+        public Builder fetchMethod(Integer fetchMethod) {
+            this.fetchMethod = fetchMethod;
             return this;
         }
 

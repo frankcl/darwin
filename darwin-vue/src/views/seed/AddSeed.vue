@@ -9,7 +9,7 @@ import { useUserStore } from '@/store'
 import DarwinCard from '@/components/data/Card'
 import MutableTable from '@/components/data/MutableTable'
 import {
-  fetchMethodMap, httpRequestMap,
+  fetchMethodMap, fetcherTypeMap, httpRequestMap,
   linkScopeMap, postMediaTypeMap, priorityMap
 } from '@/common/Constants'
 import { ERROR, showMessage, SUCCESS } from '@/common/Feedback'
@@ -143,11 +143,10 @@ watchEffect(() => seed.plan_id = props.planId)
               </el-form-item>
             </el-col>
             <el-col :span="8">
-              <el-form-item label="优先级" prop="priority">
-                <el-radio-group v-model="seed.priority">
-                  <el-radio v-for="key in Object.keys(priorityMap)" :key="key"
-                            :value="parseInt(key)">
-                    {{ priorityMap[key] }}
+              <el-form-item label="抓取器" prop="fetcher_type">
+                <el-radio-group v-model="seed.fetcher_type">
+                  <el-radio v-for="key in Object.keys(fetcherTypeMap)" :value="parseInt(key)" :key="key">
+                    {{ fetcherTypeMap[key] }}
                   </el-radio>
                 </el-radio-group>
               </el-form-item>
@@ -181,19 +180,11 @@ watchEffect(() => seed.plan_id = props.planId)
               </el-form-item>
             </el-col>
             <el-col :span="8">
-              <el-form-item v-if="seed.http_request === 'POST'" prop="post_media_type">
-                <template #label>
-                  <span class="d-flex align-items-center">
-                    <span>POST媒体类型</span>
-                    <el-tooltip effect="dark" placement="top" raw-content
-                                content="FORM：application/x-www-form-urlencoded <br/> JSON：application/json">
-                      <IconHelp size="12" class="ml-2"/>
-                    </el-tooltip>
-                  </span>
-                </template>
-                <el-radio-group v-model="seed.post_media_type">
-                  <el-radio v-for="key in Object.keys(postMediaTypeMap)" :value="key" :key="key">
-                    {{ postMediaTypeMap[key] }}
+              <el-form-item label="优先级" prop="priority">
+                <el-radio-group v-model="seed.priority">
+                  <el-radio v-for="key in Object.keys(priorityMap)" :key="key"
+                            :value="parseInt(key)">
+                    {{ priorityMap[key] }}
                   </el-radio>
                 </el-radio-group>
               </el-form-item>
@@ -214,6 +205,26 @@ watchEffect(() => seed.plan_id = props.planId)
                   <el-option :value="true" label="开启" />
                   <el-option :value="false" label="关闭" />
                 </el-select>
+              </el-form-item>
+            </el-col>
+          </el-row>
+          <el-row v-if="seed.http_request === 'POST'">
+            <el-col :span="8">
+              <el-form-item prop="post_media_type">
+                <template #label>
+                    <span class="d-flex align-items-center">
+                      <span>POST媒体类型</span>
+                      <el-tooltip effect="dark" placement="top" raw-content
+                                  content="FORM：application/x-www-form-urlencoded <br/> JSON：application/json">
+                        <IconHelp size="12" class="ml-2"/>
+                      </el-tooltip>
+                    </span>
+                </template>
+                <el-radio-group v-model="seed.post_media_type">
+                  <el-radio v-for="key in Object.keys(postMediaTypeMap)" :value="key" :key="key">
+                    {{ postMediaTypeMap[key] }}
+                  </el-radio>
+                </el-radio-group>
               </el-form-item>
             </el-col>
           </el-row>

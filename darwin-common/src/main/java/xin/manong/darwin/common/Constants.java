@@ -21,13 +21,11 @@ public class Constants {
     /**
      * 队列内存水位
      */
-    public static final Map<Integer, String> MEMORY_WATER_LEVEL_MAP = new HashMap<>() {
-        {
-            put(0, "安全");
-            put(1, "警告");
-            put(2, "危险");
-        }
-    };
+    public static final Map<Integer, String> MEMORY_WATER_LEVEL_MAP = Map.of(
+            0, "安全",
+            1, "警告",
+            2, "危险"
+    );
 
     /**
      * URL状态
@@ -63,12 +61,20 @@ public class Constants {
      */
     public static final int PROXY_CATEGORY_LONG = 1;                //长效代理
     public static final int PROXY_CATEGORY_SHORT = 2;               //短效代理
-    public static final Map<Integer, String> SUPPORT_PROXY_CATEGORIES = new HashMap<>() {
-        {
-           put(PROXY_CATEGORY_LONG, "长效代理");
-           put(PROXY_CATEGORY_SHORT, "短效代理");
-        }
-    };
+    public static final Map<Integer, String> SUPPORT_PROXY_CATEGORIES = Map.of(
+            PROXY_CATEGORY_LONG, "长效代理",
+            PROXY_CATEGORY_SHORT, "短效代理"
+    );
+
+    /**
+     * 抓取器类型
+     */
+    public static final int FETCHER_TYPE_HTTP_CLIENT = 0;           //HttpClient
+    public static final int FETCHER_TYPE_BROWSER = 1;               //浏览器
+    public static final Map<Integer, String> SUPPORT_FETCHER_TYPES = Map.of(
+            FETCHER_TYPE_HTTP_CLIENT, "HttpClient",
+            FETCHER_TYPE_BROWSER, "浏览器"
+    );
 
     /**
      * 抓取方式
@@ -76,15 +82,11 @@ public class Constants {
     public static final int FETCH_METHOD_COMMON = 0;                //本地IP
     public static final int FETCH_METHOD_LONG_PROXY = 1;            //长效代理
     public static final int FETCH_METHOD_SHORT_PROXY = 2;           //短效代理
-    public static final int FETCH_METHOD_RENDER = 3;                //浏览器
-    public static final Map<Integer, String> SUPPORT_FETCH_METHODS = new HashMap<>() {
-        {
-           put(FETCH_METHOD_COMMON, "本地IP");
-           put(FETCH_METHOD_LONG_PROXY, "长效代理");
-           put(FETCH_METHOD_SHORT_PROXY, "短效代理");
-           put(FETCH_METHOD_RENDER, "浏览器");
-        }
-    };
+    public static final Map<Integer, String> SUPPORT_FETCH_METHODS = Map.of(
+            FETCH_METHOD_COMMON, "本地IP",
+            FETCH_METHOD_LONG_PROXY, "长效代理",
+            FETCH_METHOD_SHORT_PROXY, "短效代理"
+    );
 
     /**
      * 数据爬取优先级
@@ -98,12 +100,10 @@ public class Constants {
      */
     public static final int CONCURRENCY_LEVEL_DOMAIN = 0;
     public static final int CONCURRENCY_LEVEL_HOST = 1;
-    public static final Map<Integer, String> SUPPORT_CONCURRENCY_LEVELS = new HashMap<>() {
-        {
-            put(CONCURRENCY_LEVEL_DOMAIN, "DOMAIN");
-            put(CONCURRENCY_LEVEL_HOST, "HOST");
-        }
-    };
+    public static final Map<Integer, String> SUPPORT_CONCURRENCY_LEVELS = Map.of(
+            CONCURRENCY_LEVEL_DOMAIN, "DOMAIN",
+            CONCURRENCY_LEVEL_HOST, "HOST"
+    );
 
     /**
      * 内容分类
@@ -113,27 +113,23 @@ public class Constants {
     public static final int CONTENT_TYPE_VIDEO = 3;             //视频
     public static final int CONTENT_TYPE_AUDIO = 4;             //音频
     public static final int CONTENT_TYPE_OTHER = 5;             //其他
-    public static final Map<Integer, String> SUPPORT_CONTENT_TYPES = new HashMap<>() {
-        {
-            put(CONTENT_TYPE_PAGE, "网页");
-            put(CONTENT_TYPE_IMAGE, "图片");
-            put(CONTENT_TYPE_VIDEO, "视频");
-            put(CONTENT_TYPE_AUDIO, "音频");
-            put(CONTENT_TYPE_OTHER, "其他");
-        }
-    };
+    public static final Map<Integer, String> SUPPORT_CONTENT_TYPES = Map.of(
+            CONTENT_TYPE_PAGE, "网页",
+            CONTENT_TYPE_IMAGE, "图片",
+            CONTENT_TYPE_VIDEO, "视频",
+            CONTENT_TYPE_AUDIO, "音频",
+            CONTENT_TYPE_OTHER, "其他"
+    );
 
     /**
      * 脚本类型
      */
     public static final int SCRIPT_TYPE_GROOVY = 1;                 //Groovy脚本
     public static final int SCRIPT_TYPE_JAVASCRIPT = 2;             //JavaScript脚本
-    public static final Map<Integer, String> SUPPORT_SCRIPT_TYPES = new HashMap<>() {
-        {
-            put(SCRIPT_TYPE_GROOVY, "Groovy");
-            put(SCRIPT_TYPE_JAVASCRIPT, "JavaScript");
-        }
-    };
+    public static final Map<Integer, String> SUPPORT_SCRIPT_TYPES = Map.of(
+            SCRIPT_TYPE_GROOVY, "Groovy",
+            SCRIPT_TYPE_JAVASCRIPT, "JavaScript"
+    );
 
     /**
      * 抽链范围
@@ -141,25 +137,21 @@ public class Constants {
     public static final int LINK_SCOPE_ALL = 1;                     //所有
     public static final int LINK_SCOPE_DOMAIN = 2;                  //domain抽链
     public static final int LINK_SCOPE_HOST = 3;                    //host抽链
-    public static final Map<Integer, String> SUPPORT_LINK_SCOPES = new HashMap<>() {
-        {
-            put(LINK_SCOPE_ALL, "ALL");
-            put(LINK_SCOPE_DOMAIN, "DOMAIN");
-            put(LINK_SCOPE_HOST, "HOST");
-        }
-    };
+    public static final Map<Integer, String> SUPPORT_LINK_SCOPES = Map.of(
+            LINK_SCOPE_ALL, "ALL",
+            LINK_SCOPE_DOMAIN, "DOMAIN",
+            LINK_SCOPE_HOST, "HOST"
+    );
 
     /**
      * 计划分类
      */
     public static final int PLAN_CATEGORY_ONCE = 0;                 //单次型计划
     public static final int PLAN_CATEGORY_PERIOD = 1;               //周期型计划
-    public static final Map<Integer, String> SUPPORT_PLAN_CATEGORIES = new HashMap<>() {
-        {
-            put(PLAN_CATEGORY_ONCE, "单次型计划");
-            put(PLAN_CATEGORY_PERIOD, "周期型计划");
-        }
-    };
+    public static final Map<Integer, String> SUPPORT_PLAN_CATEGORIES = Map.of(
+            PLAN_CATEGORY_ONCE, "单次型计划",
+            PLAN_CATEGORY_PERIOD, "周期型计划"
+    );
 
     public static final int TREND_CATEGORY_FETCH_COUNT = 1;
 

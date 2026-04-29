@@ -68,9 +68,6 @@ public class URLServiceImpl extends URLService {
         if (StringUtils.isNotEmpty(record.charset)) {
             updateWrapper.set(URLRecord::getCharset, record.charset);
         }
-        if (StringUtils.isNotEmpty(record.htmlCharset)) {
-            updateWrapper.set(URLRecord::getHtmlCharset, record.htmlCharset);
-        }
         if (StringUtils.isNotEmpty(record.fetchContentURL)) {
             updateWrapper.set(URLRecord::getFetchContentURL, record.fetchContentURL);
         }
@@ -85,6 +82,9 @@ public class URLServiceImpl extends URLService {
         }
         if (record.customMap != null && !record.customMap.isEmpty()) {
             updateWrapper.set(URLRecord::getCustomMap, JSON.toJSONString(record.customMap));
+        }
+        if (record.responseHeaders != null && !record.responseHeaders.isEmpty()) {
+            updateWrapper.set(URLRecord::getResponseHeaders, JSON.toJSONString(record.responseHeaders));
         }
         return urlMapper.update(null, updateWrapper) > 0;
     }
@@ -372,6 +372,7 @@ public class URLServiceImpl extends URLService {
         if (searchRequest.contentType != null) query.eq("content_type", searchRequest.contentType);
         if (searchRequest.priority != null) query.eq("priority", searchRequest.priority);
         if (searchRequest.fetchMethod != null) query.eq("fetch_method", searchRequest.fetchMethod);
+        if (searchRequest.fetcherType != null) query.eq("fetcher_type", searchRequest.fetcherType);
         if (searchRequest.appId != null) query.eq("app_id", searchRequest.appId);
         if (searchRequest.httpRequest != null) query.eq("http_request", searchRequest.httpRequest.name());
         if (searchRequest.fetched != null) query.eq("fetched", searchRequest.fetched);

@@ -33,11 +33,12 @@ public class SessionManager {
     /**
      * 获取新会话
      *
+     * @param request 抓取请求
      * @return 新会话
      */
-    public Session acquire() {
+    public Session acquire(FetchRequest request) {
         semaphore.acquireUninterruptibly();
-        BrowserContext context = browser.newContext();
+        BrowserContext context = browser.newContext(request);
         Session session = Session.buildSession(context);
         Session prevSession = sessionMap.getOrDefault(session.getId(), null);
         closeSession(prevSession);

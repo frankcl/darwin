@@ -50,6 +50,8 @@ public class URLServiceImpl extends URLService {
     private static final String KEY_STATUS = "status";
     private static final String KEY_PRIORITY = "priority";
     private static final String KEY_CONTENT_TYPE = "content_type";
+    private static final String KEY_FETCH_METHOD = "fetch_method";
+    private static final String KEY_FETCHER_TYPE = "fetcher_type";
     private static final String KEY_FETCH_TIME = "fetch_time";
     private static final String KEY_CREATE_TIME = "create_time";
 
@@ -78,7 +80,6 @@ public class URLServiceImpl extends URLService {
         updateRecord.status = record.status;
         updateRecord.mediaType = record.mediaType;
         updateRecord.charset = record.charset;
-        updateRecord.htmlCharset = record.htmlCharset;
         updateRecord.fetched = record.fetched;
         updateRecord.fetchTime = record.fetchTime;
         updateRecord.downTime = record.downTime;
@@ -93,6 +94,9 @@ public class URLServiceImpl extends URLService {
         }
         if (record.customMap != null && !record.customMap.isEmpty()) {
             updateRecord.customMap = record.customMap;
+        }
+        if (record.responseHeaders != null && !record.responseHeaders.isEmpty()) {
+            updateRecord.responseHeaders = record.responseHeaders;
         }
         return update(updateRecord);
     }
@@ -255,6 +259,12 @@ public class URLServiceImpl extends URLService {
         }
         if (searchRequest.contentType != null) {
             queryList.add(SearchQueryBuilder.buildTermQuery(KEY_CONTENT_TYPE, searchRequest.contentType));
+        }
+        if (searchRequest.fetcherType != null) {
+            queryList.add(SearchQueryBuilder.buildTermQuery(KEY_FETCHER_TYPE, searchRequest.fetcherType));
+        }
+        if (searchRequest.fetchMethod != null) {
+            queryList.add(SearchQueryBuilder.buildTermQuery(KEY_FETCH_METHOD, searchRequest.fetchMethod));
         }
         if (searchRequest.appId != null) {
             queryList.add(SearchQueryBuilder.buildTermQuery(KEY_APP_ID, searchRequest.appId));

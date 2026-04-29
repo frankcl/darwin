@@ -246,15 +246,6 @@ public class URLRecord extends SeedRecord {
     public String charset;
 
     /**
-     * HTML字符集
-     */
-    @TableField(value = "html_charset")
-    @Column(name = "html_charset")
-    @JSONField(name = "html_charset")
-    @JsonProperty("html_charset")
-    public String htmlCharset;
-
-    /**
      * 允许重复抓取
      */
     @TableField(value = "allow_repeat")
@@ -313,7 +304,6 @@ public class URLRecord extends SeedRecord {
         fetchContentURL = record.fetchContentURL;
         mediaType = record.mediaType;
         charset = record.charset;
-        htmlCharset = record.htmlCharset;
         status = record.status;
         depth = record.depth;
         httpCode = record.httpCode;

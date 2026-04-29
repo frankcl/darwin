@@ -98,13 +98,23 @@ public class SeedRecord extends BaseModel {
      * 本地IP：0
      * 长效代理：1
      * 短效代理：2
-     * 浏览器渲染：3
      */
     @TableField(value = "fetch_method")
     @Column(name = "fetch_method")
     @JSONField(name = "fetch_method")
     @JsonProperty("fetch_method")
     public Integer fetchMethod;
+
+    /**
+     * 抓取器类型
+     * HttpClient：0
+     * 浏览器：1
+     */
+    @TableField(value = "fetcher_type")
+    @Column(name = "fetcher_type")
+    @JSONField(name = "fetcher_type")
+    @JsonProperty("fetcher_type")
+    public Integer fetcherType;
 
     /**
      * 抽链范围
@@ -262,6 +272,7 @@ public class SeedRecord extends BaseModel {
         if (allowDispatchFail == null) allowDispatchFail = false;
         if (priority == null) priority = Constants.PRIORITY_NORMAL;
         if (fetchMethod == null) fetchMethod = Constants.FETCH_METHOD_COMMON;
+        if (fetcherType == null) fetcherType = Constants.FETCHER_TYPE_HTTP_CLIENT;
         if (httpRequest == null) httpRequest = HTTPRequest.GET;
         if (postMediaType == null && httpRequest == HTTPRequest.POST) postMediaType = PostMediaType.JSON;
         if (!Constants.SUPPORT_FETCH_METHODS.containsKey(fetchMethod)) {
@@ -307,6 +318,7 @@ public class SeedRecord extends BaseModel {
         updateTime = record.updateTime;
         timeout = record.timeout;
         fetchMethod = record.fetchMethod;
+        fetcherType = record.fetcherType;
         priority = record.priority;
         linkScope = record.linkScope;
         allowDispatch = record.allowDispatch;

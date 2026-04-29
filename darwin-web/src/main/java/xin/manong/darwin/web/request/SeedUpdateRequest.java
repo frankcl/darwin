@@ -42,12 +42,19 @@ public class SeedUpdateRequest implements Serializable {
     /**
      * 抓取方式
      * 普通抓取：0
-     * 代理抓取：1
-     * 无头渲染：2
-     * 有头渲染：3
+     * 长效代理：1
+     * 短效代理：2
      */
     @JsonProperty("fetch_method")
     public Integer fetchMethod;
+
+    /**
+     * 抓取器类型
+     * HttpClient：0
+     * 浏览器：1
+     */
+    @JsonProperty("fetcher_type")
+    public Integer fetcherType;
 
     /**
      * 系统设置Cookie
@@ -138,6 +145,9 @@ public class SeedUpdateRequest implements Serializable {
         }
         if (fetchMethod != null && !Constants.SUPPORT_FETCH_METHODS.containsKey(fetchMethod)) {
             throw new BadRequestException("不支持的抓取方式");
+        }
+        if (fetcherType != null && !Constants.SUPPORT_FETCHER_TYPES.containsKey(fetcherType)) {
+            throw new BadRequestException("不支持的抓取器类型");
         }
         if (linkScope != null && !Constants.SUPPORT_LINK_SCOPES.containsKey(linkScope)) {
             throw new BadRequestException("不支持的抽链类型");

@@ -46,6 +46,7 @@ public class Converter {
         record.timeout = seedRecord.timeout;
         record.priority = seedRecord.priority;
         record.fetchMethod = seedRecord.fetchMethod;
+        record.fetcherType = seedRecord.fetcherType;
         record.linkScope = seedRecord.linkScope;
         record.planId = seedRecord.planId;
         record.allowDispatch = seedRecord.allowDispatch;

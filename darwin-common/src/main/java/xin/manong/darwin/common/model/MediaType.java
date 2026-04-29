@@ -108,6 +108,7 @@ public class MediaType {
      *
      * @return 是返回true，否则返回false
      */
+    @JSONField(serialize = false)
     public boolean isText() {
         return mimeType != null && mimeType.equals("text");
     }
@@ -117,6 +118,7 @@ public class MediaType {
      *
      * @return 是返回true，否则返回false
      */
+    @JSONField(serialize = false)
     public boolean isImage() {
         return mimeType != null && mimeType.equals("image");
     }
@@ -126,6 +128,7 @@ public class MediaType {
      *
      * @return 是返回true，否则返回false
      */
+    @JSONField(serialize = false)
     public boolean isVideo() {
         return mimeType != null && mimeType.equals("video");
     }
@@ -135,6 +138,7 @@ public class MediaType {
      *
      * @return 是返回true，否则返回false
      */
+    @JSONField(serialize = false)
     public boolean isAudio() {
         return mimeType != null && mimeType.equals("audio");
     }
@@ -144,6 +148,7 @@ public class MediaType {
      *
      * @return 是返回true，否则返回false
      */
+    @JSONField(serialize = false)
     public boolean isApplication() {
         return mimeType != null && mimeType.equals("application");
     }

@@ -14,6 +14,7 @@ import xin.manong.darwin.common.Constants;
 import xin.manong.darwin.common.model.Pager;
 import xin.manong.darwin.common.model.URLRecord;
 import xin.manong.darwin.service.component.ExcelDocumentExporter;
+import xin.manong.darwin.service.config.ServiceConfig;
 import xin.manong.darwin.service.iface.OSSService;
 import xin.manong.darwin.service.iface.URLService;
 import xin.manong.darwin.service.lineage.Node;
@@ -45,6 +46,8 @@ public class URLController {
     private static final String RESPONSE_HEADER_VALUE_NO_CACHE = "no-cache";
     private static final String RESPONSE_HEADER_VALUE_ATTACHMENT = "attachment;filename=%s";
 
+    @Resource
+    private ServiceConfig serviceConfig;
     @Resource
     private OSSService ossService;
     @Resource
@@ -86,6 +89,7 @@ public class URLController {
         URLRecord record = urlService.get(key);
         if (record == null) throw new NotFoundException("数据不存在");
         record.mimeType = record.mediaType == null ? null : record.mediaType.toString();
+        if (StringUtils.isEmpty(record.recordTopic)) record.recordTopic = serviceConfig.mq.topicURL;
         return record;
     }
 
