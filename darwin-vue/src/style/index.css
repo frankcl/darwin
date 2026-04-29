@@ -127,6 +127,11 @@ dl, ol, ul {
   display: -ms-flexbox !important;
   display: flex !important;
 }
+.d-inline-flex {
+  display: -webkit-inline-flex !important;
+  display: -ms-inline-flexbox !important;
+  display: inline-flex !important;
+}
 .justify-content-end {
   -webkit-box-pack: end !important;
   -ms-flex-pack: end !important;

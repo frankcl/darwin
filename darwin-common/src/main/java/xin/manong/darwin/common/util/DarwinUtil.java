@@ -35,7 +35,6 @@ public class DarwinUtil {
         if (!StringUtils.isEmpty(record.jobId)) context.put(Constants.JOB_ID, record.jobId);
         if (!StringUtils.isEmpty(record.hash)) context.put(Constants.HASH, record.hash);
         if (!StringUtils.isEmpty(record.charset)) context.put(Constants.CHARSET, record.charset);
-        if (!StringUtils.isEmpty(record.htmlCharset)) context.put(Constants.HTML_CHARSET, record.htmlCharset);
         if (record.mediaType != null) context.put(Constants.MEDIA_TYPE, record.mediaType.toString());
         if (record.appId != null) context.put(Constants.APP_ID, record.appId);
         if (record.status != null) context.put(Constants.STATUS, Constants.SUPPORT_URL_STATUSES.get(record.status));

@@ -81,7 +81,7 @@ watchEffect(() => resetSeedForm())
 
 <template>
   <el-dialog v-model="open" align-center show-close width="60%">
-    <el-form ref="form" :model="seed" :rules="seedFormRules" label-width="100px" label-position="top">
+    <el-form ref="form" :model="seed" :rules="seedFormRules" label-width="120px" label-position="top">
       <el-scrollbar max-height="800px">
         <darwin-card>
           <template #title>
@@ -94,7 +94,7 @@ watchEffect(() => resetSeedForm())
             <el-col :span="8">
               <el-form-item prop="allow_dispatch">
                 <template #label>
-                  <span class="d-flex align-items-center">
+                  <span class="d-inline-flex align-items-center">
                     <span>数据分发</span>
                     <el-tooltip effect="dark" placement="top" content="抓取结果通过消息队列分发，默认禁止分发">
                       <IconHelp size="12" class="ml-2"/>
@@ -110,7 +110,7 @@ watchEffect(() => resetSeedForm())
             <el-col :span="8">
               <el-form-item prop="normalize">
                 <template #label>
-                  <span class="d-flex align-items-center">
+                  <span class="d-inline-flex align-items-center">
                     <span>正规化</span>
                     <el-tooltip effect="dark" placement="top" content="正规化会改写链接，对参数进行排序，抹去锚信息，默认进行正规化">
                       <IconHelp size="12" class="ml-2"/>
@@ -126,7 +126,7 @@ watchEffect(() => resetSeedForm())
             <el-col :span="8">
               <el-form-item prop="timeout">
                 <template #label>
-                  <span class="d-flex align-items-center">
+                  <span class="d-inline-flex align-items-center">
                     <span>抓取超时</span>
                     <el-tooltip effect="dark" placement="top" content="单位：毫秒，系统默认超时时间6秒">
                       <IconHelp size="12" class="ml-2"/>
@@ -159,7 +159,7 @@ watchEffect(() => resetSeedForm())
             <el-col :span="8">
               <el-form-item prop="link_scope">
                 <template #label>
-                  <span class="d-flex align-items-center">
+                  <span class="d-inline-flex align-items-center">
                     <span>范围抽链</span>
                     <el-tooltip effect="dark" placement="top" content="注意：选择范围抽链后规则脚本失效">
                       <IconHelp size="12" class="ml-2"/>
@@ -197,7 +197,7 @@ watchEffect(() => resetSeedForm())
             <el-col :span="8">
               <el-form-item prop="system_cookie">
                 <template #label>
-                  <span class="d-flex align-items-center">
+                  <span class="d-inline-flex align-items-center">
                     <span>系统设置Cookie</span>
                     <el-tooltip effect="dark" placement="top"
                                 content="开启系统设置Cookie，系统根据Cookie管理配置为抓取URL设置Cookie">
@@ -217,7 +217,7 @@ watchEffect(() => resetSeedForm())
             <el-col :span="8">
               <el-form-item prop="post_media_type">
                 <template #label>
-                  <span class="d-flex align-items-center">
+                  <span class="d-inline-flex align-items-center">
                     <span>POST媒体类型</span>
                     <el-tooltip effect="dark" placement="top" raw-content
                                 content="FORM：application/x-www-form-urlencoded <br/> JSON：application/json">
@@ -235,7 +235,7 @@ watchEffect(() => resetSeedForm())
           </el-row>
           <el-form-item v-if="seed.http_request === 'POST'" prop="request_body" label-position="top">
             <template #label>
-              <span class="d-flex align-items-center">
+              <span class="d-inline-flex align-items-center">
                 <span>POST请求体</span>
                 <el-tooltip effect="dark" placement="top" content="POST请求参数定义">
                   <IconHelp size="12" class="ml-2"/>
@@ -250,7 +250,7 @@ watchEffect(() => resetSeedForm())
         </darwin-card>
         <darwin-card v-if="more">
           <template #title>
-            <span class="fs-14px d-flex align-items-center">
+            <span class="fs-14px d-inline-flex align-items-center">
               <span>HTTP请求头</span>
               <el-tooltip effect="dark" placement="top" content="自定义HTTP请求头解决数据爬取问题">
                 <IconHelp size="12" class="ml-2"/>
@@ -261,7 +261,7 @@ watchEffect(() => resetSeedForm())
         </darwin-card>
         <darwin-card v-if="more">
           <template #title>
-            <span class="fs-14px d-flex align-items-center">
+            <span class="fs-14px d-inline-flex align-items-center">
               <span>自定义数据</span>
               <el-tooltip effect="dark" placement="top" content="通过自定义数据进行用户数据透传">
                 <IconHelp size="12" class="ml-2"/>

@@ -7,6 +7,12 @@ export const planFormRules = {
   app_id: [
     { required: true, message: '请选择所属应用', trigger: 'change' }
   ],
+  category: [
+    { required: true, message: '请选择计划类型', trigger: 'change' }
+  ],
+  allow_dispatch_fail: [
+    { required: true, message: '请选择失败数据分发方式', trigger: 'change' }
+  ],
   crontab_expression: [
     {
       required: true,

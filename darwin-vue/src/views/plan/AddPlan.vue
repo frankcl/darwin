@@ -75,7 +75,7 @@ const add = async () => {
           <el-col :span="8">
             <el-form-item prop="allow_dispatch_fail">
               <template #label>
-                <span>允许分发失败数据</span>
+                <span>分发失败数据</span>
                 <el-tooltip effect="dark" placement="top"
                             content="默认只分发抓取成功数据，允许则抓取失败数据也会分发">
                   <IconHelp size="12" class="ml-2"/>
