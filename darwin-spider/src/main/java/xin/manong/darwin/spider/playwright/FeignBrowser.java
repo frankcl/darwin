@@ -191,10 +191,12 @@ public class FeignBrowser implements Closeable {
                         "--disable-gpu",
                         "--disable-setuid-sandbox",
                         "--window-size=" + profile.screenWidth() + "," + profile.screenHeight()));
-        if (StringUtils.isNotEmpty(executablePath) && Files.exists(Path.of(executablePath))) {
-            launchOptions.setExecutablePath(Path.of(executablePath));
+        if (StringUtils.isNotEmpty(executablePath)) {
+            Path path = Path.of(executablePath);
+            if (Files.exists(path)) launchOptions.setExecutablePath(path);
+            else logger.warn("Executable browser path:{} is not found, use default browser", executablePath);
         } else {
-            logger.warn("Executable browser path:{} not exists, use default browser", executablePath);
+            logger.warn("Executable browser path is not config, use default browser");
         }
         this.browser = playwright.chromium().launch(launchOptions);
         this.sessionManager = new SessionManager(this, maxSessions);
