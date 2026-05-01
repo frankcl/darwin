@@ -12,6 +12,7 @@ import xin.manong.darwin.service.iface.ProxyService;
 
 import java.io.Closeable;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
@@ -190,7 +191,11 @@ public class FeignBrowser implements Closeable {
                         "--disable-gpu",
                         "--disable-setuid-sandbox",
                         "--window-size=" + profile.screenWidth() + "," + profile.screenHeight()));
-        if (StringUtils.isNotEmpty(executablePath)) launchOptions.setExecutablePath(Path.of(executablePath));
+        if (StringUtils.isNotEmpty(executablePath) && Files.exists(Path.of(executablePath))) {
+            launchOptions.setExecutablePath(Path.of(executablePath));
+        } else {
+            logger.warn("Executable browser path:{} not exists, use default browser", executablePath);
+        }
         this.browser = playwright.chromium().launch(launchOptions);
         this.sessionManager = new SessionManager(this, maxSessions);
     }

@@ -9,4 +9,4 @@ app:
     retry-cnt: 3
     max-depth: 3
     max-browser-sessions: 10
-    browser-execute-path: /usr/bin/chromium-browser
+    browser-execute-path: /home/frankcl/.cache/ms-playwright/chromium-1217/chrome-linux64/chrome
