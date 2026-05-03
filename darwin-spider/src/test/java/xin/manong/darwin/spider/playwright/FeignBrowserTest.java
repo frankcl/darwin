@@ -3,6 +3,8 @@ package xin.manong.darwin.spider.playwright;
 import org.junit.*;
 
 import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
 
@@ -27,7 +29,7 @@ public class FeignBrowserTest {
     @Test
     public void testDownload() throws Exception {
         String url = "https://www.firstsilicon.co.kr/pro10/business/download?cate_id=0111&pd_id=3604&pf_id=0";
-        Map<String, String> headers = Map.of("Cookie", "dt=dt; CUPID=8fa3f1c9a71d0617d1985c850ff73daf; PHPSESSID=m20ccrgevhklj1f9r4dea60bme; 2a0d2363701f23f8a75028924a3af643=MTQ2LjE5MC4xNTEuNjI%3D");
+        Map<String, String> headers = Map.of("Cookie", "dt=dt; PHPSESSID=6pq7mr0b6o8fuodhub8soum5n6; CUPID=2fbda820111335af23d83790a0f01c2d; 2a0d2363701f23f8a75028924a3af643=MjAzLjE5OC4yNDguMjQ1");
         FetchRequest.Builder builder = FetchRequest.builder().requestURL(url).headers(headers);
         try (FetchResponse response = feignBrowser.fetch(builder.build())) {
             Assert.assertTrue(response.isStatus());

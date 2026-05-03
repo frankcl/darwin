@@ -18,6 +18,7 @@ import java.nio.charset.StandardCharsets;
 @EnableRedisClient
 @EnableEtcdClient
 @EnableKafkaProducer
+@EnableKafkaAdmin
 @EnableOSSClient
 @PropertySource(
         name="default",

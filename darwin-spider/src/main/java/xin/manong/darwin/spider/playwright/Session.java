@@ -19,8 +19,6 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.*;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 /**
@@ -33,12 +31,8 @@ public class Session implements Closeable {
 
     private static final Logger logger = LoggerFactory.getLogger(Session.class);
 
-    private static final Set<String> TEXT_MIME_TYPES = Set.of(
-            "application/json", "application/xhtml+xml", "application/xml",
-            "application/x-javascript", "application/javascript");
     private static final String DOWNLOAD_KEYWORD = "Download is starting";
     private static final String HEADER_CONTENT_TYPE = "Content-Type";
-    private static final String HEADER_CONTENT_DISPOSITION = "Content-Disposition";
     private static final String HEADER_HOST = "Host";
     private static final String CONTENT_TYPE_APPLICATION_JSON = "application/json";
     private static final String CONTENT_TYPE_APPLICATION_FORM = "application/x-www-form-urlencoded";
@@ -69,9 +63,18 @@ public class Session implements Closeable {
                         const match = disposition.match(/filename[^;=\\n]*=(['"]*)(.*?)\\1/);
                         if (match) return match[2]
                         const pos = mimeType.indexOf('/');
-                        let suffix = pos == -1 ? '' : mineType.substring(pos + 1);
+                        let suffix = pos == -1 ? '' : mimeType.substring(pos + 1);
                         if (!/^[a-zA-Z0-9]+$/.test(suffix)) suffix = '';
                         return suffix === '' ? 'file' : 'file.' + suffix;
+                    }
+                    function toBase64(buf) {
+                        const bytes = new Uint8Array(buf);
+                        const chunkSize = 8192;
+                        let bin = '';
+                        for (let i = 0; i < bytes.length; i += chunkSize) {
+                            bin += String.fromCharCode(...bytes.subarray(i, i + chunkSize));
+                        }
+                        return btoa(bin);
                     }
                     try {
                         const request = {
@@ -86,42 +89,24 @@ public class Session implements Closeable {
                                 const form = new FormData();
                                 Object.entries(requestBody).forEach(([k, v]) => form.append(k, v));
                                 request.body = form;
+                                if (request.headers) delete request.headers['Content-Type']
                             }
                         }
                         const resp = await fetch(url, request);
                         const contentType = resp.headers.get('Content-Type') || '';
                         const mimeType = contentType.split(';')[0].trim();
                         const disposition = resp.headers.get('Content-Disposition') || '';
-                        if (disposition.toLowerCase().includes('attachment') || isFileType(mimeType)) {
-                            const blob = await resp.blob();
-                            const filename = parseFilename(mimeType, disposition);
-                            const blobUrl = URL.createObjectURL(blob);
-                            const a = document.createElement('a');
-                            a.href = blobUrl;
-                            a.download = filename;
-                            document.body.appendChild(a);
-                            a.click();
-                            document.body.removeChild(a);
-                            URL.revokeObjectURL(blobUrl);
-                            return {
-                                status: true,
-                                httpCode: resp.status,
-                                url: resp.url,
-                                headers: Object.fromEntries(resp.headers.entries())
-                            };
-                        } else {
-                            const buf = await resp.arrayBuffer();
-                            const bytes = new Uint8Array(buf);
-                            let bin = '';
-                            bytes.forEach(b => bin += String.fromCharCode(b));
-                            return {
-                                status: true,
-                                httpCode: resp.status,
-                                url: resp.url,
-                                headers: Object.fromEntries(resp.headers.entries()),
-                                base64: btoa(bin)
-                            };
-                        }
+                        const isFile = disposition.toLowerCase().includes('attachment') || isFileType(mimeType);
+                        const buf = await resp.arrayBuffer();
+                        return {
+                            status: true,
+                            httpCode: resp.status,
+                            url: resp.url,
+                            isFile,
+                            filename: isFile ? parseFilename(mimeType, disposition) : null,
+                            headers: Object.fromEntries(resp.headers.entries()),
+                            base64: toBase64(buf)
+                        };
                     } catch (e) {
                         return {
                             status: false,
@@ -233,40 +218,6 @@ public class Session implements Closeable {
     }
 
     /**
-     * 获取执行结果
-     *
-     * @param future 异步任务
-     * @param timeoutSeconds 超时时间，单位：毫秒
-     * @return 结果
-     * @param <T> 类型
-     */
-    private <T> T getFutureQuietly(CompletableFuture<T> future, int timeoutSeconds) {
-        try {
-            return future.get(timeoutSeconds, TimeUnit.MILLISECONDS);
-        } catch (Exception e) {
-            return null;
-        }
-    }
-
-    /**
-     * 判断是否为文件类型
-     *
-     * @param headers HTTP响应头
-     * @return 文件类型返回true，否则返回false
-     */
-    private boolean isFileType(Map<String, String> headers) {
-        String contentType = headers == null ? "" : headers.getOrDefault(HEADER_CONTENT_TYPE,
-                headers.getOrDefault(HEADER_CONTENT_TYPE.toLowerCase(), ""));
-        String disposition = headers == null ? "" : headers.getOrDefault(HEADER_CONTENT_DISPOSITION,
-                headers.getOrDefault(HEADER_CONTENT_DISPOSITION.toLowerCase(), ""));
-        if (disposition.toLowerCase().contains("attachment")) return true;
-        String mimeType = contentType.split(";")[0].trim().toLowerCase();
-        if (TEXT_MIME_TYPES.contains(mimeType)) return false;
-        return mimeType.startsWith("application/") || mimeType.startsWith("image/") ||
-                mimeType.startsWith("video/") || mimeType.startsWith("audio/");
-    }
-
-    /**
      * 抓取数据
      *
      * @param request 抓取请求
@@ -274,26 +225,13 @@ public class Session implements Closeable {
      */
     public FetchResponse fetch(FetchRequest request) {
         beforeFetch(request);
-        CompletableFuture<Download> downloadFuture = new CompletableFuture<>();
-        page.onDownload(download -> {
-            if (!downloadFuture.isDone()) downloadFuture.complete(download);
-        });
         long startTime = System.currentTimeMillis();
+        page.onConsoleMessage(msg -> logger.info("JavaScript console message:{}", msg.text()));
         Object response = page.evaluate(FETCH_SCRIPT, buildRequestMap(request));
         FetchResponse fetchResponse = parseResponse(response);
-        logger.info("Finish fetching url:{}, cost is {} ms",
-                request.getRequestURL(), System.currentTimeMillis() - startTime);
-        if (!fetchResponse.isStatus()) return fetchResponse;
-        Map<String, String> headers = fetchResponse.getHeaders();
-        if (isFileType(headers)) {
-            Download download = getFutureQuietly(downloadFuture, request.getTimeout());
-            if (download != null) {
-                FetchResponse.Builder builder = FetchResponse.builder().copy(fetchResponse);
-                if (download.failure() != null) return builder.status(false).message(download.failure()).build();
-                if (!saveDownloadedFile(download, builder)) builder.status(false);
-                return builder.build();
-            }
-        }
+        logger.info("Finish fetching url:{}, status:{}, http code:{}, cost is {} ms",
+                request.getRequestURL(), fetchResponse.isStatus(), fetchResponse.getHttpCode(),
+                System.currentTimeMillis() - startTime);
         return fetchResponse;
     }
 
