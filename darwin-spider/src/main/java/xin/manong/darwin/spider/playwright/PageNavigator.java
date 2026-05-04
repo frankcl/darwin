@@ -41,11 +41,12 @@ public class PageNavigator {
             waitStable(timeout);
             page.waitForLoadState(LoadState.NETWORKIDLE,
                     new Page.WaitForLoadStateOptions().setTimeout(timeout));
+            return page.url();
         } catch (Exception e) {
             logger.error("Wait for navigating url:{} failed", requestURL);
             logger.error(e.getMessage(), e);
+            return requestURL;
         }
-        return page.url();
     }
 
     /**
