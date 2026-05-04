@@ -227,6 +227,14 @@ public class Session implements Closeable {
         beforeFetch(request);
         long startTime = System.currentTimeMillis();
         page.onConsoleMessage(msg -> logger.info("JavaScript console message:{}", msg.text()));
+        if (request.isNavigate()) {
+            PageNavigator navigator = new PageNavigator(page);
+            String url = navigator.navigate(request.getRequestURL(), request.getTimeout());
+            if (!request.getRequestURL().equals(url)) {
+                logger.info("Redirect new URL:{} for fetching url:{}", url, request.getRequestURL());
+                request = FetchRequest.builder().copy(request).requestURL(url).build();
+            }
+        }
         Object response = page.evaluate(FETCH_SCRIPT, buildRequestMap(request));
         FetchResponse fetchResponse = parseResponse(response);
         logger.info("Finish fetching url:{}, status:{}, http code:{}, cost is {} ms",

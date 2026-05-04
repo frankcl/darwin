@@ -63,6 +63,11 @@ public class SeedUpdateRequest implements Serializable {
     public Boolean systemCookie;
 
     /**
+     * 是否需要页面导航
+     */
+    public Boolean navigate;
+
+    /**
      * HTTP请求
      */
     @JsonProperty("http_request")
@@ -139,7 +144,7 @@ public class SeedUpdateRequest implements Serializable {
         if (StringUtils.isEmpty(key)) throw new BadRequestException("种子key为空");
         if (StringUtils.isEmpty(url) && fetchMethod == null && priority == null && postMediaType == null &&
                 timeout == null && linkScope == null && allowDispatch == null && allowDispatchFail == null &&
-                httpRequest == null && normalize == null && headers.isEmpty() &&
+                httpRequest == null && normalize == null && navigate == null && headers.isEmpty() &&
                 customMap.isEmpty() && requestBody.isEmpty()) {
             throw new BadRequestException("种子更新信息为空");
         }
@@ -155,5 +160,6 @@ public class SeedUpdateRequest implements Serializable {
         if (priority != null && (priority > Constants.PRIORITY_LOW || priority < Constants.PRIORITY_HIGH)) {
             throw new BadRequestException("不支持的优先级");
         }
+        if (fetcherType != null && fetcherType != Constants.FETCHER_TYPE_BROWSER) navigate = null;
     }
 }

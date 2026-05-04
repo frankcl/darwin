@@ -64,6 +64,12 @@ public class SeedRequest extends AuthenticateRequest {
     public Boolean systemCookie;
 
     /**
+     * 是否需要浏览器导航
+     */
+    @JsonProperty("navigate")
+    public Boolean navigate;
+
+    /**
      * HTTP请求
      */
     @JsonProperty("http_request")
@@ -150,6 +156,7 @@ public class SeedRequest extends AuthenticateRequest {
         if (linkScope != null && !Constants.SUPPORT_LINK_SCOPES.containsKey(linkScope)) throw new BadRequestException("不支持的抽链范围");
         if (!Constants.SUPPORT_FETCH_METHODS.containsKey(fetchMethod)) throw new BadRequestException("不支持的抓取方式");
         if (priority > Constants.PRIORITY_LOW || priority < Constants.PRIORITY_HIGH) throw new BadRequestException("不支持的优先级");
+        if (Constants.FETCHER_TYPE_BROWSER != fetcherType) navigate = null;
         try {
             new URL(url);
         } catch (MalformedURLException e) {

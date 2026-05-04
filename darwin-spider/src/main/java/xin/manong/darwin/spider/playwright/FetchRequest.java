@@ -18,6 +18,7 @@ public class FetchRequest {
     public static final String METHOD_GET = "GET";
     public static final String METHOD_POST = "POST";
 
+    private final boolean navigate;
     private final String requestURL;
     private final String method;
     private final Map<String, String> headers;
@@ -26,6 +27,7 @@ public class FetchRequest {
     private final Integer timeout;
 
     private FetchRequest(Builder builder) {
+        navigate = builder.navigate;
         requestURL = builder.requestURL;
         method = StringUtils.isEmpty(builder.method) ? METHOD_GET : builder.method;
         headers = builder.headers;
@@ -57,6 +59,7 @@ public class FetchRequest {
      * 构建器
      */
     public static class Builder {
+        private boolean navigate;
         private String requestURL;
         private String method;
         private Map<String, String> headers;
@@ -91,6 +94,22 @@ public class FetchRequest {
 
         public Builder fetchMethod(Integer fetchMethod) {
             this.fetchMethod = fetchMethod;
+            return this;
+        }
+
+        public Builder navigate(boolean navigate) {
+            this.navigate = navigate;
+            return this;
+        }
+
+        public Builder copy(FetchRequest fetchRequest) {
+            this.requestURL = fetchRequest.requestURL;
+            this.method = fetchRequest.method;
+            this.headers = fetchRequest.headers;
+            this.requestBody = fetchRequest.requestBody;
+            this.timeout = fetchRequest.timeout;
+            this.navigate = fetchRequest.navigate;
+            this.fetchMethod = fetchRequest.fetchMethod;
             return this;
         }
 

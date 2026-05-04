@@ -182,6 +182,15 @@ public class SeedRecord extends BaseModel {
     public Boolean systemCookie;
 
     /**
+     * 是否需要进行浏览器导航
+     */
+    @TableField(value = "navigate")
+    @Column(name = "navigate")
+    @JSONField(name = "navigate")
+    @JsonProperty("navigate")
+    public Boolean navigate;
+
+    /**
      * host
      */
     @TableField(value = "host")
@@ -325,6 +334,7 @@ public class SeedRecord extends BaseModel {
         allowDispatchFail = record.allowDispatchFail;
         normalize = record.normalize;
         systemCookie = record.systemCookie;
+        navigate = record.navigate;
         httpRequest = record.httpRequest;
         postMediaType = record.postMediaType;
         requestHash = record.requestHash;

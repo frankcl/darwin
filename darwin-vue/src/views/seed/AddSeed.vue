@@ -209,8 +209,8 @@ watchEffect(() => seed.plan_id = props.planId)
               </el-form-item>
             </el-col>
           </el-row>
-          <el-row v-if="seed.http_request === 'POST'">
-            <el-col :span="8">
+          <el-row>
+            <el-col v-if="seed.http_request === 'POST'" :span="8">
               <el-form-item prop="post_media_type">
                 <template #label>
                     <span class="d-inline-flex align-items-center">
@@ -225,6 +225,23 @@ watchEffect(() => seed.plan_id = props.planId)
                   <el-radio v-for="key in Object.keys(postMediaTypeMap)" :value="key" :key="key">
                     {{ postMediaTypeMap[key] }}
                   </el-radio>
+                </el-radio-group>
+              </el-form-item>
+            </el-col>
+            <el-col v-if="seed.fetcher_type === 1" :span="8">
+              <el-form-item prop="navigate">
+                <template #label>
+                    <span class="d-inline-flex align-items-center">
+                      <span>页面导航</span>
+                      <el-tooltip effect="dark" placement="top" raw-content
+                                  content="执行浏览器页面导航，运行JS并设置Cookie">
+                        <IconHelp size="12" class="ml-2"/>
+                      </el-tooltip>
+                    </span>
+                </template>
+                <el-radio-group v-model="seed.navigate">
+                  <el-radio :value="true">执行</el-radio>
+                  <el-radio :value="false">不执行</el-radio>
                 </el-radio-group>
               </el-form-item>
             </el-col>

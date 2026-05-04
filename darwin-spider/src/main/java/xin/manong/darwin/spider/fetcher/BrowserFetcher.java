@@ -37,6 +37,7 @@ public class BrowserFetcher extends Fetcher<FetchResponse> {
         FetchRequest.Builder builder = new FetchRequest.Builder();
         String method = buildRequestMethod(record);
         builder.requestURL(record.url).method(method);
+        if (record.navigate != null) builder.navigate(record.navigate);
         Map<String, String> headers = buildDefaultHeaders(config, record, cookieService);
         if (method.equalsIgnoreCase(FetchRequest.METHOD_POST)) {
             builder.requestBody(record.requestBody);

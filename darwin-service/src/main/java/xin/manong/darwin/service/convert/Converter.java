@@ -56,6 +56,7 @@ public class Converter {
         record.httpRequest = seedRecord.httpRequest;
         record.postMediaType = seedRecord.postMediaType;
         record.systemCookie = seedRecord.systemCookie;
+        record.navigate = seedRecord.navigate;
         record.requestHash = seedRecord.requestHash;
         record.requestBody = seedRecord.requestBody == null ? new HashMap<>() : seedRecord.requestBody;
         record.headers = seedRecord.headers == null ? new HashMap<>() : seedRecord.headers;
